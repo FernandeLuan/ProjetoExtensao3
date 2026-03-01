@@ -199,47 +199,7 @@ img, video { max-width:100%; height:auto; display:block; }
   box-shadow:0 10px 30px rgba(255,46,99,0.2);
 }
 /* Botões em uma única linha - texto não quebra */
-/* Botões Baixar - fonte 12px + texto centralizado no quadrado arredondado */
-.btn-group {
-  display: flex;
-  flex-wrap: nowrap; /* lado a lado */
-  gap: 0.8rem;
-  justify-content: center;
-  margin: 1.5rem 0;
-}
 
-.btn-store {
-  padding: 0.9rem 1.4rem; /* tamanho reduzido para caber lado a lado */
-  font-size: 12px; /* exatamente como você pediu */
-  font-weight: 700;
-  text-decoration: none;
-  color: #000;
-  background: linear-gradient(135deg, #00f0ff, #ff2e63);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
-  border-radius: 999px; /* quadrado arredondado */
-  transition: all 0.4s;
-  flex: 1;
-  max-width: 48%;
-  text-align: center;
-  display: flex; /* para centralizar perfeitamente */
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap; /* texto em uma linha só */
-}
-
-.btn-store:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0 40px rgba(255, 46, 99, 0.5);
-  background: linear-gradient(135deg, #ff2e63, #00f0ff);
-}
-
-/* Mobile - reforça centralização */
-@media (max-width: 768px) {
-  .btn-store {
-    font-size: 12px;
-    padding: 0.8rem 1.2rem;
-  }
-}
 /* Localização */
 .localizacao {
   padding-top:2rem;
