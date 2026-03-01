@@ -47,9 +47,9 @@ img, video { max-width:100%; height:auto; display:block; }
 }
 
 .logo {
-  font-size:1.5rem; /* diminuído para caber melhor */
+  font-size:1.5rem;
   font-weight:700;
-  background:linear-gradient(90deg,#00f0ff,#ff2e63);
+  background:linear-gradient(90deg,#00f0ff,#ff6b00); /* azul + laranja */
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   margin:0;
@@ -79,7 +79,7 @@ img, video { max-width:100%; height:auto; display:block; }
   font-weight:500;
   transition:color 0.3s;
 }
-.nav-list a:hover { color:#00f0ff; }
+.nav-list a:hover { color:#ff6b00; } /* laranja no hover */
 
 @media (max-width:768px) {
   .menu-icon { display:block; }
@@ -87,7 +87,7 @@ img, video { max-width:100%; height:auto; display:block; }
     display:none;
     position:absolute;
     top:100%;
-    right:0; /* sempre à direita */
+    right:0;
     width:100%;
     background:rgba(11,14,23,0.95);
     flex-direction:column;
@@ -101,7 +101,6 @@ img, video { max-width:100%; height:auto; display:block; }
 /* Sobre */
 .sobre {
   padding-top:100px;
-  padding-bottom:2rem;
 }
 .sobre-grid {
   display:flex;
@@ -113,6 +112,28 @@ img, video { max-width:100%; height:auto; display:block; }
   .sobre-grid { flex-direction:row; align-items:center; gap:3.5rem; }
   .sobre-video-container { flex-shrink:0; margin-right:2rem; }
   .sobre-texto { flex:1; max-width:600px; text-align:left; }
+}
+/* Sobre - espaçamento entre parágrafos ajustado */
+.sobre-texto {
+  max-width: 100%;
+  text-align: left;
+}
+
+.sobre-texto p {
+  font-size: 1rem;          /* tamanho confortável */
+  line-height: 1.7;         /* espaçamento interno das linhas */
+  margin: 0 0 1.2rem 0;     /* espaço abaixo de cada parágrafo: 1.2rem ≈ 19px */
+}
+
+.sobre-texto p:last-child {
+  margin-bottom: 0;         /* tira espaço extra do último parágrafo */
+}
+
+/* Mobile - se quiser ainda mais controlado */
+@media (max-width: 768px) {
+  .sobre-texto p {
+    font-size: 0.95rem;
+  }
 }
 .sobre-video-container {
   position:relative;
@@ -155,8 +176,8 @@ img, video { max-width:100%; height:auto; display:block; }
 .carousel-track img:hover,
 .carousel-track video:hover {
   transform:scale(1.05);
-  border-color:#00f0ff;
-  box-shadow:0 0 40px rgba(0,240,255,0.5);
+  border-color:#ff6b00; /* laranja no hover */
+  box-shadow:0 0 40px rgba(255,107,0,0.5);
 }
 .carousel-btn {
   position:absolute;
@@ -174,35 +195,65 @@ img, video { max-width:100%; height:auto; display:block; }
 .prev { left:1rem; }
 .next { right:1rem; }
 
-/* Como Agendar - texto menor e botões lado a lado menores */
+/* Como Agendar */
 .agendar {
-  padding-top:2rem;
-  padding-bottom:3rem;
-  text-align:center;
+  padding-bottom:1rem;
+  text-align:left;
 }
 .agendar p {
-  font-size:0.9rem; /* menor e menos pesado */
+  font-size:0.9rem;
   opacity:0.85;
   margin-bottom:2rem;
 }
 .passos li {
   background:#141822;
-  padding:1.5rem;
+  font-size: 15px;
+  padding:0.6rem;
   margin:1.2rem 0;
   border-radius:12px;
   border-left:6px solid #00f0ff;
   transition:all 0.3s;
 }
 .passos li:hover {
-  border-left-color:#ff2e63;
+  border-left-color:#ff6b00; /* laranja no hover */
   transform:translateX(12px);
-  box-shadow:0 10px 30px rgba(255,46,99,0.2);
+  box-shadow:0 10px 30px rgba(255,107,0,0.2);
 }
-/* Botões em uma única linha - texto não quebra */
+.btn-group { 
+  display:flex; 
+  flex-wrap:nowrap; 
+  gap:1rem; 
+  justify-content:center; 
+
+}
+@media (max-width:768px) {
+  .btn-group { gap:0.8rem; }
+  .btn-store { 
+    padding:0.5rem 1rem; 
+    font-size:0.9rem; 
+    flex:1; 
+    max-width:48%; 
+  }
+}
+.btn-store {
+  font-size: 12px;
+  border-radius:999px;
+  text-align: center;
+  font-weight:500;
+  text-decoration:none;
+  color:#000;
+  background:linear-gradient(135deg,#00f0ff,#ff6b00); /* azul + laranja */
+  box-shadow:0 0 30px rgba(0,240,255,0.4);
+  transition:all 0.4s;
+}
+.btn-store:hover {
+  transform:translateY(-5px);
+  box-shadow:0 0 60px rgba(255,107,0,0.6);
+  background:linear-gradient(135deg,#ff6b00,#00f0ff);
+}
 
 /* Localização */
 .localizacao {
-  padding-top:2rem;
   padding-bottom:4rem;
 }
 .localizacao h2 { margin-bottom:1.5rem; }
@@ -235,11 +286,11 @@ footer {
   transition:color 0.3s, transform 0.3s;
 }
 .footer-social a:hover {
-  color:#00f0ff;
+  color:#ff6b00; /* laranja no hover */
   transform:scale(1.15);
 }
 
-/* Títulos gerais */
+/* Títulos gerais - gradiente azul + laranja */
 h2 {
   font-size:2rem;
   text-align:center;
@@ -254,6 +305,6 @@ h2::after {
   transform:translateX(-50%);
   width:120px;
   height:5px;
-  background:linear-gradient(90deg,#00f0ff,#ff2e63);
+  background:linear-gradient(90deg,#00f0ff,#ff6b00); /* azul + laranja */
   border-radius:5px;
 }
