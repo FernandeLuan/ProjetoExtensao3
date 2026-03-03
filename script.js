@@ -7,11 +7,9 @@ function updateCarousel() {
   totalSlides = slides.length;
   if (totalSlides === 0) return;
 
-  // Cálculo preciso: largura do slide + gap real
   const gap = parseFloat(getComputedStyle(track).gap) || 24;
   slideWidth = slides[0].getBoundingClientRect().width + gap;
 
-  // Limita o translate para não ultrapassar o último slide
   const maxTranslate = (totalSlides - 1) * slideWidth;
   const translateX = Math.min(currentIndex * slideWidth, maxTranslate);
 
@@ -21,7 +19,6 @@ function updateCarousel() {
 function moveCarousel(direction) {
   currentIndex += direction;
 
-  // Loop infinito perfeito
   if (currentIndex < 0) currentIndex = totalSlides - 1;
   if (currentIndex >= totalSlides) currentIndex = 0;
 
@@ -31,7 +28,7 @@ function moveCarousel(direction) {
 // Auto slide 3s
 let auto = setInterval(() => moveCarousel(1), 3000);
 
-// Pause no hover
+// Pause hover
 const carousel = document.querySelector('.carousel');
 if (carousel) {
   carousel.addEventListener('mouseenter', () => clearInterval(auto));
@@ -72,10 +69,8 @@ function closeMenu() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Fecha menu ao carregar
   closeMenu();
 
-  // Scroll suave com offset do header para todos os links do menu
   document.querySelectorAll('.nav-list a').forEach(link => {
     link.addEventListener('click', function(e) {
       e.preventDefault();
@@ -85,13 +80,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetElement) {
         const headerHeight = document.querySelector('.header').offsetHeight || 80;
         const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-        const offsetPosition = elementPosition - headerHeight - 20; // -20px de respiro extra
+        const offsetPosition = elementPosition - headerHeight - 20;
 
         window.scrollTo({
           top: offsetPosition,
           behavior: 'smooth'
         });
       }
+    });
+  });
+
+  // Voltar ao topo ao clicar no header/logo
+  document.querySelectorAll('.logo-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     });
   });
 });
