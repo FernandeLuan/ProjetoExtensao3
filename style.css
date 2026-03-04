@@ -31,33 +31,62 @@ img, video { max-width:100%; height:auto; display:block; }
   align-items:center;
 }
 
+/* Header - ajuste para telas pequenas como iPhone 13 Mini */
 .logo-container {
-  display:flex;
-  align-items:center;
-  gap:0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem; /* reduzido de 0.8rem para caber melhor */
+  flex-wrap: nowrap; /* impede quebra */
 }
 
 .logo-foto {
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  object-fit:cover;
-  border:2px solid rgba(0,240,255,0.5);
-  box-shadow:0 0 15px rgba(0,240,255,0.3);
+  width: 50px; /* menor no mobile pequeno */
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0,240,255,0.5);
+  box-shadow: 0 0 15px rgba(0,240,255,0.3);
+  flex-shrink: 0; /* foto não encolhe */
 }
 
 .logo {
-  font-size:1.5rem;
-  font-weight:700;
-  background:linear-gradient(90deg,#00f0ff,#ff6b00); /* azul + laranja */
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  margin:0;
+  font-size: 1.3rem; /* menor que 1.5rem para caber em 336px */
+  font-weight: 700;
+  background: linear-gradient(90deg, #00f0ff, #ff6b00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  white-space: nowrap; /* impede quebra do nome em duas linhas */
+  overflow: hidden;
+  text-overflow: ellipsis; /* se ainda apertar muito, coloca reticências */
 }
 
-@media (min-width:768px) {
-  .logo { font-size:2.2rem; }
-  .logo-foto { width:80px; height:80px; }
+/* Ajuste específico para telas muito pequenas (iPhone Mini, zoom, etc.) */
+@media (max-width: 380px) {
+  .logo-container {
+    gap: 0.5rem;
+  }
+  .logo-foto {
+    width: 45px;
+    height: 45px;
+  }
+  .logo {
+    font-size: 1.15rem; /* ainda menor para caber sem quebrar */
+  }
+  .menu-icon {
+    font-size: 1.8rem; /* ícone sanduíche menor se necessário */
+  }
+}
+
+/* Desktop / telas maiores */
+@media (min-width: 768px) {
+  .logo-foto {
+    width: 80px;
+    height: 80px;
+  }
+  .logo {
+    font-size: 2.2rem;
+  }
 }
 
 /* Menu Hamburguer */
@@ -152,48 +181,68 @@ img, video { max-width:100%; height:auto; display:block; }
 }
 
 /* Galeria */
+/* Galeria - correção para todos os iPhones */
+/* Galeria - versão corrigida para todos os iPhones */
 .galeria {
-  padding-top:2rem;
-  padding-bottom:2rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
-.carousel { position:relative; overflow:hidden; padding:1rem 0; }
+
+.carousel {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 0;
+  width: 100%;
+}
+
 .carousel-track {
-  display:flex;
-  gap:1.5rem;
-  transition:transform 0.8s cubic-bezier(0.25,0.1,0.25,1);
+  display: flex;
+  gap: 1.5rem;
+  transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+  justify-content: center;          /* centraliza o item atual */
+  align-items: center;
+  width: max-content;
+  margin: 0 auto;                   /* centraliza o track */
 }
+
+/* Itens com limite para não vazar em telas pequenas */
 .carousel-track img,
 .carousel-track video {
-  min-width:300px;
-  height:400px;
-  object-fit:cover;
-  border-radius:16px;
-  border:2px solid transparent;
-  transition:all 0.4s;
-  flex-shrink:0;
+  min-width: 300px;
+  max-width: 90vw;                  /* nunca maior que 90% da tela */
+  width: 300px;                     /* fixa largura base */
+  height: 400px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  transition: all 0.4s;
+  flex-shrink: 0;
 }
-.carousel-track video { pointer-events:none; }
+
+.carousel-track video { pointer-events: none; }
+
 .carousel-track img:hover,
 .carousel-track video:hover {
-  transform:scale(1.05);
-  border-color:#ff6b00; /* laranja no hover */
-  box-shadow:0 0 40px rgba(255,107,0,0.5);
+  transform: scale(1.05);
+  border-color: #ff6b00;
+  box-shadow: 0 0 40px rgba(255,107,0,0.5);
 }
+
 .carousel-btn {
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  background:rgba(0,0,0,0.5);
-  color:#00f0ff;
-  border:none;
-  font-size:3rem;
-  cursor:pointer;
-  padding:0.5rem 1rem;
-  border-radius:50%;
-  z-index:10;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  color: #00f0ff;
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 50%;
+  z-index: 10;
 }
-.prev { left:1rem; }
-.next { right:1rem; }
+.prev { left: 1rem; }
+.next { right: 1rem; }
 
 /* Como Agendar */
 .agendar {
@@ -307,4 +356,18 @@ h2::after {
   height:5px;
   background:linear-gradient(90deg,#00f0ff,#ff6b00); /* azul + laranja */
   border-radius:5px;
+}
+/* Header clicável - logo e nome voltam ao topo */
+.logo-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.85; /* efeito sutil ao passar o mouse */
+}
+
+.logo-link:focus {
+  outline: none;
 }

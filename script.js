@@ -101,3 +101,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+document.addEventListener('DOMContentLoaded', () => {
+  // ... seu código atual continua aqui ...
+
+  // Voltar ao topo ao clicar no logo ou nome
+  document.querySelectorAll('.logo-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault(); // impede o # pular
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // scroll suave
+      });
+    });
+  });
+});
