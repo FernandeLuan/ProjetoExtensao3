@@ -71,7 +71,7 @@ img, video { max-width:100%; height:auto; display:block; }
     height: 45px;
   }
   .logo {
-    font-size: 1.15rem; /* ainda menor para caber sem quebrar */
+    font-size: 1.25rem; /* ainda menor para caber sem quebrar */
   }
   .menu-icon {
     font-size: 1.8rem; /* ícone sanduíche menor se necessário */
