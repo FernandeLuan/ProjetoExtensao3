@@ -1,4 +1,3 @@
-/* Reset e base */
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body {
@@ -10,10 +9,8 @@ body {
 }
 img, video { max-width:100%; height:auto; display:block; }
 
-/* Container */
 .container { max-width:1280px; margin:0 auto; padding:0 1.5rem; }
 
-/* Header */
 .header {
   position:fixed;
   top:0;
@@ -31,65 +28,47 @@ img, video { max-width:100%; height:auto; display:block; }
   align-items:center;
 }
 
-/* Header - ajuste para telas pequenas como iPhone 13 Mini */
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 0.6rem; /* reduzido de 0.8rem para caber melhor */
-  flex-wrap: nowrap; /* impede quebra */
+  gap: 0.6rem;
+  flex-wrap: nowrap;
 }
 
 .logo-foto {
-  width: 50px; /* menor no mobile pequeno */
+  width: 50px;
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(0,240,255,0.5);
   box-shadow: 0 0 15px rgba(0,240,255,0.3);
-  flex-shrink: 0; /* foto não encolhe */
+  flex-shrink: 0;
 }
 
 .logo {
-  font-size: 1.3rem; /* menor que 1.5rem para caber em 336px */
+  font-size: 1.3rem;
   font-weight: 700;
   background: linear-gradient(90deg, #00f0ff, #ff6b00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
-  white-space: nowrap; /* impede quebra do nome em duas linhas */
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* se ainda apertar muito, coloca reticências */
+  text-overflow: ellipsis;
 }
 
-/* Ajuste específico para telas muito pequenas (iPhone Mini, zoom, etc.) */
 @media (max-width: 380px) {
-  .logo-container {
-    gap: 0.5rem;
-  }
-  .logo-foto {
-    width: 45px;
-    height: 45px;
-  }
-  .logo {
-    font-size: 1.25rem; /* ainda menor para caber sem quebrar */
-  }
-  .menu-icon {
-    font-size: 1.8rem; /* ícone sanduíche menor se necessário */
-  }
+  .logo-container { gap: 0.5rem; }
+  .logo-foto { width: 45px; height: 45px; }
+  .logo { font-size: 1.25rem; }
+  .menu-icon { font-size: 1.8rem; }
 }
 
-/* Desktop / telas maiores */
 @media (min-width: 768px) {
-  .logo-foto {
-    width: 80px;
-    height: 80px;
-  }
-  .logo {
-    font-size: 2.2rem;
-  }
+  .logo-foto { width: 80px; height: 80px; }
+  .logo { font-size: 2.2rem; }
 }
 
-/* Menu Hamburguer */
 .menu-toggle { display:none; }
 .menu-icon {
   display:none;
@@ -108,7 +87,7 @@ img, video { max-width:100%; height:auto; display:block; }
   font-weight:500;
   transition:color 0.3s;
 }
-.nav-list a:hover { color:#ff6b00; } /* laranja no hover */
+.nav-list a:hover { color:#ff6b00; }
 
 @media (max-width:768px) {
   .menu-icon { display:block; }
@@ -127,7 +106,6 @@ img, video { max-width:100%; height:auto; display:block; }
   #menu-toggle:checked ~ .nav-list { display:flex; }
 }
 
-/* Sobre */
 .sobre {
   padding-top:100px;
 }
@@ -138,27 +116,25 @@ img, video { max-width:100%; height:auto; display:block; }
   align-items:center;
 }
 @media (min-width:768px) {
-  .sobre-grid { flex-direction:row; align-items:center; gap:3.5rem;padding-top: 2rem; }
+  .sobre-grid { flex-direction:row; align-items:center; gap:3.5rem; padding-top: 2rem; }
   .sobre-video-container { flex-shrink:0; margin-right:2rem; }
   .sobre-texto { flex:1; max-width:600px; text-align:left; }
 }
-/* Sobre - espaçamento entre parágrafos ajustado */
 .sobre-texto {
   max-width: 100%;
   text-align: left;
 }
 
 .sobre-texto p {
-  font-size: 1rem;          /* tamanho confortável */
-  line-height: 1.7;         /* espaçamento interno das linhas */
-  margin: 0 0 1.2rem 0;     /* espaço abaixo de cada parágrafo: 1.2rem ≈ 19px */
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0 0 1.2rem 0;
 }
 
 .sobre-texto p:last-child {
-  margin-bottom: 0;         /* tira espaço extra do último parágrafo */
+  margin-bottom: 0;
 }
 
-/* Mobile - se quiser ainda mais controlado */
 @media (max-width: 768px) {
   .sobre-texto p {
     font-size: 0.95rem;
@@ -186,9 +162,7 @@ img, video { max-width:100%; height:auto; display:block; }
     object-fit: cover;
   }
 }
-/* Galeria */
-/* Galeria - correção para todos os iPhones */
-/* Galeria - versão corrigida para todos os iPhones */
+
 .galeria {
   padding-top: 2rem;
   padding-bottom: 2rem;
@@ -208,12 +182,11 @@ img, video { max-width:100%; height:auto; display:block; }
   align-items: center;
 }
 
-/* Itens com limite para não vazar em telas pequenas */
 .carousel-track img,
 .carousel-track video {
   min-width: 300px;
-  max-width: 90vw;                  /* nunca maior que 90% da tela */
-  width: 300px;                     /* fixa largura base */
+  max-width: 90vw;
+  width: 300px;
   height: 400px;
   object-fit: cover;
   border-radius: 16px;
@@ -266,49 +239,23 @@ img, video { max-width:100%; height:auto; display:block; }
   text-decoration: none;
   color: #000;
   padding: 14px 32px;
-
-  /* mesma identidade do .btn-store */
   background: linear-gradient(135deg, #00f0ff, #ff6b00);
   box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
-
   transition: all 0.4s ease;
   display: inline-block;
 }
 
-/* HOVER - INVERTE GRADIENTE + SOMBRA LARANJA */
 .btn-agendar:hover {
   transform: translateY(-5px);
   background: linear-gradient(135deg, #ff6b00, #00f0ff);
   box-shadow: 0 0 60px rgba(255, 107, 0, 0.6);
 }
 
-/* CLICK */
 .btn-agendar:active {
   transform: translateY(-2px);
   box-shadow: 0 0 40px rgba(255, 107, 0, 0.5);
 }
-.btn-agendar {
-  display: inline-block;
-  background: linear-gradient(135deg, #00f0ff, #0088ff);
-  color: #000;
-  font-weight: 700;
-  padding: 14px 30px;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 20px rgba(0, 240, 255, 0.3);
-}
 
-.btn-agendar:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0, 240, 255, 0.45);
-}
-
-.btn-agendar:active {
-  transform: translateY(0);
-  box-shadow: 0 6px 16px rgba(0, 240, 255, 0.3);
-}
-/* Como Agendar */
 .agendar {
   padding-bottom:1rem;
   text-align:left;
@@ -329,7 +276,7 @@ img, video { max-width:100%; height:auto; display:block; }
   transition:all 0.3s;
 }
 .passos li:hover {
-  border-left-color:#ff6b00; /* laranja no hover */
+  border-left-color:#ff6b00;
   transform:translateX(12px);
   box-shadow:0 10px 30px rgba(255,107,0,0.2);
 }
@@ -338,7 +285,6 @@ img, video { max-width:100%; height:auto; display:block; }
   flex-wrap:nowrap; 
   gap:1rem; 
   justify-content:center; 
-
 }
 @media (max-width:768px) {
   .btn-group { gap:0.8rem; padding-top: 1rem;}
@@ -356,23 +302,21 @@ img, video { max-width:100%; height:auto; display:block; }
   font-weight:500;
   text-decoration:none;
   color:#000;
-  background:linear-gradient(135deg,#00f0ff,#ff6b00); /* azul + laranja */
+  background:linear-gradient(135deg,#00f0ff,#ff6b00);
   box-shadow:0 0 30px rgba(0,240,255,0.4);
   transition:all 0.4s;
 }
 .btn-store:hover {
   transform:translateY(-5px);
   box-shadow:0 0 60px rgba(255,107,0,0.6);
-   background:linear-gradient(135deg,#00f0ff,#ff6b00);
+  background:linear-gradient(135deg,#00f0ff,#ff6b00);
 }
 
-/* Localização */
 .localizacao {
   padding-bottom:4rem;
 }
 .localizacao h2 { margin-bottom:1.5rem; }
 
-/* Footer */
 footer {
   background:#0b0e17;
   padding:3rem 1rem 2rem;
@@ -400,11 +344,10 @@ footer {
   transition:color 0.3s, transform 0.3s;
 }
 .footer-social a:hover {
-  color:#ff6b00; /* laranja no hover */
+  color:#ff6b00;
   transform:scale(1.15);
 }
 
-/* Títulos gerais - gradiente azul + laranja */
 h2 {
   font-size:2rem;
   text-align:center;
@@ -419,10 +362,10 @@ h2::after {
   transform:translateX(-50%);
   width:120px;
   height:5px;
-  background:linear-gradient(90deg,#00f0ff,#ff6b00); /* azul + laranja */
+  background:linear-gradient(90deg,#00f0ff,#ff6b00);
   border-radius:5px;
 }
-/* Header clicável - logo e nome voltam ao topo */
+
 .logo-link {
   text-decoration: none;
   cursor: pointer;
@@ -430,14 +373,13 @@ h2::after {
 }
 
 .logo-link:hover {
-  opacity: 0.85; /* efeito sutil ao passar o mouse */
+  opacity: 0.85;
 }
 
 .logo-link:focus {
   outline: none;
 }
 @media (min-width:1024px){
-
   .passos li{
     font-size:20px;
   }
@@ -455,8 +397,6 @@ h2::after {
     padding-top:2rem;
   }
 
-  /* ===== CORREÇÃO DO CARROSSEL NO PC ===== */
-
   .carousel-track img,
   .carousel-track video{
     min-width:320px;
@@ -467,5 +407,4 @@ h2::after {
   .carousel{
     overflow:hidden;
   }
-
 }

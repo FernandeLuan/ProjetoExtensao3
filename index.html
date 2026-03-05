@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
@@ -36,124 +35,119 @@
     </nav>
   </div>
 </header>
-  <!-- Sobre - com parallax no fundo -->
-  <section class="sobre" id="sobre">
-    <div class="container">
-      <div class="sobre-grid">
-        <div class="sobre-video-container">
-          <video 
-            class="sobre-video" 
-            autoplay 
-            muted 
-            loop 
-            playsinline 
-            loading="lazy"
-            poster="Fotos/2.png"
-          >
-            <source src="Fotos/video.mp4" type="video/mp4">
-            <img src="Fotos/2.png" alt="Marlon Barber trabalhando" loading="lazy">
-          </video>
-        </div>
 
-        <div class="sobre-texto">
-          <h2>Sobre o Barbeiro</h2>
-          <p class="typing"> Minha trajetória na barbearia iniciou aos <b>14 anos</b>, marcada por dedicação e constante aprimoramento técnico. Ao longo dos anos, desenvolvi um estilo próprio com foco em cortes modernos e tendências atuais.</p>
-          <p class="typing"> Realizei diversos cursos técnicos de aperfeiçoamento, buscando oferecer serviços que atendam às expectativas de diferentes perfis de clientes. Trabalho com atendimento personalizado, prezando pela qualidade e satisfação de clientes de todas as idades.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Galeria -->
-  <section class="galeria" id="galeria">
-    <div class="container">
-      <h2>Meus Trabalhos</h2>
-      <div class="carousel">
-        <div class="carousel-track" id="carouselTrack">
-          <img src="Fotos/2.png" alt="Trabalho do Marlon Barber" loading="lazy">
-          <video autoplay muted loop playsinline loading="lazy">
-            <source src="Fotos/videocarrosel2.mp4" type="video/mp4">
-          </video>
-          <img src="Fotos/6.png" alt="Corte texturizado com estilo" loading="lazy">
-          <video autoplay muted loop playsinline loading="lazy">
-            <source src="Fotos/videocarrosel1.mp4" type="video/mp4">
-          </video>
-          <img src="Fotos/7.png" alt="Outro corte incrível do Marlon" loading="lazy">
-          <video autoplay muted loop playsinline loading="lazy">
-            <source src="Fotos/videocarrosel4.mp4" type="video/mp4">
-          </video>
-          <img src="Fotos/1.png" alt="Corte principal - Marlon Barber" loading="lazy">
-          <video autoplay muted loop playsinline loading="lazy">
-            <source src="Fotos/videocarrosel5.mp4" type="video/mp4">
-          </video>
-          <img src="Fotos/10.jpeg" alt="Outro corte incrível do Marlon" loading="lazy">
-          <img src="Fotos/4.png" alt="Fade moderno realizado por Marlon" loading="lazy">
+<section class="sobre" id="sobre">
+  <div class="container">
+    <div class="sobre-grid">
+      <div class="sobre-video-container">
+        <video 
+          class="sobre-video" 
+          autoplay 
+          muted 
+          loop 
+          playsinline 
+          loading="lazy"
+          poster="Fotos/2.png"
+        >
+          <source src="Fotos/video.mp4" type="video/mp4">
           <img src="Fotos/2.png" alt="Marlon Barber trabalhando" loading="lazy">
-        </div>
-        <button class="carousel-btn prev" onclick="moveCarousel(-1)">‹</button>
-        <button class="carousel-btn next" onclick="moveCarousel(1)">›</button>
+        </video>
+      </div>
+
+      <div class="sobre-texto">
+        <h2>Sobre o Barbeiro</h2>
+        <p class="typing"> Minha trajetória na barbearia iniciou aos <b>14 anos</b>, marcada por dedicação e constante aprimoramento técnico. Ao longo dos anos, desenvolvi um estilo próprio com foco em cortes modernos e tendências atuais.</p>
+        <p class="typing"> Realizei diversos cursos técnicos de aperfeiçoamento, buscando oferecer serviços que atendam às expectativas de diferentes perfis de clientes. Trabalho com atendimento personalizado, prezando pela qualidade e satisfação de clientes de todas as idades.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Como Agendar -->
-  <section class="agendar" id="agendar">
-    <div class="container">
-      <h2>Como Agendar</h2>
-      <p class="small-text">Os atendimentos na Sr.Nk Barbearia são feitos somente com horário marcado pelo AppBarber.</p>
-      
-      <ol class="passos">
-        <li>Baixe o aplicativo AppBarber Cliente</li>
-        <li>Crie sua conta</li>
-        <li>Escolha o barbeiro Marlon</li>
-        <li>Selecione o horário disponível</li>
-        <li>Confirme o agendamento</li>
-      </ol>
-
-      <div class="btn-group">
-        <a href="https://play.google.com/store/apps/details?id=br.com.starapp.appbarbercli" target="_blank" class="btn-store">Baixar para Android</a>
-        <a href="https://apps.apple.com/br/app/appbarber-cliente/id6450795073" target="_blank" class="btn-store">Baixar para iPhone</a>
+<section class="galeria" id="galeria">
+  <div class="container">
+    <h2>Meus Trabalhos</h2>
+    <div class="carousel">
+      <div class="carousel-track" id="carouselTrack">
+        <img src="Fotos/2.png" alt="Trabalho do Marlon Barber" loading="lazy">
+        <video autoplay muted loop playsinline loading="lazy">
+          <source src="Fotos/videocarrosel2.mp4" type="video/mp4">
+        </video>
+        <img src="Fotos/6.png" alt="Corte texturizado com estilo" loading="lazy">
+        <video autoplay muted loop playsinline loading="lazy">
+          <source src="Fotos/videocarrosel1.mp4" type="video/mp4">
+        </video>
+        <img src="Fotos/7.png" alt="Outro corte incrível do Marlon" loading="lazy">
+        <video autoplay muted loop playsinline loading="lazy">
+          <source src="Fotos/videocarrosel4.mp4" type="video/mp4">
+        </video>
+        <img src="Fotos/1.png" alt="Corte principal - Marlon Barber" loading="lazy">
+        <video autoplay muted loop playsinline loading="lazy">
+          <source src="Fotos/videocarrosel5.mp4" type="video/mp4">
+        </video>
+        <img src="Fotos/10.jpeg" alt="Outro corte incrível do Marlon" loading="lazy">
+        <img src="Fotos/4.png" alt="Fade moderno realizado por Marlon" loading="lazy">
+        <img src="Fotos/2.png" alt="Marlon Barber trabalhando" loading="lazy">
       </div>
-      <div class="agendamento-direto">
-  <p>Ou agende direto:</p>
-
-  <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" 
-     target="_blank" 
-     class="btn-agendar">
-     Clique aqui
-  </a>
-</div>
+      <button class="carousel-btn prev" onclick="moveCarousel(-1)">‹</button>
+      <button class="carousel-btn next" onclick="moveCarousel(1)">›</button>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Localização -->
-  <section class="localizacao" id="localizacao">
-    <div class="container">
-      <h2>Localização</h2>      
-      <iframe 
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3590.5!2d-49.640472!3d-27.213306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95218f8b0b0b0b0b%3A0x0!2zMjfCsDEyJzQ3LjkiUyA0OcKwMzgnMjUuNyJX!5e0!3m2!1spt-BR!2sbr!4v1730000000000!5m2!1spt-BR!2sbr" 
-        width="100%" height="400" style="border:0; border-radius:16px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-    </div>
-  </section>
+<section class="agendar" id="agendar">
+  <div class="container">
+    <h2>Como Agendar</h2>
+    <p class="small-text">Os atendimentos na Sr.Nk Barbearia são feitos somente com horário marcado pelo AppBarber.</p>
+    
+    <ol class="passos">
+      <li>Baixe o aplicativo AppBarber Cliente</li>
+      <li>Crie sua conta</li>
+      <li>Escolha o barbeiro Marlon</li>
+      <li>Selecione o horário disponível</li>
+      <li>Confirme o agendamento</li>
+    </ol>
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p class="footer-address">
-        <i class="fas fa-map-marker-alt"></i> Sr.Nk Barbearia - Rua Dom Bosco, 430 - Centro - Rio do Sul/SC - 89160-135
-      </p>
-      <div class="footer-social">
-        <a href="https://www.instagram.com/_barber_marlon/" target="_blank" title="Instagram">
-          <i class="fab fa-instagram"></i>
-        </a>
-        <a href="https://wa.me/5547988511749?text=Oi%20Marlon%2C%20vim%20pelo%20site%20e%20quero%20agendar%20um%20corte!" target="_blank" title="WhatsApp">
-          <i class="fab fa-whatsapp"></i>
-        </a>
-      </div>
-      <p>© 2026 Marlon Barber. Todos os direitos reservados.</p>
+    <div class="btn-group">
+      <a href="https://play.google.com/store/apps/details?id=br.com.starapp.appbarbercli" target="_blank" class="btn-store">Baixar para Android</a>
+      <a href="https://apps.apple.com/br/app/appbarber-cliente/id6450795073" target="_blank" class="btn-store">Baixar para iPhone</a>
     </div>
-  </footer>
-  <script src="script.js"></script>
+    <div class="agendamento-direto">
+      <p>Ou agende direto:</p>
+      <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" 
+         target="_blank" 
+         class="btn-agendar">
+         Clique aqui
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="localizacao" id="localizacao">
+  <div class="container">
+    <h2>Localização</h2>      
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3590.5!2d-49.640472!3d-27.213306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95218f8b0b0b0b0b%3A0x0!2zMjfCsDEyJzQ3LjkiUyA0OcKwMzgnMjUuNyJX!5e0!3m2!1spt-BR!2sbr!4v1730000000000!5m2!1spt-BR!2sbr" 
+      width="100%" height="400" style="border:0; border-radius:16px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p class="footer-address">
+      <i class="fas fa-map-marker-alt"></i> Sr.Nk Barbearia - Rua Dom Bosco, 430 - Centro - Rio do Sul/SC - 89160-135
+    </p>
+    <div class="footer-social">
+      <a href="https://www.instagram.com/_barber_marlon/" target="_blank" title="Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://wa.me/5547988511749?text=Oi%20Marlon%2C%20vim%20pelo%20site%20e%20quero%20agendar%20um%20corte!" target="_blank" title="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+    </div>
+    <p>© 2026 Marlon Barber. Todos os direitos reservados.</p>
+  </div>
+</footer>
+<script src="script.js"></script>
 </body>
 </html>
