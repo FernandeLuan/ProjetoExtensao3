@@ -1,3 +1,4 @@
+// --- CARROSSEL ---
 let currentIndex = 0;
 const track = document.getElementById('carouselTrack');
 let slides, slideWidth, totalSlides;
@@ -11,7 +12,6 @@ function updateCarousel() {
   slideWidth = slides[0].offsetWidth + gap;
 
   let visibleSlides = 1;
-
   if (window.innerWidth >= 1024) {
     visibleSlides = Math.floor(track.parentElement.offsetWidth / slideWidth);
   }
@@ -27,14 +27,12 @@ function updateCarousel() {
 function moveCarousel(direction) {
   slides = track.children;
   totalSlides = slides.length;
-
   if (totalSlides === 0) return;
 
   const gap = parseFloat(getComputedStyle(track).gap) || 24;
   slideWidth = slides[0].offsetWidth + gap;
 
   let visibleSlides = 1;
-
   if (window.innerWidth >= 1024) {
     visibleSlides = Math.floor(track.parentElement.offsetWidth / slideWidth);
   }
@@ -42,7 +40,6 @@ function moveCarousel(direction) {
   const maxIndex = totalSlides - visibleSlides;
 
   currentIndex += direction;
-
   if (currentIndex > maxIndex) currentIndex = 0;
   if (currentIndex < 0) currentIndex = maxIndex;
 
@@ -50,28 +47,18 @@ function moveCarousel(direction) {
 }
 
 let auto;
-
-function startAuto(){
-  auto = setInterval(() => moveCarousel(1), 3000);
-}
-
-function stopAuto(){
-  clearInterval(auto);
-}
-
+function startAuto(){ auto = setInterval(() => moveCarousel(1), 3000); }
+function stopAuto(){ clearInterval(auto); }
 startAuto();
 
 const carousel = document.querySelector('.carousel');
-
 if (carousel) {
   carousel.addEventListener('mouseenter', stopAuto);
   carousel.addEventListener('mouseleave', startAuto);
 }
 
 let startX = 0;
-
 track.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-
 track.addEventListener('touchmove', e => {
   const diff = startX - e.touches[0].clientX;
   if (Math.abs(diff) > 50) {
@@ -81,7 +68,6 @@ track.addEventListener('touchmove', e => {
 });
 
 window.addEventListener('resize', updateCarousel);
-
 updateCarousel();
 
 window.addEventListener('scroll', () => {
@@ -93,83 +79,88 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// --- MENU ---
 function closeMenu() {
   const toggle = document.getElementById('menu-toggle');
   if (toggle) toggle.checked = false;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  closeMenu();
-
+  // scroll suave das seções
   document.querySelectorAll('.nav-list a').forEach(link => {
     link.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+
+      // se for link externo (login.html), abre normalmente
+      if (href.includes('.html')) return;
+
       e.preventDefault();
-      const targetId = this.getAttribute('href').substring(1);
+      const targetId = href.substring(1);
       const targetElement = document.getElementById(targetId);
+      if (!targetElement) return;
 
-      if (targetElement) {
-        const headerHeight = document.querySelector('.header').offsetHeight || 80;
-        const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-        const offsetPosition = elementPosition - headerHeight - 20;
+      const headerHeight = document.querySelector('.header').offsetHeight || 80;
+      const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - headerHeight - 20;
 
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-      }
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+
+      // fecha o menu após clicar
+      closeMenu();
     });
   });
 
+  // scroll suave para logo
   document.querySelectorAll('.logo-link').forEach(link => {
     link.addEventListener('click', function(e) {
       e.preventDefault();
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      closeMenu();
+    });
+  });
+
+  // garante que links externos (login.html) funcionem no mobile
+  document.querySelectorAll('.nav-list a[href$=".html"]').forEach(link => {
+    link.addEventListener('click', function() {
+      closeMenu(); // fecha o menu mas não impede o link
     });
   });
 });
-const canvas = document.getElementById("particles")
-const ctx = canvas.getContext("2d")
+
+// --- PARTICULAS ---
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-window.addEventListener('resize', resizeCanvas)
-resizeCanvas()
-
-let particles = []
-
+let particles = [];
 for(let i=0;i<60;i++){
   particles.push({
-    x:Math.random()*canvas.width,
-    y:Math.random()*canvas.height,
-    r:Math.random()*2+1,
-    dx:(Math.random()-0.5)*0.5,
-    dy:(Math.random()-0.5)*0.5
-  })
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*2+1,
+    dx: (Math.random()-0.5)*0.5,
+    dy: (Math.random()-0.5)*0.5
+  });
 }
 
 function animate(){
-  ctx.clearRect(0,0,canvas.width,canvas.height)
-
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   particles.forEach(p=>{
-    ctx.beginPath()
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
-    ctx.fillStyle="rgba(0,240,255,0.5)"
-    ctx.fill()
-
-    p.x+=p.dx
-    p.y+=p.dy
-
-    if(p.x<0||p.x>canvas.width)p.dx*=-1
-    if(p.y<0||p.y>canvas.height)p.dy*=-1
-  })
-
-  requestAnimationFrame(animate)
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle="rgba(0,240,255,0.5)";
+    ctx.fill();
+    p.x += p.dx;
+    p.y += p.dy;
+    if(p.x<0||p.x>canvas.width) p.dx*=-1;
+    if(p.y<0||p.y>canvas.height) p.dy*=-1;
+  });
+  requestAnimationFrame(animate);
 }
-
-animate()
+animate();
