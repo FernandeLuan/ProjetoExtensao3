@@ -91,9 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', function(e) {
       const href = this.getAttribute('href');
 
-      // se for link externo (login.html), abre normalmente
-      if (href.includes('.html')) return;
+      // permite links externos (http, https) e .html
+      if (href.startsWith('http') || href.endsWith('.html')) {
+        closeMenu();
+        return; // não bloqueia
+      }
 
+      // links internos -> scroll suave
       e.preventDefault();
       const targetId = href.substring(1);
       const targetElement = document.getElementById(targetId);
@@ -105,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
 
-      // fecha o menu após clicar
       closeMenu();
     });
   });
@@ -116,13 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       closeMenu();
-    });
-  });
-
-  // garante que links externos (login.html) funcionem no mobile
-  document.querySelectorAll('.nav-list a[href$=".html"]').forEach(link => {
-    link.addEventListener('click', function() {
-      closeMenu(); // fecha o menu mas não impede o link
     });
   });
 });

@@ -12,7 +12,7 @@ pointer-events:none;
 body {
   font-family:'Poppins',sans-serif;
   background:#0b0e17;
-  color:#e0e7ff;
+  color:#f8ffe0;
   line-height:1.6;
   overflow-x:hidden;
 }
@@ -106,7 +106,7 @@ img, video { max-width:100%; height:auto; display:block; }
     top:100%;
     right:0;
     width:100%;
-    background:rgba(11,14,23,0.95);
+    background:rgba(11, 14, 23, 0.973);
     flex-direction:column;
     padding:1rem 0;
     text-align:center;
