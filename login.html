@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do Barbeiro | Marlon Barber</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="login.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+<header class="header">
+<div class="container header-container">
+
+<div class="logo-container">
+<a href="index.html" class="logo-link">
+<img src="Fotos/teste1.jpeg" class="logo-foto">
+</a>
+
+<a href="index.html" class="logo-link">
+<h1 class="logo">Marlon Barber</h1>
+</a>
+</div>
+
+</div>
+</header>
+
+<section class="login-page">
+<canvas id="particles"></canvas>
+<div class="login-card">
+
+<i class="fas fa-user-lock login-icon"></i>
+
+<h2>Área do Barbeiro</h2>
+
+<p class="login-sub">
+Acesse seu painel financeiro
+</p>
+
+<form id="loginForm">
+
+<div class="input-group">
+<i class="fas fa-user"></i>
+<input type="text" id="usuario" placeholder="Usuário" autocomplete="username" required>
+</div>
+
+<div class="input-group senha-group">
+    <i class="fas fa-lock"></i>
+    <input 
+        type="password" 
+        id="senha" 
+        placeholder="Senha" 
+        autocomplete="current-password" 
+        required
+    >
+    <span 
+        class="toggle-senha" 
+        tabindex="0" 
+        role="button" 
+        aria-label="Mostrar ou ocultar senha"
+    >
+        <i class="fas fa-eye"></i>
+    </span>
+</div>
+
+<button type="submit" class="btn-login">
+<span class="btn-text">Entrar</span>
+<span class="loader"></span>
+</button>
+
+</form>
+
+<p id="erroLogin"></p>
+
+<p class="login-footer">
+🔒 Acesso restrito ao barbeiro
+</p>
+
+<a href="index.html" class="voltar-site">
+Voltar para o site
+</a>
+
+</div>
+
+</section>
+
+<script src="login.js"></script>
+
+</body>
+</html>

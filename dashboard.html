@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | Marlon Barber</title>
+<link rel="stylesheet" href="dashboard.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<header class="dashboard-header">
+  <div class="container">
+    <h1 class="logo">Marlon Barber</h1>
+    <nav>
+      <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </nav>
+  </div>
+</header>
+
+<main class="dashboard-main">
+  <section class="welcome">
+    <h2>Bem-vindo, Marlon 👋</h2>
+    <div class="cards">
+      <div class="card" id="faturamentoHoje">
+        <h3>Faturamento Hoje</h3>
+        <p>R$ 0,00</p>
+      </div>
+      <div class="card" id="clientesHoje">
+        <h3>Clientes Hoje</h3>
+        <p>0</p>
+      </div>
+      <div class="card" id="servicoMaisVendido">
+        <h3>Serviço Mais Vendido</h3>
+        <p>—</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="registrar">
+    <h2>Registrar Atendimento</h2>
+    <form id="atendimentoForm">
+      <div class="input-group">
+        <input type="text" id="cliente" placeholder="Nome do Cliente" required>
+      </div>
+      <div class="input-group">
+        <select id="servico" required>
+          <option value="">Selecione o Serviço</option>
+          <option value="Corte">Corte</option>
+          <option value="Barba">Barba</option>
+          <option value="Corte + Barba">Corte + Barba</option>
+          <option value="Sobrancelha">Sobrancelha</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <input type="number" id="valor" placeholder="Valor R$" required>
+      </div>
+      <div class="input-group">
+        <select id="pagamento" required>
+          <option value="">Forma de Pagamento</option>
+          <option value="Pix">Pix</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão">Cartão</option>
+        </select>
+      </div>
+      <button type="submit" class="btn">Registrar</button>
+    </form>
+  </section>
+
+  <section class="historico">
+    <h2>Histórico de Atendimentos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Serviço</th>
+          <th>Valor</th>
+          <th>Pagamento</th>
+          <th>Data/Hora</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="historicoBody">
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
