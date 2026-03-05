@@ -244,13 +244,75 @@ img, video { max-width:100%; height:auto; display:block; }
 .prev { left: 1rem; }
 .next { right: 1rem; }
 
+.agendamento-direto {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.agendamento-direto p {
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.btn-agendar {
+  font-size: 15px;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 500;
+  text-decoration: none;
+  color: #000;
+  padding: 14px 32px;
+
+  /* mesma identidade do .btn-store */
+  background: linear-gradient(135deg, #00f0ff, #ff6b00);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+
+  transition: all 0.4s ease;
+  display: inline-block;
+}
+
+/* HOVER - INVERTE GRADIENTE + SOMBRA LARANJA */
+.btn-agendar:hover {
+  transform: translateY(-5px);
+  background: linear-gradient(135deg, #ff6b00, #00f0ff);
+  box-shadow: 0 0 60px rgba(255, 107, 0, 0.6);
+}
+
+/* CLICK */
+.btn-agendar:active {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(255, 107, 0, 0.5);
+}
+.btn-agendar {
+  display: inline-block;
+  background: linear-gradient(135deg, #00f0ff, #0088ff);
+  color: #000;
+  font-weight: 700;
+  padding: 14px 30px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 240, 255, 0.3);
+}
+
+.btn-agendar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 240, 255, 0.45);
+}
+
+.btn-agendar:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(0, 240, 255, 0.3);
+}
 /* Como Agendar */
 .agendar {
   padding-bottom:1rem;
   text-align:left;
 }
 .agendar p {
-  font-size:0.9rem;
+  text-align: center;
+  font-size:0.7rem;
   opacity:0.85;
   margin-bottom:2rem;
 }
@@ -276,7 +338,7 @@ img, video { max-width:100%; height:auto; display:block; }
 
 }
 @media (max-width:768px) {
-  .btn-group { gap:0.8rem; }
+  .btn-group { gap:0.8rem; padding-top: 1rem;}
   .btn-store { 
     padding:0.5rem 1rem; 
     font-size:0.9rem; 
@@ -285,7 +347,7 @@ img, video { max-width:100%; height:auto; display:block; }
   }
 }
 .btn-store {
-  font-size: 15px;
+  font-size: 16px;
   border-radius:999px;
   text-align: center;
   font-weight:500;
@@ -298,7 +360,7 @@ img, video { max-width:100%; height:auto; display:block; }
 .btn-store:hover {
   transform:translateY(-5px);
   box-shadow:0 0 60px rgba(255,107,0,0.6);
-  background:linear-gradient(135deg,#ff6b00,#00f0ff);
+   background:linear-gradient(135deg,#00f0ff,#ff6b00);
 }
 
 /* Localização */

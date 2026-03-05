@@ -12,7 +12,7 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body onload="window.scrollTo(0, 0);">
+<body>
 
 <header class="header">
   <div class="container header-container">
@@ -48,7 +48,7 @@
             loop 
             playsinline 
             loading="lazy"
-            poster="Fotos/2.png" <!-- imagem de capa enquanto carrega -->
+            poster="Fotos/2.png"
           >
             <source src="Fotos/video.mp4" type="video/mp4">
             <img src="Fotos/2.png" alt="Marlon Barber trabalhando" loading="lazy">
@@ -114,9 +114,15 @@
         <a href="https://play.google.com/store/apps/details?id=br.com.starapp.appbarbercli" target="_blank" class="btn-store">Baixar para Android</a>
         <a href="https://apps.apple.com/br/app/appbarber-cliente/id6450795073" target="_blank" class="btn-store">Baixar para iPhone</a>
       </div>
-      <p style="text-align:center; margin-top:1.5rem;">
-        Ou agende direto: <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" style="color:#00f0ff; font-weight:bold;">Clique aqui</a>
-      </p>
+      <div class="agendamento-direto">
+  <p>Ou agende direto:</p>
+
+  <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" 
+     target="_blank" 
+     class="btn-agendar">
+     Clique aqui
+  </a>
+</div>
     </div>
   </section>
 
