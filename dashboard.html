@@ -1,46 +1,47 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard | Marlon Barber</title>
-<link rel="stylesheet" href="dashboard.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Marlon Barber</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <canvas id="particles"></canvas>
 
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
 <header class="dashboard-header">
   <div class="container">
     <h1 class="logo">Marlon Barber</h1>
-    <nav>
+    <div class="header-actions">
+      <button id="menuToggle" title="Menu"><i class="fas fa-bars"></i></button>
       <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
-    </nav>
+    </div>
   </div>
+
+  <!-- Menu sanduíche -->
+  <nav id="sidebarMenu" class="sidebar">
+    <ul>
+      <li><a href="#registrar">Registrar Atendimento</a></li>
+      <li><a href="#painelFinanceiro">Painel Financeiro</a></li>
+      <li><a href="#historico">Histórico</a></li>
+      <li><a href="#" id="fecharMenu">Fechar Menu</a></li>
+    </ul>
+  </nav>
 </header>
 
-<main class="dashboard-main">
-  <section class="welcome">
-    <h2>Bem-vindo, Marlon 👋</h2>
-    <div class="cards">
-      <div class="card" id="faturamentoHoje">
-        <h3>Faturamento Hoje</h3>
-        <p>R$ 0,00</p>
-      </div>
-      <div class="card" id="clientesHoje">
-        <h3>Clientes Hoje</h3>
-        <p>0</p>
-      </div>
-      <div class="card" id="servicoMaisVendido">
-        <h3>Serviço Mais Vendido</h3>
-        <p>—</p>
-      </div>
-    </div>
-  </section>
+<section class="welcome">
+  <p class="saudacao">Bem-vindo, Marlon 👋</p>
+</section>
 
-  <section class="registrar">
+<main class="dashboard-main">
+  <!-- Formulário de registro – sempre visível por padrão -->
+  <section id="registrar" class="registrar">
     <h2>Registrar Atendimento</h2>
     <form id="atendimentoForm">
       <div class="input-group">
@@ -56,7 +57,7 @@
         </select>
       </div>
       <div class="input-group">
-        <input type="number" id="valor" placeholder="Valor R$" required>
+        <input type="number" id="valor" placeholder="Valor R$" required step="0.01" min="0.01">
       </div>
       <div class="input-group">
         <select id="pagamento" required>
@@ -66,11 +67,34 @@
           <option value="Cartão">Cartão</option>
         </select>
       </div>
-      <button type="submit" class="btn">Registrar</button>
+      <button type="submit" class="btn" id="btnRegistrar">Registrar</button>
     </form>
   </section>
 
-  <section class="historico">
+  <!-- Painel Financeiro – começa escondido -->
+  <section id="painelFinanceiro" class="painel-financeiro" style="display: none;">
+    <div class="cards">
+      <div class="card" id="faturamentoHoje">
+        <h3>Faturamento Hoje</h3>
+        <p>R$ 0,00</p>
+      </div>
+      <div class="card" id="clientesHoje">
+        <h3>Clientes Hoje</h3>
+        <p>0</p>
+      </div>
+      <div class="card" id="servicoMaisVendido">
+        <h3>Serviço Mais Vendido</h3>
+        <p>—</p>
+      </div>
+    </div>
+    <div class="card grafico-container">
+      <h3>Faturamento Últimos 7 Dias</h3>
+      <canvas id="graficoFaturamento" height="180"></canvas>
+    </div>
+  </section>
+
+  <!-- Histórico – começa escondido -->
+  <section id="historico" class="historico" style="display: none;">
     <h2>Histórico de Atendimentos</h2>
     <table>
       <thead>
@@ -83,8 +107,7 @@
           <th>Ação</th>
         </tr>
       </thead>
-      <tbody id="historicoBody">
-      </tbody>
+      <tbody id="historicoBody"></tbody>
     </table>
   </section>
 </main>
