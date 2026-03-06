@@ -1,204 +1,373 @@
-// LOGIN CHECK
+// =============================
+// LOGIN
+// =============================
 if(!localStorage.getItem("barberLogado")){
-    window.location.href = "login.html";
+    window.location.href="login.html";
 }
 
-// LOGOUT
-document.getElementById("logoutBtn").addEventListener("click", ()=>{
+document.getElementById("logoutBtn")?.addEventListener("click",()=>{
     localStorage.removeItem("barberLogado");
     window.location.href="login.html";
 });
 
+
+// =============================
 // PARTICULAS
-const canvas = document.getElementById("particles");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-let particles = [];
+// =============================
+const canvas=document.getElementById("particles");
+const ctx=canvas.getContext("2d");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let particles=[];
+
 for(let i=0;i<60;i++){
-    particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2,dx:(Math.random()-0.5)*0.5,dy:(Math.random()-0.5)*0.5});
+    particles.push({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        r:Math.random()*2,
+        dx:(Math.random()-0.5)*0.5,
+        dy:(Math.random()-0.5)*0.5
+    });
 }
+
 function animate(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
+
     particles.forEach(p=>{
         ctx.beginPath();
         ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fillStyle="rgba(0,240,255,0.5)";
         ctx.fill();
-        p.x+=p.dx;p.y+=p.dy;
+
+        p.x+=p.dx;
+        p.y+=p.dy;
+
         if(p.x<0||p.x>canvas.width)p.dx*=-1;
         if(p.y<0||p.y>canvas.height)p.dy*=-1;
     });
+
     requestAnimationFrame(animate);
 }
+
 animate();
 
-// MENU SANDUÍCHE
-const menuToggle = document.getElementById('menuToggle');
-const sidebarMenu = document.getElementById('sidebarMenu');
-const sidebarLinks = sidebarMenu.querySelectorAll('a');
 
-menuToggle.addEventListener('click', e=>{
-    e.stopPropagation();
-    sidebarMenu.classList.toggle('active');
+// =============================
+// MENU
+// =============================
+const menuToggle=document.getElementById("menuToggle");
+const sidebarMenu=document.getElementById("sidebarMenu");
+
+menuToggle?.addEventListener("click",()=>{
+    sidebarMenu.classList.toggle("active");
 });
 
-// Fecha menu ao clicar fora
-document.addEventListener('click', e=>{
-    if(!sidebarMenu.contains(e.target) && !menuToggle.contains(e.target)){
-        sidebarMenu.classList.remove('active');
-    }
-});
 
-// SELEÇÃO DE SESSÃO
+// =============================
+// SEÇÕES
+// =============================
+const sidebarLinks=sidebarMenu.querySelectorAll("a");
+
 sidebarLinks.forEach(link=>{
-    link.addEventListener('click', e=>{
-        e.preventDefault();
-        const href = link.getAttribute('href');
-        if(!href.startsWith('#')) return;
+link.addEventListener("click",e=>{
 
-        // Oculta todas as seções
-        document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
+e.preventDefault();
 
-        // Mostra a seção selecionada
-        const target = document.querySelector(href);
-        if(target) target.style.display = (href===' #painelFinanceiro' ? 'flex' : 'block');
+const href=link.getAttribute("href");
 
-        // Se painel financeiro, atualiza cards e gráfico
-        if(href==="#painelFinanceiro"){
-            atualizarCards();
-            atualizarGrafico();
-        }
-
-        sidebarMenu.classList.remove('active');
-    });
+document.querySelectorAll("main section").forEach(s=>{
+s.style.display="none";
 });
 
-// ATENDIMENTOS
-let atendimentos = JSON.parse(localStorage.getItem("atendimentos") || "[]");
-const historicoBody = document.getElementById("historicoBody");
+const target=document.querySelector(href);
 
-function atualizarHistorico(){
-    historicoBody.innerHTML="";
-    atendimentos.forEach((a,i)=>{
-        let tr = document.createElement("tr");
-        tr.innerHTML=`
-            <td>${a.cliente}</td>
-            <td>${a.servico}</td>
-            <td>R$ ${a.valor.toFixed(2)}</td>
-            <td>${a.pagamento}</td>
-            <td>${new Date(a.data).toLocaleString()}</td>
-            <td><button onclick="excluirAtendimento(${i})">Excluir</button></td>
-        `;
-        historicoBody.appendChild(tr);
-    });
-    atualizarCards();
+if(target) target.style.display="block";
+
+if(href==="#painelFinanceiro"){
+atualizarCards();
+atualizarGrafico();
 }
+
+sidebarMenu.classList.remove("active");
+
+});
+});
+
+
+// =============================
+// ATENDIMENTOS
+// =============================
+let atendimentos=JSON.parse(localStorage.getItem("atendimentos")||"[]");
+
+const historicoBody=document.getElementById("historicoBody");
+
+function salvar(){
+localStorage.setItem("atendimentos",JSON.stringify(atendimentos));
+}
+
+
+// =============================
+// HISTÓRICO
+// =============================
+function atualizarHistorico(lista=atendimentos){
+
+historicoBody.innerHTML="";
+
+lista
+.sort((a,b)=>new Date(b.data)-new Date(a.data))
+.forEach((a,i)=>{
+
+let tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${a.cliente}</td>
+<td>${a.servico}</td>
+<td>R$ ${a.valor.toFixed(2)}</td>
+<td>${a.pagamento}</td>
+<td>${new Date(a.data).toLocaleString()}</td>
+<td>
+<button onclick="excluirAtendimento(${i})">🗑</button>
+</td>
+`;
+
+historicoBody.appendChild(tr);
+
+});
+
+atualizarCards();
+
+}
+
+
+// =============================
+// EXCLUIR
+// =============================
+let indexParaExcluir = null;
 
 function excluirAtendimento(index){
-    atendimentos.splice(index,1);
-    localStorage.setItem("atendimentos",JSON.stringify(atendimentos));
-    atualizarHistorico();
+indexParaExcluir = index;
+document.getElementById("modalConfirm").classList.add("active");
 }
 
-// Botão registrar
-const btnRegistrar = document.getElementById("btnRegistrar");
 
-// FORM SUBMIT
-document.getElementById("atendimentoForm").addEventListener("submit", e => {
-    e.preventDefault();
 
-    // Pegando valores
-    const cliente   = document.getElementById("cliente").value.trim();
-    const servico   = document.getElementById("servico").value;
-    const valor     = parseFloat(document.getElementById("valor").value);
-    const pagamento = document.getElementById("pagamento").value;
+// =============================
+// REGISTRAR
+// =============================
+const btnRegistrar=document.getElementById("btnRegistrar");
 
-    // Validação básica
-    if (!cliente || !servico || isNaN(valor) || valor <= 0 || !pagamento) {
-        alert("Por favor, preencha todos os campos corretamente.");
-        return;
-    }
+document
+.getElementById("atendimentoForm")
+.addEventListener("submit",e=>{
 
-    // Salvar atendimento
-    const data = new Date().toISOString();
-    atendimentos.push({ cliente, servico, valor, pagamento, data });
-    localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+e.preventDefault();
 
-    // Limpar formulário e atualizar tela
-    document.getElementById("atendimentoForm").reset();
-    atualizarHistorico();
+const cliente=document.getElementById("cliente").value.trim();
+const servico=document.getElementById("servico").value;
+const valor=parseFloat(document.getElementById("valor").value);
+const pagamento=document.getElementById("pagamento").value;
 
-    // Aplicar o mesmo estilo de sucesso do login
-    btnRegistrar.classList.add("success");
-    btnRegistrar.textContent = "Registrado! ✓";
+if(!cliente||!servico||isNaN(valor)||valor<=0||!pagamento){
+alert("Preencha corretamente");
+return;
+}
 
-    // Volta ao normal após 3 segundos (tempo similar ao do login)
-    setTimeout(() => {
-        btnRegistrar.classList.remove("success");
-        btnRegistrar.textContent = "Registrar";
-    }, 3000);
+const data=new Date().toISOString();
+
+atendimentos.push({
+cliente,
+servico,
+valor,
+pagamento,
+data
 });
-// CARDS
-function atualizarCards(){
-    const hoje = new Date().toISOString().split('T')[0];
-    let faturamento = 0;
-    let clientesHojeSet = new Set();
-    let servicoCount = {};
 
-    atendimentos.forEach(a=>{
-        faturamento += a.valor;
-        const dataAtendimento = a.data.split('T')[0];
-        if(dataAtendimento===hoje) clientesHojeSet.add(a.cliente);
-        servicoCount[a.servico] = (servicoCount[a.servico]||0)+1;
-    });
+salvar();
 
-    document.getElementById("faturamentoHoje").querySelector("p").innerText=`R$ ${faturamento.toFixed(2)}`;
-    document.getElementById("clientesHoje").querySelector("p").innerText = clientesHojeSet.size;
-    let maisVendido = Object.keys(servicoCount).length? Object.keys(servicoCount).reduce((a,b)=>servicoCount[a]>servicoCount[b]?a:b) : "—";
-    document.getElementById("servicoMaisVendido").querySelector("p").innerText=maisVendido;
-}
-
-// GRÁFICO 7 DIAS
-let grafico;
-function atualizarGrafico(){
-    const labels = [];
-    const dados = [];
-    for(let i=6;i>=0;i--){
-        const d = new Date();
-        d.setDate(d.getDate()-i);
-        const dia = `${d.getDate()}/${d.getMonth()+1}`;
-        labels.push(dia);
-
-        const total = atendimentos
-            .filter(a=>a.data.split('T')[0]===d.toISOString().split('T')[0])
-            .reduce((sum,a)=>sum+a.valor,0);
-        dados.push(total.toFixed(2));
-    }
-
-    if(grafico) grafico.destroy();
-
-    const ctxGraf = document.getElementById("graficoFaturamento").getContext("2d");
-    grafico = new Chart(ctxGraf,{
-        type:'bar',
-        data:{
-            labels: labels,
-            datasets:[{
-                label: 'Faturamento',
-                data: dados,
-                backgroundColor:'#00f0ff'
-            }]
-        },
-        options:{
-            responsive:true,
-            plugins:{
-                legend:{display:false},
-            },
-            scales:{
-                y:{beginAtZero:true}
-            }
-        }
-    });
-}
+document.getElementById("atendimentoForm").reset();
 
 atualizarHistorico();
+
+btnRegistrar.classList.add("success");
+btnRegistrar.textContent="Registrado ✓";
+
+setTimeout(()=>{
+btnRegistrar.classList.remove("success");
+btnRegistrar.textContent="Registrar";
+},2500);
+
+});
+
+
+// =============================
+// FILTRO
+// =============================
+function filtrarHistorico(){
+
+const dataFiltro=document.getElementById("filtroData").value;
+const nomeBusca=document
+.getElementById("buscaCliente")
+.value
+.toLowerCase();
+
+const filtrados=atendimentos.filter(a=>{
+
+const data=a.data.split("T")[0];
+const nome=a.cliente.toLowerCase();
+
+return(
+(!dataFiltro||data===dataFiltro)&&
+(!nomeBusca||nome.includes(nomeBusca))
+);
+
+});
+
+atualizarHistorico(filtrados);
+
+}
+
+document
+.getElementById("buscaCliente")
+.addEventListener("input",filtrarHistorico);
+
+document
+.getElementById("filtroData")
+.addEventListener("change",filtrarHistorico);
+
+function limparFiltro(){
+
+document.getElementById("filtroData").value="";
+document.getElementById("buscaCliente").value="";
+
+atualizarHistorico();
+
+}
+
+
+// =============================
+// CARDS
+// =============================
+function atualizarCards(){
+
+let faturamentoHoje=0;
+let clientesHoje=new Set();
+let servicoCount={};
+
+const hoje=new Date();
+
+atendimentos.forEach(a=>{
+
+const data=new Date(a.data);
+
+if(
+data.getDate()===hoje.getDate() &&
+data.getMonth()===hoje.getMonth() &&
+data.getFullYear()===hoje.getFullYear()
+){
+
+faturamentoHoje+=a.valor;
+clientesHoje.add(a.cliente);
+
+}
+
+servicoCount[a.servico]=(servicoCount[a.servico]||0)+1;
+
+});
+
+document.querySelector("#faturamentoHoje p").innerText=`R$ ${faturamentoHoje.toFixed(2)}`;
+
+document.querySelector("#clientesHoje p").innerText=clientesHoje.size;
+
+let maisVendido="—";
+
+if(Object.keys(servicoCount).length){
+
+maisVendido=Object.keys(servicoCount)
+.reduce((a,b)=>servicoCount[a]>servicoCount[b]?a:b);
+
+}
+
+document.querySelector("#servicoMaisVendido p").innerText=maisVendido;
+
+}
+
+
+// =============================
+// GRÁFICO
+// =============================
+let grafico;
+
+function atualizarGrafico(){
+
+const labels=[];
+const dados=[];
+
+for(let i=6;i>=0;i--){
+
+const d=new Date();
+d.setDate(d.getDate()-i);
+
+const dia=d.toISOString().split("T")[0];
+
+labels.push(`${d.getDate()}/${d.getMonth()+1}`);
+
+const total=atendimentos
+.filter(a=>a.data.split("T")[0]===dia)
+.reduce((sum,a)=>sum+a.valor,0);
+
+dados.push(total);
+
+}
+
+if(grafico)grafico.destroy();
+
+const ctxGraf=document
+.getElementById("graficoFaturamento")
+.getContext("2d");
+
+grafico=new Chart(ctxGraf,{
+type:"bar",
+data:{
+labels,
+datasets:[{
+data:dados,
+backgroundColor:"#00f0ff"
+}]
+},
+options:{
+plugins:{legend:{display:false}},
+responsive:true,
+scales:{y:{beginAtZero:true}}
+}
+});
+
+}
+
+
+// =============================
+atualizarHistorico();
+const modal = document.getElementById("modalConfirm");
+const btnCancelar = document.getElementById("btnCancelar");
+const btnConfirmar = document.getElementById("btnConfirmar");
+
+btnCancelar.addEventListener("click", ()=>{
+modal.classList.remove("active");
+indexParaExcluir = null;
+});
+
+btnConfirmar.addEventListener("click", ()=>{
+if(indexParaExcluir !== null){
+
+atendimentos.splice(indexParaExcluir,1);
+
+localStorage.setItem("atendimentos",JSON.stringify(atendimentos));
+
+atualizarHistorico();
+
+}
+
+modal.classList.remove("active");
+indexParaExcluir = null;
+});

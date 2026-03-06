@@ -26,22 +26,7 @@ canvas#particles {
 }
 
 /* Overlay – fica logo abaixo do sidebar */
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s ease;
-  z-index: 9998;
-  pointer-events: none;
-}
 
-.sidebar-overlay.active {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
 
 /* Sidebar – TEM QUE FICAR ACIMA DE TUDO */
 .sidebar {
@@ -59,6 +44,22 @@ canvas#particles {
   z-index: 10000 !important;
   overflow-y: auto;
   color: #e0e7ff;
+}
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease;
+  z-index: 9998;
+  pointer-events: none;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .sidebar.active {
@@ -395,36 +396,159 @@ canvas#particles {
 .card p { font-size: 1.2rem; }
 
 /* Histórico de atendimentos */
+/* =========================
+   HISTÓRICO DE ATENDIMENTOS
+   ========================= */
+
 .historico {
   margin-top: 40px;
+  background: rgba(20,24,34,0.65);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(0,240,255,0.2);
+  box-shadow: 0 0 20px rgba(0,240,255,0.1);
+  padding: 25px;
+  animation: fadeIn 0.5s ease;
   overflow-x: auto;
 }
 
-.historico table {
-  width: 100%;
-  border-collapse: collapse;
+/* título */
+.historico h2{
+  margin-bottom:20px;
+  color:#00f0ff;
+  font-size:1.4rem;
 }
 
-.historico th, .historico td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid rgba(0,240,255,0.2);
+/* =========================
+   FILTROS DO HISTÓRICO
+   ========================= */
+
+.historico-filtros{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+margin-bottom:20px;
+align-items:center;
+background:rgba(0,240,255,0.05);
+padding:15px;
+border-radius:12px;
+border:1px solid rgba(0,240,255,0.15);
 }
 
-.historico th { color: #00f0ff; font-weight: 600; }
-.historico td { color: #e0e7ff; }
+/* INPUTS */
 
-.historico button {
-  background: red;
-  border: none;
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all .2s;
+.historico-filtros input{
+background:#0b0e17;
+border:1px solid rgba(0,240,255,0.2);
+padding:10px 12px;
+border-radius:10px;
+color:#e0e7ff;
+font-size:14px;
+outline:none;
+transition:all .25s;
 }
 
-.historico button:hover { opacity: 0.8; }
+.historico-filtros input:focus{
+border-color:#00f0ff;
+box-shadow:0 0 8px rgba(0,240,255,0.4);
+}
+
+/* BOTÕES */
+
+.historico-filtros button{
+background:linear-gradient(135deg,#00f0ff,#ff6b00);
+border:none;
+padding:10px 16px;
+border-radius:10px;
+color:#000;
+font-weight:600;
+cursor:pointer;
+transition:all .25s;
+}
+
+.historico-filtros button:hover{
+transform:translateY(-2px);
+box-shadow:0 0 12px rgba(0,240,255,0.5);
+}
+
+/* botão limpar */
+
+.historico-filtros button:last-child{
+background:#2a2f45;
+color:#fff;
+}
+
+.historico-filtros button:last-child:hover{
+background:#3a3f55;
+box-shadow:none;
+}
+
+/* tabela */
+.historico table{
+  width:100%;
+  border-collapse:collapse;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* cabeçalho */
+.historico th{
+  text-align:left;
+  padding:14px;
+  background:rgba(0,240,255,0.08);
+  color:#00f0ff;
+  font-weight:600;
+  font-size:14px;
+}
+
+/* linhas */
+.historico td{
+  padding:12px 14px;
+  border-bottom:1px solid rgba(0,240,255,0.1);
+  font-size:14px;
+}
+
+/* hover */
+.historico tr:hover{
+  background:rgba(0,240,255,0.05);
+}
+
+/* botões */
+.historico button{
+  border:none;
+  padding:5px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  margin-right:5px;
+}
+.historico button:first-child:hover{
+  background:#0ff;
+}
+
+/* excluir */
+.historico button:last-child{
+  background:#ff4d4d;
+  color:#fff;
+}
+
+.historico button:last-child:hover{
+  background:#ff2a2a;
+}
+
+/* mobile */
+@media(max-width:768px){
+
+.historico table{
+  font-size:13px;
+}
+
+.historico th,
+.historico td{
+  padding:10px;
+}
+
+}
 
 /* Responsivo mobile */
 @media (max-width: 768px) {
@@ -501,4 +625,109 @@ canvas#particles {
     padding: 14px 20px;
     font-size: 1rem;
   }
+}
+/* Corrige fundo branco indesejado em selects e inputs quando preenchidos/sugeridos */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 50px #0b0e17 inset !important;
+    box-shadow: 0 0 0 50px #0b0e17 inset !important;
+    -webkit-text-fill-color: #e0e7ff !important;
+    background-color: #0b0e17 !important;
+    transition: background-color 5000s ease-in-out 0s; /* evita flash */
+}
+
+/* Força cor de texto em todos os estados */
+input,
+select {
+    color: #e0e7ff;
+}
+
+/* Especialmente para o primeiro option (placeholder) */
+select option {
+    background: #0b0e17;
+    color: #e0e7ff;
+}
+
+select option:checked,
+select option[selected] {
+    background: #0b0e17;
+    color: #e0e7ff;
+}
+
+/* Tenta cobrir o estado "sugerido/selecionado" em alguns navegadores */
+select:-internal-autofill-selected,
+select:autofill {
+    background: #0b0e17 !important;
+    color: #e0e7ff !important;
+}
+/* MODAL CONFIRMAR EXCLUSÃO */
+
+.modal-confirm{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+.modal-confirm.active{
+display:flex;
+}
+
+.modal-box{
+background:#111;
+padding:30px;
+border-radius:12px;
+text-align:center;
+width:320px;
+box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+.modal-box h3{
+margin-bottom:10px;
+}
+
+.modal-box p{
+font-size:14px;
+opacity:0.8;
+margin-bottom:20px;
+}
+
+.modal-actions{
+display:flex;
+justify-content:center;
+gap:10px;
+}
+
+.modal-actions button{
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+#btnCancelar{
+background:#444;
+color:white;
+}
+
+#btnConfirmar{
+background:#ff3b3b;
+color:white;
+}
+
+#btnConfirmar:hover{
+background:#ff0000;
 }

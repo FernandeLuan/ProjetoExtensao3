@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | Marlon Barber</title>
-  <link rel="stylesheet" href="dashboard.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard | Marlon Barber</title>
+
+<link rel="stylesheet" href="dashboard.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
+
 <body>
 
 <canvas id="particles"></canvas>
@@ -16,102 +23,166 @@
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <header class="dashboard-header">
-  <div class="container">
-    <h1 class="logo">Marlon Barber</h1>
-    <div class="header-actions">
-      <button id="menuToggle" title="Menu"><i class="fas fa-bars"></i></button>
-      <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
-    </div>
-  </div>
 
-  <!-- Menu sanduíche -->
-  <nav id="sidebarMenu" class="sidebar">
-    <ul>
-      <li><a href="#registrar">Registrar Atendimento</a></li>
-      <li><a href="#painelFinanceiro">Painel Financeiro</a></li>
-      <li><a href="#historico">Histórico</a></li>
-      <li><a href="#" id="fecharMenu">Fechar Menu</a></li>
-    </ul>
-  </nav>
+<div class="container">
+
+<h1 class="logo">Marlon Barber</h1>
+
+<div class="header-actions">
+<button id="menuToggle"><i class="fas fa-bars"></i></button>
+<button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+</div>
+
+</div>
+
+<nav id="sidebarMenu" class="sidebar">
+
+<ul>
+<li><a href="#registrar">Registrar Atendimento</a></li>
+<li><a href="#painelFinanceiro">Painel Financeiro</a></li>
+<li><a href="#historico">Histórico</a></li>
+</ul>
+
+</nav>
+
 </header>
 
 <section class="welcome">
-  <p class="saudacao">Bem-vindo, Marlon 👋</p>
+<p class="saudacao">Bem-vindo, Marlon 👋</p>
 </section>
 
 <main class="dashboard-main">
-  <!-- Formulário de registro – sempre visível por padrão -->
-  <section id="registrar" class="registrar">
-    <h2>Registrar Atendimento</h2>
-    <form id="atendimentoForm">
-      <div class="input-group">
-        <input type="text" id="cliente" placeholder="Nome do Cliente" required>
-      </div>
-      <div class="input-group">
-        <select id="servico" required>
-          <option value="">Selecione o Serviço</option>
-          <option value="Corte">Corte</option>
-          <option value="Barba">Barba</option>
-          <option value="Corte + Barba">Corte + Barba</option>
-          <option value="Sobrancelha">Sobrancelha</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <input type="number" id="valor" placeholder="Valor R$" required step="0.01" min="0.01">
-      </div>
-      <div class="input-group">
-        <select id="pagamento" required>
-          <option value="">Forma de Pagamento</option>
-          <option value="Pix">Pix</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Cartão">Cartão</option>
-        </select>
-      </div>
-      <button type="submit" class="btn" id="btnRegistrar">Registrar</button>
-    </form>
-  </section>
 
-  <!-- Painel Financeiro – começa escondido -->
-  <section id="painelFinanceiro" class="painel-financeiro" style="display: none;">
-    <div class="cards">
-      <div class="card" id="faturamentoHoje">
-        <h3>Faturamento Hoje</h3>
-        <p>R$ 0,00</p>
-      </div>
-      <div class="card" id="clientesHoje">
-        <h3>Clientes Hoje</h3>
-        <p>0</p>
-      </div>
-      <div class="card" id="servicoMaisVendido">
-        <h3>Serviço Mais Vendido</h3>
-        <p>—</p>
-      </div>
-    </div>
-    <div class="card grafico-container">
-      <h3>Faturamento Últimos 7 Dias</h3>
-      <canvas id="graficoFaturamento" height="180"></canvas>
-    </div>
-  </section>
+<!-- REGISTRAR -->
 
-  <!-- Histórico – começa escondido -->
-  <section id="historico" class="historico" style="display: none;">
-    <h2>Histórico de Atendimentos</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Serviço</th>
-          <th>Valor</th>
-          <th>Pagamento</th>
-          <th>Data/Hora</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody id="historicoBody"></tbody>
-    </table>
-  </section>
+<section id="registrar" class="registrar">
+
+<h2>Registrar Atendimento</h2>
+
+<form id="atendimentoForm">
+
+<div class="input-group">
+<input type="text" id="cliente" placeholder="Nome do Cliente" required>
+</div>
+
+<div class="input-group">
+<select id="servico" required>
+<option value="">Selecione o Serviço</option>
+<option value="Corte">Corte</option>
+<option value="Barba">Barba</option>
+<option value="Corte + Barba">Corte + Barba</option>
+<option value="Sobrancelha">Sobrancelha</option>
+</select>
+</div>
+
+<div class="input-group">
+<input type="number" id="valor" placeholder="Valor R$" required step="0.01">
+</div>
+
+<div class="input-group">
+<select id="pagamento" required>
+<option value="">Forma de Pagamento</option>
+<option value="Pix">Pix</option>
+<option value="Dinheiro">Dinheiro</option>
+<option value="Cartão">Cartão</option>
+</select>
+</div>
+
+<button type="submit" class="btn" id="btnRegistrar">Registrar</button>
+
+</form>
+
+</section>
+
+<!-- PAINEL FINANCEIRO -->
+
+<section id="painelFinanceiro" class="painel-financeiro" style="display:none;">
+
+<div class="cards">
+
+<div class="card" id="faturamentoHoje">
+<h3>Faturamento Hoje</h3>
+<p>R$ 0,00</p>
+</div>
+
+<div class="card" id="clientesHoje">
+<h3>Clientes Hoje</h3>
+<p>0</p>
+</div>
+
+<div class="card" id="servicoMaisVendido">
+<h3>Serviço Mais Vendido</h3>
+<p>—</p>
+</div>
+
+</div>
+
+<div class="card grafico-container">
+
+<h3>Faturamento Últimos 7 Dias</h3>
+
+<canvas id="graficoFaturamento"></canvas>
+
+</div>
+
+</section>
+
+<!-- HISTÓRICO -->
+
+<section id="historico" class="historico" style="display:none;">
+
+<h2>Histórico de Atendimentos</h2>
+
+<div class="historico-filtros">
+
+<div class="filtro-input">
+<i class="fa fa-search"></i>
+<input type="text" id="buscaCliente" placeholder="Buscar cliente">
+</div>
+
+<div class="filtro-input">
+<i class="fa fa-calendar"></i>
+<input type="date" id="filtroData">
+</div>
+
+<button class="btn-buscar" onclick="filtrarHistorico()">Buscar</button>
+<button class="btn-limpar" onclick="limparFiltro()">Limpar</button>
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Cliente</th>
+<th>Serviço</th>
+<th>Valor</th>
+<th>Pagamento</th>
+<th>Data/Hora</th>
+</tr>
+</thead>
+
+<tbody id="historicoBody"></tbody>
+
+</table>
+
+</section>
+
+<!-- Modal confirmar exclusão -->
+<div id="modalConfirm" class="modal-confirm">
+  <div class="modal-box">
+    <h3>Confirmar exclusão</h3>
+    <p>Você tem certeza que deseja excluir este atendimento?</p>
+
+    <div class="modal-actions">
+      <button id="btnCancelar">Cancelar</button>
+      <button id="btnConfirmar">Sim, excluir</button>
+    </div>
+  </div>
+</div>
 </main>
 
 <script src="dashboard.js"></script>
+
 </body>
 </html>
