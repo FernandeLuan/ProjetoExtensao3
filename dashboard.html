@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -135,18 +136,27 @@
 
 <div class="historico-filtros">
 
-<div class="filtro-input">
-<i class="fa fa-search"></i>
-<input type="text" id="buscaCliente" placeholder="Buscar cliente">
-</div>
+<button class="btn-ontem" onclick="filtrarOntem()">
+<i class="fa fa-clock"></i> Ontem
+</button>
 
-<div class="filtro-input">
-<i class="fa fa-calendar"></i>
+<div class="filtro-input calendario">
+
 <input type="date" id="filtroData">
+
 </div>
 
-<button class="btn-buscar" onclick="filtrarHistorico()">Buscar</button>
-<button class="btn-limpar" onclick="limparFiltro()">Limpar</button>
+<div class="filtro-input">
+
+<i class="fa fa-search"></i>
+
+<input 
+type="text"
+id="buscaCliente"
+placeholder="Buscar cliente"
+>
+
+</div>
 
 </div>
 
@@ -159,6 +169,7 @@
 <th>Valor</th>
 <th>Pagamento</th>
 <th>Data/Hora</th>
+<th></th>
 </tr>
 </thead>
 
@@ -168,18 +179,28 @@
 
 </section>
 
-<!-- Modal confirmar exclusão -->
-<div id="modalConfirm" class="modal-confirm">
-  <div class="modal-box">
-    <h3>Confirmar exclusão</h3>
-    <p>Você tem certeza que deseja excluir este atendimento?</p>
+<!-- MODAL EXCLUIR -->
 
-    <div class="modal-actions">
-      <button id="btnCancelar">Cancelar</button>
-      <button id="btnConfirmar">Sim, excluir</button>
-    </div>
-  </div>
+<div id="modalConfirm" class="modal-confirm">
+
+<div class="modal-box">
+
+<h3>Confirmar exclusão</h3>
+
+<p>Você tem certeza que deseja excluir este atendimento?</p>
+
+<div class="modal-actions">
+
+<button id="btnCancelar">Cancelar</button>
+
+<button id="btnConfirmar">Sim, excluir</button>
+
 </div>
+
+</div>
+
+</div>
+
 </main>
 
 <script src="dashboard.js"></script>

@@ -33,9 +33,11 @@ for(let i=0;i<60;i++){
 }
 
 function animate(){
+
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
     particles.forEach(p=>{
+
         ctx.beginPath();
         ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fillStyle="rgba(0,240,255,0.5)";
@@ -46,9 +48,11 @@ function animate(){
 
         if(p.x<0||p.x>canvas.width)p.dx*=-1;
         if(p.y<0||p.y>canvas.height)p.dy*=-1;
+
     });
 
     requestAnimationFrame(animate);
+
 }
 
 animate();
@@ -71,6 +75,7 @@ menuToggle?.addEventListener("click",()=>{
 const sidebarLinks=sidebarMenu.querySelectorAll("a");
 
 sidebarLinks.forEach(link=>{
+
 link.addEventListener("click",e=>{
 
 e.preventDefault();
@@ -93,6 +98,7 @@ atualizarGrafico();
 sidebarMenu.classList.remove("active");
 
 });
+
 });
 
 
@@ -117,7 +123,9 @@ historicoBody.innerHTML="";
 
 lista
 .sort((a,b)=>new Date(b.data)-new Date(a.data))
-.forEach((a,i)=>{
+.forEach((a)=>{
+
+let indexReal = atendimentos.indexOf(a);
 
 let tr=document.createElement("tr");
 
@@ -128,7 +136,7 @@ tr.innerHTML=`
 <td>${a.pagamento}</td>
 <td>${new Date(a.data).toLocaleString()}</td>
 <td>
-<button onclick="excluirAtendimento(${i})">🗑</button>
+<button onclick="excluirAtendimento(${indexReal})">🗑</button>
 </td>
 `;
 
@@ -147,10 +155,12 @@ atualizarCards();
 let indexParaExcluir = null;
 
 function excluirAtendimento(index){
-indexParaExcluir = index;
-document.getElementById("modalConfirm").classList.add("active");
-}
 
+indexParaExcluir = index;
+
+document.getElementById("modalConfirm").classList.add("active");
+
+}
 
 
 // =============================
@@ -202,24 +212,21 @@ btnRegistrar.textContent="Registrar";
 
 
 // =============================
-// FILTRO
+// FILTROS
 // =============================
-function filtrarHistorico(){
+function aplicarFiltros(){
 
+const busca=document.getElementById("buscaCliente").value.toLowerCase();
 const dataFiltro=document.getElementById("filtroData").value;
-const nomeBusca=document
-.getElementById("buscaCliente")
-.value
-.toLowerCase();
 
-const filtrados=atendimentos.filter(a=>{
+let filtrados=atendimentos.filter(a=>{
 
-const data=a.data.split("T")[0];
 const nome=a.cliente.toLowerCase();
+const data=a.data.split("T")[0];
 
 return(
-(!dataFiltro||data===dataFiltro)&&
-(!nomeBusca||nome.includes(nomeBusca))
+(!busca || nome.includes(busca)) &&
+(!dataFiltro || data===dataFiltro)
 );
 
 });
@@ -228,22 +235,36 @@ atualizarHistorico(filtrados);
 
 }
 
+
+// =============================
+// FILTRO ONTEM
+// =============================
+function filtrarOntem(){
+
+let ontem=new Date();
+ontem.setDate(ontem.getDate()-1);
+
+let dataOntem=ontem.toISOString().split("T")[0];
+
+let filtrados=atendimentos.filter(a=>
+a.data.split("T")[0]===dataOntem
+);
+
+atualizarHistorico(filtrados);
+
+}
+
+
+// =============================
+// EVENTOS FILTRO
+// =============================
 document
 .getElementById("buscaCliente")
-.addEventListener("input",filtrarHistorico);
+.addEventListener("input",aplicarFiltros);
 
 document
 .getElementById("filtroData")
-.addEventListener("change",filtrarHistorico);
-
-function limparFiltro(){
-
-document.getElementById("filtroData").value="";
-document.getElementById("buscaCliente").value="";
-
-atualizarHistorico();
-
-}
+.addEventListener("change",aplicarFiltros);
 
 
 // =============================
@@ -347,22 +368,26 @@ scales:{y:{beginAtZero:true}}
 
 
 // =============================
-atualizarHistorico();
+// MODAL EXCLUIR
+// =============================
 const modal = document.getElementById("modalConfirm");
 const btnCancelar = document.getElementById("btnCancelar");
 const btnConfirmar = document.getElementById("btnConfirmar");
 
 btnCancelar.addEventListener("click", ()=>{
+
 modal.classList.remove("active");
 indexParaExcluir = null;
+
 });
 
 btnConfirmar.addEventListener("click", ()=>{
+
 if(indexParaExcluir !== null){
 
 atendimentos.splice(indexParaExcluir,1);
 
-localStorage.setItem("atendimentos",JSON.stringify(atendimentos));
+salvar();
 
 atualizarHistorico();
 
@@ -370,4 +395,9 @@ atualizarHistorico();
 
 modal.classList.remove("active");
 indexParaExcluir = null;
+
 });
+
+
+// =============================
+atualizarHistorico();
