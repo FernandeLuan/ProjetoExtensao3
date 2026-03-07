@@ -2,12 +2,12 @@
 // LOGIN
 // =============================
 if(!localStorage.getItem("barberLogado")){
-    window.location.href="login.html";
+window.location.href="login.html";
 }
 
 document.getElementById("logoutBtn")?.addEventListener("click",()=>{
-    localStorage.removeItem("barberLogado");
-    window.location.href="login.html";
+localStorage.removeItem("barberLogado");
+window.location.href="login.html";
 });
 
 
@@ -23,35 +23,35 @@ canvas.height=window.innerHeight;
 let particles=[];
 
 for(let i=0;i<60;i++){
-    particles.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
-        r:Math.random()*2,
-        dx:(Math.random()-0.5)*0.5,
-        dy:(Math.random()-0.5)*0.5
-    });
+particles.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+r:Math.random()*2,
+dx:(Math.random()-0.5)*0.5,
+dy:(Math.random()-0.5)*0.5
+});
 }
 
 function animate(){
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    particles.forEach(p=>{
+particles.forEach(p=>{
 
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-        ctx.fillStyle="rgba(0,240,255,0.5)";
-        ctx.fill();
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle="rgba(0,240,255,0.5)";
+ctx.fill();
 
-        p.x+=p.dx;
-        p.y+=p.dy;
+p.x+=p.dx;
+p.y+=p.dy;
 
-        if(p.x<0||p.x>canvas.width)p.dx*=-1;
-        if(p.y<0||p.y>canvas.height)p.dy*=-1;
+if(p.x<0||p.x>canvas.width)p.dx*=-1;
+if(p.y<0||p.y>canvas.height)p.dy*=-1;
 
-    });
+});
 
-    requestAnimationFrame(animate);
+requestAnimationFrame(animate);
 
 }
 
@@ -65,7 +65,7 @@ const menuToggle=document.getElementById("menuToggle");
 const sidebarMenu=document.getElementById("sidebarMenu");
 
 menuToggle?.addEventListener("click",()=>{
-    sidebarMenu.classList.toggle("active");
+sidebarMenu.classList.toggle("active");
 });
 
 
@@ -95,6 +95,11 @@ atualizarCards();
 atualizarGrafico();
 }
 
+if(href==="#historico"){
+atualizarHistorico();
+atualizarExtrasHoje();
+}
+
 sidebarMenu.classList.remove("active");
 
 });
@@ -108,6 +113,7 @@ sidebarMenu.classList.remove("active");
 let atendimentos=JSON.parse(localStorage.getItem("atendimentos")||"[]");
 
 const historicoBody=document.getElementById("historicoBody");
+const extrasBody=document.getElementById("extrasBody");
 
 function salvar(){
 localStorage.setItem("atendimentos",JSON.stringify(atendimentos));
@@ -115,17 +121,32 @@ localStorage.setItem("atendimentos",JSON.stringify(atendimentos));
 
 
 // =============================
-// HISTÓRICO
+// HISTÓRICO (SERVIÇOS)
 // =============================
-function atualizarHistorico(lista=atendimentos){
+function atualizarHistorico(){
 
 historicoBody.innerHTML="";
+
+const hoje=new Date();
+
+const lista=atendimentos.filter(a=>{
+
+const data=new Date(a.data);
+
+return(
+a.tipo==="servico" &&
+data.getDate()===hoje.getDate() &&
+data.getMonth()===hoje.getMonth() &&
+data.getFullYear()===hoje.getFullYear()
+);
+
+});
 
 lista
 .sort((a,b)=>new Date(b.data)-new Date(a.data))
 .forEach((a)=>{
 
-let indexReal = atendimentos.indexOf(a);
+let indexReal=atendimentos.indexOf(a);
 
 let tr=document.createElement("tr");
 
@@ -134,7 +155,7 @@ tr.innerHTML=`
 <td>${a.servico}</td>
 <td>R$ ${a.valor.toFixed(2)}</td>
 <td>${a.pagamento}</td>
-<td>${new Date(a.data).toLocaleString()}</td>
+<td>${new Date(a.data).toLocaleTimeString()}</td>
 <td>
 <button onclick="excluirAtendimento(${indexReal})">🗑</button>
 </td>
@@ -150,13 +171,61 @@ atualizarCards();
 
 
 // =============================
+// EXTRAS (PRODUTOS)
+// =============================
+function atualizarExtrasHoje(){
+
+extrasBody.innerHTML="";
+
+const hoje=new Date();
+
+const lista=atendimentos.filter(a=>{
+
+const data=new Date(a.data);
+
+return(
+a.tipo==="produto" &&
+data.getDate()===hoje.getDate() &&
+data.getMonth()===hoje.getMonth() &&
+data.getFullYear()===hoje.getFullYear()
+);
+
+});
+
+lista
+.sort((a,b)=>new Date(b.data)-new Date(a.data))
+.forEach((a)=>{
+
+let indexReal=atendimentos.indexOf(a);
+
+let tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${a.cliente}</td>
+<td>${a.servico}</td>
+<td>R$ ${a.valor.toFixed(2)}</td>
+<td>${a.pagamento}</td>
+<td>${new Date(a.data).toLocaleTimeString()}</td>
+<td>
+<button onclick="excluirAtendimento(${indexReal})">🗑</button>
+</td>
+`;
+
+extrasBody.appendChild(tr);
+
+});
+
+}
+
+
+// =============================
 // EXCLUIR
 // =============================
-let indexParaExcluir = null;
+let indexParaExcluir=null;
 
 function excluirAtendimento(index){
 
-indexParaExcluir = index;
+indexParaExcluir=index;
 
 document.getElementById("modalConfirm").classList.add("active");
 
@@ -179,6 +248,10 @@ const servico=document.getElementById("servico").value;
 const valor=parseFloat(document.getElementById("valor").value);
 const pagamento=document.getElementById("pagamento").value;
 
+const temExtra=document.getElementById("temExtra").value;
+const produtoExtra=document.getElementById("produtoExtra").value;
+const valorExtra=parseFloat(document.getElementById("valorExtra").value);
+
 if(!cliente||!servico||isNaN(valor)||valor<=0||!pagamento){
 alert("Preencha corretamente");
 return;
@@ -186,19 +259,38 @@ return;
 
 const data=new Date().toISOString();
 
+
+// SERVIÇO
 atendimentos.push({
 cliente,
 servico,
 valor,
 pagamento,
-data
+data,
+tipo:"servico"
 });
+
+
+// PRODUTO EXTRA
+if(temExtra==="sim" && produtoExtra && valorExtra){
+
+atendimentos.push({
+cliente,
+servico:produtoExtra,
+valor:valorExtra,
+pagamento,
+data,
+tipo:"produto"
+});
+
+}
 
 salvar();
 
 document.getElementById("atendimentoForm").reset();
 
 atualizarHistorico();
+atualizarExtrasHoje();
 
 btnRegistrar.classList.add("success");
 btnRegistrar.textContent="Registrado ✓";
@@ -209,62 +301,6 @@ btnRegistrar.textContent="Registrar";
 },2500);
 
 });
-
-
-// =============================
-// FILTROS
-// =============================
-function aplicarFiltros(){
-
-const busca=document.getElementById("buscaCliente").value.toLowerCase();
-const dataFiltro=document.getElementById("filtroData").value;
-
-let filtrados=atendimentos.filter(a=>{
-
-const nome=a.cliente.toLowerCase();
-const data=a.data.split("T")[0];
-
-return(
-(!busca || nome.includes(busca)) &&
-(!dataFiltro || data===dataFiltro)
-);
-
-});
-
-atualizarHistorico(filtrados);
-
-}
-
-
-// =============================
-// FILTRO ONTEM
-// =============================
-function filtrarOntem(){
-
-let ontem=new Date();
-ontem.setDate(ontem.getDate()-1);
-
-let dataOntem=ontem.toISOString().split("T")[0];
-
-let filtrados=atendimentos.filter(a=>
-a.data.split("T")[0]===dataOntem
-);
-
-atualizarHistorico(filtrados);
-
-}
-
-
-// =============================
-// EVENTOS FILTRO
-// =============================
-document
-.getElementById("buscaCliente")
-.addEventListener("input",aplicarFiltros);
-
-document
-.getElementById("filtroData")
-.addEventListener("change",aplicarFiltros);
 
 
 // =============================
@@ -283,6 +319,7 @@ atendimentos.forEach(a=>{
 const data=new Date(a.data);
 
 if(
+a.tipo==="servico" &&
 data.getDate()===hoje.getDate() &&
 data.getMonth()===hoje.getMonth() &&
 data.getFullYear()===hoje.getFullYear()
@@ -291,14 +328,13 @@ data.getFullYear()===hoje.getFullYear()
 faturamentoHoje+=a.valor;
 clientesHoje.add(a.cliente);
 
-}
-
 servicoCount[a.servico]=(servicoCount[a.servico]||0)+1;
+
+}
 
 });
 
 document.querySelector("#faturamentoHoje p").innerText=`R$ ${faturamentoHoje.toFixed(2)}`;
-
 document.querySelector("#clientesHoje p").innerText=clientesHoje.size;
 
 let maisVendido="—";
@@ -316,88 +352,53 @@ document.querySelector("#servicoMaisVendido p").innerText=maisVendido;
 
 
 // =============================
-// GRÁFICO
+// EXTRAS FORM
 // =============================
-let grafico;
+const selectExtra = document.getElementById("temExtra");
+const extraCampos = document.getElementById("extraCampos");
 
-function atualizarGrafico(){
+selectExtra.addEventListener("change",()=>{
 
-const labels=[];
-const dados=[];
-
-for(let i=6;i>=0;i--){
-
-const d=new Date();
-d.setDate(d.getDate()-i);
-
-const dia=d.toISOString().split("T")[0];
-
-labels.push(`${d.getDate()}/${d.getMonth()+1}`);
-
-const total=atendimentos
-.filter(a=>a.data.split("T")[0]===dia)
-.reduce((sum,a)=>sum+a.valor,0);
-
-dados.push(total);
-
+if(selectExtra.value==="sim"){
+extraCampos.style.display="block";
+}else{
+extraCampos.style.display="none";
 }
 
-if(grafico)grafico.destroy();
-
-const ctxGraf=document
-.getElementById("graficoFaturamento")
-.getContext("2d");
-
-grafico=new Chart(ctxGraf,{
-type:"bar",
-data:{
-labels,
-datasets:[{
-data:dados,
-backgroundColor:"#00f0ff"
-}]
-},
-options:{
-plugins:{legend:{display:false}},
-responsive:true,
-scales:{y:{beginAtZero:true}}
-}
 });
-
-}
 
 
 // =============================
 // MODAL EXCLUIR
 // =============================
-const modal = document.getElementById("modalConfirm");
-const btnCancelar = document.getElementById("btnCancelar");
-const btnConfirmar = document.getElementById("btnConfirmar");
+const modal=document.getElementById("modalConfirm");
+const btnCancelar=document.getElementById("btnCancelar");
+const btnConfirmar=document.getElementById("btnConfirmar");
 
-btnCancelar.addEventListener("click", ()=>{
-
+btnCancelar.addEventListener("click",()=>{
 modal.classList.remove("active");
-indexParaExcluir = null;
-
+indexParaExcluir=null;
 });
 
-btnConfirmar.addEventListener("click", ()=>{
+btnConfirmar.addEventListener("click",()=>{
 
-if(indexParaExcluir !== null){
+if(indexParaExcluir!==null){
 
 atendimentos.splice(indexParaExcluir,1);
 
 salvar();
 
 atualizarHistorico();
+atualizarExtrasHoje();
 
 }
 
 modal.classList.remove("active");
-indexParaExcluir = null;
+indexParaExcluir=null;
 
 });
 
 
 // =============================
 atualizarHistorico();
+atualizarExtrasHoje();

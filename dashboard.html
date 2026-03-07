@@ -69,6 +69,7 @@
 <div class="input-group">
 <select id="servico" required>
 <option value="">Selecione o Serviço</option>
+
 <option value="Corte">Corte</option>
 <option value="Barba">Barba</option>
 <option value="Corte + Barba">Corte + Barba</option>
@@ -80,6 +81,13 @@
 <input type="number" id="valor" placeholder="Valor R$" required step="0.01">
 </div>
 
+
+<div class="input-group">
+<select id="temExtra">
+<option value="nao" selected>Serviço extra? Não</option>
+<option value="sim">Serviço extra? Sim</option>
+</select>
+</div>
 <div class="input-group">
 <select id="pagamento" required>
 <option value="">Forma de Pagamento</option>
@@ -88,10 +96,21 @@
 <option value="Cartão">Cartão</option>
 </select>
 </div>
+<div id="extraCampos" style="display:none;">
 
+<div class="input-group">
+<input type="text" id="produtoExtra" placeholder="Produto">
+</div>
+
+<div class="input-group">
+<input type="number" id="valorExtra" placeholder="Valor do Produto" step="0.01">
+</div>
+
+</div>
 <button type="submit" class="btn" id="btnRegistrar">Registrar</button>
 
 </form>
+
 
 </section>
 
@@ -130,35 +149,11 @@
 
 <!-- HISTÓRICO -->
 
+<!-- HISTÓRICO -->
+
 <section id="historico" class="historico" style="display:none;">
 
-<h2>Histórico de Atendimentos</h2>
-
-<div class="historico-filtros">
-
-<button class="btn-ontem" onclick="filtrarOntem()">
-<i class="fa fa-clock"></i> Ontem
-</button>
-
-<div class="filtro-input calendario">
-
-<input type="date" id="filtroData">
-
-</div>
-
-<div class="filtro-input">
-
-<i class="fa fa-search"></i>
-
-<input 
-type="text"
-id="buscaCliente"
-placeholder="Buscar cliente"
->
-
-</div>
-
-</div>
+<h2>Atendimentos de Hoje</h2>
 
 <table>
 
@@ -168,7 +163,7 @@ placeholder="Buscar cliente"
 <th>Serviço</th>
 <th>Valor</th>
 <th>Pagamento</th>
-<th>Data/Hora</th>
+<th>Hora</th>
 <th></th>
 </tr>
 </thead>
@@ -177,7 +172,28 @@ placeholder="Buscar cliente"
 
 </table>
 
+
+<h2 style="margin-top:40px;">Produtos de Hoje</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Cliente</th>
+<th>Produto</th>
+<th>Valor</th>
+<th>Pagamento</th>
+<th>Hora</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody id="extrasBody"></tbody>
+
+</table>
+
 </section>
+
 
 <!-- MODAL EXCLUIR -->
 
