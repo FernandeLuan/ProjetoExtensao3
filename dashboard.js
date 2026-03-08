@@ -92,7 +92,11 @@ if(target) target.style.display="block";
 
 if(href==="#painelFinanceiro"){
 atualizarCards();
+
+if(typeof atualizarGrafico === "function"){
 atualizarGrafico();
+}
+
 }
 
 if(href==="#historico"){
