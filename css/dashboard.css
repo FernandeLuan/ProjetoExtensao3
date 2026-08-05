@@ -30,20 +30,21 @@ pointer-events:none;
 
 /* sidebar */
 
-.sidebar{
-position:fixed;
-top:0;
-right:-320px;
-width:85%;
-max-width:320px;
-background:rgba(15,18,30,0.98);
-backdrop-filter:blur(16px);
-padding:20px;
-box-shadow:-12px 0 40px rgba(0,0,0,0.7);
-transition:right .45s cubic-bezier(.32,.72,0,1);
-z-index:10000;
-overflow-y:auto;
-color:#e0e7ff;
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 85%;
+    max-width: 320px;
+    height: 100vh; /* <-- AQUI ESTÁ A MÁGICA (100% da altura da tela) */
+    background: rgba(15,18,30,0.98);
+    backdrop-filter: blur(16px);
+    padding: 20px;
+    box-shadow: -12px 0 40px rgba(0,0,0,0.7);
+    transition: right .45s cubic-bezier(.32,.72,0,1);
+    z-index: 10000;
+    overflow-y: auto;
+    color: #e0e7ff;
 }
 
 .sidebar-overlay{
@@ -176,7 +177,6 @@ z-index:50;
 }
 
 /* saudação */
-
 .welcome .saudacao{
 font-size:1.2rem;
 color:white;
@@ -197,12 +197,13 @@ box-shadow:0 0 30px rgba(0,240,255,.15);
 max-width:460px;
 width:92%;
 margin:40px auto;
-text-align:center;
+text-align:left;
 }
 
 .registrar h2{
 margin-bottom:30px;
 font-size:1.2rem;
+text-align: center;
 }
 
 /* inputs */
@@ -216,15 +217,92 @@ margin-bottom:15px;
 width:100%;
 padding:12px;
 border-radius:10px;
-border:none;
+border:1px solid rgba(0,240,255,0.1);
 background:#0b0e17;
 color:#e0e7ff;
 font-size:14px;
+outline: none;
+transition: border-color 0.3s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+border-color: #00f0ff;
+}
+
+/* Estilização dos botões e campos de serviços */
+.grupo-servicos-container {
+margin-bottom: 15px;
+}
+
+.label-servico {
+font-size: 0.85rem;
+color: #a0a0a0;
+display: block;
+margin-bottom: 5px;
+text-align: left;
+}
+
+.grupo-botoes-servicos {
+display: flex;
+gap: 8px;
+margin-bottom: 8px;
+}
+
+.btn-servico {
+flex: 1;
+padding: 10px 4px;
+background: #0b0e17;
+color: #ffffff;
+border: 1px solid rgba(0,240,255,0.3);
+border-radius: 10px;
+cursor: pointer;
+font-weight: 600;
+font-size: 0.85rem;
+transition: all 0.2s ease;
+text-align: center;
+line-height: 1.3;
+}
+
+.btn-servico:hover {
+background: rgba(0,240,255,0.15);
+border-color: #00f0ff;
+}
+
+.valor-servico-btn {
+font-size: 0.75rem;
+color: #00f0ff;
+}
+
+.input-readonly {
+background-color: #0b0e17 !important;
+cursor: not-allowed;
+color: #e0e7ff !important;
+text-align: center;
+}
+
+.btn-limpar-servicos {
+display: none;
+margin-top: 4px;
+background: none;
+border: none;
+color: #ffffff;
+cursor: pointer;
+font-size: 0.8rem;
+text-decoration: underline;
+}
+
+.input-valor-total {
+background-color: #0b0e17 !important;
+cursor: not-allowed;
+text-align: center;
+font-weight: bold;
+color: #00e676 !important;
 }
 
 /* botão */
 
-.btn{
+.registrar .btn{
 width:100%;
 padding:14px;
 border-radius:999px;
@@ -234,9 +312,10 @@ color:#000;
 font-weight:700;
 cursor:pointer;
 transition:.3s;
+margin-top: 10px;
 }
 
-.btn:hover{
+.registrar .btn:hover{
 transform:translateY(-3px);
 box-shadow:0 10px 25px rgba(0,240,255,.4);
 }
@@ -273,8 +352,8 @@ color:#00f0ff;
 }
 
 .card p{
-font-size:1.2rem;
-}
+font-size: 1.5rem;
+font-weight: 700;}
 
 /* historico */
 
@@ -435,8 +514,14 @@ flex-direction:column;
 }
 
 .registrar{
-padding:30px 20px;
+padding:25px 15px;
 margin:20px auto;
+width: 95%;
+}
+
+.btn-servico {
+font-size: 0.75rem;
+padding: 8px 4px;
 }
 
 .historico{
@@ -452,4 +537,73 @@ font-size:.88rem;
 padding:10px 8px;
 }
 
+}
+/* Toast de Desfazer (Undo) */
+.toast-undo {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 18, 30, 0.95);
+    border: 1px solid #00f0ff;
+    color: #e0e7ff;
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 99999;
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(10px);
+    max-width: 90%;
+    width: 380px;
+    font-size: 0.9rem;
+}
+
+.toast-undo.active {
+    bottom: 30px;
+}
+
+.btn-undo-acao {
+    background: linear-gradient(135deg, #00f0ff, #ff6b00);
+    border: none;
+    color: #000;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.btn-undo-acao:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+}
+/* Filtros de Período do Painel Financeiro */
+.filtros-periodo {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.btn-filtro {
+    background: #0b0e17;
+    color: #a0a0a0;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: 0.3s;
+}
+
+.btn-filtro:hover, .btn-filtro.active {
+    background: rgba(0, 240, 255, 0.15);
+    color: #00f0ff;
+    border-color: #00f0ff;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
 }

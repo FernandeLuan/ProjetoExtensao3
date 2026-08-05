@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Área do Barbeiro | Marlon Barber</title>
 
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="login.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/login.css">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +50,7 @@ Acesse seu painel financeiro
 
 <div class="input-group">
 <i class="fas fa-user"></i>
-<input type="text" id="usuario" placeholder="Usuário" autocomplete="username" required>
+<input type="email" id="usuario" placeholder="E-mail" autocomplete="username" required>
 </div>
 
 <div class="input-group senha-group">
@@ -71,6 +71,9 @@ Acesse seu painel financeiro
         <i class="fas fa-eye"></i>
     </span>
 </div>
+<div class="esqueci-senha-container">
+        <a href="#" id="btnEsqueciSenha" class="link-esqueci">Esqueci minha senha</a>
+    </div>
 
 <button type="submit" class="btn-login">
 <span class="btn-text">Entrar</span>
@@ -93,7 +96,6 @@ Voltar para o site
 
 </section>
 
-<script src="login.js"></script>
-
+<script type="module" src="js/login.js"></script>
 </body>
 </html>

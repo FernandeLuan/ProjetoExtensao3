@@ -1,63 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Dashboard | Marlon Barber</title>
 
-<link rel="stylesheet" href="dashboard.css">
-
+<link rel="stylesheet" href="css/dashboard.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 
 <body>
 
 <canvas id="particles"></canvas>
-
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <header class="dashboard-header">
-
 <div class="container">
-
 <h1 class="logo">Marlon Barber</h1>
-
 <div class="header-actions">
 <button id="menuToggle"><i class="fas fa-bars"></i></button>
 <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
 </div>
-
 </div>
 
 <nav id="sidebarMenu" class="sidebar">
-
 <ul>
 <li><a href="#registrar">Registrar Atendimento</a></li>
 <li><a href="#painelFinanceiro">Painel Financeiro</a></li>
 <li><a href="#historico">Histórico</a></li>
 </ul>
-
 </nav>
-
 </header>
-
-<section class="welcome">
-<p class="saudacao">Bem-vindo, Marlon 👋</p>
-</section>
 
 <main class="dashboard-main">
 
 <!-- REGISTRAR -->
-
 <section id="registrar" class="registrar">
-
 <h2>Registrar Atendimento</h2>
 
 <form id="atendimentoForm">
@@ -66,97 +46,120 @@
 <input type="text" id="cliente" placeholder="Nome do Cliente" required>
 </div>
 
-<div class="input-group">
-<select id="servico" required>
-<option value="">Selecione o Serviço</option>
+<!-- SELETOR DE SERVIÇOS PADRONIZADOS -->
+<div class="input-group grupo-servicos-container">
+    <label class="label-servico">Selecione os Serviços:</label>
+    <div class="grupo-botoes-servicos">
+        <button type="button" class="btn-servico" data-nome="Cabelo" data-valor="60">Cabelo<br><span class="valor-servico-btn">R$ 60</span></button>
+        <button type="button" class="btn-servico" data-nome="Barba" data-valor="50">Barba<br><span class="valor-servico-btn">R$ 50</span></button>
+        <button type="button" class="btn-servico" data-nome="Sobrancelha" data-valor="20">Sobrancelha<br><span class="valor-servico-btn">R$ 20</span></button>
+    </div>
+    
+    <input type="text" id="servico" class="input-readonly" placeholder="Nenhum serviço selecionado" readonly required>
+    
+    <button type="button" id="limparServicos" class="btn-limpar-servicos">Limpar Seleção ↺</button>
+</div>
 
-<option value="Corte">Corte</option>
-<option value="Barba">Barba</option>
-<option value="Corte + Barba">Corte + Barba</option>
-<option value="Sobrancelha">Sobrancelha</option>
-</select>
+<div class="input-group" id="campoValorNormal">
+    <input type="number" id="valor" class="input-valor-total" placeholder="Valor Total R$" readonly required>
 </div>
 
 <div class="input-group">
-<input type="number" id="valor" placeholder="Valor R$" required step="0.01">
+    <select id="temValorDiferenciado">
+        <option value="nao" selected>Valor Diferenciado? Não</option>
+        <option value="sim">Valor Diferenciado? Sim</option>
+    </select>
 </div>
 
+<div class="input-group" id="campoValorPersonalizado" style="display:none;">
+    <input type="number" id="valorPersonalizado" placeholder="Digite o Valor Diferenciado R$" step="0.01" min="0">
+</div>
 
 <div class="input-group">
-<select id="temExtra">
-<option value="nao" selected>Serviço extra? Não</option>
-<option value="sim">Serviço extra? Sim</option>
-</select>
+    <select id="temExtra">
+        <option value="nao" selected>Serviço / Produto? Não</option>
+        <option value="sim">Serviço / Produto? Sim</option>
+    </select>
 </div>
-<div class="input-group">
-<select id="pagamento" required>
-<option value="">Forma de Pagamento</option>
-<option value="Pix">Pix</option>
-<option value="Dinheiro">Dinheiro</option>
-<option value="Cartão">Cartão</option>
-</select>
-</div>
+
 <div id="extraCampos" style="display:none;">
-
-<div class="input-group">
-<input type="text" id="produtoExtra" placeholder="Produto">
+    <div class="input-group">
+        <input type="text" id="produtoExtra" placeholder="Qual foi o extra/produto?">
+    </div>
+    <div class="input-group">
+        <input type="number" id="valorExtra" placeholder="Valor do extra R$" step="0.01" min="0">
+    </div>
 </div>
 
 <div class="input-group">
-<input type="number" id="valorExtra" placeholder="Valor do Produto" step="0.01">
+    <select id="pagamento" required>
+        <option value="">Forma de Pagamento</option>
+        <option value="Pix">Pix</option>
+        <option value="Dinheiro">Dinheiro</option>
+        <option value="Débito">Cartão de Débito - 1.45%</option>
+        <option value="Crédito">Cartão de Crédito - 3.51%</option>
+    </select>
 </div>
 
-</div>
-<button type="submit" class="btn" id="btnRegistrar">Registrar</button>
-
+<button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
+<!-- BOTAO TEMPORARIO DE TESTE (APAGAR DEPOIS) -->
+<button type="button" id="btnFake" class="btn" style="background: #ff3b3b; margin-top: 20px;">[TESTE] Gerar 40 Dados Retroativos</button>
 </form>
-
-
 </section>
 
 <!-- PAINEL FINANCEIRO -->
+<!-- SEÇÃO PAINEL FINANCEIRO -->
+<section id="painelFinanceiro" style="display:none;" class="dashboard-main">
+    <div class="welcome">
+        <p class="saudacao">Resumo Financeiro 💰</p>
+    </div>
 
-<section id="painelFinanceiro" class="painel-financeiro" style="display:none;">
+    <!-- FILTROS DE PERÍODO -->
+    <div class="filtros-periodo">
+        <button class="btn-filtro active" data-periodo="hoje">Hoje</button>
+        <button class="btn-filtro" data-periodo="semana">Esta Semana</button>
+        <button class="btn-filtro" data-periodo="mes">Este Mês</button>
+    </div>
 
-<div class="cards">
+ <div class="cards">
+        <!-- 1. Faturamento -->
+        <div class="card" id="faturamentoHoje">
+            <h3>Faturamento</h3>
+            <p>Carregando...</p>
+        </div>
+        
+        <!-- 2. Ticket Médio (NOVO) -->
+        <div class="card" id="ticketMedio">
+            <h3>Ticket Médio</h3>
+            <p>—</p>
+        </div>
 
-<div class="card" id="faturamentoHoje">
-<h3>Faturamento Hoje</h3>
-<p>R$ 0,00</p>
-</div>
+        <!-- 3. Serviço Mais Vendido -->
+        <div class="card" id="servicoMaisVendido">
+            <h3>Serviço Mais Vendido</h3>
+            <p>—</p>
+        </div>
 
-<div class="card" id="clientesHoje">
-<h3>Clientes Hoje</h3>
-<p>0</p>
-</div>
+        <!-- 4. Clientes Atendidos (Renomeado) -->
+        <div class="card" id="clientesAtendidos">
+            <h3>Clientes Atendidos</h3>
+            <p>0</p>
+        </div>
+    </div>
 
-<div class="card" id="servicoMaisVendido">
-<h3>Serviço Mais Vendido</h3>
-<p>—</p>
-</div>
-
-</div>
-
-<div class="card grafico-container">
-
-<h3>Faturamento Últimos 7 Dias</h3>
-
-<canvas id="graficoFaturamento"></canvas>
-
-</div>
-
+    <!-- GRÁFICO DOS ÚLTIMOS 7 DIAS -->
+    <div class="card" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 20px;">
+        <h3 style="text-align: left; margin-bottom: 15px;">Faturamento Últimos 7 Dias (Bruto)</h3>
+        <div style="position: relative; height: 280px; width: 100%;">
+            <canvas id="graficoFaturamento"></canvas>
+        </div>
+    </div>
 </section>
 
 <!-- HISTÓRICO -->
-
-<!-- HISTÓRICO -->
-
 <section id="historico" class="historico" style="display:none;">
-
 <h2>Atendimentos de Hoje</h2>
-
 <table>
-
 <thead>
 <tr>
 <th>Cliente</th>
@@ -167,16 +170,11 @@
 <th></th>
 </tr>
 </thead>
-
 <tbody id="historicoBody"></tbody>
-
 </table>
 
-
 <h2 style="margin-top:40px;">Produtos de Hoje</h2>
-
 <table>
-
 <thead>
 <tr>
 <th>Cliente</th>
@@ -187,39 +185,30 @@
 <th></th>
 </tr>
 </thead>
-
 <tbody id="extrasBody"></tbody>
-
 </table>
-
 </section>
 
-
 <!-- MODAL EXCLUIR -->
-
 <div id="modalConfirm" class="modal-confirm">
-
 <div class="modal-box">
-
 <h3>Confirmar exclusão</h3>
-
 <p>Você tem certeza que deseja excluir este atendimento?</p>
-
 <div class="modal-actions">
-
 <button id="btnCancelar">Cancelar</button>
-
 <button id="btnConfirmar">Sim, excluir</button>
-
 </div>
-
 </div>
-
 </div>
 
 </main>
-
-<script src="dashboard.js"></script>
-
+<!-- TOAST DE NOTIFICAÇÃO COM BOTÃO DESFAZER -->
+<div id="toastUndo" class="toast-undo">
+    <span id="toastMensagem">Atendimento registrado com sucesso!</span>
+    <button type="button" id="btnUndo" class="btn-undo-acao">Desfazer</button>
+</div>
+<!-- CHAMDADA CORRETA DO SCRIPT COM TYPE="MODULE" -->
+<script type="module" src="js/dashboard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
