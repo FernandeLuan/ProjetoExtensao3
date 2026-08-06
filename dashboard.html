@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard | Marlon Barber</title>
 
-<link rel="stylesheet" href="css/dashboard.css?v=1.1">
+<link rel="stylesheet" href="css/dashboard.css?v=1.5">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,36 +17,36 @@
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <header class="dashboard-header">
-<div class="container">
-<h1 class="logo">Marlon Barber</h1>
-<div class="header-actions">
-<button id="menuToggle"><i class="fas fa-bars"></i></button>
-<button id="logoutBtn" class="btn-sair">Sair</button>
-</div>
-</div>
-
-<nav id="sidebarMenu" class="sidebar">
-<ul>
-<li><a href="#registrar">Registrar Atendimento</a></li>
-<li><a href="#painelFinanceiro">Painel Financeiro</a></li>
-<li><a href="#historico">Histórico</a></li>
-</ul>
-</nav>
+    <div class="container">
+        <!-- Logo agora é clicável (via JS) -->
+        <h1 class="logo" id="logoHome" style="cursor: pointer;">Marlon Barber</h1>
+        <div class="header-actions">
+            <button id="menuToggle"><i class="fas fa-bars"></i></button>
+        </div>
+    </div>
 </header>
+
+    <nav id="sidebarMenu" class="sidebar">
+        <ul>
+            <li><a href="#registrar"><i class="fas fa-cut"></i> Registrar Atendimento</a></li>
+            <li><a href="#painelFinanceiro"><i class="fas fa-chart-line"></i> Painel Financeiro</a></li>
+            <li><a href="#relatorios"><i class="fas fa-file-invoice-dollar"></i> Relatórios</a></li>
+            <li><a href="#historico"><i class="fas fa-history"></i> Histórico</a></li>
+            <li><a href="#configuracoes"><i class="fas fa-user-lock"></i> Minha Conta</a></li>
+            <hr style="border-color: rgba(255,255,255,0.05); margin: 20px 0;">
+            <!-- Sair movido para cá -->
+            <li><a href="#" id="logoutBtnSide" style="color: #ff3b3b;"><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a></li>
+        </ul>
+    </nav>
 
 <main class="dashboard-main">
 
-    <!-- AQUI ESTÁ A TAG QUE FALTAVA PARA CRIAR O BOX ESCURO -->
+    <!-- 1. REGISTRAR ATENDIMENTO -->
     <section id="registrar" class="registrar">
-
-        <!-- TÍTULO VOLTOU -->
-        <h2>Registrar Atendimento</h2>
+        <h2 class="titulo-sessao">Registrar Atendimento</h2>
 
         <form id="atendimentoForm">
-            
-            <!-- SELETOR DE SERVIÇOS -->
             <div class="input-group grupo-servicos-container">
-                <!-- ID ADICIONADO AQUI -->
                 <label class="label-servico" id="labelServicos">Serviços:</label>
                 <div class="grupo-botoes-servicos">
                     <button type="button" class="btn-servico" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" style="grid-column: 1 / -1;">Cabelo + Barba + Sobrancelha<br><span class="valor-servico-btn">R$ 110</span></button>
@@ -57,9 +57,7 @@
                 </div>
             </div>
 
-            <!-- CHIPS DE PAGAMENTO -->
             <div class="input-group" style="margin-bottom: 25px;">
-                <!-- ID ADICIONADO AQUI -->
                 <label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
                 <div class="grupo-chips-pagamento">
                     <button type="button" class="chip-pagamento" data-valor="Crédito">Crédito - 3.51%</button>
@@ -70,7 +68,6 @@
                 <input type="hidden" id="pagamento" required>
             </div>
 
-            <!-- SWITCH TOGGLE VALOR DIFERENCIADO -->
             <div class="input-group toggle-container">
                 <label class="toggle-label" for="temValorDiferenciado">Aplicar Valor Diferenciado?</label>
                 <label class="switch">
@@ -79,15 +76,12 @@
                 </label>
             </div>
 
-            <!-- INPUT TYPE="TEL" PARA ABRIR O TECLADO NUMÉRICO DE CELULAR -->
             <div class="input-group" id="campoValorPersonalizado" style="display:none; margin-bottom: 20px;">
                 <input type="tel" id="valorPersonalizado" placeholder="0,00" inputmode="numeric">
             </div>
 
-<!-- BOTÃO DINÂMICO -->
             <button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
 
-<!-- NOVO DESFAZER INLINE (Discreto) -->
             <div id="undoContainer" style="display: none; margin-top: 15px; animation: fadeIn 0.4s ease;">
                 <button type="button" id="btnUndoInline" class="btn-desfazer-ghost">
                     Desfazer Registro (10s)
@@ -96,10 +90,9 @@
         </form>
     </section>
 
-    
-    <!-- PAINEL FINANCEIRO -->
+    <!-- 2. PAINEL FINANCEIRO -->
     <section id="painelFinanceiro" style="display:none;" class="dashboard-main">
-        <h2 style="text-align: center; margin-bottom: 25px; color: #fff; font-size: 1.2rem;">Resumo Financeiro</h2>
+        <h2 class="titulo-sessao">Painel Financeiro</h2>
 
         <div class="filtros-periodo">
             <button class="btn-filtro active" data-periodo="hoje">Hoje</button>
@@ -134,38 +127,82 @@
         </div>
     </section>
 
-    <!-- HISTÓRICO -->
-    <section id="historico" class="historico" style="display:none;">
-        <h2>Histórico de Atendimentos</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Serviço</th>
-                    <th>Valor</th>
-                    <th>Pagamento</th>
-                    <th>Hora</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="historicoBody"></tbody>
-        </table>
+    <!-- 3. RELATÓRIOS (NOVO) -->
+    <section id="relatorios" class="registrar" style="display:none;">
+        <h2 class="titulo-sessao">Relatórios e Fechamento</h2>
+        
+        <div class="input-group">
+            <label class="label-servico">Data Inicial:</label>
+            <input type="date" id="dataInicioRelatorio">
+        </div>
+        <div class="input-group">
+            <label class="label-servico">Data Final:</label>
+            <input type="date" id="dataFimRelatorio">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px; margin-bottom: 20px;">
+            <button class="btn-config" id="btnExportCSV" style="flex:1; font-size:0.85rem;"><i class="fas fa-file-csv"></i> Excel</button>
+            <button class="btn-config" id="btnExportPDF" style="flex:1; font-size:0.85rem;"><i class="fas fa-file-pdf"></i> PDF</button>
+        </div>
+        
+        <!-- Nosso astro da Sprint 3 -->
+        <button type="button" class="btn" id="btnWhatsApp" style="background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; width: 100%;">
+            <i class="fab fa-whatsapp"></i> Enviar Fechamento
+        </button>
     </section>
 
-    <!-- MODAL EXCLUIR -->
+    <!-- 4. HISTÓRICO -->
+    <section id="historico" class="registrar" style="display:none; max-width: 700px;">
+        <h2 class="titulo-sessao">Histórico</h2>
+        
+        <div class="filtros-periodo" style="margin-bottom: 20px;">
+            <button class="btn-filtro-hist active" data-periodo="hoje">Hoje</button>
+            <button class="btn-filtro-hist" data-periodo="semana">Semana</button>
+            <button class="btn-filtro-hist" data-periodo="mes">Mês</button>
+        </div>
+
+        <div id="historicoContainer" class="lista-historico"></div>
+    </section>
+
+    <!-- 5. MINHA CONTA -->
+    <section id="configuracoes" class="registrar" style="display:none;">
+        <h2 class="titulo-sessao">Minha Conta</h2>
+        <div style="text-align: center; color: #a0a0a0; font-size: 0.85rem; margin-bottom: 25px;">
+            Gerencie o acesso do seu aplicativo.
+        </div>
+        
+        <form id="formAlterarSenha">
+            <!-- SENHA ATUAL ADICIONADA -->
+            <div class="input-group">
+                <label class="label-servico">Senha Atual</label>
+                <input type="password" id="senhaAtual" placeholder="Digite sua senha atual" required>
+            </div>
+            <div class="input-group">
+                <label class="label-servico">Nova Senha</label>
+                <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="input-group">
+                <label class="label-servico">Confirmar Nova Senha</label>
+                <input type="password" id="confirmaSenha" placeholder="Repita a nova senha" required>
+            </div>
+            
+            <button type="submit" class="btn-config" id="btnSalvarSenha">Atualizar Senha</button>
+        </form>
+    </section>
+
+    <!-- MODAL EXCLUIR INTELIGENTE -->
     <div id="modalConfirm" class="modal-confirm">
         <div class="modal-box">
             <h3>Confirmar exclusão</h3>
-            <p>Você tem certeza que deseja excluir este atendimento?</p>
+            <p id="modalDescricao" style="margin: 15px 0; color: #e0e7ff; font-size: 0.95rem;">Você tem certeza?</p>
             <div class="modal-actions">
                 <button id="btnCancelar">Cancelar</button>
-                <button id="btnConfirmar">Sim, excluir</button>
+                <button id="btnConfirmar" style="background:#ff3b3b; color:white;">Sim, excluir</button>
             </div>
         </div>
     </div>
-
 </main>
-<!-- CHAMDADA CORRETA DO SCRIPT COM TYPE="MODULE" -->
+
 <script type="module" src="js/dashboard.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

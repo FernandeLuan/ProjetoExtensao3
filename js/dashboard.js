@@ -1,16 +1,17 @@
 import { auth, db } from "./firebase-init.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // =============================
-// SEGURANÇA
+// SEGURANÇA E NAVEGAÇÃO BÁSICA
 // =============================
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "login.html";
     else carregarAtendimentos();
 });
 
-document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+document.getElementById("logoutBtnSide")?.addEventListener("click", async (e) => {
+    e.preventDefault();
     await signOut(auth);
     window.location.href = "login.html";
 });
@@ -65,12 +66,30 @@ function animate() {
 }
 animate();
 
+// Lógica de fechamento inteligente do Overlay (Menu)
 const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
-menuToggle?.addEventListener("click", () => sidebarMenu.classList.toggle("active"));
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+menuToggle?.addEventListener("click", () => {
+    sidebarMenu.classList.toggle("active");
+    sidebarOverlay.classList.toggle("active");
+});
+
+sidebarOverlay?.addEventListener("click", () => {
+    sidebarMenu.classList.remove("active");
+    sidebarOverlay.classList.remove("active");
+});
+
+// Logo Home Click
+document.getElementById("logoHome")?.addEventListener("click", () => {
+    document.querySelectorAll("main section").forEach(s => s.style.display = "none");
+    document.getElementById("registrar").style.display = "block";
+});
 
 sidebarMenu.querySelectorAll("a").forEach(link => {
     link.addEventListener("click", e => {
+        if(link.id === "logoutBtnSide") return; // Sair tem logica propria
         e.preventDefault();
         const href = link.getAttribute("href");
         document.querySelectorAll("main section").forEach(s => s.style.display = "none");
@@ -82,12 +101,15 @@ sidebarMenu.querySelectorAll("a").forEach(link => {
             if (typeof atualizarGrafico === "function") atualizarGrafico();
         }
         if (href === "#historico") atualizarHistorico();
+        
+        // Fecha menu e overlay após clicar
         sidebarMenu.classList.remove("active");
+        sidebarOverlay.classList.remove("active");
     });
 });
 
 // =============================
-// SELETORES, MÁSCARA E BOTÃO DINÂMICO
+// SELETORES E FORMULÁRIO DE REGISTRO
 // =============================
 let servicoSelecionado = "";
 let valorTotalAutomatico = 0;
@@ -96,10 +118,11 @@ const inputValorPersonalizado = document.getElementById("valorPersonalizado");
 const checkboxValorDif = document.getElementById("temValorDiferenciado");
 const labelServicos = document.getElementById("labelServicos");
 const labelPagamento = document.getElementById("labelPagamento");
+const inputPagamento = document.getElementById("pagamento");
+const campoValorPersonalizado = document.getElementById("campoValorPersonalizado");
 
-// Função para formatar moeda em tempo real (0,01 -> 0,10 -> 1,00)
 inputValorPersonalizado.addEventListener("input", function(e) {
-    let value = e.target.value.replace(/\D/g, ""); // Remove tudo que não for número
+    let value = e.target.value.replace(/\D/g, ""); 
     if (value === "") {
         e.target.value = "";
         atualizarTextoBotao();
@@ -107,12 +130,11 @@ inputValorPersonalizado.addEventListener("input", function(e) {
     }
     value = (parseInt(value, 10) / 100).toFixed(2) + "";
     value = value.replace(".", ",");
-    value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Ponto de milhar
+    value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
     e.target.value = value;
     atualizarTextoBotao();
 });
 
-// Extrai o número real (float) da máscara visual
 function getValorCustomizado() {
     if (!inputValorPersonalizado.value) return 0;
     let valStr = inputValorPersonalizado.value.replace(/\./g, "").replace(",", ".");
@@ -128,31 +150,26 @@ function atualizarTextoBotao() {
     }
 }
 
-// Clique nos Serviços
 document.querySelectorAll(".btn-servico").forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll(".btn-servico").forEach(b => b.classList.remove("selecionado"));
         btn.classList.add("selecionado");
-        labelServicos.classList.remove("label-erro"); // Limpa erro se tiver
+        labelServicos.classList.remove("label-erro");
         servicoSelecionado = btn.getAttribute("data-nome");
         valorTotalAutomatico = parseFloat(btn.getAttribute("data-valor"));
         atualizarTextoBotao();
     });
 });
 
-// Clique nos Chips de Pagamento
-const inputPagamento = document.getElementById("pagamento");
 document.querySelectorAll(".chip-pagamento").forEach(chip => {
     chip.addEventListener("click", () => {
         document.querySelectorAll(".chip-pagamento").forEach(c => c.classList.remove("selecionado"));
         chip.classList.add("selecionado");
-        labelPagamento.classList.remove("label-erro"); // Limpa erro se tiver
+        labelPagamento.classList.remove("label-erro");
         inputPagamento.value = chip.getAttribute("data-valor");
     });
 });
 
-// Controle do Toggle de Valor Diferenciado
-const campoValorPersonalizado = document.getElementById("campoValorPersonalizado");
 checkboxValorDif.addEventListener("change", () => {
     if (checkboxValorDif.checked) {
         campoValorPersonalizado.style.display = "block";
@@ -163,9 +180,6 @@ checkboxValorDif.addEventListener("change", () => {
     atualizarTextoBotao();
 });
 
-// =============================
-// VALIDAÇÃO VISUAL (Treme e Fica Vermelho)
-// =============================
 function dispararErroVisual(elemento) {
     if (!elemento) return;
     elemento.classList.add("label-erro", "shake");
@@ -173,7 +187,6 @@ function dispararErroVisual(elemento) {
     setTimeout(() => elemento.classList.remove("label-erro"), 3000); 
 }
 
-// Faz o input do valor tremer e ficar vermelho
 function dispararErroVisualInput(elemento) {
     if (!elemento) return;
     elemento.classList.add("input-erro", "shake");
@@ -182,7 +195,7 @@ function dispararErroVisualInput(elemento) {
 }
 
 // =============================
-// CONTROLE DO DESFAZER INLINE (COUNTDOWN)
+// DESFAZER INLINE
 // =============================
 let ultimoIdRegistrado = null;
 let undoInterval = null;
@@ -193,9 +206,7 @@ const btnUndoInline = document.getElementById("btnUndoInline");
 function dispararUndoInline(idDoc) {
     ultimoIdRegistrado = idDoc;
     undoContainer.style.display = "block";
-    
     let segundosRestantes = 10;
-    // TEXTO ATUALIZADO AQUI
     btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
 
     if (undoInterval) clearInterval(undoInterval);
@@ -219,7 +230,6 @@ function dispararUndoInline(idDoc) {
 
 btnUndoInline.addEventListener("click", async () => {
     if (!ultimoIdRegistrado) return;
-    
     btnUndoInline.textContent = "Desfazendo...";
     clearInterval(undoInterval);
     clearTimeout(undoTimeout);
@@ -227,11 +237,9 @@ btnUndoInline.addEventListener("click", async () => {
     try {
         await deleteDoc(doc(db, "atendimentos", ultimoIdRegistrado));
         await carregarAtendimentos();
-        
         undoContainer.style.display = "none";
         ultimoIdRegistrado = null;
         
-        const btnRegistrar = document.getElementById("btnRegistrar");
         btnRegistrar.textContent = "Registro Desfeito ↩";
         btnRegistrar.style.background = "#ff3b3b";
         btnRegistrar.style.color = "#fff";
@@ -241,33 +249,22 @@ btnUndoInline.addEventListener("click", async () => {
             btnRegistrar.style.color = "";
             atualizarTextoBotao();
         }, 2000);
-        
     } catch (error) {
-        console.error("Erro ao desfazer:", error);
         btnUndoInline.textContent = "Erro ao desfazer";
     }
 });
 
 // =============================
-// REGISTRAR ATENDIMENTO
+// REGISTRO NO BANCO
 // =============================
 document.getElementById("atendimentoForm").addEventListener("submit", async e => {
     e.preventDefault();
-
     let temErro = false;
 
-    if (!servicoSelecionado) {
-        dispararErroVisual(labelServicos);
-        temErro = true;
-    }
-
+    if (!servicoSelecionado) { dispararErroVisual(labelServicos); temErro = true; }
     const pagamento = inputPagamento.value;
-    if (!pagamento) {
-        dispararErroVisual(labelPagamento);
-        temErro = true;
-    }
+    if (!pagamento) { dispararErroVisual(labelPagamento); temErro = true; }
 
-    // AQUI ESTÁ A LÓGICA QUE FALTAVA PARA TREMER O INPUT ZERADO
     let valorServicoBruto = 0;
     if (checkboxValorDif.checked) {
         valorServicoBruto = getValorCustomizado();
@@ -279,7 +276,7 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
         valorServicoBruto = valorTotalAutomatico;
     }
 
-    if (temErro) return; // Trava o envio aqui se faltou clicar em algo ou valor zerado
+    if (temErro) return;
 
     function processarFinanceiro(valor) {
         let liquidoConta = valor;
@@ -314,7 +311,6 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
         });
 
         dispararUndoInline(docRef.id);
-
         document.getElementById("atendimentoForm").reset();
         document.querySelectorAll(".btn-servico, .chip-pagamento").forEach(b => b.classList.remove("selecionado"));
         servicoSelecionado = "";
@@ -323,7 +319,6 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
         campoValorPersonalizado.style.display = "none";
         checkboxValorDif.checked = false;
         atualizarTextoBotao();
-
         await carregarAtendimentos();
 
         btnRegistrar.style.opacity = "1";
@@ -333,7 +328,6 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
             btnRegistrar.classList.remove("success");
             atualizarTextoBotao();
         }, 2000);
-
     } catch (error) {
         btnRegistrar.style.opacity = "1";
         atualizarTextoBotao();
@@ -341,39 +335,68 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
 });
 
 // =============================
-// HISTÓRICO E TABELAS
+// HISTÓRICO MOBILE CARDS
 // =============================
-const historicoBody = document.getElementById("historicoBody");
+let periodoHistorico = 'hoje';
+const historicoContainer = document.getElementById("historicoContainer");
+
+document.querySelectorAll('.btn-filtro-hist').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-filtro-hist').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        periodoHistorico = e.target.getAttribute('data-periodo');
+        atualizarHistorico();
+    });
+});
+
 function atualizarHistorico() {
-    historicoBody.innerHTML = "";
+    historicoContainer.innerHTML = "";
     const hoje = new Date();
+    const inicioSemana = new Date(hoje);
+    inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+    inicioSemana.setHours(0,0,0,0);
+
     const lista = atendimentos.filter(a => {
         const data = new Date(a.data);
-        return data.getDate() === hoje.getDate() && data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear();
+        if (periodoHistorico === 'hoje') return (data.getDate() === hoje.getDate() && data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
+        if (periodoHistorico === 'semana') return (data >= inicioSemana);
+        if (periodoHistorico === 'mes') return (data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
+        return true;
     });
 
+    if (lista.length === 0) {
+        historicoContainer.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: #a0a0a0; font-size: 0.95rem;">Nenhum atendimento registrado neste período.</div>`;
+        return;
+    }
+
     lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(a => {
-        let descricaoServico = a.servico + (a.temExtra && a.produtoExtra !== "Nenhum" ? ` + ${a.produtoExtra}` : "");
         let bruto = a.valorBrutoTotal || a.valorBruto || 0;
         let liquido = a.valorLiquido || 0;
-        let tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${descricaoServico}</td>
-            <td>R$ ${bruto.toFixed(2)} <br><small style="color:#00e676;">(Líq: R$ ${liquido.toFixed(2)})</small></td>
-            <td>${a.pagamento}</td>
-            <td>${new Date(a.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-            <td><button onclick="excluirAtendimento('${a.id}')" style="background:none; border:none; cursor:pointer; color:red; font-size:1.2rem;">🗑</button></td>
+        
+        let card = document.createElement("div");
+        card.className = "historico-card";
+        card.innerHTML = `
+            <div class="hist-info">
+                <strong>${a.servico}</strong>
+                <span>${new Date(a.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${a.pagamento}</span>
+            </div>
+            <div class="hist-valor">
+                <strong>R$ ${bruto.toFixed(2).replace('.', ',')}</strong>
+                <small>Líq: R$ ${liquido.toFixed(2).replace('.', ',')}</small>
+            </div>
+            <button onclick="excluirAtendimento('${a.id}', '${a.servico}', ${bruto})" class="btn-delete-hist"><i class="fas fa-trash"></i></button>
         `;
-        historicoBody.appendChild(tr);
+        historicoContainer.appendChild(card);
     });
 }
 
 // =============================
-// EXCLUIR DA NUVEM
+// MODAL EXCLUSÃO
 // =============================
 let idParaExcluir = null;
-window.excluirAtendimento = function(id) {
+window.excluirAtendimento = function(id, servico, valor) {
     idParaExcluir = id;
+    document.getElementById("modalDescricao").innerHTML = `Excluir o atendimento de <b>${servico} (R$ ${valor.toFixed(2).replace('.', ',')})</b>?`;
     document.getElementById("modalConfirm").classList.add("active");
 };
 document.getElementById("btnCancelar").addEventListener("click", () => {
@@ -395,7 +418,49 @@ document.getElementById("btnConfirmar").addEventListener("click", async () => {
 });
 
 // =============================
-// CARDS FINANCEIROS E FILTROS
+// MINHA CONTA (Troca Segura de Senha)
+// =============================
+document.getElementById("formAlterarSenha")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const senhaAtual = document.getElementById("senhaAtual").value;
+    const novaSenha = document.getElementById("novaSenha").value;
+    const confirmaSenha = document.getElementById("confirmaSenha").value;
+
+    if (novaSenha !== confirmaSenha) {
+        alert("A nova senha e a confirmação não batem.");
+        return;
+    }
+    if (novaSenha.length < 6) {
+        alert("A senha precisa ter pelo menos 6 caracteres.");
+        return;
+    }
+
+    const user = auth.currentUser;
+    if (user) {
+        const btn = document.getElementById("btnSalvarSenha");
+        btn.textContent = "Validando...";
+        
+        try {
+            // Reautenticar para garantir segurança
+            const credential = EmailAuthProvider.credential(user.email, senhaAtual);
+            await reauthenticateWithCredential(user, credential);
+            
+            btn.textContent = "Atualizando...";
+            await updatePassword(user, novaSenha);
+            
+            alert("Senha atualizada com sucesso!");
+            document.getElementById("formAlterarSenha").reset();
+        } catch (error) {
+            console.error(error);
+            if(error.code === 'auth/invalid-credential') alert("A senha atual digitada está incorreta.");
+            else alert("Erro ao atualizar senha. Verifique os dados.");
+        }
+        btn.textContent = "Atualizar Senha";
+    }
+});
+
+// =============================
+// PAINEL FINANCEIRO
 // =============================
 let periodoSelecionado = 'hoje';
 document.querySelectorAll('.btn-filtro').forEach(btn => {
@@ -426,7 +491,6 @@ function atualizarCards() {
             let bruto = a.valorBrutoTotal || a.valorBruto || 0;
             let liquido = a.valorLiquido || 0;
             let repasse = a.repasseDono || 0;
-            
             faturamentoBruto += bruto;
             faturamentoLiquido += liquido;
             totalRepasse += repasse;
@@ -447,22 +511,20 @@ function atualizarCards() {
         <div style="font-size: 0.7rem; color: #00e676; margin-top: 10px; font-weight: 600;">Líquido na Conta: R$ ${faturamentoLiquido.toFixed(2)}</div>
     `;
     
+    // Tamanhos reduzidos (1.2rem) aplicados aqui
     let ticketMedio = totalClientes > 0 ? (faturamentoBruto / totalClientes) : 0;
     const cardTicket = document.querySelector("#ticketMedio p");
-    if(cardTicket) cardTicket.innerHTML = `<span style="font-size: 1.5rem; font-weight: 700;">R$ ${ticketMedio.toFixed(2)}</span>`;
+    if(cardTicket) cardTicket.innerHTML = `<span style="font-size: 1.2rem; font-weight: 700;">R$ ${ticketMedio.toFixed(2)}</span>`;
 
     let maisVendido = "—";
     if (Object.keys(servicoCount).length) maisVendido = Object.keys(servicoCount).reduce((a, b) => servicoCount[a] > servicoCount[b] ? a : b);
     const cardMaisVendido = document.querySelector("#servicoMaisVendido p");
-    if(cardMaisVendido) cardMaisVendido.innerText = maisVendido;
+    if(cardMaisVendido) cardMaisVendido.innerHTML = `<span style="font-size: 1.2rem; font-weight: 700;">${maisVendido}</span>`;
 
     const cardCli = document.querySelector("#clientesAtendidos p");
-    if(cardCli) cardCli.innerText = totalClientes;
+    if(cardCli) cardCli.innerHTML = `<span style="font-size: 1.2rem; font-weight: 700;">${totalClientes}</span>`;
 }
 
-// =============================
-// GRÁFICO (Últimos 7 Dias)
-// =============================
 let graficoInstance = null;
 window.atualizarGrafico = function() {
     const ctx = document.getElementById('graficoFaturamento');
@@ -489,3 +551,10 @@ window.atualizarGrafico = function() {
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0a0' } }, x: { grid: { display: false }, ticks: { color: '#a0a0a0' } } }, plugins: { legend: { display: false } } }
     });
 };
+
+// =============================
+// RELATÓRIOS (Base para WhatsApp)
+// =============================
+document.getElementById("btnWhatsApp")?.addEventListener("click", () => {
+    alert("Pronto para plugar a API do WhatsApp!");
+});
