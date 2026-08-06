@@ -16,7 +16,7 @@ body, html {
     color: #e0e7ff;
 }
 
-/* partículas */
+/* Particles background */
 canvas#particles {
     position: absolute;
     top: 0;
@@ -27,7 +27,7 @@ canvas#particles {
     pointer-events: none;
 }
 
-/* sidebar */
+/* Sidebar */
 .sidebar {
     position: fixed;
     top: 0;
@@ -45,25 +45,21 @@ canvas#particles {
     color: #e0e7ff;
 }
 
-.sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .65);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity .4s;
-    z-index: 9998;
-    pointer-events: none;
-}
-
-.sidebar-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
 .sidebar.active {
     right: 0;
+}
+
+.sidebar::before {
+    content: "Menu";
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #00f0ff, #ff6b00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+    margin-bottom: 32px;
 }
 
 .sidebar ul {
@@ -92,35 +88,45 @@ canvas#particles {
     box-shadow: 0 4px 15px rgba(0, 240, 255, .2);
 }
 
-/* Espaçamento elegante para os ícones do menu */
 .sidebar a i {
     margin-right: 12px;
     width: 24px;
     text-align: center;
 }
 
-#fecharMenu {
+.sidebar hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 20px 0;
+}
+
+#logoutBtnSide {
+    color: #ff3b3b !important;
+}
+
+#logoutBtnSide:hover {
+    background: rgba(255, 59, 59, .15);
     color: #ff6b6b !important;
 }
 
-#fecharMenu:hover {
-    background: rgba(255, 107, 107, .2);
-    color: #ff8787 !important;
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .65);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .4s;
+    z-index: 9998;
+    pointer-events: none;
 }
 
-.sidebar::before {
-    content: "Menu";
-    display: block;
-    font-size: 1.4rem;
-    font-weight: 700;
-    background: linear-gradient(90deg, #00f0ff, #ff6b00);
-    -webkit-background-clip: text;
-    color: transparent;
-    text-align: center;
-    margin-bottom: 32px;
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
-/* header */
+/* Header */
 .dashboard-header {
     display: flex;
     align-items: center;
@@ -144,7 +150,9 @@ canvas#particles {
     font-weight: 700;
     background: linear-gradient(90deg, #00f0ff, #ff6b00);
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
+    cursor: pointer;
 }
 
 .header-actions {
@@ -170,18 +178,13 @@ canvas#particles {
     box-shadow: 0 0 20px rgba(255, 107, 0, .5);
 }
 
-/* main e Títulos Padronizados */
+/* Main */
 .dashboard-main {
     padding: 0 20px;
     max-width: 1200px;
     margin: auto;
     position: relative;
     z-index: 50;
-}
-
-/* Respiro automático para a primeira seção quando o título for omitido */
-.dashboard-main section > *:first-child {
-    margin-top: 5px;
 }
 
 .titulo-sessao {
@@ -196,7 +199,7 @@ canvas#particles {
 .registrar {
     background: rgba(20, 24, 34, .7);
     backdrop-filter: blur(12px);
-    padding: 55px 25px 40px;
+    padding: 40px 25px;
     border-radius: 20px;
     border: 1px solid rgba(0, 240, 255, .2);
     box-shadow: 0 0 30px rgba(0, 240, 255, .15);
@@ -206,16 +209,11 @@ canvas#particles {
     text-align: left;
 }
 
-/* inputs */
+/* Form elements */
 .input-group {
     margin-bottom: 15px;
 }
-.input-group select option {
-    background-color: #141822;
-    color: #e0e7ff;
-    padding: 12px 15px;
-    font-size: 15px;
-}
+
 .input-group input,
 .input-group select {
     width: 100%;
@@ -228,14 +226,15 @@ canvas#particles {
     outline: none;
     transition: border-color 0.3s;
 }
+
 .input-group input:focus,
 .input-group select:focus {
     border-color: #00f0ff;
 }
 
-/* Estilização dos botões de serviços */
-.grupo-servicos-container {
-    margin-bottom: 15px;
+.input-group select option {
+    background-color: #141822;
+    color: #e0e7ff;
 }
 
 .label-servico {
@@ -245,6 +244,11 @@ canvas#particles {
     margin-bottom: 10px;
     text-align: left;
     transition: color 0.3s;
+}
+
+/* Service buttons */
+.grupo-servicos-container {
+    margin-bottom: 15px;
 }
 
 .grupo-botoes-servicos {
@@ -261,7 +265,7 @@ canvas#particles {
     border: 1px solid rgba(0, 240, 255, 0.3);
     border-radius: 10px;
     cursor: pointer;
-    font-weight: 100;
+    font-weight: 400;
     font-size: 0.85rem;
     transition: all 0.2s ease;
     text-align: center;
@@ -280,12 +284,16 @@ canvas#particles {
     transform: scale(1.02);
 }
 
+.btn-servico.full-width {
+    grid-column: 1 / -1;
+}
+
 .valor-servico-btn {
     font-size: 0.75rem;
     color: #00f0ff;
 }
 
-/* Chips de Pagamento em Grid 2x2 */
+/* Payment chips */
 .grupo-chips-pagamento {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -299,7 +307,7 @@ canvas#particles {
     border: 1px solid rgba(0, 240, 255, 0.3);
     border-radius: 10px;
     cursor: pointer;
-    font-weight: 100;
+    font-weight: 400;
     font-size: 0.85rem;
     transition: all 0.2s ease;
     text-align: center;
@@ -318,28 +326,32 @@ canvas#particles {
     box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
 }
 
-/* Toggle Switch Nativo */
+/* Toggle switch */
 .toggle-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
+
 .toggle-label {
     font-size: 0.85rem;
     color: #a0a0a0;
 }
+
 .switch {
     position: relative;
     display: inline-block;
     width: 50px;
     height: 26px;
 }
+
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
+
 .slider {
     position: absolute;
     cursor: pointer;
@@ -351,6 +363,7 @@ canvas#particles {
     border: 1px solid rgba(0, 240, 255, 0.3);
     transition: .4s;
 }
+
 .slider:before {
     position: absolute;
     content: "";
@@ -361,23 +374,27 @@ canvas#particles {
     background-color: #a0a0a0;
     transition: .4s;
 }
+
 input:checked + .slider {
     background-color: rgba(0, 240, 255, 0.25);
     border-color: #00f0ff;
 }
+
 input:checked + .slider:before {
     transform: translateX(24px);
     background-color: #00f0ff;
     box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
 }
+
 .slider.round {
     border-radius: 26px;
 }
+
 .slider.round:before {
     border-radius: 50%;
 }
 
-/* botão principal registrar */
+/* Primary button */
 .registrar .btn {
     width: 100%;
     padding: 14px;
@@ -396,7 +413,12 @@ input:checked + .slider:before {
     box-shadow: 0 10px 25px rgba(0, 240, 255, .4);
 }
 
-/* cards financeiros */
+.registrar .btn.success {
+    background: #00e676;
+    color: #000;
+}
+
+/* Financial cards */
 .cards {
     display: flex;
     gap: 20px;
@@ -404,7 +426,6 @@ input:checked + .slider:before {
     flex-wrap: wrap;
 }
 
-/* Padronização Limpa dos Cards Financeiros (Sem excesso de sombras) */
 .card {
     flex: 1;
     min-width: 200px;
@@ -412,7 +433,6 @@ input:checked + .slider:before {
     background: #0b0e17;
     border-radius: 14px;
     border: 1px solid rgba(0, 240, 255, 0.15);
-    box-shadow: none;
     text-align: center;
 }
 
@@ -423,7 +443,25 @@ input:checked + .slider:before {
     font-weight: bold;
 }
 
-/* HISTÓRICO MOBILE (CARDS) */
+.card-chart {
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.card-chart h3 {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+/* History cards */
 .lista-historico {
     display: flex;
     flex-direction: column;
@@ -449,7 +487,6 @@ input:checked + .slider:before {
     flex: 1;
 }
 
-/* Nome do Serviço no Histórico sem negrito (peso 400) */
 .hist-info strong {
     font-size: 0.80rem;
     color: #e0e7ff;
@@ -500,7 +537,7 @@ input:checked + .slider:before {
     color: #fff;
 }
 
-/* FILTROS (Financeiro e Histórico) */
+/* Filters */
 .filtros-periodo {
     display: flex;
     justify-content: center;
@@ -508,7 +545,7 @@ input:checked + .slider:before {
     margin-bottom: 25px;
 }
 
-.btn-filtro, .btn-filtro-hist {
+.btn-filtro {
     background: #0b0e17;
     color: #a0a0a0;
     border: 1px solid rgba(0, 240, 255, 0.3);
@@ -520,15 +557,15 @@ input:checked + .slider:before {
     transition: 0.3s;
 }
 
-.btn-filtro:hover, .btn-filtro.active,
-.btn-filtro-hist:hover, .btn-filtro-hist.active {
+.btn-filtro:hover,
+.btn-filtro.active {
     background: rgba(0, 240, 255, 0.15);
     color: #00f0ff;
     border-color: #00f0ff;
     box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
 }
 
-/* BOTÕES GERAIS (Configurações, Exportar) */
+/* Secondary buttons */
 .btn-config {
     width: 100%;
     padding: 14px;
@@ -549,7 +586,12 @@ input:checked + .slider:before {
     box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
 }
 
-/* Botão Desfazer Discreto (Ghost Button) */
+.btn-config.success {
+    background: #00e676;
+    border-color: #00e676;
+    color: #000;
+}
+
 .btn-desfazer-ghost {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -569,7 +611,91 @@ input:checked + .slider:before {
     border-color: rgba(255, 59, 59, 0.3);
 }
 
-/* Animações de Erro (Shake e Red) */
+.btn-whatsapp {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: #fff;
+    width: 100%;
+    padding: 14px;
+    border-radius: 999px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.btn-whatsapp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+}
+
+.btn-whatsapp.success {
+    background: #00e676;
+    color: #000;
+}
+
+.export-actions {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.export-actions .btn-config {
+    flex: 1;
+    font-size: 0.85rem;
+    margin-top: 0;
+}
+
+/* Config form helpers */
+.config-section-title {
+    font-size: 0.9rem;
+    color: #00f0ff;
+    margin-bottom: 12px;
+}
+
+.config-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.config-precos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.config-preco-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.config-preco-label {
+    font-size: 0.82rem;
+    color: #e0e7ff;
+    display: block;
+}
+
+.config-atual {
+    font-size: 0.75rem;
+    color: #00e676;
+}
+
+.divider {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 20px 0;
+}
+
+.conta-desc {
+    text-align: center;
+    color: #a0a0a0;
+    font-size: 0.85rem;
+    margin-bottom: 25px;
+}
+
+/* Error states */
 .label-erro {
     color: #ff3b3b !important;
 }
@@ -590,7 +716,12 @@ input:checked + .slider:before {
     40%, 60% { transform: translate3d(6px, 0, 0); }
 }
 
-/* modal de exclusão */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal */
 .modal-confirm {
     position: fixed;
     top: 0;
@@ -601,7 +732,7 @@ input:checked + .slider:before {
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 999;
+    z-index: 9999;
 }
 
 .modal-confirm.active {
@@ -615,6 +746,16 @@ input:checked + .slider:before {
     text-align: center;
     width: 320px;
     box-shadow: 0 0 20px rgba(0, 0, 0, .5);
+}
+
+.modal-box h3 {
+    margin-bottom: 10px;
+}
+
+.modal-box p {
+    margin: 15px 0;
+    color: #e0e7ff;
+    font-size: 0.95rem;
 }
 
 .modal-actions {
@@ -645,46 +786,55 @@ input:checked + .slider:before {
     background: #ff0000;
 }
 
-/* responsivo */
-@media(max-width: 768px) {
+/* Responsive */
+@media (max-width: 768px) {
     .dashboard-header {
         padding: 15px 20px;
     }
+
     .logo {
         font-size: 1.2rem;
     }
+
     .cards {
         flex-direction: column;
     }
+
     .registrar {
         padding: 25px 15px;
         margin: 20px auto;
         width: 95%;
     }
+
     .btn-servico {
-        font-size: 1rem;
-    }
-    .historico {
-        padding: 20px 12px;
+        font-size: 0.9rem;
     }
 }
 
-/* Otimização Específica para Telas Compactas (iPhone 14 Pro e similares) */
-@media(max-width: 480px) {
+@media (max-width: 480px) {
     .dashboard-header {
         padding: 12px 15px;
     }
+
     .registrar {
-        padding: 35px 15px 25px;
+        padding: 30px 15px 25px;
         width: 95%;
         margin: 20px auto;
     }
-    .btn-servico, .chip-pagamento {
-        font-size: 0.78rem !important;
+
+    .btn-servico,
+    .chip-pagamento {
+        font-size: 0.78rem;
         padding: 10px 4px;
     }
+
     .titulo-sessao {
         font-size: 1.1rem;
         margin-bottom: 18px;
+    }
+
+    .config-preco-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
     }
 }

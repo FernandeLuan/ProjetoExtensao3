@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard | Marlon Barber</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Marlon Barber</title>
 
-<link rel="stylesheet" href="css/dashboard.css?v=1.5">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/dashboard.css?v=1.6">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
 <canvas id="particles"></canvas>
@@ -18,30 +17,35 @@
 
 <header class="dashboard-header">
     <div class="container">
-        <!-- Logo agora é clicável (via JS) -->
-        <h1 class="logo" id="logoHome" style="cursor: pointer;">Marlon Barber</h1>
+        <h1 class="logo" id="logoHome">Marlon Barber</h1>
         <div class="header-actions">
-            <button id="menuToggle"><i class="fas fa-bars"></i></button>
+            <button id="menuToggle" type="button" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </div>
 </header>
 
-    <nav id="sidebarMenu" class="sidebar">
-        <ul>
-            <li><a href="#registrar"><i class="fas fa-cut"></i> Registrar Atendimento</a></li>
-            <li><a href="#painelFinanceiro"><i class="fas fa-chart-line"></i> Painel Financeiro</a></li>
-            <li><a href="#relatorios"><i class="fas fa-file-invoice-dollar"></i> Relatórios</a></li>
-            <li><a href="#historico"><i class="fas fa-history"></i> Histórico</a></li>
-            <li><a href="#configuracoes"><i class="fas fa-user-lock"></i> Minha Conta</a></li>
-            <hr style="border-color: rgba(255,255,255,0.05); margin: 20px 0;">
-            <!-- Sair movido para cá -->
-            <li><a href="#" id="logoutBtnSide" style="color: #ff3b3b;"><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a></li>
-        </ul>
-    </nav>
+<nav id="sidebarMenu" class="sidebar">
+    <ul>
+        <li><a href="#registrar"><i class="fas fa-cut"></i> Registrar Atendimento</a></li>
+        <li><a href="#painelFinanceiro"><i class="fas fa-chart-line"></i> Painel Financeiro</a></li>
+        <li><a href="#relatorios"><i class="fas fa-file-invoice-dollar"></i> Relatórios</a></li>
+        <li><a href="#historico"><i class="fas fa-history"></i> Histórico</a></li>
+        <li><a href="#configuracoes"><i class="fas fa-sliders-h"></i> Configurações</a></li>
+        <li><a href="#conta"><i class="fas fa-user-lock"></i> Minha Conta</a></li>
+        <hr>
+        <li>
+            <a href="#" id="logoutBtnSide">
+                <i class="fas fa-sign-out-alt"></i> Sair do Sistema
+            </a>
+        </li>
+    </ul>
+</nav>
 
 <main class="dashboard-main">
 
-    <!-- 1. REGISTRAR ATENDIMENTO -->
+    <!-- Registrar -->
     <section id="registrar" class="registrar">
         <h2 class="titulo-sessao">Registrar Atendimento</h2>
 
@@ -49,19 +53,34 @@
             <div class="input-group grupo-servicos-container">
                 <label class="label-servico" id="labelServicos">Serviços:</label>
                 <div class="grupo-botoes-servicos">
-                    <button type="button" class="btn-servico" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" style="grid-column: 1 / -1;">Cabelo + Barba + Sobrancelha<br><span class="valor-servico-btn">R$ 110</span></button>
-                    <button type="button" class="btn-servico" data-nome="Cabelo + Barba" data-valor="105">Cabelo + Barba<br><span class="valor-servico-btn">R$ 105</span></button>
-                    <button type="button" class="btn-servico" data-nome="Cabelo + Sobrancelha" data-valor="75">Cabelo + Sobrancelha<br><span class="valor-servico-btn">R$ 75</span></button>
-                    <button type="button" class="btn-servico" data-nome="Cabelo" data-valor="60">Cabelo<br><span class="valor-servico-btn">R$ 60</span></button>
-                    <button type="button" class="btn-servico" data-nome="Barba" data-valor="50">Barba<br><span class="valor-servico-btn">R$ 50</span></button>
+                    <button type="button" class="btn-servico full-width" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110">
+                        Cabelo + Barba + Sobrancelha<br>
+                        <span class="valor-servico-btn">R$ 110,00</span>
+                    </button>
+                    <button type="button" class="btn-servico" data-nome="Cabelo + Barba" data-valor="105">
+                        Cabelo + Barba<br>
+                        <span class="valor-servico-btn">R$ 105,00</span>
+                    </button>
+                    <button type="button" class="btn-servico" data-nome="Cabelo + Sobrancelha" data-valor="75">
+                        Cabelo + Sobrancelha<br>
+                        <span class="valor-servico-btn">R$ 75,00</span>
+                    </button>
+                    <button type="button" class="btn-servico" data-nome="Cabelo" data-valor="60">
+                        Cabelo<br>
+                        <span class="valor-servico-btn">R$ 60,00</span>
+                    </button>
+                    <button type="button" class="btn-servico" data-nome="Barba" data-valor="50">
+                        Barba<br>
+                        <span class="valor-servico-btn">R$ 50,00</span>
+                    </button>
                 </div>
             </div>
 
             <div class="input-group" style="margin-bottom: 25px;">
                 <label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
                 <div class="grupo-chips-pagamento">
-                    <button type="button" class="chip-pagamento" data-valor="Crédito">Crédito - 3.51%</button>
-                    <button type="button" class="chip-pagamento" data-valor="Débito">Débito - 1.5%</button>
+                    <button type="button" class="chip-pagamento" data-valor="Crédito">Crédito</button>
+                    <button type="button" class="chip-pagamento" data-valor="Débito">Débito</button>
                     <button type="button" class="chip-pagamento" data-valor="Pix">Pix</button>
                     <button type="button" class="chip-pagamento" data-valor="Dinheiro">Dinheiro</button>
                 </div>
@@ -76,13 +95,13 @@
                 </label>
             </div>
 
-            <div class="input-group" id="campoValorPersonalizado" style="display:none; margin-bottom: 20px;">
+            <div class="input-group" id="campoValorPersonalizado" style="display: none; margin-bottom: 20px;">
                 <input type="tel" id="valorPersonalizado" placeholder="0,00" inputmode="numeric">
             </div>
 
             <button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
 
-            <div id="undoContainer" style="display: none; margin-top: 15px; animation: fadeIn 0.4s ease;">
+            <div id="undoContainer" style="display: none; margin-top: 15px;">
                 <button type="button" id="btnUndoInline" class="btn-desfazer-ghost">
                     Desfazer Registro (10s)
                 </button>
@@ -90,14 +109,14 @@
         </form>
     </section>
 
-    <!-- PAINEL FINANCEIRO PADRONIZADO -->
-    <section id="painelFinanceiro" style="display:none; max-width: 900px;" class="registrar">
+    <!-- Painel Financeiro -->
+    <section id="painelFinanceiro" class="registrar" style="display: none; max-width: 900px;">
         <h2 class="titulo-sessao">Painel Financeiro</h2>
 
         <div class="filtros-periodo">
-            <button class="btn-filtro active" data-periodo="hoje">Hoje</button>
-            <button class="btn-filtro" data-periodo="semana">Esta Semana</button>
-            <button class="btn-filtro" data-periodo="mes">Este Mês</button>
+            <button type="button" class="btn-filtro active" data-periodo="hoje">Hoje</button>
+            <button type="button" class="btn-filtro" data-periodo="semana">Esta Semana</button>
+            <button type="button" class="btn-filtro" data-periodo="mes">Este Mês</button>
         </div>
 
         <div class="cards">
@@ -119,18 +138,18 @@
             </div>
         </div>
 
-        <div class="card" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 20px;">
-            <h3 style="text-align: left; margin-bottom: 15px; font-size: 1.1rem; color: #fff;">Faturamento Últimos 7 Dias (Bruto)</h3>
-            <div style="position: relative; height: 280px; width: 100%;">
+        <div class="card card-chart">
+            <h3>Faturamento Últimos 7 Dias (Bruto)</h3>
+            <div class="chart-wrapper">
                 <canvas id="graficoFaturamento"></canvas>
             </div>
         </div>
     </section>
 
-    <!-- 3. RELATÓRIOS (NOVO) -->
-    <section id="relatorios" class="registrar" style="display:none;">
+    <!-- Relatórios -->
+    <section id="relatorios" class="registrar" style="display: none;">
         <h2 class="titulo-sessao">Relatórios e Fechamento</h2>
-        
+
         <div class="input-group">
             <label class="label-servico">Data Inicial:</label>
             <input type="date" id="dataInicioRelatorio">
@@ -140,39 +159,131 @@
             <input type="date" id="dataFimRelatorio">
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:20px; margin-bottom: 20px;">
-            <button class="btn-config" id="btnExportCSV" style="flex:1; font-size:0.85rem;"><i class="fas fa-file-csv"></i> Excel</button>
-            <button class="btn-config" id="btnExportPDF" style="flex:1; font-size:0.85rem;"><i class="fas fa-file-pdf"></i> PDF</button>
+        <div class="export-actions">
+            <button type="button" class="btn-config" id="btnExportCSV">
+                <i class="fas fa-file-csv"></i> Excel
+            </button>
+            <button type="button" class="btn-config" id="btnExportPDF">
+                <i class="fas fa-file-pdf"></i> PDF
+            </button>
         </div>
-        
-        <!-- Nosso astro da Sprint 3 -->
-        <button type="button" class="btn" id="btnWhatsApp" style="background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; width: 100%;">
+
+        <button type="button" class="btn-whatsapp" id="btnWhatsApp">
             <i class="fab fa-whatsapp"></i> Enviar Fechamento
         </button>
     </section>
 
-<!-- 4. HISTÓRICO DO DIA -->
-    <section id="historico" class="registrar" style="display:none; max-width: 700px;">
+    <!-- Histórico -->
+    <section id="historico" class="registrar" style="display: none; max-width: 700px;">
         <h2 class="titulo-sessao">Histórico do Dia</h2>
-        
-        <!-- Lista Otimizada -->
         <div id="historicoContainer" class="lista-historico"></div>
-
-        <!-- Botão Carregar Mais (Paginação sob demanda) -->
         <button type="button" id="btnCarregarMais" class="btn-config" style="display: none; font-size: 0.85rem; padding: 10px;">
             Carregar mais antigos...
         </button>
     </section>
 
-    <!-- 5. MINHA CONTA -->
-    <section id="configuracoes" class="registrar" style="display:none;">
+    <!-- Configurações -->
+    <section id="configuracoes" class="registrar" style="display: none; max-width: 550px;">
+        <h2 class="titulo-sessao">Configurações de Negócio</h2>
+
+        <form id="formConfiguracoes">
+            <h3 class="config-section-title">
+                <i class="fas fa-percentage"></i> Taxas e Repasse
+            </h3>
+
+            <div class="config-grid-2">
+                <div class="input-group">
+                    <label class="label-servico">
+                        Débito (%)<br>
+                        <span id="lblAtualDebito" class="config-atual">Atual: --</span>
+                    </label>
+                    <input type="number" id="cfgTaxaDebito" step="0.01" placeholder="Novo %" required>
+                </div>
+                <div class="input-group">
+                    <label class="label-servico">
+                        Crédito (%)<br>
+                        <span id="lblAtualCredito" class="config-atual">Atual: --</span>
+                    </label>
+                    <input type="number" id="cfgTaxaCredito" step="0.01" placeholder="Novo %" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="label-servico">
+                    Repasse Dono (%)<br>
+                    <span id="lblAtualRepasse" class="config-atual">Atual: --</span>
+                </label>
+                <input type="number" id="cfgRepasseDono" step="1" placeholder="Novo %" required>
+            </div>
+
+            <hr class="divider">
+
+            <h3 class="config-section-title">
+                <i class="fas fa-tag"></i> Preços dos Serviços
+            </h3>
+
+            <div class="config-precos">
+                <div class="config-preco-row">
+                    <div>
+                        <span class="config-preco-label">Cabelo + Barba + Sobrancelha</span>
+                        <span id="labelAtualCombo3" class="config-atual">Atual: R$ 0,00</span>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="cfgPrecoCombo3" step="0.01" placeholder="Novo R$" required>
+                    </div>
+                </div>
+
+                <div class="config-preco-row">
+                    <div>
+                        <span class="config-preco-label">Cabelo + Barba</span>
+                        <span id="labelAtualCombo2" class="config-atual">Atual: R$ 0,00</span>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="cfgPrecoCombo2" step="0.01" placeholder="Novo R$" required>
+                    </div>
+                </div>
+
+                <div class="config-preco-row">
+                    <div>
+                        <span class="config-preco-label">Cabelo + Sobrancelha</span>
+                        <span id="labelAtualCabSob" class="config-atual">Atual: R$ 0,00</span>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="cfgPrecoCabSob" step="0.01" placeholder="Novo R$" required>
+                    </div>
+                </div>
+
+                <div class="config-preco-row">
+                    <div>
+                        <span class="config-preco-label">Cabelo</span>
+                        <span id="labelAtualCabelo" class="config-atual">Atual: R$ 0,00</span>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="cfgPrecoCabelo" step="0.01" placeholder="Novo R$" required>
+                    </div>
+                </div>
+
+                <div class="config-preco-row">
+                    <div>
+                        <span class="config-preco-label">Barba</span>
+                        <span id="labelAtualBarba" class="config-atual">Atual: R$ 0,00</span>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="cfgPrecoBarba" step="0.01" placeholder="Novo R$" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-config" id="btnSalvarConfigs">Salvar Alterações</button>
+        </form>
+    </section>
+
+    <!-- Minha Conta -->
+    <section id="conta" class="registrar" style="display: none;">
         <h2 class="titulo-sessao">Minha Conta</h2>
-        <div style="text-align: center; color: #a0a0a0; font-size: 0.85rem; margin-bottom: 25px;">
-            Gerencie o acesso do seu aplicativo.
-        </div>
-        
+        <p class="conta-desc">Gerencie a segurança do seu aplicativo.</p>
+
         <form id="formAlterarSenha">
-            <!-- SENHA ATUAL ADICIONADA -->
             <div class="input-group">
                 <label class="label-servico">Senha Atual</label>
                 <input type="password" id="senhaAtual" placeholder="Digite sua senha atual" required>
@@ -185,22 +296,22 @@
                 <label class="label-servico">Confirmar Nova Senha</label>
                 <input type="password" id="confirmaSenha" placeholder="Repita a nova senha" required>
             </div>
-            
             <button type="submit" class="btn-config" id="btnSalvarSenha">Atualizar Senha</button>
         </form>
     </section>
 
-    <!-- MODAL EXCLUIR INTELIGENTE -->
+    <!-- Modal exclusão -->
     <div id="modalConfirm" class="modal-confirm">
         <div class="modal-box">
             <h3>Confirmar exclusão</h3>
-            <p id="modalDescricao" style="margin: 15px 0; color: #e0e7ff; font-size: 0.95rem;">Você tem certeza?</p>
+            <p id="modalDescricao">Você tem certeza?</p>
             <div class="modal-actions">
-                <button id="btnCancelar">Cancelar</button>
-                <button id="btnConfirmar" style="background:#ff3b3b; color:white;">Sim, excluir</button>
+                <button type="button" id="btnCancelar">Cancelar</button>
+                <button type="button" id="btnConfirmar">Sim, excluir</button>
             </div>
         </div>
     </div>
+
 </main>
 
 <script type="module" src="js/dashboard.js"></script>
