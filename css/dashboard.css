@@ -522,10 +522,11 @@ background:#ff0000;
     }
 }
 
-/* Toast de Desfazer (Undo) */
+/* Toast de Desfazer (Undo) - Voltando para baixo com segurança */
 .toast-undo {
     position: fixed;
-    bottom: -100px;
+    bottom: -100px; /* Escondido pra baixo */
+    top: auto; /* Garante que a regra antiga do topo seja anulada */
     left: 50%;
     transform: translateX(-50%);
     background: rgba(15, 18, 30, 0.95);
@@ -538,6 +539,7 @@ background:#ff0000;
     align-items: center;
     gap: 15px;
     z-index: 99999;
+    /* Atenção: a transição volta a animar o 'bottom' */
     transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     backdrop-filter: blur(10px);
     max-width: 90%;
@@ -546,7 +548,7 @@ background:#ff0000;
 }
 
 .toast-undo.active {
-    bottom: 30px;
+    bottom: 100px; /* <-- Altura perfeita: foge do Safari e fica perto do botão do form */
 }
 
 .btn-undo-acao {
@@ -565,7 +567,6 @@ background:#ff0000;
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
 }
-
 /* Filtros de Período do Painel Financeiro */
 .filtros-periodo {
     display: flex;
