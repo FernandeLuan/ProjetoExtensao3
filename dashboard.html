@@ -21,7 +21,7 @@
 <h1 class="logo">Marlon Barber</h1>
 <div class="header-actions">
 <button id="menuToggle"><i class="fas fa-bars"></i></button>
-<button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+<button id="logoutBtn" class="btn-sair">Sair</button>
 </div>
 </div>
 
@@ -36,14 +36,18 @@
 
 <main class="dashboard-main">
 
-    <!-- REGISTRAR -->
+    <!-- AQUI ESTÁ A TAG QUE FALTAVA PARA CRIAR O BOX ESCURO -->
     <section id="registrar" class="registrar">
+
+        <!-- TÍTULO VOLTOU -->
         <h2>Registrar Atendimento</h2>
 
         <form id="atendimentoForm">
             
-            <!-- SELETOR DE SERVIÇOS EM GRID -->
+            <!-- SELETOR DE SERVIÇOS -->
             <div class="input-group grupo-servicos-container">
+                <!-- ID ADICIONADO AQUI -->
+                <label class="label-servico" id="labelServicos">Serviços:</label>
                 <div class="grupo-botoes-servicos">
                     <button type="button" class="btn-servico" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" style="grid-column: 1 / -1;">Cabelo + Barba + Sobrancelha<br><span class="valor-servico-btn">R$ 110</span></button>
                     <button type="button" class="btn-servico" data-nome="Cabelo + Barba" data-valor="105">Cabelo + Barba<br><span class="valor-servico-btn">R$ 105</span></button>
@@ -53,33 +57,42 @@
                 </div>
             </div>
 
-            <!-- FORMA DE PAGAMENTO (SUBIU) -->
-            <div class="input-group">
-                <select id="pagamento" required>
-                    <option value="">Forma de Pagamento</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Débito">Cartão de Débito - 1.45%</option>
-                    <option value="Crédito">Cartão de Crédito - 3.51%</option>
-                </select>
+            <!-- CHIPS DE PAGAMENTO -->
+            <div class="input-group" style="margin-bottom: 25px;">
+                <!-- ID ADICIONADO AQUI -->
+                <label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
+                <div class="grupo-chips-pagamento">
+                    <button type="button" class="chip-pagamento" data-valor="Crédito">Crédito - 3.51%</button>
+                    <button type="button" class="chip-pagamento" data-valor="Débito">Débito - 1.5%</button>
+                    <button type="button" class="chip-pagamento" data-valor="Pix">Pix</button>
+                    <button type="button" class="chip-pagamento" data-valor="Dinheiro">Dinheiro</button>
+                </div>
+                <input type="hidden" id="pagamento" required>
             </div>
 
-            <!-- VALOR DIFERENCIADO (DESCEU) -->
-            <div class="input-group">
-                <select id="temValorDiferenciado">
-                    <option value="nao" selected>Valor Diferenciado? Não</option>
-                    <option value="sim">Valor Diferenciado? Sim</option>
-                </select>
+            <!-- SWITCH TOGGLE VALOR DIFERENCIADO -->
+            <div class="input-group toggle-container">
+                <label class="toggle-label" for="temValorDiferenciado">Aplicar Valor Diferenciado?</label>
+                <label class="switch">
+                    <input type="checkbox" id="temValorDiferenciado">
+                    <span class="slider round"></span>
+                </label>
             </div>
 
-            <div class="input-group" id="campoValorPersonalizado" style="display:none;">
-                <input type="number" id="valorPersonalizado" placeholder="Digite o Valor Diferenciado R$" step="0.01" min="0">
+            <!-- INPUT TYPE="TEL" PARA ABRIR O TECLADO NUMÉRICO DE CELULAR -->
+            <div class="input-group" id="campoValorPersonalizado" style="display:none; margin-bottom: 20px;">
+                <input type="tel" id="valorPersonalizado" placeholder="0,00" inputmode="numeric">
             </div>
 
-            
-
+<!-- BOTÃO DINÂMICO -->
             <button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
 
+<!-- NOVO DESFAZER INLINE (Discreto) -->
+            <div id="undoContainer" style="display: none; margin-top: 15px; animation: fadeIn 0.4s ease;">
+                <button type="button" id="btnUndoInline" class="btn-desfazer-ghost">
+                    Desfazer Registro (10s)
+                </button>
+            </div>
         </form>
     </section>
 
@@ -150,11 +163,6 @@
     </div>
 
 </main>
-<!-- TOAST DE NOTIFICAÇÃO COM BOTÃO DESFAZER -->
-<div id="toastUndo" class="toast-undo">
-    <span id="toastMensagem">Atendimento registrado com sucesso!</span>
-    <button type="button" id="btnUndo" class="btn-undo-acao">Desfazer</button>
-</div>
 <!-- CHAMDADA CORRETA DO SCRIPT COM TYPE="MODULE" -->
 <script type="module" src="js/dashboard.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

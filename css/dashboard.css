@@ -172,18 +172,17 @@ position:relative;
 z-index:50;
 }
 
-/* registrar */
-.registrar{
-background:rgba(20,24,34,.7);
-backdrop-filter:blur(12px);
-padding:40px 25px;
-border-radius:20px;
-border:1px solid rgba(0,240,255,.2);
-box-shadow:0 0 30px rgba(0,240,255,.15);
-max-width:460px;
-width:92%;
-margin:40px auto;
-text-align:left;
+.registrar {
+    background: rgba(20,24,34,.7);
+    backdrop-filter: blur(12px);
+    padding: 55px 25px 40px; /* Topo de 40px para 55px */
+    border-radius: 20px;
+    border: 1px solid rgba(0,240,255,.2);
+    box-shadow: 0 0 30px rgba(0,240,255,.15);
+    max-width: 460px;
+    width: 92%;
+    margin: 40px auto;
+    text-align: left;
 }
 
 .registrar h2{
@@ -227,28 +226,29 @@ margin-bottom: 15px;
 }
 
 .label-servico {
-font-size: 0.85rem;
-color: #a0a0a0;
-display: block;
-margin-bottom: 5px;
-text-align: left;
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    display: block;
+    margin-bottom: 10px; /* <-- Espaço aumentado */
+    text-align: left;
+    transition: color 0.3s; /* <-- Transição suave de cor */
 }
 
 .grupo-botoes-servicos {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
 }
 
 .btn-servico {
     padding: 12px 6px;
     background: #0b0e17;
-    color: #ffffff;
-    border: 1px solid rgba(0,240,255,0.3);
+    color: white;
+    border: 1px solid rgba(0, 240, 255, 0.3);
     border-radius: 10px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 100;
     font-size: 0.85rem;
     transition: all 0.2s ease;
     text-align: center;
@@ -272,7 +272,100 @@ border-color: #00f0ff;
 font-size: 0.75rem;
 color: #00f0ff;
 }
+/* Botão Sair Vermelho */
+.btn-sair {
+    background: linear-gradient(135deg, #f14e4e, #ff3b3b) !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(255, 59, 59, 0.2);
+}
 
+/* Chips de Pagamento em Grid 2x2 */
+.grupo-chips-pagamento {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Força 2 colunas iguais */
+    gap: 8px;
+}
+
+.chip-pagamento {
+    padding: 12px 6px;
+    background: #0b0e17;
+    color: white;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 100;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.chip-pagamento.selecionado {
+    background: rgba(0,240,255,0.25);
+    color: #fff;
+    border-color: #00f0ff;
+    box-shadow: 0 0 10px rgba(0,240,255,0.3);
+}
+
+/* Toggle Switch Nativo */
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.toggle-label {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    font-weight: 600;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #141822;
+    border: 1px solid rgba(0,240,255,0.3);
+    transition: .4s;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #a0a0a0;
+    transition: .4s;
+}
+input:checked + .slider {
+    background-color: rgba(0,240,255,0.25);
+    border-color: #00f0ff;
+}
+input:checked + .slider:before {
+    transform: translateX(24px);
+    background-color: #00f0ff;
+    box-shadow: 0 0 10px rgba(0,240,255,0.8);
+}
+.slider.round {
+    border-radius: 26px;
+}
+.slider.round:before {
+    border-radius: 50%;
+}
 .input-readonly {
 background-color: #0b0e17 !important;
 cursor: not-allowed;
@@ -522,51 +615,6 @@ background:#ff0000;
     }
 }
 
-/* Toast de Desfazer (Undo) - Voltando para baixo com segurança */
-.toast-undo {
-    position: fixed;
-    bottom: -100px; /* Escondido pra baixo */
-    top: auto; /* Garante que a regra antiga do topo seja anulada */
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(15, 18, 30, 0.95);
-    border: 1px solid #00f0ff;
-    color: #e0e7ff;
-    padding: 14px 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    z-index: 99999;
-    /* Atenção: a transição volta a animar o 'bottom' */
-    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    backdrop-filter: blur(10px);
-    max-width: 90%;
-    width: 380px;
-    font-size: 0.9rem;
-}
-
-.toast-undo.active {
-    bottom: 100px; /* <-- Altura perfeita: foge do Safari e fica perto do botão do form */
-}
-
-.btn-undo-acao {
-    background: linear-gradient(135deg, #00f0ff, #ff6b00);
-    border: none;
-    color: #000;
-    font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    white-space: nowrap;
-}
-
-.btn-undo-acao:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
-}
 /* Filtros de Período do Painel Financeiro */
 .filtros-periodo {
     display: flex;
@@ -592,4 +640,49 @@ background:#ff0000;
     color: #00f0ff;
     border-color: #00f0ff;
     box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+/* Efeito Hover nas Formas de Pagamento */
+.chip-pagamento:hover {
+    background: rgba(0,240,255,0.15);
+    border-color: #00f0ff;
+}
+
+/* Animação de Erro Visual (Fica Vermelho e Treme) */
+.label-erro {
+    color: #ff3b3b !important;
+}
+
+/* NOVO: Erro para o campo de digitar o valor */
+.input-erro {
+    border-color: #ff3b3b !important;
+    box-shadow: 0 0 8px rgba(255, 59, 59, 0.4);
+}
+
+.shake {
+    animation: tremer 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes tremer {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+    40%, 60% { transform: translate3d(6px, 0, 0); }
+}
+/* Botão Desfazer Discreto (Ghost Button) */
+.btn-desfazer-ghost {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #a0a0a0;
+    width: 100%;
+    padding: 12px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-desfazer-ghost:hover {
+    background: rgba(255, 59, 59, 0.1);
+    color: #ff3b3b;
+    border-color: rgba(255, 59, 59, 0.3);
 }

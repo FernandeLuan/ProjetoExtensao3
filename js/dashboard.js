@@ -6,11 +6,8 @@ import { collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic
 // SEGURANÇA
 // =============================
 onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.href = "login.html";
-    } else {
-        carregarAtendimentos();
-    }
+    if (!user) window.location.href = "login.html";
+    else carregarAtendimentos();
 });
 
 document.getElementById("logoutBtn")?.addEventListener("click", async () => {
@@ -27,9 +24,7 @@ async function carregarAtendimentos() {
     try {
         const querySnapshot = await getDocs(collection(db, "atendimentos"));
         atendimentos = [];
-        querySnapshot.forEach((doc) => {
-            atendimentos.push({ id: doc.id, ...doc.data() });
-        });
+        querySnapshot.forEach(doc => atendimentos.push({ id: doc.id, ...doc.data() }));
         atualizarHistorico();
         atualizarCards(); 
     } catch (error) {
@@ -72,14 +67,13 @@ animate();
 
 const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
-menuToggle?.addEventListener("click", () => { sidebarMenu.classList.toggle("active"); });
+menuToggle?.addEventListener("click", () => sidebarMenu.classList.toggle("active"));
 
-const sidebarLinks = sidebarMenu.querySelectorAll("a");
-sidebarLinks.forEach(link => {
+sidebarMenu.querySelectorAll("a").forEach(link => {
     link.addEventListener("click", e => {
         e.preventDefault();
         const href = link.getAttribute("href");
-        document.querySelectorAll("main section").forEach(s => { s.style.display = "none"; });
+        document.querySelectorAll("main section").forEach(s => s.style.display = "none");
         const target = document.querySelector(href);
         if (target) target.style.display = "block";
 
@@ -87,141 +81,212 @@ sidebarLinks.forEach(link => {
             atualizarCards();
             if (typeof atualizarGrafico === "function") atualizarGrafico();
         }
-        if (href === "#historico") {
-            atualizarHistorico();
-        }
+        if (href === "#historico") atualizarHistorico();
         sidebarMenu.classList.remove("active");
     });
 });
 
 // =============================
-// SELETOR DE SERVIÇOS (Single Select Rápido)
+// SELETORES, MÁSCARA E BOTÃO DINÂMICO
 // =============================
 let servicoSelecionado = "";
 let valorTotalAutomatico = 0;
+const btnRegistrar = document.getElementById("btnRegistrar");
+const inputValorPersonalizado = document.getElementById("valorPersonalizado");
+const checkboxValorDif = document.getElementById("temValorDiferenciado");
+const labelServicos = document.getElementById("labelServicos");
+const labelPagamento = document.getElementById("labelPagamento");
 
+// Função para formatar moeda em tempo real (0,01 -> 0,10 -> 1,00)
+inputValorPersonalizado.addEventListener("input", function(e) {
+    let value = e.target.value.replace(/\D/g, ""); // Remove tudo que não for número
+    if (value === "") {
+        e.target.value = "";
+        atualizarTextoBotao();
+        return;
+    }
+    value = (parseInt(value, 10) / 100).toFixed(2) + "";
+    value = value.replace(".", ",");
+    value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Ponto de milhar
+    e.target.value = value;
+    atualizarTextoBotao();
+});
+
+// Extrai o número real (float) da máscara visual
+function getValorCustomizado() {
+    if (!inputValorPersonalizado.value) return 0;
+    let valStr = inputValorPersonalizado.value.replace(/\./g, "").replace(",", ".");
+    return parseFloat(valStr) || 0;
+}
+
+function atualizarTextoBotao() {
+    let valorFinal = checkboxValorDif.checked ? getValorCustomizado() : valorTotalAutomatico;
+    if (servicoSelecionado && valorFinal > 0) {
+        btnRegistrar.textContent = `Registrar • R$ ${valorFinal.toFixed(2).replace(".", ",")}`;
+    } else {
+        btnRegistrar.textContent = "Registrar Atendimento";
+    }
+}
+
+// Clique nos Serviços
 document.querySelectorAll(".btn-servico").forEach(btn => {
     btn.addEventListener("click", () => {
-        // Remove a seleção de todos os botões e aplica só no clicado
         document.querySelectorAll(".btn-servico").forEach(b => b.classList.remove("selecionado"));
         btn.classList.add("selecionado");
-
+        labelServicos.classList.remove("label-erro"); // Limpa erro se tiver
         servicoSelecionado = btn.getAttribute("data-nome");
         valorTotalAutomatico = parseFloat(btn.getAttribute("data-valor"));
+        atualizarTextoBotao();
     });
 });
 
-// =============================
-// CONTROLE DE VALOR DIFERENCIADO
-// =============================
-const selectValorDif = document.getElementById("temValorDiferenciado");
-const campoValorPersonalizado = document.getElementById("campoValorPersonalizado");
-const inputValorPersonalizado = document.getElementById("valorPersonalizado");
+// Clique nos Chips de Pagamento
+const inputPagamento = document.getElementById("pagamento");
+document.querySelectorAll(".chip-pagamento").forEach(chip => {
+    chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip-pagamento").forEach(c => c.classList.remove("selecionado"));
+        chip.classList.add("selecionado");
+        labelPagamento.classList.remove("label-erro"); // Limpa erro se tiver
+        inputPagamento.value = chip.getAttribute("data-valor");
+    });
+});
 
-selectValorDif.addEventListener("change", () => {
-    if (selectValorDif.value === "sim") {
+// Controle do Toggle de Valor Diferenciado
+const campoValorPersonalizado = document.getElementById("campoValorPersonalizado");
+checkboxValorDif.addEventListener("change", () => {
+    if (checkboxValorDif.checked) {
         campoValorPersonalizado.style.display = "block";
-        inputValorPersonalizado.required = true;
     } else {
         campoValorPersonalizado.style.display = "none";
-        inputValorPersonalizado.required = false;
         inputValorPersonalizado.value = "";
     }
+    atualizarTextoBotao();
 });
 
 // =============================
-// CONTROLE DO TOAST & UNDO (DESFAZER)
+// VALIDAÇÃO VISUAL (Treme e Fica Vermelho)
+// =============================
+function dispararErroVisual(elemento) {
+    if (!elemento) return;
+    elemento.classList.add("label-erro", "shake");
+    setTimeout(() => elemento.classList.remove("shake"), 500); 
+    setTimeout(() => elemento.classList.remove("label-erro"), 3000); 
+}
+
+// Faz o input do valor tremer e ficar vermelho
+function dispararErroVisualInput(elemento) {
+    if (!elemento) return;
+    elemento.classList.add("input-erro", "shake");
+    setTimeout(() => elemento.classList.remove("shake"), 500);
+    setTimeout(() => elemento.classList.remove("input-erro"), 3000);
+}
+
+// =============================
+// CONTROLE DO DESFAZER INLINE (COUNTDOWN)
 // =============================
 let ultimoIdRegistrado = null;
-let toastTimeout = null;
-const toastUndo = document.getElementById("toastUndo");
-const btnUndo = document.getElementById("btnUndo");
-const toastMensagem = document.getElementById("toastMensagem");
+let undoInterval = null;
+let undoTimeout = null;
+const undoContainer = document.getElementById("undoContainer");
+const btnUndoInline = document.getElementById("btnUndoInline");
 
-function dispararToastUndo(idDoc, servicoRealizado) {
+function dispararUndoInline(idDoc) {
     ultimoIdRegistrado = idDoc;
-    toastMensagem.innerHTML = `Atendimento: <b>${servicoRealizado}</b> registrado!`;
-    toastUndo.classList.add("active");
+    undoContainer.style.display = "block";
+    
+    let segundosRestantes = 10;
+    // TEXTO ATUALIZADO AQUI
+    btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
 
-    if (toastTimeout) clearTimeout(toastTimeout);
+    if (undoInterval) clearInterval(undoInterval);
+    if (undoTimeout) clearTimeout(undoTimeout);
 
-    // Some sozinho após 10 segundos
-    toastTimeout = setTimeout(() => {
-        toastUndo.classList.remove("active");
+    undoInterval = setInterval(() => {
+        segundosRestantes--;
+        if (segundosRestantes > 0) {
+            btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
+        } else {
+            clearInterval(undoInterval);
+        }
+    }, 1000);
+
+    undoTimeout = setTimeout(() => {
+        undoContainer.style.display = "none";
         ultimoIdRegistrado = null;
+        clearInterval(undoInterval);
     }, 10000);
 }
 
-btnUndo.addEventListener("click", async () => {
+btnUndoInline.addEventListener("click", async () => {
     if (!ultimoIdRegistrado) return;
+    
+    btnUndoInline.textContent = "Desfazendo...";
+    clearInterval(undoInterval);
+    clearTimeout(undoTimeout);
 
-    btnUndo.textContent = "Desfazendo...";
     try {
-        const docParaDesfazer = atendimentos.find(a => a.id === ultimoIdRegistrado);
-
         await deleteDoc(doc(db, "atendimentos", ultimoIdRegistrado));
         await carregarAtendimentos();
-
-        if (docParaDesfazer) {
-            servicoSelecionado = docParaDesfazer.servico;
-            valorTotalAutomatico = docParaDesfazer.valorServicoBruto;
-            document.getElementById("pagamento").value = docParaDesfazer.pagamento;
-
-            // Reacende visualmente o botão correto
-            document.querySelectorAll(".btn-servico").forEach(b => {
-                b.classList.remove("selecionado");
-                if(b.getAttribute("data-nome") === docParaDesfazer.servico) {
-                    b.classList.add("selecionado");
-                }
-            });
-        }
-
-        toastUndo.classList.remove("active");
+        
+        undoContainer.style.display = "none";
         ultimoIdRegistrado = null;
-        btnUndo.textContent = "Desfazer";
-
+        
+        const btnRegistrar = document.getElementById("btnRegistrar");
+        btnRegistrar.textContent = "Registro Desfeito ↩";
+        btnRegistrar.style.background = "#ff3b3b";
+        btnRegistrar.style.color = "#fff";
+        
+        setTimeout(() => {
+            btnRegistrar.style.background = ""; 
+            btnRegistrar.style.color = "";
+            atualizarTextoBotao();
+        }, 2000);
+        
     } catch (error) {
         console.error("Erro ao desfazer:", error);
-        alert("Erro ao tentar desfazer o registro.");
-        btnUndo.textContent = "Desfazer";
+        btnUndoInline.textContent = "Erro ao desfazer";
     }
 });
 
 // =============================
 // REGISTRAR ATENDIMENTO
 // =============================
-const btnRegistrar = document.getElementById("btnRegistrar");
-
 document.getElementById("atendimentoForm").addEventListener("submit", async e => {
     e.preventDefault();
 
-    const servico = servicoSelecionado;
-    
+    let temErro = false;
+
+    if (!servicoSelecionado) {
+        dispararErroVisual(labelServicos);
+        temErro = true;
+    }
+
+    const pagamento = inputPagamento.value;
+    if (!pagamento) {
+        dispararErroVisual(labelPagamento);
+        temErro = true;
+    }
+
+    // AQUI ESTÁ A LÓGICA QUE FALTAVA PARA TREMER O INPUT ZERADO
     let valorServicoBruto = 0;
-    if (selectValorDif.value === "sim") {
-        valorServicoBruto = parseFloat(inputValorPersonalizado.value);
+    if (checkboxValorDif.checked) {
+        valorServicoBruto = getValorCustomizado();
+        if (valorServicoBruto <= 0) {
+            dispararErroVisualInput(inputValorPersonalizado);
+            temErro = true;
+        }
     } else {
         valorServicoBruto = valorTotalAutomatico;
     }
 
-    const pagamento = document.getElementById("pagamento").value;
-
-    if (!servico || isNaN(valorServicoBruto) || valorServicoBruto <= 0 || !pagamento) {
-        alert("Por favor, selecione um serviço e a forma de pagamento.");
-        return;
-    }
+    if (temErro) return; // Trava o envio aqui se faltou clicar em algo ou valor zerado
 
     function processarFinanceiro(valor) {
         let liquidoConta = valor;
-        if (pagamento === "Débito") {
-            liquidoConta = valor - (valor * 0.0145);
-        } else if (pagamento === "Crédito") {
-            liquidoConta = valor - (valor * 0.0351);
-        }
-        
+        if (pagamento === "Débito") liquidoConta -= (valor * 0.015);
+        else if (pagamento === "Crédito") liquidoConta -= (valor * 0.0351);
         let repasseDono = liquidoConta * 0.35;
         let liquidoBarbeiro = liquidoConta - repasseDono;
-
         return {
             liquidoConta: parseFloat(liquidoConta.toFixed(2)),
             repasseDono: parseFloat(repasseDono.toFixed(2)),
@@ -232,13 +297,13 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
     let finTotal = processarFinanceiro(valorServicoBruto);
     const data = new Date().toISOString();
 
-    btnRegistrar.textContent = "Salvando na nuvem...";
+    btnRegistrar.textContent = "Salvando...";
     btnRegistrar.style.opacity = "0.7";
 
     try {
         const docRef = await addDoc(collection(db, "atendimentos"), {
             cliente: "Avulso",
-            servico,
+            servico: servicoSelecionado,
             valorServicoBruto: parseFloat(valorServicoBruto.toFixed(2)),
             valorBrutoTotal: parseFloat(valorServicoBruto.toFixed(2)),
             valorLiquido: finTotal.liquidoConta,
@@ -248,15 +313,16 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
             data
         });
 
-        dispararToastUndo(docRef.id, servico);
+        dispararUndoInline(docRef.id);
 
         document.getElementById("atendimentoForm").reset();
-        document.querySelectorAll(".btn-servico").forEach(b => b.classList.remove("selecionado"));
+        document.querySelectorAll(".btn-servico, .chip-pagamento").forEach(b => b.classList.remove("selecionado"));
         servicoSelecionado = "";
         valorTotalAutomatico = 0;
+        inputPagamento.value = "";
         campoValorPersonalizado.style.display = "none";
-        inputValorPersonalizado.required = false;
-        selectValorDif.value = "nao";
+        checkboxValorDif.checked = false;
+        atualizarTextoBotao();
 
         await carregarAtendimentos();
 
@@ -265,14 +331,12 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
         btnRegistrar.textContent = "Registrado ✓";
         setTimeout(() => {
             btnRegistrar.classList.remove("success");
-            btnRegistrar.textContent = "Registrar Atendimento";
+            atualizarTextoBotao();
         }, 2000);
 
     } catch (error) {
-        console.error("Erro ao registrar:", error);
-        alert("Erro de conexão ao salvar atendimento.");
-        btnRegistrar.textContent = "Registrar Atendimento";
         btnRegistrar.style.opacity = "1";
+        atualizarTextoBotao();
     }
 });
 
@@ -280,34 +344,22 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
 // HISTÓRICO E TABELAS
 // =============================
 const historicoBody = document.getElementById("historicoBody");
-
 function atualizarHistorico() {
     historicoBody.innerHTML = "";
     const hoje = new Date();
-
     const lista = atendimentos.filter(a => {
         const data = new Date(a.data);
-        return (
-            data.getDate() === hoje.getDate() &&
-            data.getMonth() === hoje.getMonth() &&
-            data.getFullYear() === hoje.getFullYear()
-        );
+        return data.getDate() === hoje.getDate() && data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear();
     });
 
-    lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach((a) => {
-        let descricaoServico = a.servico;
-        
-        if (a.temExtra && a.produtoExtra && a.produtoExtra !== "Nenhum") {
-            descricaoServico += ` + ${a.produtoExtra}`;
-        }
-
-        let valorBrutoDisplay = a.valorBrutoTotal || a.valorBruto || 0;
-        let valorLiquidoDisplay = a.valorLiquido || 0;
-
+    lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(a => {
+        let descricaoServico = a.servico + (a.temExtra && a.produtoExtra !== "Nenhum" ? ` + ${a.produtoExtra}` : "");
+        let bruto = a.valorBrutoTotal || a.valorBruto || 0;
+        let liquido = a.valorLiquido || 0;
         let tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${descricaoServico}</td>
-            <td>R$ ${valorBrutoDisplay.toFixed(2)} <br><small style="color:#00e676;">(Líq: R$ ${valorLiquidoDisplay.toFixed(2)})</small></td>
+            <td>R$ ${bruto.toFixed(2)} <br><small style="color:#00e676;">(Líq: R$ ${liquido.toFixed(2)})</small></td>
             <td>${a.pagamento}</td>
             <td>${new Date(a.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
             <td><button onclick="excluirAtendimento('${a.id}')" style="background:none; border:none; cursor:pointer; color:red; font-size:1.2rem;">🗑</button></td>
@@ -324,28 +376,21 @@ window.excluirAtendimento = function(id) {
     idParaExcluir = id;
     document.getElementById("modalConfirm").classList.add("active");
 };
-
-const modal = document.getElementById("modalConfirm");
-const btnCancelar = document.getElementById("btnCancelar");
-const btnConfirmar = document.getElementById("btnConfirmar");
-
-btnCancelar.addEventListener("click", () => {
-    modal.classList.remove("active");
+document.getElementById("btnCancelar").addEventListener("click", () => {
+    document.getElementById("modalConfirm").classList.remove("active");
     idParaExcluir = null;
 });
-
-btnConfirmar.addEventListener("click", async () => {
+document.getElementById("btnConfirmar").addEventListener("click", async () => {
     if (idParaExcluir) {
-        btnConfirmar.textContent = "Excluindo...";
+        const btn = document.getElementById("btnConfirmar");
+        btn.textContent = "Excluindo...";
         try {
             await deleteDoc(doc(db, "atendimentos", idParaExcluir));
             await carregarAtendimentos();
-        } catch (error) {
-            console.error("Erro ao excluir:", error);
-        }
-        btnConfirmar.textContent = "Sim, excluir";
+        } catch (error) {}
+        btn.textContent = "Sim, excluir";
     }
-    modal.classList.remove("active");
+    document.getElementById("modalConfirm").classList.remove("active");
     idParaExcluir = null;
 });
 
@@ -353,7 +398,6 @@ btnConfirmar.addEventListener("click", async () => {
 // CARDS FINANCEIROS E FILTROS
 // =============================
 let periodoSelecionado = 'hoje';
-
 document.querySelectorAll('.btn-filtro').forEach(btn => {
     btn.addEventListener('click', (e) => {
         document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
@@ -364,14 +408,8 @@ document.querySelectorAll('.btn-filtro').forEach(btn => {
 });
 
 function atualizarCards() {
-    let faturamentoBruto = 0;
-    let faturamentoLiquido = 0;
-    let totalRepasse = 0;
-    let lucroBarbeiro = 0;
-    
-    let totalClientesAtendidos = 0; 
+    let faturamentoBruto = 0, faturamentoLiquido = 0, totalRepasse = 0, lucroBarbeiro = 0, totalClientes = 0;
     let servicoCount = {};
-    
     const hoje = new Date();
     const inicioSemana = new Date(hoje);
     inicioSemana.setDate(hoje.getDate() - hoje.getDay());
@@ -379,81 +417,57 @@ function atualizarCards() {
 
     atendimentos.forEach(a => {
         const data = new Date(a.data);
-        let dentroDoPeriodo = false;
+        let dentro = false;
+        if (periodoSelecionado === 'hoje') dentro = (data.getDate() === hoje.getDate() && data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
+        else if (periodoSelecionado === 'semana') dentro = (data >= inicioSemana);
+        else if (periodoSelecionado === 'mes') dentro = (data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
 
-        if (periodoSelecionado === 'hoje') {
-            dentroDoPeriodo = (data.getDate() === hoje.getDate() && data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
-        } else if (periodoSelecionado === 'semana') {
-            dentroDoPeriodo = (data >= inicioSemana);
-        } else if (periodoSelecionado === 'mes') {
-            dentroDoPeriodo = (data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
-        }
-
-        if (dentroDoPeriodo) {
+        if (dentro) {
             let bruto = a.valorBrutoTotal || a.valorBruto || 0;
             let liquido = a.valorLiquido || 0;
             let repasse = a.repasseDono || 0;
-            let barbeiro = a.liquidoBarbeiro || (liquido - repasse) || 0;
-
+            
             faturamentoBruto += bruto;
             faturamentoLiquido += liquido;
             totalRepasse += repasse;
-            lucroBarbeiro += barbeiro;
-            
-            totalClientesAtendidos++;
-            
+            lucroBarbeiro += a.liquidoBarbeiro || (liquido - repasse) || 0;
+            totalClientes++;
             if (a.servico) servicoCount[a.servico] = (servicoCount[a.servico] || 0) + 1;
         }
     });
 
-    const cardFaturamento = document.querySelector("#faturamentoHoje p");
-    if(cardFaturamento) {
-        cardFaturamento.innerHTML = `
-            <div style="font-size: 0.85rem; color: #a0a0a0; margin-bottom: 2px;">Seu Lucro Limpo</div>
-            <div style="font-size: 1.9rem; color: #00f0ff; font-weight: 700; margin-bottom: 12px; line-height: 1.1;">R$ ${lucroBarbeiro.toFixed(2)}</div>
-            
-            <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.85rem;">
-                <div style="text-align: left;">
-                    <span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Valor Bruto</span>
-                    <span style="color: #ffffff; font-weight: 600;">R$ ${faturamentoBruto.toFixed(2)}</span>
-                </div>
-                <div style="text-align: right;">
-                    <span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Repasse (35%)</span>
-                    <span style="color: #ffcc00; font-weight: 600;">R$ ${totalRepasse.toFixed(2)}</span>
-                </div>
-            </div>
-            <div style="font-size: 0.7rem; color: #00e676; margin-top: 10px; font-weight: 600;">Líquido na Conta: R$ ${faturamentoLiquido.toFixed(2)}</div>
-        `;
-    }
+    const cardFat = document.querySelector("#faturamentoHoje p");
+    if(cardFat) cardFat.innerHTML = `
+        <div style="font-size: 0.85rem; color: #a0a0a0; margin-bottom: 2px;">Seu Lucro Limpo</div>
+        <div style="font-size: 1.9rem; color: #00f0ff; font-weight: 700; margin-bottom: 12px; line-height: 1.1;">R$ ${lucroBarbeiro.toFixed(2)}</div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.85rem;">
+            <div style="text-align: left;"><span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Bruto</span><span style="color: #ffffff; font-weight: 600;">R$ ${faturamentoBruto.toFixed(2)}</span></div>
+            <div style="text-align: right;"><span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Repasse (35%)</span><span style="color: #ffcc00; font-weight: 600;">R$ ${totalRepasse.toFixed(2)}</span></div>
+        </div>
+        <div style="font-size: 0.7rem; color: #00e676; margin-top: 10px; font-weight: 600;">Líquido na Conta: R$ ${faturamentoLiquido.toFixed(2)}</div>
+    `;
     
-    let ticketMedio = totalClientesAtendidos > 0 ? (faturamentoBruto / totalClientesAtendidos) : 0;
+    let ticketMedio = totalClientes > 0 ? (faturamentoBruto / totalClientes) : 0;
     const cardTicket = document.querySelector("#ticketMedio p");
-    if(cardTicket) {
-        cardTicket.innerHTML = `<span style="font-size: 1.5rem; font-weight: 700;">R$ ${ticketMedio.toFixed(2)}</span>`;
-    }
+    if(cardTicket) cardTicket.innerHTML = `<span style="font-size: 1.5rem; font-weight: 700;">R$ ${ticketMedio.toFixed(2)}</span>`;
 
     let maisVendido = "—";
-    if (Object.keys(servicoCount).length) {
-        maisVendido = Object.keys(servicoCount).reduce((a, b) => servicoCount[a] > servicoCount[b] ? a : b);
-    }
+    if (Object.keys(servicoCount).length) maisVendido = Object.keys(servicoCount).reduce((a, b) => servicoCount[a] > servicoCount[b] ? a : b);
     const cardMaisVendido = document.querySelector("#servicoMaisVendido p");
     if(cardMaisVendido) cardMaisVendido.innerText = maisVendido;
 
-    const cardClientes = document.querySelector("#clientesAtendidos p");
-    if(cardClientes) cardClientes.innerText = totalClientesAtendidos;
+    const cardCli = document.querySelector("#clientesAtendidos p");
+    if(cardCli) cardCli.innerText = totalClientes;
 }
 
 // =============================
-// GRÁFICO COM CHART.JS (Últimos 7 Dias)
+// GRÁFICO (Últimos 7 Dias)
 // =============================
 let graficoInstance = null;
-
 window.atualizarGrafico = function() {
     const ctx = document.getElementById('graficoFaturamento');
     if (!ctx) return;
-
-    const labels = [];
-    const dataFaturamento = [0, 0, 0, 0, 0, 0, 0];
+    const labels = [], dataFat = [0,0,0,0,0,0,0];
     
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -462,115 +476,16 @@ window.atualizarGrafico = function() {
     }
 
     atendimentos.forEach(a => {
-        const dataAtendimento = new Date(a.data);
-        const diaHoje = new Date();
-        
-        diaHoje.setHours(0,0,0,0);
-        dataAtendimento.setHours(0,0,0,0);
-        
-        const diffTime = diaHoje.getTime() - dataAtendimento.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays >= 0 && diffDays <= 6) {
-            const index = 6 - diffDays;
-            dataFaturamento[index] += (a.valorBrutoTotal || a.valorBruto || 0);
-        }
+        const dataAt = new Date(a.data), diaHoje = new Date();
+        diaHoje.setHours(0,0,0,0); dataAt.setHours(0,0,0,0);
+        const diffDays = Math.floor((diaHoje.getTime() - dataAt.getTime()) / 86400000);
+        if (diffDays >= 0 && diffDays <= 6) dataFat[6 - diffDays] += (a.valorBrutoTotal || a.valorBruto || 0);
     });
 
-    if (graficoInstance) {
-        graficoInstance.destroy();
-    }
-
+    if (graficoInstance) graficoInstance.destroy();
     graficoInstance = new Chart(ctx, {
         type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Faturamento Bruto (R$)',
-                data: dataFaturamento,
-                backgroundColor: 'rgba(0, 240, 255, 0.4)',
-                borderColor: '#00f0ff',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                    ticks: { color: '#a0a0a0' }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#a0a0a0' }
-                }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        }
+        data: { labels, datasets: [{ label: 'Faturamento Bruto', data: dataFat, backgroundColor: 'rgba(0, 240, 255, 0.4)', borderColor: '#00f0ff', borderWidth: 1, borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0a0' } }, x: { grid: { display: false }, ticks: { color: '#a0a0a0' } } }, plugins: { legend: { display: false } } }
     });
 };
-
-// =============================
-// INJEÇÃO DE DADOS FAKE 
-// =============================
-document.getElementById("btnFake")?.addEventListener("click", async () => {
-    const btn = document.getElementById("btnFake");
-    btn.textContent = "Injetando no Firebase...";
-    btn.disabled = true;
-    btn.style.opacity = "0.5";
-
-    const pagamentos = ["Pix", "Dinheiro", "Débito", "Crédito"];
-    
-    const servicosMock = [
-        { nome: "Cabelo", valor: 60 },
-        { nome: "Barba", valor: 50 },
-        { nome: "Cabelo + Barba", valor: 105 },
-        { nome: "Cabelo + Sobrancelha", valor: 75 },
-        { nome: "Cabelo + Barba + Sobrancelha", valor: 110 }
-    ];
-
-    try {
-        for(let i = 0; i < 40; i++) {
-            const diasAtras = Math.floor(Math.random() * 30);
-            const dataFake = new Date();
-            dataFake.setDate(dataFake.getDate() - diasAtras);
-            dataFake.setHours(Math.floor(Math.random() * 10) + 9, Math.floor(Math.random() * 60));
-
-            const pag = pagamentos[Math.floor(Math.random() * pagamentos.length)];
-            const svc = servicosMock[Math.floor(Math.random() * servicosMock.length)];
-
-            let liquidoConta = svc.valor;
-            if (pag === "Débito") liquidoConta -= (svc.valor * 0.0145);
-            else if (pag === "Crédito") liquidoConta -= (svc.valor * 0.0351);
-
-            const repasse = liquidoConta * 0.35;
-            const barbeiro = liquidoConta - repasse;
-
-            await addDoc(collection(db, "atendimentos"), {
-                cliente: "Avulso", 
-                servico: svc.nome,
-                valorServicoBruto: svc.valor,
-                valorBrutoTotal: svc.valor,
-                valorLiquido: parseFloat(liquidoConta.toFixed(2)),
-                repasseDono: parseFloat(repasse.toFixed(2)),
-                liquidoBarbeiro: parseFloat(barbeiro.toFixed(2)),
-                pagamento: pag,
-                data: dataFake.toISOString()
-            });
-        }
-
-        alert("40 atendimentos injetados com sucesso!");
-        btn.textContent = "Concluído ✓";
-        await carregarAtendimentos();
-
-    } catch (e) {
-        console.error("Erro na injeção:", e);
-        alert("Erro ao gerar dados.");
-        btn.textContent = "Falha";
-    }
-});
