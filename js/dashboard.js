@@ -100,8 +100,6 @@ sidebarLinks.forEach(link => {
 let servicoSelecionado = "";
 let valorTotalAutomatico = 0;
 
-const inputValorNormal = document.getElementById("valor");
-
 document.querySelectorAll(".btn-servico").forEach(btn => {
     btn.addEventListener("click", () => {
         // Remove a seleção de todos os botões e aplica só no clicado
@@ -110,8 +108,6 @@ document.querySelectorAll(".btn-servico").forEach(btn => {
 
         servicoSelecionado = btn.getAttribute("data-nome");
         valorTotalAutomatico = parseFloat(btn.getAttribute("data-valor"));
-
-        inputValorNormal.value = valorTotalAutomatico.toFixed(2);
     });
 });
 
@@ -119,17 +115,14 @@ document.querySelectorAll(".btn-servico").forEach(btn => {
 // CONTROLE DE VALOR DIFERENCIADO
 // =============================
 const selectValorDif = document.getElementById("temValorDiferenciado");
-const campoValorNormal = document.getElementById("campoValorNormal");
 const campoValorPersonalizado = document.getElementById("campoValorPersonalizado");
 const inputValorPersonalizado = document.getElementById("valorPersonalizado");
 
 selectValorDif.addEventListener("change", () => {
     if (selectValorDif.value === "sim") {
-        campoValorNormal.style.display = "none";
         campoValorPersonalizado.style.display = "block";
         inputValorPersonalizado.required = true;
     } else {
-        campoValorNormal.style.display = "block";
         campoValorPersonalizado.style.display = "none";
         inputValorPersonalizado.required = false;
         inputValorPersonalizado.value = "";
@@ -172,7 +165,6 @@ btnUndo.addEventListener("click", async () => {
         if (docParaDesfazer) {
             servicoSelecionado = docParaDesfazer.servico;
             valorTotalAutomatico = docParaDesfazer.valorServicoBruto;
-            inputValorNormal.value = valorTotalAutomatico.toFixed(2);
             document.getElementById("pagamento").value = docParaDesfazer.pagamento;
 
             // Reacende visualmente o botão correto
@@ -263,7 +255,6 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
         servicoSelecionado = "";
         valorTotalAutomatico = 0;
         campoValorPersonalizado.style.display = "none";
-        campoValorNormal.style.display = "block";
         inputValorPersonalizado.required = false;
         selectValorDif.value = "nao";
 

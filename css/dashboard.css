@@ -196,7 +196,13 @@ text-align: center;
 .input-group{
 margin-bottom:15px;
 }
-
+/* Respiro para as opções da lista de pagamento */
+.input-group select option {
+    background-color: #141822; /* Um fundo levemente diferente para destacar */
+    color: #e0e7ff;
+    padding: 12px 15px; /* Mais espaço para respirar (Cima/Baixo e Lados) */
+    font-size: 15px;
+}
 .input-group input,
 .input-group select{
 width:100%;

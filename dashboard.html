@@ -44,25 +44,27 @@
             
             <!-- SELETOR DE SERVIÇOS EM GRID -->
             <div class="input-group grupo-servicos-container">
-              <div class="grupo-botoes-servicos">
-    <!-- TOP: Combo Triplo (Ocupando as duas colunas para dar destaque máximo) -->
-    <button type="button" class="btn-servico" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" style="grid-column: 1 / -1;">Cabelo + Barba + Sobrancelha<br><span class="valor-servico-btn">R$ 110</span></button>
-    
-    <!-- MEIO: Combos Duplos -->
-    <button type="button" class="btn-servico" data-nome="Cabelo + Barba" data-valor="105">Cabelo + Barba<br><span class="valor-servico-btn">R$ 105</span></button>
-    <button type="button" class="btn-servico" data-nome="Cabelo + Sobrancelha" data-valor="75">Cabelo + Sobrancelha<br><span class="valor-servico-btn">R$ 75</span></button>
-    
-    <!-- BASE: Serviços Soltos -->
-    <button type="button" class="btn-servico" data-nome="Cabelo" data-valor="60">Cabelo<br><span class="valor-servico-btn">R$ 60</span></button>
-    <button type="button" class="btn-servico" data-nome="Barba" data-valor="50">Barba<br><span class="valor-servico-btn">R$ 50</span></button>
-</div>
-                
+                <div class="grupo-botoes-servicos">
+                    <button type="button" class="btn-servico" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" style="grid-column: 1 / -1;">Cabelo + Barba + Sobrancelha<br><span class="valor-servico-btn">R$ 110</span></button>
+                    <button type="button" class="btn-servico" data-nome="Cabelo + Barba" data-valor="105">Cabelo + Barba<br><span class="valor-servico-btn">R$ 105</span></button>
+                    <button type="button" class="btn-servico" data-nome="Cabelo + Sobrancelha" data-valor="75">Cabelo + Sobrancelha<br><span class="valor-servico-btn">R$ 75</span></button>
+                    <button type="button" class="btn-servico" data-nome="Cabelo" data-valor="60">Cabelo<br><span class="valor-servico-btn">R$ 60</span></button>
+                    <button type="button" class="btn-servico" data-nome="Barba" data-valor="50">Barba<br><span class="valor-servico-btn">R$ 50</span></button>
+                </div>
             </div>
 
-            <div class="input-group" id="campoValorNormal">
-                <input type="number" id="valor" class="input-valor-total" placeholder="Valor Total R$" readonly required>
+            <!-- FORMA DE PAGAMENTO (SUBIU) -->
+            <div class="input-group">
+                <select id="pagamento" required>
+                    <option value="">Forma de Pagamento</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Débito">Cartão de Débito - 1.45%</option>
+                    <option value="Crédito">Cartão de Crédito - 3.51%</option>
+                </select>
             </div>
 
+            <!-- VALOR DIFERENCIADO (DESCEU) -->
             <div class="input-group">
                 <select id="temValorDiferenciado">
                     <option value="nao" selected>Valor Diferenciado? Não</option>
@@ -74,19 +76,7 @@
                 <input type="number" id="valorPersonalizado" placeholder="Digite o Valor Diferenciado R$" step="0.01" min="0">
             </div>
 
-            <div class="input-group">
-                <select id="pagamento" required>
-                    <option value="">Forma de Pagamento</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Débito">Cartão de Débito - 1.45%</option>
-                    <option value="Crédito">Cartão de Crédito - 3.51%</option>
-                </select>
-            </div>
-
-            <!-- Botão Falso de Teste (Pode apagar quando quiser) -->
-            <button type="button" id="btnFake" style="background: #ff3b3b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; float: right; font-size: 0.7rem; margin-bottom: 10px;">Gerar 40 Testes</button>
-            <div style="clear:both;"></div>
+            
 
             <button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
 
