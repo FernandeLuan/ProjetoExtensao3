@@ -92,6 +92,13 @@ canvas#particles {
     box-shadow: 0 4px 15px rgba(0, 240, 255, .2);
 }
 
+/* Espaçamento elegante para os ícones do menu */
+.sidebar a i {
+    margin-right: 12px;
+    width: 24px;
+    text-align: center;
+}
+
 #fecharMenu {
     color: #ff6b6b !important;
 }
@@ -170,6 +177,11 @@ canvas#particles {
     margin: auto;
     position: relative;
     z-index: 50;
+}
+
+/* Respiro automático para a primeira seção quando o título for omitido */
+.dashboard-main section > *:first-child {
+    margin-top: 5px;
 }
 
 .titulo-sessao {
@@ -316,7 +328,6 @@ canvas#particles {
 .toggle-label {
     font-size: 0.85rem;
     color: #a0a0a0;
-    font-weight: 600;
 }
 .switch {
     position: relative;
@@ -389,30 +400,27 @@ input:checked + .slider:before {
 .cards {
     display: flex;
     gap: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
+/* Padronização Limpa dos Cards Financeiros (Sem excesso de sombras) */
 .card {
     flex: 1;
     min-width: 200px;
     padding: 20px;
-    background: rgba(20, 24, 34, .65);
-    border-radius: 16px;
-    border: 1px solid rgba(0, 240, 255, .2);
-    box-shadow: 0 0 20px rgba(0, 240, 255, .1);
+    background: #0b0e17;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    box-shadow: none;
     text-align: center;
-    transition: .3s;
-}
-
-.card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 30px rgba(0, 240, 255, .2);
 }
 
 .card h3 {
     margin-bottom: 10px;
     color: #00f0ff;
+    font-size: 1.17em;
+    font-weight: bold;
 }
 
 /* HISTÓRICO MOBILE (CARDS) */
@@ -441,10 +449,11 @@ input:checked + .slider:before {
     flex: 1;
 }
 
-/* Nome do Serviço Reduzido no Histórico */
+/* Nome do Serviço no Histórico sem negrito (peso 400) */
 .hist-info strong {
-    font-size: 0.85rem;
+    font-size: 0.80rem;
     color: #e0e7ff;
+    font-weight: 400;
 }
 
 .hist-info span {
@@ -533,7 +542,6 @@ input:checked + .slider:before {
     margin-top: 10px;
 }
 
-/* Efeito Neon Ghost ao passar o mouse */
 .btn-config:hover {
     background: #0b0e17;
     color: #00f0ff;
@@ -658,5 +666,25 @@ input:checked + .slider:before {
     }
     .historico {
         padding: 20px 12px;
+    }
+}
+
+/* Otimização Específica para Telas Compactas (iPhone 14 Pro e similares) */
+@media(max-width: 480px) {
+    .dashboard-header {
+        padding: 12px 15px;
+    }
+    .registrar {
+        padding: 35px 15px 25px;
+        width: 95%;
+        margin: 20px auto;
+    }
+    .btn-servico, .chip-pagamento {
+        font-size: 0.78rem !important;
+        padding: 10px 4px;
+    }
+    .titulo-sessao {
+        font-size: 1.1rem;
+        margin-bottom: 18px;
     }
 }

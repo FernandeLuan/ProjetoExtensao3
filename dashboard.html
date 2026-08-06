@@ -90,8 +90,8 @@
         </form>
     </section>
 
-    <!-- 2. PAINEL FINANCEIRO -->
-    <section id="painelFinanceiro" style="display:none;" class="dashboard-main">
+    <!-- PAINEL FINANCEIRO PADRONIZADO -->
+    <section id="painelFinanceiro" style="display:none; max-width: 900px;" class="registrar">
         <h2 class="titulo-sessao">Painel Financeiro</h2>
 
         <div class="filtros-periodo">
@@ -120,7 +120,7 @@
         </div>
 
         <div class="card" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 20px;">
-            <h3 style="text-align: left; margin-bottom: 15px;">Faturamento Últimos 7 Dias (Bruto)</h3>
+            <h3 style="text-align: left; margin-bottom: 15px; font-size: 1.1rem; color: #fff;">Faturamento Últimos 7 Dias (Bruto)</h3>
             <div style="position: relative; height: 280px; width: 100%;">
                 <canvas id="graficoFaturamento"></canvas>
             </div>
@@ -151,17 +151,17 @@
         </button>
     </section>
 
-    <!-- 4. HISTÓRICO -->
+<!-- 4. HISTÓRICO DO DIA -->
     <section id="historico" class="registrar" style="display:none; max-width: 700px;">
-        <h2 class="titulo-sessao">Histórico</h2>
+        <h2 class="titulo-sessao">Histórico do Dia</h2>
         
-        <div class="filtros-periodo" style="margin-bottom: 20px;">
-            <button class="btn-filtro-hist active" data-periodo="hoje">Hoje</button>
-            <button class="btn-filtro-hist" data-periodo="semana">Semana</button>
-            <button class="btn-filtro-hist" data-periodo="mes">Mês</button>
-        </div>
-
+        <!-- Lista Otimizada -->
         <div id="historicoContainer" class="lista-historico"></div>
+
+        <!-- Botão Carregar Mais (Paginação sob demanda) -->
+        <button type="button" id="btnCarregarMais" class="btn-config" style="display: none; font-size: 0.85rem; padding: 10px;">
+            Carregar mais antigos...
+        </button>
     </section>
 
     <!-- 5. MINHA CONTA -->

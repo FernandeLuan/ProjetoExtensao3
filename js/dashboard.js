@@ -335,41 +335,37 @@ document.getElementById("atendimentoForm").addEventListener("submit", async e =>
 });
 
 // =============================
-// HISTÓRICO MOBILE CARDS
+// HISTÓRICO DO DIA + PAGINAÇÃO (LOAD MORE)
 // =============================
-let periodoHistorico = 'hoje';
 const historicoContainer = document.getElementById("historicoContainer");
-
-document.querySelectorAll('.btn-filtro-hist').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.btn-filtro-hist').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        periodoHistorico = e.target.getAttribute('data-periodo');
-        atualizarHistorico();
-    });
-});
+const btnCarregarMais = document.getElementById("btnCarregarMais");
+let limiteExibicao = 10;
 
 function atualizarHistorico() {
     historicoContainer.innerHTML = "";
+    
+    // Filtra estritamente para o dia de hoje
     const hoje = new Date();
-    const inicioSemana = new Date(hoje);
-    inicioSemana.setDate(hoje.getDate() - hoje.getDay());
-    inicioSemana.setHours(0,0,0,0);
-
-    const lista = atendimentos.filter(a => {
+    const listaHoje = atendimentos.filter(a => {
         const data = new Date(a.data);
-        if (periodoHistorico === 'hoje') return (data.getDate() === hoje.getDate() && data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
-        if (periodoHistorico === 'semana') return (data >= inicioSemana);
-        if (periodoHistorico === 'mes') return (data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear());
-        return true;
+        return data.getDate() === hoje.getDate() && 
+               data.getMonth() === hoje.getMonth() && 
+               data.getFullYear() === hoje.getFullYear();
     });
 
-    if (lista.length === 0) {
-        historicoContainer.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: #a0a0a0; font-size: 0.95rem;">Nenhum atendimento registrado neste período.</div>`;
+    if (listaHoje.length === 0) {
+        historicoContainer.innerHTML = `<div style="text-align:center; padding: 30px; color: #a0a0a0; font-size: 0.9rem;">Nenhum atendimento registrado hoje.</div>`;
+        btnCarregarMais.style.display = "none";
         return;
     }
 
-    lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(a => {
+    // Ordena do mais recente para o mais antigo
+    listaHoje.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    // Pega apenas a quantidade permitida pelo limite atual
+    const listaVisivel = listaHoje.slice(0, limiteExibicao);
+
+    listaVisivel.forEach(a => {
         let bruto = a.valorBrutoTotal || a.valorBruto || 0;
         let liquido = a.valorLiquido || 0;
         
@@ -388,7 +384,19 @@ function atualizarHistorico() {
         `;
         historicoContainer.appendChild(card);
     });
+
+    // Mostra ou esconde o botão "Carregar mais"
+    if (listaHoje.length > limiteExibicao) {
+        btnCarregarMais.style.display = "block";
+    } else {
+        btnCarregarMais.style.display = "none";
+    }
 }
+
+btnCarregarMais?.addEventListener("click", () => {
+    limiteExibicao += 10; // Adiciona mais 10 à lista
+    atualizarHistorico();
+});
 
 // =============================
 // MODAL EXCLUSÃO
@@ -472,6 +480,11 @@ document.querySelectorAll('.btn-filtro').forEach(btn => {
     });
 });
 
+// Função auxiliar global para formatar dinheiro no padrão brasileiro (R$ 1.000,00)
+function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function atualizarCards() {
     let faturamentoBruto = 0, faturamentoLiquido = 0, totalRepasse = 0, lucroBarbeiro = 0, totalClientes = 0;
     let servicoCount = {};
@@ -500,29 +513,38 @@ function atualizarCards() {
         }
     });
 
+    // CARD DE FATURAMENTO / LUCRO LIMPO (Com as novas cores e formatações)
     const cardFat = document.querySelector("#faturamentoHoje p");
     if(cardFat) cardFat.innerHTML = `
         <div style="font-size: 0.85rem; color: #a0a0a0; margin-bottom: 2px;">Seu Lucro Limpo</div>
-        <div style="font-size: 1.9rem; color: #00f0ff; font-weight: 700; margin-bottom: 12px; line-height: 1.1;">R$ ${lucroBarbeiro.toFixed(2)}</div>
+        <div style="font-size: 1.9rem; color: #00e676; font-weight: 700; margin-bottom: 12px; line-height: 1.1;">R$ ${formatarMoeda(lucroBarbeiro)}</div>
         <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.85rem;">
-            <div style="text-align: left;"><span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Bruto</span><span style="color: #ffffff; font-weight: 600;">R$ ${faturamentoBruto.toFixed(2)}</span></div>
-            <div style="text-align: right;"><span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Repasse (35%)</span><span style="color: #ffcc00; font-weight: 600;">R$ ${totalRepasse.toFixed(2)}</span></div>
+            <div style="text-align: left;">
+                <span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Bruto</span>
+                <span style="color: #00f0ff; font-weight: 600;">R$ ${formatarMoeda(faturamentoBruto)}</span>
+            </div>
+            <div style="text-align: right;">
+                <span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Repasse (35%)</span>
+                <span style="color: #ffcc00; font-weight: 600;">R$ ${formatarMoeda(totalRepasse)}</span>
+            </div>
         </div>
-        <div style="font-size: 0.7rem; color: #00e676; margin-top: 10px; font-weight: 600;">Líquido na Conta: R$ ${faturamentoLiquido.toFixed(2)}</div>
+        <div style="font-size: 0.7rem; color: white; margin-top: 10px; font-weight: 300;">Líquido na Conta: R$ ${formatarMoeda(faturamentoLiquido)}</div>
     `;
     
-    // Tamanhos reduzidos (1.2rem) aplicados aqui
+    // TICKET MÉDIO (1.1rem, sem weight pesado, com vírgula)
     let ticketMedio = totalClientes > 0 ? (faturamentoBruto / totalClientes) : 0;
     const cardTicket = document.querySelector("#ticketMedio p");
-    if(cardTicket) cardTicket.innerHTML = `<span style="font-size: 1.2rem; font-weight: 700;">R$ ${ticketMedio.toFixed(2)}</span>`;
+    if(cardTicket) cardTicket.innerHTML = `<span style="font-size: 1.1rem; font-weight: 400; color: #e0e7ff;">R$ ${formatarMoeda(ticketMedio)}</span>`;
 
+    // SERVIÇO MAIS VENDIDO (1.1rem, sem weight pesado)
     let maisVendido = "—";
     if (Object.keys(servicoCount).length) maisVendido = Object.keys(servicoCount).reduce((a, b) => servicoCount[a] > servicoCount[b] ? a : b);
     const cardMaisVendido = document.querySelector("#servicoMaisVendido p");
-    if(cardMaisVendido) cardMaisVendido.innerHTML = `<span style="font-size: 1.2rem; font-weight: 700;">${maisVendido}</span>`;
+    if(cardMaisVendido) cardMaisVendido.innerHTML = `<span style="font-size: 1.1rem; font-weight: 400; color: #e0e7ff;">${maisVendido}</span>`;
 
+    // CLIENTES ATENDIDOS (1.1rem, sem weight pesado)
     const cardCli = document.querySelector("#clientesAtendidos p");
-    if(cardCli) cardCli.innerHTML = `<span style="font-size: 1.2rem; font-weight: 700;">${totalClientes}</span>`;
+    if(cardCli) cardCli.innerHTML = `<span style="font-size: 1.1rem; font-weight: 400; color: #e0e7ff;">${totalClientes}</span>`;
 }
 
 let graficoInstance = null;
