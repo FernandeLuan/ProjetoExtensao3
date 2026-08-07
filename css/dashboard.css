@@ -896,7 +896,7 @@ input:checked + .slider:before {
     }
 
     .registrar {
-        padding: 16px 14px;
+        padding: 1px 14px 16px;
     }
 
     .chip-pagamento {
