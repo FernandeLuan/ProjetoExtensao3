@@ -17,6 +17,45 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // =============================
+// CONTROLE DE TEMA
+// =============================
+const themeToggle = document.getElementById("themeToggle");
+
+function aplicarTema(tema) {
+    if (tema === "dark") {
+        document.documentElement.classList.add("dark");
+        document.documentElement.classList.remove("light");
+        if (themeToggle) themeToggle.checked = true;
+    } else {
+        document.documentElement.classList.add("light");
+        document.documentElement.classList.remove("dark");
+        if (themeToggle) themeToggle.checked = false;
+    }
+}
+
+// Carrega preferência salva ou usa a do sistema
+function carregarTema() {
+    const temaSalvo = localStorage.getItem("tema");
+
+    if (temaSalvo) {
+        aplicarTema(temaSalvo);
+    } else {
+        // Segue o tema do celular
+        const prefereEscuro = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        aplicarTema(prefereEscuro ? "dark" : "light");
+    }
+}
+
+// Quando o usuário clica no interruptor
+themeToggle?.addEventListener("change", () => {
+    const novoTema = themeToggle.checked ? "dark" : "light";
+    localStorage.setItem("tema", novoTema);
+    aplicarTema(novoTema);
+});
+
+// Inicia o tema assim que a página carrega
+carregarTema();
+// =============================
 // ESTADO GLOBAL
 // =============================
 let atendimentos = [];
@@ -52,7 +91,78 @@ function formatarMoeda(valor) {
         maximumFractionDigits: 2
     });
 }
+// =============================
+// MÁSCARAS DE INPUT (Configurações)
+// =============================
 
+// Formata como moeda brasileira enquanto digita (ex: 110,00)
+function mascaraMoeda(input) {
+    input.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/\D/g, ""); // só números
+
+        if (value === "") {
+            e.target.value = "";
+            return;
+        }
+
+        value = (parseInt(value, 10) / 100).toFixed(2);
+        value = value.replace(".", ",");
+        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        e.target.value = value;
+    });
+}
+
+// Formata porcentagem (permite 1 ou 2 casas decimais)
+function mascaraPorcentagem(input) {
+    input.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/[^\d,]/g, ""); // só números e vírgula
+
+        // Impede mais de uma vírgula
+        const parts = value.split(",");
+        if (parts.length > 2) {
+            value = parts[0] + "," + parts[1];
+        }
+
+        // Limita a 2 casas decimais
+        if (parts[1] && parts[1].length > 2) {
+            value = parts[0] + "," + parts[1].slice(0, 2);
+        }
+
+        e.target.value = value;
+    });
+}
+
+// Aplica as máscaras nos campos de configuração
+function aplicarMascarasConfiguracao() {
+    // Campos de preço (moeda)
+    const camposMoeda = [
+        "cfgPrecoCombo3",
+        "cfgPrecoCombo2",
+        "cfgPrecoCabSob",
+        "cfgPrecoCabelo",
+        "cfgPrecoBarba"
+    ];
+
+    camposMoeda.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) mascaraMoeda(input);
+    });
+
+    // Campos de taxa / porcentagem
+    const camposPorcentagem = [
+        "cfgTaxaDebito",
+        "cfgTaxaCredito",
+        "cfgRepasseDono"
+    ];
+
+    camposPorcentagem.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) mascaraPorcentagem(input);
+    });
+}
+
+// Chama a função quando a página carregar
+aplicarMascarasConfiguracao();
 function processarFinanceiro(valorBruto) {
     const taxaDebito = (configSistema.taxaDebito || 1.5) / 100;
     const taxaCredito = (configSistema.taxaCredito || 3.51) / 100;
@@ -244,59 +354,122 @@ async function carregarConfiguracoes() {
 function aplicarConfiguracoesNaTela() {
     if (!configSistema.precos) {
         configSistema.precos = {
-            "Cabelo + Barba + Sobrancelha": 110,
-            "Cabelo + Barba": 105,
-            "Cabelo + Sobrancelha": 75,
-            "Cabelo": 60,
-            "Barba": 50
+            "Cabelo + Barba + Sobrancelha": 110, "Cabelo + Barba": 105,
+            "Cabelo + Sobrancelha": 75, "Cabelo": 60, "Barba": 50
         };
     }
 
-    const setText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text;
-    };
-    const setValue = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.value = value;
-    };
+    // Exibe os valores atuais apenas nos textos verdes
+    document.getElementById("lblAtualDebito").textContent = `Atual: ${Number(configSistema.taxaDebito || 1.5).toFixed(2)}%`;
+    document.getElementById("lblAtualCredito").textContent = `Atual: ${Number(configSistema.taxaCredito || 3.51).toFixed(2)}%`;
+    document.getElementById("lblAtualRepasse").textContent = `Atual: ${Number(configSistema.repasseDonoPct || 35).toFixed(0)}%`;
+    
+    let pCombo3 = configSistema.precos["Cabelo + Barba + Sobrancelha"] || 110;
+    let pCombo2 = configSistema.precos["Cabelo + Barba"] || 105;
+    let pCabSob = configSistema.precos["Cabelo + Sobrancelha"] || 75;
+    let pCabelo = configSistema.precos["Cabelo"] || 60;
+    let pBarba = configSistema.precos["Barba"] || 50;
 
-    setText("lblAtualDebito", `Atual: ${Number(configSistema.taxaDebito || 1.5).toFixed(2)}%`);
-    setText("lblAtualCredito", `Atual: ${Number(configSistema.taxaCredito || 3.51).toFixed(2)}%`);
-    setText("lblAtualRepasse", `Atual: ${Number(configSistema.repasseDonoPct || 35).toFixed(0)}%`);
+    document.getElementById("labelAtualCombo3").textContent = `Atual: R$ ${formatarMoeda(pCombo3)}`;
+    document.getElementById("labelAtualCombo2").textContent = `Atual: R$ ${formatarMoeda(pCombo2)}`;
+    document.getElementById("labelAtualCabSob").textContent = `Atual: R$ ${formatarMoeda(pCabSob)}`;
+    document.getElementById("labelAtualCabelo").textContent = `Atual: R$ ${formatarMoeda(pCabelo)}`;
+    document.getElementById("labelAtualBarba").textContent = `Atual: R$ ${formatarMoeda(pBarba)}`;
 
-    setValue("cfgTaxaDebito", configSistema.taxaDebito || 1.5);
-    setValue("cfgTaxaCredito", configSistema.taxaCredito || 3.51);
-    setValue("cfgRepasseDono", configSistema.repasseDonoPct || 35);
+    // Zera os inputs para mostrar o Placeholder limpo!
+    document.querySelectorAll("#formConfiguracoes input").forEach(input => input.value = "");
 
-    const pCombo3 = configSistema.precos["Cabelo + Barba + Sobrancelha"] || 110;
-    const pCombo2 = configSistema.precos["Cabelo + Barba"] || 105;
-    const pCabSob = configSistema.precos["Cabelo + Sobrancelha"] || 75;
-    const pCabelo = configSistema.precos["Cabelo"] || 60;
-    const pBarba = configSistema.precos["Barba"] || 50;
-
-    setText("labelAtualCombo3", `Atual: R$ ${formatarMoeda(pCombo3)}`);
-    setText("labelAtualCombo2", `Atual: R$ ${formatarMoeda(pCombo2)}`);
-    setText("labelAtualCabSob", `Atual: R$ ${formatarMoeda(pCabSob)}`);
-    setText("labelAtualCabelo", `Atual: R$ ${formatarMoeda(pCabelo)}`);
-    setText("labelAtualBarba", `Atual: R$ ${formatarMoeda(pBarba)}`);
-
-    setValue("cfgPrecoCombo3", pCombo3);
-    setValue("cfgPrecoCombo2", pCombo2);
-    setValue("cfgPrecoCabSob", pCabSob);
-    setValue("cfgPrecoCabelo", pCabelo);
-    setValue("cfgPrecoBarba", pBarba);
-
-    document.querySelectorAll(".btn-servico").forEach((btn) => {
-        const nome = btn.getAttribute("data-nome");
+    // Atualiza a tela Registrar (sem mexer na estrutura dela, apenas injetando os valores formatados)
+    document.querySelectorAll(".btn-servico").forEach(btn => {
+        let nome = btn.getAttribute("data-nome");
         if (configSistema.precos[nome] !== undefined) {
-            const novoValor = configSistema.precos[nome];
+            let novoValor = configSistema.precos[nome];
             btn.setAttribute("data-valor", novoValor);
-            const spanValor = btn.querySelector(".valor-servico-btn");
-            if (spanValor) spanValor.textContent = `R$ ${formatarMoeda(novoValor)}`;
+            let spanValor = btn.querySelector(".valor-servico-btn");
+            if(spanValor) spanValor.textContent = `R$ ${formatarMoeda(novoValor)}`;
         }
     });
 }
+
+// =============================
+// SALVAR CONFIGURAÇÕES
+// =============================
+document.getElementById("formConfiguracoes")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById("btnSalvarConfigs");
+    if (!btn) return;
+
+    // Função que só pega o valor se o usuário digitou algo
+    const pegarValor = (id) => {
+        const input = document.getElementById(id);
+        if (!input) return null;
+        const valor = input.value.trim().replace(",", ".");
+        return valor !== "" ? parseFloat(valor) : null;
+    };
+
+    const novaTaxaDebito = pegarValor("cfgTaxaDebito");
+    const novaTaxaCredito = pegarValor("cfgTaxaCredito");
+    const novoRepasse = pegarValor("cfgRepasseDono");
+    const novoCombo3 = pegarValor("cfgPrecoCombo3");
+    const novoCombo2 = pegarValor("cfgPrecoCombo2");
+    const novoCabSob = pegarValor("cfgPrecoCabSob");
+    const novoCabelo = pegarValor("cfgPrecoCabelo");
+    const novoBarba = pegarValor("cfgPrecoBarba");
+
+    // Verifica se pelo menos um campo foi preenchido
+    const temAlgumValor = [
+        novaTaxaDebito, novaTaxaCredito, novoRepasse,
+        novoCombo3, novoCombo2, novoCabSob, novoCabelo, novoBarba
+    ].some(v => v !== null);
+
+    if (!temAlgumValor) {
+        alert("Preencha pelo menos um campo para salvar.");
+        return;
+    }
+
+    // Atualiza apenas os campos que o usuário preencheu
+    if (novaTaxaDebito !== null) configSistema.taxaDebito = novaTaxaDebito;
+    if (novaTaxaCredito !== null) configSistema.taxaCredito = novaTaxaCredito;
+    if (novoRepasse !== null) configSistema.repasseDonoPct = novoRepasse;
+
+    if (!configSistema.precos) configSistema.precos = {};
+
+    if (novoCombo3 !== null) configSistema.precos["Cabelo + Barba + Sobrancelha"] = novoCombo3;
+    if (novoCombo2 !== null) configSistema.precos["Cabelo + Barba"] = novoCombo2;
+    if (novoCabSob !== null) configSistema.precos["Cabelo + Sobrancelha"] = novoCabSob;
+    if (novoCabelo !== null) configSistema.precos["Cabelo"] = novoCabelo;
+    if (novoBarba !== null) configSistema.precos["Barba"] = novoBarba;
+
+    // Feedback visual
+    btn.textContent = "Salvando...";
+    btn.style.opacity = "0.7";
+    btn.disabled = true;
+
+    try {
+        await setDoc(doc(db, "configuracoes", "geral"), configSistema);
+        aplicarConfiguracoesNaTela();
+
+        btn.style.opacity = "1";
+        btn.disabled = false;
+        btn.classList.add("success");
+        btn.textContent = "Salvo ✓";
+
+        setTimeout(() => {
+            btn.classList.remove("success");
+            btn.textContent = "Salvar Alterações";
+        }, 2000);
+
+    } catch (error) {
+        console.error(error);
+        btn.style.opacity = "1";
+        btn.disabled = false;
+        btn.textContent = "Erro ao salvar";
+        setTimeout(() => {
+            btn.textContent = "Salvar Alterações";
+        }, 2000);
+    }
+});
 
 // =============================
 // FORMULÁRIO DE REGISTRO
@@ -860,22 +1033,146 @@ document.getElementById("formAlterarSenha")?.addEventListener("submit", async (e
     }
 });
 
-// WhatsApp (placeholder)
-document.getElementById("btnWhatsApp")?.addEventListener("click", () => {
-    const btn = document.getElementById("btnWhatsApp");
-    if (!btn) return;
+// =============================
+// GERAÇÃO DO FECHAMENTO VIA WHATSAPP
+// =============================
+document.getElementById("btnWhatsApp")?.addEventListener("click", async () => {
+    const dataInicio = document.getElementById("dataInicioRelatorio").value;
+    const dataFim = document.getElementById("dataFimRelatorio").value;
 
-    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Gerando...`;
+    if (!dataInicio || !dataFim) {
+        alert("Por favor, selecione as datas inicial e final para gerar o fechamento.");
+        return;
+    }
+
+    const btn = document.getElementById("btnWhatsApp");
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Calculando...`;
     btn.style.opacity = "0.7";
 
-    setTimeout(() => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Usuário não autenticado");
+
+        // Busca os atendimentos do usuário no Firebase
+        const q = query(collection(db, "atendimentos"), where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+
+        let bruto = 0;
+        let descontosTaxa = 0;
+        let repasseTotal = 0;
+        let qtdCortes = 0;
+
+        // Varre os registros para fazer a matemática
+        snapshot.forEach(doc => {
+            const dados = doc.data();
+            const dataAtendimento = dados.dataHora.split('T')[0]; // Isola apenas a data (AAAA-MM-DD)
+
+            // Filtra os registros que caem dentro da janela de tempo escolhida
+            if (dataAtendimento >= dataInicio && dataAtendimento <= dataFim) {
+                const cobrado = dados.valorCobrado || 0;
+                const liquidoMaquininha = dados.valorLiquidoMaquininha || cobrado; // Se for Dinheiro/Pix, é igual ao cobrado
+                
+                bruto += cobrado;
+                descontosTaxa += (cobrado - liquidoMaquininha); // A diferença é o que a maquininha comeu
+                repasseTotal += dados.valorRepasse || 0; // O que vai para o dono da barbearia
+                qtdCortes++;
+            }
+        });
+
+        // O que realmente sobra no seu bolso
+        const liquidoBarbeiro = bruto - descontosTaxa - repasseTotal;
+
+        // Formata as datas para o padrão Brasileiro (DD/MM/AAAA) para ficar bonito no texto
+        const inicioBR = dataInicio.split('-').reverse().join('/');
+        const fimBR = dataFim.split('-').reverse().join('/');
+
+        // Monta a mensagem executiva
+        const texto = `✂️ *Fechamento Marlon Barber*\n` +
+                      `📅 *Período:* ${inicioBR} a ${fimBR}\n\n` +
+                      `💈 *Atendimentos:* ${qtdCortes}\n` +
+                      `💰 *Bruto:* R$ ${formatarMoeda(bruto)}\n` +
+                      `💳 *Taxas Cartão:* - R$ ${formatarMoeda(descontosTaxa)}\n` +
+                      `✂️ *Repasse:* - R$ ${formatarMoeda(repasseTotal)}\n\n` +
+                      `✅ *Líquido:* *R$ ${formatarMoeda(liquidoBarbeiro)}*`;
+
+        // Gera o link universal do WhatsApp
+        const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+        
+        // Abre o link em uma nova aba/janela
+        window.open(url, '_blank');
+
+        // Animação de sucesso no botão
         btn.innerHTML = `<i class="fab fa-whatsapp"></i> Fechamento Pronto ✓`;
         btn.style.opacity = "1";
         btn.classList.add("success");
-
+        
         setTimeout(() => {
             btn.classList.remove("success");
             btn.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar Fechamento`;
         }, 2500);
-    }, 1000);
+
+    } catch (error) {
+        console.error("Erro ao gerar fechamento:", error);
+        btn.innerHTML = `Erro ao gerar!`;
+        btn.style.opacity = "1";
+        setTimeout(() => {
+            btn.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar Fechamento`;
+        }, 2000);
+    }
 });
+
+// Função auxiliar para formatar a data para o padrão do calendário (AAAA-MM-DD)
+function formatarDataISO(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+}
+
+// Preencher datas rapidamente e dar o feedback visual
+function setDatasRelatorio(tipo) {
+    // 1. Apaga a luz (remove 'active') de todos os 3 botões
+    document.querySelectorAll('#relatorios .btn-filtro').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // 2. Acende a luz (adiciona 'active') só no botão que foi clicado
+    if (tipo === 'hoje') document.getElementById('btnRelHoje').classList.add('active');
+    if (tipo === 'semana') document.getElementById('btnRelSemana').classList.add('active');
+    if (tipo === 'mes') document.getElementById('btnRelMes').classList.add('active');
+
+    // 3. Faz a matemática das datas
+    const inputInicio = document.getElementById('dataInicioRelatorio');
+    const inputFim = document.getElementById('dataFimRelatorio');
+    const hoje = new Date();
+
+    if (tipo === 'hoje') {
+        const dataStr = formatarDataISO(hoje);
+        inputInicio.value = dataStr;
+        inputFim.value = dataStr;
+    } 
+    else if (tipo === 'semana') {
+        const diaSemana = hoje.getDay(); // 0 (Dom) a 6 (Sáb)
+        const diffInicio = hoje.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // Força começar na Segunda-feira
+        
+        const inicioSemana = new Date(hoje.setDate(diffInicio));
+        const fimSemana = new Date(hoje.setDate(diffInicio + 6)); // Termina no Domingo
+        
+        inputInicio.value = formatarDataISO(inicioSemana);
+        inputFim.value = formatarDataISO(fimSemana);
+    } 
+    else if (tipo === 'mes') {
+        // Primeiro dia do mês atual
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        // Último dia do mês atual
+        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+        
+        inputInicio.value = formatarDataISO(inicioMes);
+        inputFim.value = formatarDataISO(fimMes);
+    }
+}
+
+// 4. Cria os ouvintes de clique para cada botão
+document.getElementById("btnRelHoje")?.addEventListener("click", () => setDatasRelatorio('hoje'));
+document.getElementById("btnRelSemana")?.addEventListener("click", () => setDatasRelatorio('semana'));
+document.getElementById("btnRelMes")?.addEventListener("click", () => setDatasRelatorio('mes'));

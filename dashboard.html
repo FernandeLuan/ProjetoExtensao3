@@ -34,12 +34,25 @@
         <li><a href="#historico"><i class="fas fa-history"></i> Histórico</a></li>
         <li><a href="#configuracoes"><i class="fas fa-sliders-h"></i> Configurações</a></li>
         <li><a href="#conta"><i class="fas fa-user-lock"></i> Minha Conta</a></li>
+        <li class="theme-toggle-item">
+    <div class="theme-toggle-wrapper">
+        <span class="theme-toggle-label">
+            <i class="fas fa-moon"></i>
+            Tema Escuro
+        </span>
+        <label class="theme-switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="theme-slider"></span>
+        </label>
+    </div>
+</li>
         <hr>
         <li>
             <a href="#" id="logoutBtnSide">
                 <i class="fas fa-sign-out-alt"></i> Sair do Sistema
             </a>
         </li>
+        
     </ul>
 </nav>
 
@@ -113,10 +126,10 @@
     <section id="painelFinanceiro" class="registrar" style="display: none; max-width: 900px;">
         <h2 class="titulo-sessao">Painel Financeiro</h2>
 
-        <div class="filtros-periodo">
-            <button type="button" class="btn-filtro active" data-periodo="hoje">Hoje</button>
-            <button type="button" class="btn-filtro" data-periodo="semana">Esta Semana</button>
-            <button type="button" class="btn-filtro" data-periodo="mes">Este Mês</button>
+<div class="filtros-periodo">
+            <button class="btn-filtro active" data-periodo="hoje">Dia</button>
+            <button class="btn-filtro" data-periodo="semana">Semana</button>
+            <button class="btn-filtro" data-periodo="mes">Mês</button>
         </div>
 
         <div class="cards">
@@ -146,143 +159,146 @@
         </div>
     </section>
 
-    <!-- Relatórios -->
-    <section id="relatorios" class="registrar" style="display: none;">
+<!--<!-- 3. RELATÓRIOS -->
+    <section id="relatorios" class="registrar" style="display:none; max-width: 600px;">
         <h2 class="titulo-sessao">Relatórios e Fechamento</h2>
+        
+        <!-- Bloco 100% alinhado: Filtros + Datas -->
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            
+            <!-- Botões esticados para preencher o espaço -->
+            <div class="filtros-periodo" style="margin-bottom: 0; display: flex; width: 100%;">
+                <button type="button" class="btn-filtro" id="btnRelHoje" style="flex: 1;">Dia</button>
+                <button type="button" class="btn-filtro" id="btnRelSemana" style="flex: 1;">Semana</button>
+                <button type="button" class="btn-filtro" id="btnRelMes" style="flex: 1;">Mês</button>
+            </div>
 
-        <div class="input-group">
-            <label class="label-servico">Data Inicial:</label>
-            <input type="date" id="dataInicioRelatorio">
-        </div>
-        <div class="input-group">
-            <label class="label-servico">Data Final:</label>
-            <input type="date" id="dataFimRelatorio">
+            <div class="input-group" style="margin-bottom: 0;">
+                <label class="label-servico">Data Inicial:</label>
+                <input type="date" id="dataInicioRelatorio" onclick="this.showPicker()" style="cursor: pointer;" required>
+            </div>
+            <div class="input-group" style="margin-bottom: 0;">
+                <label class="label-servico">Data Final:</label>
+                <input type="date" id="dataFimRelatorio" onclick="this.showPicker()" style="cursor: pointer;" required>
+            </div>
+
         </div>
 
-        <div class="export-actions">
-            <button type="button" class="btn-config" id="btnExportCSV">
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button type="button" class="btn" id="btnExportCSV" style="flex:1; font-size:0.85rem; padding: 12px; font-weight: 400; background: rgba(33, 115, 70, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3);">
                 <i class="fas fa-file-csv"></i> Excel
             </button>
-            <button type="button" class="btn-config" id="btnExportPDF">
+            <button type="button" class="btn" id="btnExportPDF" style="flex:1; font-size:0.85rem; padding: 12px; font-weight: 400; background: rgba(211, 47, 47, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3);">
                 <i class="fas fa-file-pdf"></i> PDF
             </button>
         </div>
-
-        <button type="button" class="btn-whatsapp" id="btnWhatsApp">
+        
+        <button type="button" class="btn" id="btnWhatsApp" style="margin-top: 15px;">
             <i class="fab fa-whatsapp"></i> Enviar Fechamento
         </button>
     </section>
-
-    <!-- Histórico -->
-    <section id="historico" class="registrar" style="display: none; max-width: 700px;">
+    <!-- 4. HISTÓRICO DO DIA -->
+    <section id="historico" class="registrar" style="display:none; max-width: 700px;">
         <h2 class="titulo-sessao">Histórico do Dia</h2>
+        
         <div id="historicoContainer" class="lista-historico"></div>
-        <button type="button" id="btnCarregarMais" class="btn-config" style="display: none; font-size: 0.85rem; padding: 10px;">
+
+        <!-- Botão Carregar Mais padronizado com gradiente -->
+        <button type="button" id="btnCarregarMais" class="btn" style="display: none; margin-top: 15px;">
             Carregar mais antigos...
         </button>
     </section>
 
-    <!-- Configurações -->
-    <section id="configuracoes" class="registrar" style="display: none; max-width: 550px;">
+    <!-- 5. CONFIGURAÇÕES DE NEGÓCIO (Taxas e Preços) -->
+    <section id="configuracoes" class="registrar" style="display:none; max-width: 550px;">
         <h2 class="titulo-sessao">Configurações de Negócio</h2>
-
+        
         <form id="formConfiguracoes">
-            <h3 class="config-section-title">
-                <i class="fas fa-percentage"></i> Taxas e Repasse
-            </h3>
-
-            <div class="config-grid-2">
+            <h3 style="font-size: 0.9rem; color: #00f0ff; margin-bottom: 12px;"><i class="fas fa-percentage"></i> Taxas e Repasse</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="input-group">
-                    <label class="label-servico">
-                        Débito (%)<br>
-                        <span id="lblAtualDebito" class="config-atual">Atual: --</span>
-                    </label>
-                    <input type="number" id="cfgTaxaDebito" step="0.01" placeholder="Novo %" required>
+                    <label class="label-servico">Débito (%) <br><span id="lblAtualDebito" style="font-size:0.75rem; color:#00e676;">Atual: --</span></label>
+                    <input type="text" inputmode="decimal" id="cfgTaxaDebito" placeholder="0,00">
                 </div>
                 <div class="input-group">
-                    <label class="label-servico">
-                        Crédito (%)<br>
-                        <span id="lblAtualCredito" class="config-atual">Atual: --</span>
-                    </label>
-                    <input type="number" id="cfgTaxaCredito" step="0.01" placeholder="Novo %" required>
+                    <label class="label-servico">Crédito (%) <br><span id="lblAtualCredito" style="font-size:0.75rem; color:#00e676;">Atual: --</span></label>
+                    <input type="text" inputmode="decimal" id="cfgTaxaCredito" placeholder="0,00">
                 </div>
             </div>
-
+            
             <div class="input-group">
-                <label class="label-servico">
-                    Repasse Dono (%)<br>
-                    <span id="lblAtualRepasse" class="config-atual">Atual: --</span>
-                </label>
-                <input type="number" id="cfgRepasseDono" step="1" placeholder="Novo %" required>
+                <label class="label-servico">Repasse Dono (%) <br><span id="lblAtualRepasse" style="font-size:0.75rem; color:#00e676;">Atual: --</span></label>
+                <input type="text" inputmode="numeric" id="cfgRepasseDono" placeholder="0,00">
             </div>
 
-            <hr class="divider">
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
 
-            <h3 class="config-section-title">
-                <i class="fas fa-tag"></i> Preços dos Serviços
-            </h3>
-
-            <div class="config-precos">
-                <div class="config-preco-row">
+            <h3 style="font-size: 0.9rem; color: #00f0ff; margin-bottom: 12px;"><i class="fas fa-tag"></i> Preços dos Serviços</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
                     <div>
-                        <span class="config-preco-label">Cabelo + Barba + Sobrancelha</span>
-                        <span id="labelAtualCombo3" class="config-atual">Atual: R$ 0,00</span>
+                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo + Barba + Sobrancelha</span>
+                        <span id="labelAtualCombo3" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
-                        <input type="number" id="cfgPrecoCombo3" step="0.01" placeholder="Novo R$" required>
+                        <input type="text" inputmode="decimal" id="cfgPrecoCombo3" placeholder="0,00">
                     </div>
                 </div>
 
-                <div class="config-preco-row">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
                     <div>
-                        <span class="config-preco-label">Cabelo + Barba</span>
-                        <span id="labelAtualCombo2" class="config-atual">Atual: R$ 0,00</span>
+                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo + Barba</span>
+                        <span id="labelAtualCombo2" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
-                        <input type="number" id="cfgPrecoCombo2" step="0.01" placeholder="Novo R$" required>
+                        <input type="text" inputmode="decimal" id="cfgPrecoCombo2" placeholder="0,00">
                     </div>
                 </div>
 
-                <div class="config-preco-row">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
                     <div>
-                        <span class="config-preco-label">Cabelo + Sobrancelha</span>
-                        <span id="labelAtualCabSob" class="config-atual">Atual: R$ 0,00</span>
+                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo + Sobrancelha</span>
+                        <span id="labelAtualCabSob" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
-                        <input type="number" id="cfgPrecoCabSob" step="0.01" placeholder="Novo R$" required>
+                        <input type="text" inputmode="decimal" id="cfgPrecoCabSob" placeholder="0,00">
                     </div>
                 </div>
 
-                <div class="config-preco-row">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
                     <div>
-                        <span class="config-preco-label">Cabelo</span>
-                        <span id="labelAtualCabelo" class="config-atual">Atual: R$ 0,00</span>
+                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo</span>
+                        <span id="labelAtualCabelo" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
-                        <input type="number" id="cfgPrecoCabelo" step="0.01" placeholder="Novo R$" required>
+                        <input type="text" inputmode="decimal" id="cfgPrecoCabelo" placeholder="0,00">
                     </div>
                 </div>
 
-                <div class="config-preco-row">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
                     <div>
-                        <span class="config-preco-label">Barba</span>
-                        <span id="labelAtualBarba" class="config-atual">Atual: R$ 0,00</span>
+                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Barba</span>
+                        <span id="labelAtualBarba" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
-                        <input type="number" id="cfgPrecoBarba" step="0.01" placeholder="Novo R$" required>
+                        <input type="text" inputmode="decimal" id="cfgPrecoBarba" placeholder="0,00">
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn-config" id="btnSalvarConfigs">Salvar Alterações</button>
+            <!-- Botão com distanciamento padronizado de 25px -->
+            <button type="submit" class="btn" style="margin-top: 25px;" id="btnSalvarConfigs">Salvar Alterações</button>
         </form>
     </section>
-
-    <!-- Minha Conta -->
-    <section id="conta" class="registrar" style="display: none;">
+    <!-- 6. MINHA CONTA (Apenas Segurança) -->
+    <section id="conta" class="registrar" style="display:none;">
         <h2 class="titulo-sessao">Minha Conta</h2>
-        <p class="conta-desc">Gerencie a segurança do seu aplicativo.</p>
-
+        <div style="text-align: center; color: #a0a0a0; font-size: 0.85rem; margin-bottom: 25px;">
+            Gerencie a segurança do seu aplicativo.
+        </div>
+        
         <form id="formAlterarSenha">
             <div class="input-group">
                 <label class="label-servico">Senha Atual</label>
@@ -296,7 +312,9 @@
                 <label class="label-servico">Confirmar Nova Senha</label>
                 <input type="password" id="confirmaSenha" placeholder="Repita a nova senha" required>
             </div>
-            <button type="submit" class="btn-config" id="btnSalvarSenha">Atualizar Senha</button>
+            
+            <!-- Botão com a classe .btn padronizada -->
+            <button type="submit" class="btn" style="margin-top: 25px;" id="btnSalvarSenha">Atualizar Senha</button>
         </form>
     </section>
 
