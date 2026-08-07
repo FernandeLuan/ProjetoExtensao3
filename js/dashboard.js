@@ -720,9 +720,6 @@ document.getElementById("atendimentoForm")?.addEventListener("submit", async (e)
     }
 });
 
-// =============================
-// HISTÓRICO
-// =============================
 function atualizarHistorico() {
     if (!historicoContainer) return;
     historicoContainer.innerHTML = "";
@@ -737,9 +734,17 @@ function atualizarHistorico() {
         );
     });
 
+    // Atualiza o título com a data
+    const titulo = document.getElementById("tituloHistorico");
+    if (titulo) {
+        const opcoes = { day: "2-digit", month: "long" };
+        const dataFormatada = hoje.toLocaleDateString("pt-BR", opcoes);
+        titulo.textContent = `Histórico • ${dataFormatada}`;
+    }
+
     if (listaHoje.length === 0) {
         historicoContainer.innerHTML = `
-            <div style="text-align:center; padding: 30px; color: var(--text-secondary); font-size: 0.9rem;">
+            <div style="text-align:center; padding: 40px 20px; color: var(--text-secondary); font-size: 0.95rem;">
                 Nenhum atendimento registrado hoje.
             </div>`;
         if (btnCarregarMais) btnCarregarMais.style.display = "none";
@@ -752,21 +757,41 @@ function atualizarHistorico() {
     listaVisivel.forEach((a) => {
         const bruto = a.valorBrutoTotal || a.valorBruto || 0;
         const liquido = a.valorLiquido || 0;
+        const hora = new Date(a.data).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const pagamento = a.pagamento || "—";
+
+        // Classe de cor do pagamento
+        let classePag = "dinheiro";
+        if (pagamento === "Crédito") classePag = "credito";
+        else if (pagamento === "Débito") classePag = "debito";
+        else if (pagamento === "Pix") classePag = "pix";
+
+        // Ícone do pagamento
+        let iconePag = "fa-money-bill-wave";
+        if (pagamento === "Crédito" || pagamento === "Débito") iconePag = "fa-credit-card";
+        else if (pagamento === "Pix") iconePag = "fa-qrcode";
 
         const card = document.createElement("div");
         card.className = "historico-card";
         card.innerHTML = `
-            <div class="hist-info">
-                <strong>${a.servico}</strong>
-                <span>${new Date(a.data).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} • ${a.pagamento}</span>
+            <div class="hist-left">
+                <div class="hist-servico">${a.servico}</div>
+                <div class="hist-meta">
+                    <span>${hora}</span>
+                    <span class="hist-pagamento ${classePag}">
+                        <i class="fas ${iconePag}"></i> ${pagamento}
+                    </span>
+                </div>
             </div>
-            <div class="hist-valor">
-                <strong>R$ ${bruto.toFixed(2).replace(".", ",")}</strong>
-                <small>Líq: R$ ${liquido.toFixed(2).replace(".", ",")}</small>
+            <div class="hist-right">
+                <div class="hist-valores">
+                    <span class="hist-bruto">R$ ${bruto.toFixed(2).replace(".", ",")}</span>
+                    <span class="hist-liquido">Líq: R$ ${liquido.toFixed(2).replace(".", ",")}</span>
+                </div>
+                <button onclick="excluirAtendimento('${a.id}', '${a.servico}', ${bruto})" class="btn-delete-hist">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
-            <button onclick="excluirAtendimento('${a.id}', '${a.servico}', ${bruto})" class="btn-delete-hist">
-                <i class="fas fa-trash"></i>
-            </button>
         `;
         historicoContainer.appendChild(card);
     });
@@ -775,7 +800,6 @@ function atualizarHistorico() {
         btnCarregarMais.style.display = listaHoje.length > limiteExibicao ? "block" : "none";
     }
 }
-
 btnCarregarMais?.addEventListener("click", () => {
     limiteExibicao += 10;
     atualizarHistorico();
