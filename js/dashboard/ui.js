@@ -73,67 +73,121 @@ document.getElementById("logoutBtnSide")?.addEventListener("click", async (e) =>
     window.location.href = "login.html";
 });
 
-// Menu lateral
 const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
+const bottomNavItems = document.querySelectorAll(".bottom-nav-item[data-nav-target]");
 
-menuToggle?.addEventListener("click", () => {
-    sidebarMenu?.classList.toggle("active");
-    sidebarOverlay?.classList.toggle("active");
-});
+function abrirMenu() {
+    sidebarMenu?.classList.add("active");
+    sidebarOverlay?.classList.add("active");
+    menuToggle?.classList.add("menu-open");
+    menuToggle?.setAttribute("aria-expanded", "true");
+}
 
-sidebarOverlay?.addEventListener("click", () => {
+function fecharMenu() {
     sidebarMenu?.classList.remove("active");
     sidebarOverlay?.classList.remove("active");
+    menuToggle?.classList.remove("menu-open");
+    menuToggle?.setAttribute("aria-expanded", "false");
+}
+
+function atualizarNavegacaoAtiva(targetId) {
+    bottomNavItems.forEach((item) => {
+        const ativo = item.dataset.navTarget === targetId;
+        item.classList.toggle("active", ativo);
+
+        if (ativo) {
+            item.setAttribute("aria-current", "page");
+        } else {
+            item.removeAttribute("aria-current");
+        }
+    });
+
+    // Configurações e Minha Conta pertencem ao item Menu.
+    const telaDoMenu = targetId === "configuracoes" || targetId === "conta";
+    menuToggle?.classList.toggle("active", telaDoMenu);
+}
+
+function exibirSecao(href) {
+    if (!href?.startsWith("#")) return;
+
+    const target = document.querySelector(href);
+    if (!target) return;
+
+    document.querySelectorAll("main section").forEach((section) => {
+        section.style.display = "none";
+    });
+
+    target.style.display = "block";
+
+    const targetId = href.slice(1);
+    atualizarNavegacaoAtiva(targetId);
+
+    // Painel Financeiro → já carrega o dia
+    if (href === "#painelFinanceiro") {
+        state.periodoSelecionado = "hoje";
+        document.querySelectorAll("#painelFinanceiro .btn-filtro").forEach((btn) => {
+            btn.classList.remove("active");
+        });
+        document.querySelector('#painelFinanceiro .btn-filtro[data-periodo="hoje"]')?.classList.add("active");
+        atualizarCards();
+        atualizarGrafico();
+    }
+
+    // Relatórios → já preenche com a data de hoje
+    if (href === "#relatorios") {
+        const hoje = new Date();
+        const dataStr = formatarDataISO(hoje);
+        const inputInicio = document.getElementById("dataInicioRelatorio");
+        const inputFim = document.getElementById("dataFimRelatorio");
+
+        if (inputInicio) inputInicio.value = dataStr;
+        if (inputFim) inputFim.value = dataStr;
+
+        document.querySelectorAll("#relatorios .btn-filtro").forEach((btn) => {
+            btn.classList.remove("active");
+        });
+        document.getElementById("btnRelHoje")?.classList.add("active");
+    }
+
+    if (href === "#historico") {
+        atualizarHistorico();
+    }
+
+    fecharMenu();
+    window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+menuToggle?.addEventListener("click", () => {
+    if (sidebarMenu?.classList.contains("active")) {
+        fecharMenu();
+    } else {
+        abrirMenu();
+    }
 });
 
-document.getElementById("logoHome")?.addEventListener("click", () => {
-    document.querySelectorAll("main section").forEach((s) => (s.style.display = "none"));
-    const registrar = document.getElementById("registrar");
-    if (registrar) registrar.style.display = "block";
+sidebarOverlay?.addEventListener("click", fecharMenu);
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") fecharMenu();
 });
 
-// Navegação do menu
-sidebarMenu?.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", (e) => {
-        if (link.id === "logoutBtnSide") return;
+bottomNavItems.forEach((item) => {
+    item.addEventListener("click", (e) => {
         e.preventDefault();
-
-        const href = link.getAttribute("href");
-        document.querySelectorAll("main section").forEach((s) => (s.style.display = "none"));
-        const target = document.querySelector(href);
-        if (target) target.style.display = "block";
-
-        // Painel Financeiro → já carrega o dia
-        if (href === "#painelFinanceiro") {
-            state.periodoSelecionado = "hoje";
-            document.querySelectorAll("#painelFinanceiro .btn-filtro").forEach(btn => btn.classList.remove("active"));
-            document.querySelector('#painelFinanceiro .btn-filtro[data-periodo="hoje"]')?.classList.add("active");
-            atualizarCards();
-            atualizarGrafico();
-        }
-
-        // Relatórios → já preenche com a data de hoje
-        if (href === "#relatorios") {
-            const hoje = new Date();
-            const dataStr = formatarDataISO(hoje);
-            const inputInicio = document.getElementById("dataInicioRelatorio");
-            const inputFim = document.getElementById("dataFimRelatorio");
-            if (inputInicio) inputInicio.value = dataStr;
-            if (inputFim) inputFim.value = dataStr;
-
-            document.querySelectorAll("#relatorios .btn-filtro").forEach(btn => btn.classList.remove("active"));
-            document.getElementById("btnRelHoje")?.classList.add("active");
-        }
-
-        if (href === "#historico") atualizarHistorico();
-
-        sidebarMenu.classList.remove("active");
-        sidebarOverlay?.classList.remove("active");
+        exibirSecao(item.getAttribute("href"));
     });
 });
 
+sidebarMenu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+        if (link.id === "logoutBtnSide") return;
+
+        e.preventDefault();
+        exibirSecao(link.getAttribute("href"));
+    });
+});
 
 // =============================
 // ESTADO LOCAL DO REGISTRO
