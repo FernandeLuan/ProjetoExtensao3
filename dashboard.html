@@ -12,6 +12,11 @@
 </head>
 <body>
 
+<div id="connectionStatus" class="connection-status" role="status" aria-live="polite" hidden>
+    <i class="fas fa-wifi" aria-hidden="true"></i>
+    <span></span>
+</div>
+
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <nav id="sidebarMenu" class="menu-sheet" aria-label="Menu do aplicativo">
@@ -32,15 +37,17 @@
             </a>
         </li>
         <li class="theme-toggle-item">
-            <div class="theme-toggle-wrapper">
-                <span class="theme-toggle-label">
-                    <i class="fas fa-moon"></i>
-                    Tema Escuro
-                </span>
-                <label class="theme-switch">
-                    <input type="checkbox" id="themeToggle" aria-label="Alternar tema escuro">
-                    <span class="theme-slider"></span>
-                </label>
+            <div class="theme-mode-wrapper">
+                <div class="theme-mode-label">
+                    <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+                    <span>Tema</span>
+                </div>
+
+                <div class="theme-mode-options" role="group" aria-label="Escolher tema">
+                    <button type="button" class="theme-mode-btn" data-theme-mode="system">Sistema</button>
+                    <button type="button" class="theme-mode-btn" data-theme-mode="light">Claro</button>
+                    <button type="button" class="theme-mode-btn" data-theme-mode="dark">Escuro</button>
+                </div>
             </div>
         </li>
         <li class="menu-divider" aria-hidden="true"></li>
@@ -58,6 +65,16 @@
     <!-- Registrar -->
     <section id="registrar" class="registrar">
         <h2 class="titulo-sessao">Registrar Atendimento</h2>
+
+        <button
+            type="button"
+            id="btnRepetirUltimo"
+            class="btn-repetir-ultimo"
+            hidden
+        >
+            <i class="fas fa-rotate-left" aria-hidden="true"></i>
+            <span>Repetir último atendimento</span>
+        </button>
 
         <form id="atendimentoForm">
             <div class="input-group grupo-servicos-container">
@@ -89,10 +106,10 @@
             <div class="input-group pagamento-group">
                 <label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
                 <div class="grupo-chips-pagamento">
-                    <button type="button" class="chip-pagamento" data-valor="Crédito">Crédito</button>
-                    <button type="button" class="chip-pagamento" data-valor="Débito">Débito</button>
-                    <button type="button" class="chip-pagamento" data-valor="Pix">Pix</button>
-                    <button type="button" class="chip-pagamento" data-valor="Dinheiro">Dinheiro</button>
+                    <button type="button" class="chip-pagamento" data-valor="Crédito"><i class="fas fa-credit-card" aria-hidden="true"></i><span>Crédito</span></button>
+                    <button type="button" class="chip-pagamento" data-valor="Débito"><i class="fas fa-credit-card" aria-hidden="true"></i><span>Débito</span></button>
+                    <button type="button" class="chip-pagamento" data-valor="Pix"><i class="fas fa-qrcode" aria-hidden="true"></i><span>Pix</span></button>
+                    <button type="button" class="chip-pagamento" data-valor="Dinheiro"><i class="fas fa-money-bill-wave" aria-hidden="true"></i><span>Dinheiro</span></button>
                 </div>
                 <input type="hidden" id="pagamento" required>
             </div>
@@ -107,6 +124,24 @@
 
             <div class="input-group" id="campoValorPersonalizado">
                 <input type="tel" id="valorPersonalizado" placeholder="0,00" inputmode="numeric">
+            </div>
+
+            <div class="input-group toggle-container toggle-container-compact">
+                <label class="toggle-label" for="temObservacao">Registrar Observação</label>
+                <label class="switch">
+                    <input type="checkbox" id="temObservacao">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="input-group" id="campoObservacao">
+                <input
+                    type="text"
+                    id="observacaoAtendimento"
+                    maxlength="160"
+                    autocomplete="off"
+                    placeholder="Ex.: desconto, cortesia, cliente antigo..."
+                >
             </div>
 
             <button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
@@ -445,11 +480,20 @@
         </button>
     </div>
 
-    <div class="historico-filtros" aria-label="Filtrar histórico por pagamento">
+    <div class="historico-filtros" aria-label="Filtrar histórico">
         <button type="button" class="historico-filtro-btn active" data-historico-pagamento="todos">Todos</button>
         <button type="button" class="historico-filtro-btn" data-historico-pagamento="pix">Pix</button>
         <button type="button" class="historico-filtro-btn" data-historico-pagamento="dinheiro">Dinheiro</button>
         <button type="button" class="historico-filtro-btn" data-historico-pagamento="cartao">Cartão</button>
+        <button
+            type="button"
+            class="historico-filtro-more"
+            id="btnAbrirFiltrosHistorico"
+            aria-label="Abrir filtros avançados"
+        >
+            <i class="fas fa-sliders" aria-hidden="true"></i>
+            <span id="historicoFiltroBadge" class="historico-filtro-badge" hidden>0</span>
+        </button>
     </div>
 
     <div
@@ -459,10 +503,28 @@
 
 </section>
 
-<!-- 5. CONFIGURAÇÕES DE NEGÓCIO -->
-<section id="configuracoes" class="registrar">
-    <h2 class="titulo-sessao">Configurações de Negócio</h2>
-    <p class="conta-desc">Gerencie taxas, repasses e preços dos serviços</p>
+<!-- 5. CONFIGURAÇÕES -->
+<section id="configuracoes" class="registrar configuracoes-high-level">
+    <h2 class="titulo-sessao">Configurações</h2>
+
+    <div class="config-groups">
+        <div class="config-group">
+            <button
+                type="button"
+                class="config-group-toggle"
+                data-config-group="negocio"
+                aria-expanded="false"
+                aria-controls="configGroupNegocio"
+            >
+                <span class="config-group-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span>
+                <span class="config-group-copy">
+                    <strong>Configurações de negócio</strong>
+                    <small>Taxas, repasse e preços dos serviços</small>
+                </span>
+                <i class="fas fa-chevron-down config-group-chevron" aria-hidden="true"></i>
+            </button>
+
+            <div id="configGroupNegocio" class="config-group-content" hidden>
 
     <!-- TAXAS E REPASSE -->
     <h3 class="config-section-title"><i class="fas fa-percentage"></i> Taxas e Repasse</h3>
@@ -590,6 +652,90 @@
     <button type="button" class="btn btn-salvar-configs" id="btnSalvarConfigs" disabled>
         Salvar Alterações
     </button>
+            </div>
+        </div>
+
+        <div class="config-group">
+            <button
+                type="button"
+                class="config-group-toggle"
+                data-config-group="preferencias"
+                aria-expanded="false"
+                aria-controls="configGroupPreferencias"
+            >
+                <span class="config-group-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
+                <span class="config-group-copy">
+                    <strong>Preferências do aplicativo</strong>
+                    <small>Comportamento padrão no atendimento</small>
+                </span>
+                <i class="fas fa-chevron-down config-group-chevron" aria-hidden="true"></i>
+            </button>
+
+            <div id="configGroupPreferencias" class="config-group-content" hidden>
+                <div class="config-preference-card">
+                    <div class="config-preference-copy">
+                        <strong>Pagamento padrão</strong>
+                        <span>Pré-seleciona a forma de pagamento ao iniciar um novo atendimento.</span>
+                    </div>
+
+                    <div class="config-payment-options" id="pagamentoPadraoOptions" role="group" aria-label="Pagamento padrão">
+                        <button type="button" data-pagamento-padrao="nenhum">Nenhum</button>
+                        <button type="button" data-pagamento-padrao="Pix">Pix</button>
+                        <button type="button" data-pagamento-padrao="Dinheiro">Dinheiro</button>
+                        <button type="button" data-pagamento-padrao="Débito">Débito</button>
+                        <button type="button" data-pagamento-padrao="Crédito">Crédito</button>
+                    </div>
+
+                    <div id="pagamentoPadraoStatus" class="config-save-status" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-group">
+            <button
+                type="button"
+                class="config-group-toggle"
+                data-config-group="sobre"
+                aria-expanded="false"
+                aria-controls="configGroupSobre"
+            >
+                <span class="config-group-icon"><i class="fas fa-circle-info" aria-hidden="true"></i></span>
+                <span class="config-group-copy">
+                    <strong>Sobre e atualizações</strong>
+                    <small>Versão instalada e histórico de melhorias</small>
+                </span>
+                <i class="fas fa-chevron-down config-group-chevron" aria-hidden="true"></i>
+            </button>
+
+            <div id="configGroupSobre" class="config-group-content" hidden>
+                <div class="app-version-row">
+                    <div>
+                        <strong>Marlon Barber</strong>
+                        <span>Versão instalada</span>
+                    </div>
+                    <span id="appVersion" class="app-version-badge">v1.1.0</span>
+                </div>
+
+                <div class="update-history">
+                    <article class="update-history-item">
+                        <div class="update-history-head">
+                            <strong>v1.1.0</strong>
+                            <time datetime="2026-08-07">07/08/2026</time>
+                        </div>
+                        <p>Melhorias no registro rápido, observações, Histórico, filtros, tema automático e experiência mobile.</p>
+                    </article>
+
+                    <article class="update-history-item">
+                        <div class="update-history-head">
+                            <strong>v1.0.0</strong>
+                            <span>Base</span>
+                        </div>
+                        <p>Versão inicial do dashboard mobile com registro, Painel, Histórico, relatórios e configurações.</p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
     <!-- 6. MINHA CONTA -->
     <section id="conta" class="registrar">
@@ -628,13 +774,65 @@
         </div>
     </div>
 
+    <!-- Filtros avançados do Histórico -->
+    <div id="modalFiltrosHistorico" class="historico-filter-overlay" aria-hidden="true">
+        <div class="historico-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="tituloFiltrosHistorico">
+            <div class="historico-filter-header">
+                <div>
+                    <h3 id="tituloFiltrosHistorico">Filtros</h3>
+                    <p>Combine os filtros sem poluir a lista.</p>
+                </div>
+                <button type="button" id="btnFecharFiltrosHistorico" class="historico-filter-close" aria-label="Fechar filtros">
+                    <i class="fas fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="historico-filter-body">
+                <div class="historico-filter-group">
+                    <span class="historico-filter-title">Serviço</span>
+                    <div class="historico-service-filter" role="group" aria-label="Filtrar por serviço">
+                        <button type="button" data-historico-servico="todos">Todos</button>
+                        <button type="button" data-historico-servico="cabelo">Cabelo</button>
+                        <button type="button" data-historico-servico="barba">Barba</button>
+                        <button type="button" data-historico-servico="combos">Combos</button>
+                    </div>
+                </div>
+
+                <label class="historico-filter-check">
+                    <span>Somente registros editados</span>
+                    <input type="checkbox" id="filtroHistoricoEditados">
+                </label>
+
+                <label class="historico-filter-check">
+                    <span>Somente valores ajustados</span>
+                    <input type="checkbox" id="filtroHistoricoAjustados">
+                </label>
+            </div>
+
+            <div class="historico-filter-actions">
+                <button type="button" id="btnLimparFiltrosHistorico" class="historico-filter-clear">Limpar filtros</button>
+                <button type="button" id="btnAplicarFiltrosHistorico" class="historico-filter-apply">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalhes sobrepostos do atendimento -->
+    <div id="historicoDetalheOverlay" class="historico-detalhe-overlay" aria-hidden="true">
+        <article class="historico-detalhe-card" role="dialog" aria-modal="true" aria-labelledby="historicoDetalheTitulo">
+            <button type="button" id="btnFecharDetalheHistorico" class="historico-detalhe-close" aria-label="Fechar detalhes">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+            <div id="historicoDetalheConteudo"></div>
+        </article>
+    </div>
+
     <!-- Modal editar atendimento -->
     <div id="modalEditarHistorico" class="modal-confirm historico-edit-modal" aria-hidden="true">
         <div class="modal-box historico-edit-box">
             <div class="historico-edit-header">
                 <div>
                     <h3>Editar atendimento</h3>
-                    <p>Corrija o serviço, valor ou pagamento.</p>
+                    <p>Corrija serviço, valor, pagamento ou observação.</p>
                 </div>
 
                 <button
@@ -682,11 +880,22 @@
                         <option value="Crédito">Crédito</option>
                     </select>
                 </label>
+
+                <label class="historico-edit-field">
+                    <span>Observação</span>
+                    <input
+                        type="text"
+                        id="editObservacaoHistorico"
+                        maxlength="160"
+                        autocomplete="off"
+                        placeholder="Ex.: desconto, cortesia, cliente antigo..."
+                    >
+                </label>
             </div>
 
             <div class="modal-actions historico-edit-actions">
                 <button type="button" id="btnCancelarEdicaoHistorico">Cancelar</button>
-                <button type="button" id="btnSalvarEdicaoHistorico">Salvar alterações</button>
+                <button type="button" id="btnSalvarEdicaoHistorico">Salvar</button>
             </div>
         </div>
     </div>
