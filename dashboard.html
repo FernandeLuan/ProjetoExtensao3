@@ -209,89 +209,138 @@
         </button>
     </section>
 
-    <!-- 5. CONFIGURAÇÕES DE NEGÓCIO (Taxas e Preços) -->
-    <section id="configuracoes" class="registrar" style="display:none; max-width: 550px;">
-        <h2 class="titulo-sessao">Configurações de Negócio</h2>
-        
-        <form id="formConfiguracoes">
-            <h3 style="font-size: 0.9rem; color: #00f0ff; margin-bottom: 12px;"><i class="fas fa-percentage"></i> Taxas e Repasse</h3>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="input-group">
-                    <label class="label-servico">Débito (%) <br><span id="lblAtualDebito" style="font-size:0.75rem; color:#00e676;">Atual: --</span></label>
-                    <input type="text" inputmode="decimal" id="cfgTaxaDebito" placeholder="0,00">
-                </div>
-                <div class="input-group">
-                    <label class="label-servico">Crédito (%) <br><span id="lblAtualCredito" style="font-size:0.75rem; color:#00e676;">Atual: --</span></label>
-                    <input type="text" inputmode="decimal" id="cfgTaxaCredito" placeholder="0,00">
-                </div>
-            </div>
-            
-            <div class="input-group">
-                <label class="label-servico">Repasse Dono (%) <br><span id="lblAtualRepasse" style="font-size:0.75rem; color:#00e676;">Atual: --</span></label>
-                <input type="text" inputmode="numeric" id="cfgRepasseDono" placeholder="0,00">
-            </div>
+<!-- 5. CONFIGURAÇÕES DE NEGÓCIO -->
+<section id="configuracoes" class="registrar" style="display:none; max-width: 550px;">
+    <h2 class="titulo-sessao">Configurações de Negócio</h2>
+    <p class="conta-desc">Gerencie taxas, repasses e preços dos serviços</p>
 
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+    <!-- TAXAS E REPASSE -->
+    <h3 class="config-section-title"><i class="fas fa-percentage"></i> Taxas e Repasse</h3>
 
-            <h3 style="font-size: 0.9rem; color: #00f0ff; margin-bottom: 12px;"><i class="fas fa-tag"></i> Preços dos Serviços</h3>
-            
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
-                    <div>
-                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo + Barba + Sobrancelha</span>
-                        <span id="labelAtualCombo3" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="text" inputmode="decimal" id="cfgPrecoCombo3" placeholder="0,00">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
-                    <div>
-                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo + Barba</span>
-                        <span id="labelAtualCombo2" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="text" inputmode="decimal" id="cfgPrecoCombo2" placeholder="0,00">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
-                    <div>
-                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo + Sobrancelha</span>
-                        <span id="labelAtualCabSob" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="text" inputmode="decimal" id="cfgPrecoCabSob" placeholder="0,00">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
-                    <div>
-                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Cabelo</span>
-                        <span id="labelAtualCabelo" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="text" inputmode="decimal" id="cfgPrecoCabelo" placeholder="0,00">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
-                    <div>
-                        <span style="font-size: 0.82rem; color: #e0e7ff; display: block;">Barba</span>
-                        <span id="labelAtualBarba" style="font-size: 0.75rem; color: #00e676;">Atual: R$ 0,00</span>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="text" inputmode="decimal" id="cfgPrecoBarba" placeholder="0,00">
-                    </div>
+    <div class="config-list">
+        <div class="config-item" data-campo="taxaDebito" data-tipo="porcentagem">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Débito (%)</span>
+                    <span class="config-atual" id="lblAtualDebito">Atual: 1,50%</span>
                 </div>
             </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="5">
+            </div>
+        </div>
 
-            <!-- Botão com distanciamento padronizado de 25px -->
-            <button type="submit" class="btn" style="margin-top: 25px;" id="btnSalvarConfigs">Salvar Alterações</button>
-        </form>
-    </section>
+        <div class="config-item" data-campo="taxaCredito" data-tipo="porcentagem">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Crédito (%)</span>
+                    <span class="config-atual" id="lblAtualCredito">Atual: 3,51%</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="5">
+            </div>
+        </div>
+
+        <div class="config-item" data-campo="repasseDonoPct" data-tipo="porcentagem">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-user"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Repasse Dono (%)</span>
+                    <span class="config-atual" id="lblAtualRepasse">Atual: 35%</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0" class="input-config hidden" maxlength="5">
+            </div>
+        </div>
+    </div>
+
+    <!-- PREÇOS DOS SERVIÇOS -->
+    <h3 class="config-section-title" style="margin-top: 28px;"><i class="fas fa-tag"></i> Preços dos Serviços</h3>
+
+    <div class="config-list">
+        <div class="config-item" data-campo="Cabelo + Barba + Sobrancelha" data-tipo="moeda">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-cut"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Cabelo + Barba + Sobrancelha</span>
+                    <span class="config-atual" id="labelAtualCombo3">Atual: R$ 110,00</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
+            </div>
+        </div>
+
+        <div class="config-item" data-campo="Cabelo + Barba" data-tipo="moeda">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-cut"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Cabelo + Barba</span>
+                    <span class="config-atual" id="labelAtualCombo2">Atual: R$ 105,00</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
+            </div>
+        </div>
+
+        <div class="config-item" data-campo="Cabelo + Sobrancelha" data-tipo="moeda">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-cut"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Cabelo + Sobrancelha</span>
+                    <span class="config-atual" id="labelAtualCabSob">Atual: R$ 75,00</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
+            </div>
+        </div>
+
+        <div class="config-item" data-campo="Cabelo" data-tipo="moeda">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-cut"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Cabelo</span>
+                    <span class="config-atual" id="labelAtualCabelo">Atual: R$ 60,00</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
+            </div>
+        </div>
+
+        <div class="config-item" data-campo="Barba" data-tipo="moeda">
+            <div class="config-item-left">
+                <div class="config-icon"><i class="fas fa-cut"></i></div>
+                <div class="config-info">
+                    <span class="config-nome">Barba</span>
+                    <span class="config-atual" id="labelAtualBarba">Atual: R$ 50,00</span>
+                </div>
+            </div>
+            <div class="config-action">
+                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
+                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão global de salvar -->
+    <button type="button" class="btn btn-salvar-configs" id="btnSalvarConfigs" disabled>
+        Salvar Alterações
+    </button>
+</section>
     <!-- 6. MINHA CONTA (Apenas Segurança) -->
     <section id="conta" class="registrar" style="display:none;">
         <h2 class="titulo-sessao">Minha Conta</h2>

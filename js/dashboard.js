@@ -33,28 +33,24 @@ function aplicarTema(tema) {
     }
 }
 
-// Carrega preferência salva ou usa a do sistema
 function carregarTema() {
     const temaSalvo = localStorage.getItem("tema");
-
     if (temaSalvo) {
         aplicarTema(temaSalvo);
     } else {
-        // Segue o tema do celular
         const prefereEscuro = window.matchMedia("(prefers-color-scheme: dark)").matches;
         aplicarTema(prefereEscuro ? "dark" : "light");
     }
 }
 
-// Quando o usuário clica no interruptor
 themeToggle?.addEventListener("change", () => {
     const novoTema = themeToggle.checked ? "dark" : "light";
     localStorage.setItem("tema", novoTema);
     aplicarTema(novoTema);
 });
 
-// Inicia o tema assim que a página carrega
 carregarTema();
+
 // =============================
 // ESTADO GLOBAL
 // =============================
@@ -91,78 +87,21 @@ function formatarMoeda(valor) {
         maximumFractionDigits: 2
     });
 }
-// =============================
-// MÁSCARAS DE INPUT (Configurações)
-// =============================
 
-// Formata como moeda brasileira enquanto digita (ex: 110,00)
-function mascaraMoeda(input) {
-    input.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/\D/g, ""); // só números
-
-        if (value === "") {
-            e.target.value = "";
-            return;
-        }
-
-        value = (parseInt(value, 10) / 100).toFixed(2);
-        value = value.replace(".", ",");
-        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
-        e.target.value = value;
-    });
+function formatarDataISO(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
 }
 
-// Formata porcentagem (permite 1 ou 2 casas decimais)
-function mascaraPorcentagem(input) {
-    input.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/[^\d,]/g, ""); // só números e vírgula
-
-        // Impede mais de uma vírgula
-        const parts = value.split(",");
-        if (parts.length > 2) {
-            value = parts[0] + "," + parts[1];
-        }
-
-        // Limita a 2 casas decimais
-        if (parts[1] && parts[1].length > 2) {
-            value = parts[0] + "," + parts[1].slice(0, 2);
-        }
-
-        e.target.value = value;
-    });
+function converterParaNumero(valor) {
+    if (!valor || valor.trim() === "") return null;
+    const limpo = valor.toString().trim().replace(/\./g, "").replace(",", ".");
+    const numero = parseFloat(limpo);
+    return isNaN(numero) ? null : numero;
 }
 
-// Aplica as máscaras nos campos de configuração
-function aplicarMascarasConfiguracao() {
-    // Campos de preço (moeda)
-    const camposMoeda = [
-        "cfgPrecoCombo3",
-        "cfgPrecoCombo2",
-        "cfgPrecoCabSob",
-        "cfgPrecoCabelo",
-        "cfgPrecoBarba"
-    ];
-
-    camposMoeda.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) mascaraMoeda(input);
-    });
-
-    // Campos de taxa / porcentagem
-    const camposPorcentagem = [
-        "cfgTaxaDebito",
-        "cfgTaxaCredito",
-        "cfgRepasseDono"
-    ];
-
-    camposPorcentagem.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) mascaraPorcentagem(input);
-    });
-}
-
-// Chama a função quando a página carregar
-aplicarMascarasConfiguracao();
 function processarFinanceiro(valorBruto) {
     const taxaDebito = (configSistema.taxaDebito || 1.5) / 100;
     const taxaCredito = (configSistema.taxaCredito || 3.51) / 100;
@@ -170,9 +109,9 @@ function processarFinanceiro(valorBruto) {
 
     let liquidoConta = valorBruto;
 
-    if (inputPagamento.value === "Débito") {
+    if (inputPagamento?.value === "Débito") {
         liquidoConta -= valorBruto * taxaDebito;
-    } else if (inputPagamento.value === "Crédito") {
+    } else if (inputPagamento?.value === "Crédito") {
         liquidoConta -= valorBruto * taxaCredito;
     }
 
@@ -220,6 +159,51 @@ function dispararErroVisualInput(elemento) {
 }
 
 // =============================
+// MÁSCARAS DE INPUT
+// =============================
+function mascaraMoeda(input) {
+    input.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        if (value === "") {
+            e.target.value = "";
+            return;
+        }
+        value = (parseInt(value, 10) / 100).toFixed(2);
+        value = value.replace(".", ",");
+        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        e.target.value = value;
+    });
+}
+
+function mascaraPorcentagem(input) {
+    input.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/[^\d,]/g, "");
+        const parts = value.split(",");
+        if (parts.length > 2) value = parts[0] + "," + parts[1];
+        if (parts[1] && parts[1].length > 2) {
+            value = parts[0] + "," + parts[1].slice(0, 2);
+        }
+        e.target.value = value;
+    });
+}
+
+function aplicarMascarasConfiguracao() {
+    ["cfgPrecoCombo3", "cfgPrecoCombo2", "cfgPrecoCabSob", "cfgPrecoCabelo", "cfgPrecoBarba"]
+        .forEach(id => {
+            const input = document.getElementById(id);
+            if (input) mascaraMoeda(input);
+        });
+
+    ["cfgTaxaDebito", "cfgTaxaCredito", "cfgRepasseDono"]
+        .forEach(id => {
+            const input = document.getElementById(id);
+            if (input) mascaraPorcentagem(input);
+        });
+}
+
+aplicarMascarasConfiguracao();
+
+// =============================
 // AUTH & NAVEGAÇÃO
 // =============================
 onAuthStateChanged(auth, async (user) => {
@@ -236,43 +220,6 @@ document.getElementById("logoutBtnSide")?.addEventListener("click", async (e) =>
     await signOut(auth);
     window.location.href = "login.html";
 });
-
-// Partículas
-const canvas = document.getElementById("particles");
-if (canvas) {
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles = Array.from({ length: 60 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 2,
-        dx: (Math.random() - 0.5) * 0.5,
-        dy: (Math.random() - 0.5) * 0.5
-    }));
-
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((p) => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0,240,255,0.5)";
-            ctx.fill();
-            p.x += p.dx;
-            p.y += p.dy;
-            if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-            if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-        });
-        requestAnimationFrame(animate);
-    }
-    animate();
-
-    window.addEventListener("resize", () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-}
 
 // Menu lateral
 const menuToggle = document.getElementById("menuToggle");
@@ -295,6 +242,7 @@ document.getElementById("logoHome")?.addEventListener("click", () => {
     if (registrar) registrar.style.display = "block";
 });
 
+// Navegação do menu
 sidebarMenu?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", (e) => {
         if (link.id === "logoutBtnSide") return;
@@ -305,10 +253,28 @@ sidebarMenu?.querySelectorAll("a").forEach((link) => {
         const target = document.querySelector(href);
         if (target) target.style.display = "block";
 
+        // Painel Financeiro → já carrega o dia
         if (href === "#painelFinanceiro") {
+            periodoSelecionado = "hoje";
+            document.querySelectorAll("#painelFinanceiro .btn-filtro").forEach(btn => btn.classList.remove("active"));
+            document.querySelector('#painelFinanceiro .btn-filtro[data-periodo="hoje"]')?.classList.add("active");
             atualizarCards();
             if (typeof window.atualizarGrafico === "function") window.atualizarGrafico();
         }
+
+        // Relatórios → já preenche com a data de hoje
+        if (href === "#relatorios") {
+            const hoje = new Date();
+            const dataStr = formatarDataISO(hoje);
+            const inputInicio = document.getElementById("dataInicioRelatorio");
+            const inputFim = document.getElementById("dataFimRelatorio");
+            if (inputInicio) inputInicio.value = dataStr;
+            if (inputFim) inputFim.value = dataStr;
+
+            document.querySelectorAll("#relatorios .btn-filtro").forEach(btn => btn.classList.remove("active"));
+            document.getElementById("btnRelHoje")?.classList.add("active");
+        }
+
         if (href === "#historico") atualizarHistorico();
 
         sidebarMenu.classList.remove("active");
@@ -354,119 +320,195 @@ async function carregarConfiguracoes() {
 function aplicarConfiguracoesNaTela() {
     if (!configSistema.precos) {
         configSistema.precos = {
-            "Cabelo + Barba + Sobrancelha": 110, "Cabelo + Barba": 105,
-            "Cabelo + Sobrancelha": 75, "Cabelo": 60, "Barba": 50
+            "Cabelo + Barba + Sobrancelha": 110,
+            "Cabelo + Barba": 105,
+            "Cabelo + Sobrancelha": 75,
+            "Cabelo": 60,
+            "Barba": 50
         };
     }
 
-    // Exibe os valores atuais apenas nos textos verdes
-    document.getElementById("lblAtualDebito").textContent = `Atual: ${Number(configSistema.taxaDebito || 1.5).toFixed(2)}%`;
-    document.getElementById("lblAtualCredito").textContent = `Atual: ${Number(configSistema.taxaCredito || 3.51).toFixed(2)}%`;
-    document.getElementById("lblAtualRepasse").textContent = `Atual: ${Number(configSistema.repasseDonoPct || 35).toFixed(0)}%`;
-    
-    let pCombo3 = configSistema.precos["Cabelo + Barba + Sobrancelha"] || 110;
-    let pCombo2 = configSistema.precos["Cabelo + Barba"] || 105;
-    let pCabSob = configSistema.precos["Cabelo + Sobrancelha"] || 75;
-    let pCabelo = configSistema.precos["Cabelo"] || 60;
-    let pBarba = configSistema.precos["Barba"] || 50;
+    const setText = (id, texto) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = texto;
+    };
 
-    document.getElementById("labelAtualCombo3").textContent = `Atual: R$ ${formatarMoeda(pCombo3)}`;
-    document.getElementById("labelAtualCombo2").textContent = `Atual: R$ ${formatarMoeda(pCombo2)}`;
-    document.getElementById("labelAtualCabSob").textContent = `Atual: R$ ${formatarMoeda(pCabSob)}`;
-    document.getElementById("labelAtualCabelo").textContent = `Atual: R$ ${formatarMoeda(pCabelo)}`;
-    document.getElementById("labelAtualBarba").textContent = `Atual: R$ ${formatarMoeda(pBarba)}`;
+    setText("lblAtualDebito", `Atual: ${Number(configSistema.taxaDebito || 1.5).toFixed(2).replace(".", ",")}%`);
+    setText("lblAtualCredito", `Atual: ${Number(configSistema.taxaCredito || 3.51).toFixed(2).replace(".", ",")}%`);
+    setText("lblAtualRepasse", `Atual: ${Number(configSistema.repasseDonoPct || 35)}%`);
 
-    // Zera os inputs para mostrar o Placeholder limpo!
-    document.querySelectorAll("#formConfiguracoes input").forEach(input => input.value = "");
+    setText("labelAtualCombo3", `Atual: R$ ${formatarMoeda(configSistema.precos["Cabelo + Barba + Sobrancelha"] || 110)}`);
+    setText("labelAtualCombo2", `Atual: R$ ${formatarMoeda(configSistema.precos["Cabelo + Barba"] || 105)}`);
+    setText("labelAtualCabSob", `Atual: R$ ${formatarMoeda(configSistema.precos["Cabelo + Sobrancelha"] || 75)}`);
+    setText("labelAtualCabelo", `Atual: R$ ${formatarMoeda(configSistema.precos["Cabelo"] || 60)}`);
+    setText("labelAtualBarba", `Atual: R$ ${formatarMoeda(configSistema.precos["Barba"] || 50)}`);
 
-    // Atualiza a tela Registrar (sem mexer na estrutura dela, apenas injetando os valores formatados)
+    // Atualiza botões da tela Registrar
     document.querySelectorAll(".btn-servico").forEach(btn => {
-        let nome = btn.getAttribute("data-nome");
+        const nome = btn.getAttribute("data-nome");
         if (configSistema.precos[nome] !== undefined) {
-            let novoValor = configSistema.precos[nome];
+            const novoValor = configSistema.precos[nome];
             btn.setAttribute("data-valor", novoValor);
-            let spanValor = btn.querySelector(".valor-servico-btn");
-            if(spanValor) spanValor.textContent = `R$ ${formatarMoeda(novoValor)}`;
+            const spanValor = btn.querySelector(".valor-servico-btn");
+            if (spanValor) spanValor.textContent = `R$ ${formatarMoeda(novoValor)}`;
         }
     });
 }
 
 // =============================
-// SALVAR CONFIGURAÇÕES
+// CONFIGURAÇÕES - EDIÇÃO INLINE + SALVAR GLOBAL
 // =============================
-document.getElementById("formConfiguracoes")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
+const btnSalvarConfigs = document.getElementById("btnSalvarConfigs");
+let camposAlterados = {}; // guarda o que o usuário mudou
 
-    const btn = document.getElementById("btnSalvarConfigs");
-    if (!btn) return;
+function atualizarEstadoBotaoSalvar() {
+    if (!btnSalvarConfigs) return;
+    const temAlteracao = Object.keys(camposAlterados).length > 0;
+    btnSalvarConfigs.disabled = !temAlteracao;
+}
 
-    // Função que só pega o valor se o usuário digitou algo
-    const pegarValor = (id) => {
-        const input = document.getElementById(id);
-        if (!input) return null;
-        const valor = input.value.trim().replace(",", ".");
-        return valor !== "" ? parseFloat(valor) : null;
-    };
+// Máscara de porcentagem limitada (máx 11,11)
+function mascaraPorcentagemLimitada(input) {
+    input.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/[^\d]/g, ""); // só números
 
-    const novaTaxaDebito = pegarValor("cfgTaxaDebito");
-    const novaTaxaCredito = pegarValor("cfgTaxaCredito");
-    const novoRepasse = pegarValor("cfgRepasseDono");
-    const novoCombo3 = pegarValor("cfgPrecoCombo3");
-    const novoCombo2 = pegarValor("cfgPrecoCombo2");
-    const novoCabSob = pegarValor("cfgPrecoCabSob");
-    const novoCabelo = pegarValor("cfgPrecoCabelo");
-    const novoBarba = pegarValor("cfgPrecoBarba");
+        if (value === "") {
+            e.target.value = "";
+            return;
+        }
 
-    // Verifica se pelo menos um campo foi preenchido
-    const temAlgumValor = [
-        novaTaxaDebito, novaTaxaCredito, novoRepasse,
-        novoCombo3, novoCombo2, novoCabSob, novoCabelo, novoBarba
-    ].some(v => v !== null);
+        // Limita a 4 dígitos (ex: 1111 → 11,11)
+        if (value.length > 4) value = value.slice(0, 4);
 
-    if (!temAlgumValor) {
-        alert("Preencha pelo menos um campo para salvar.");
-        return;
+        const num = parseInt(value, 10);
+        let formatted;
+
+        if (value.length <= 2) {
+            formatted = value;
+        } else {
+            const inteiro = value.slice(0, value.length - 2);
+            const decimal = value.slice(-2);
+            formatted = inteiro + "," + decimal;
+        }
+
+        // Limite máximo 11,11
+        const numeroFinal = parseFloat(formatted.replace(",", "."));
+        if (numeroFinal > 11.11) {
+            e.target.value = "11,11";
+            return;
+        }
+
+        e.target.value = formatted;
+    });
+}
+
+// Máscara de moeda limitada (máx 111,11)
+function mascaraMoedaLimitada(input) {
+    input.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+
+        if (value === "") {
+            e.target.value = "";
+            return;
+        }
+
+        // Limita a 5 dígitos (11111 → 111,11)
+        if (value.length > 5) value = value.slice(0, 5);
+
+        value = (parseInt(value, 10) / 100).toFixed(2);
+        value = value.replace(".", ",");
+
+        e.target.value = value;
+    });
+}
+
+// Inicializa os itens de configuração
+document.querySelectorAll(".config-item").forEach(item => {
+    const btnAlterar = item.querySelector(".btn-alterar");
+    const input = item.querySelector(".input-config");
+    const tipo = item.getAttribute("data-tipo");
+    const campo = item.getAttribute("data-campo");
+
+    if (!btnAlterar || !input) return;
+
+    // Aplica máscara correta
+    if (tipo === "moeda") {
+        mascaraMoedaLimitada(input);
+    } else {
+        mascaraPorcentagemLimitada(input);
     }
 
-    // Atualiza apenas os campos que o usuário preencheu
-    if (novaTaxaDebito !== null) configSistema.taxaDebito = novaTaxaDebito;
-    if (novaTaxaCredito !== null) configSistema.taxaCredito = novaTaxaCredito;
-    if (novoRepasse !== null) configSistema.repasseDonoPct = novoRepasse;
+    // Clica em Alterar → esconde botão e mostra input
+    btnAlterar.addEventListener("click", () => {
+        btnAlterar.classList.add("hidden");
+        input.classList.remove("hidden");
+        input.value = "";
+        input.focus();
+    });
 
-    if (!configSistema.precos) configSistema.precos = {};
+    // Quando digita, marca como alterado
+    input.addEventListener("input", () => {
+        const valor = converterParaNumero(input.value);
+        if (valor !== null) {
+            camposAlterados[campo] = valor;
+        } else {
+            delete camposAlterados[campo];
+        }
+        atualizarEstadoBotaoSalvar();
+    });
+});
 
-    if (novoCombo3 !== null) configSistema.precos["Cabelo + Barba + Sobrancelha"] = novoCombo3;
-    if (novoCombo2 !== null) configSistema.precos["Cabelo + Barba"] = novoCombo2;
-    if (novoCabSob !== null) configSistema.precos["Cabelo + Sobrancelha"] = novoCabSob;
-    if (novoCabelo !== null) configSistema.precos["Cabelo"] = novoCabelo;
-    if (novoBarba !== null) configSistema.precos["Barba"] = novoBarba;
+// Botão Salvar Alterações (global)
+btnSalvarConfigs?.addEventListener("click", async () => {
+    if (Object.keys(camposAlterados).length === 0) return;
 
-    // Feedback visual
-    btn.textContent = "Salvando...";
-    btn.style.opacity = "0.7";
-    btn.disabled = true;
+    btnSalvarConfigs.textContent = "Salvando...";
+    btnSalvarConfigs.disabled = true;
+
+    // Aplica as alterações
+    for (const campo in camposAlterados) {
+        const valor = camposAlterados[campo];
+
+        if (campo === "taxaDebito" || campo === "taxaCredito" || campo === "repasseDonoPct") {
+            configSistema[campo] = valor;
+        } else {
+            if (!configSistema.precos) configSistema.precos = {};
+            configSistema.precos[campo] = valor;
+        }
+    }
 
     try {
         await setDoc(doc(db, "configuracoes", "geral"), configSistema);
         aplicarConfiguracoesNaTela();
 
-        btn.style.opacity = "1";
-        btn.disabled = false;
-        btn.classList.add("success");
-        btn.textContent = "Salvo ✓";
+        // Limpa estado
+        camposAlterados = {};
+        document.querySelectorAll(".config-item").forEach(item => {
+            const btn = item.querySelector(".btn-alterar");
+            const input = item.querySelector(".input-config");
+            if (btn) btn.classList.remove("hidden");
+            if (input) {
+                input.classList.add("hidden");
+                input.value = "";
+            }
+        });
+
+        // Animação de sucesso
+        btnSalvarConfigs.classList.add("success");
+        btnSalvarConfigs.textContent = "Salvo ✓";
 
         setTimeout(() => {
-            btn.classList.remove("success");
-            btn.textContent = "Salvar Alterações";
+            btnSalvarConfigs.classList.remove("success");
+            btnSalvarConfigs.textContent = "Salvar Alterações";
+            atualizarEstadoBotaoSalvar(); // volta a ficar desabilitado
         }, 2000);
 
     } catch (error) {
         console.error(error);
-        btn.style.opacity = "1";
-        btn.disabled = false;
-        btn.textContent = "Erro ao salvar";
+        btnSalvarConfigs.textContent = "Erro ao salvar";
         setTimeout(() => {
-            btn.textContent = "Salvar Alterações";
+            btnSalvarConfigs.textContent = "Salvar Alterações";
+            atualizarEstadoBotaoSalvar();
         }, 2000);
     }
 });
@@ -500,23 +542,36 @@ inputValorPersonalizado?.addEventListener("input", (e) => {
     atualizarTextoBotao();
 });
 
+// Serviços — agora desmarca se clicar de novo
 document.querySelectorAll(".btn-servico").forEach((btn) => {
     btn.addEventListener("click", () => {
-        document.querySelectorAll(".btn-servico").forEach((b) => b.classList.remove("selecionado"));
-        btn.classList.add("selecionado");
+        if (btn.classList.contains("selecionado")) {
+            btn.classList.remove("selecionado");
+            servicoSelecionado = "";
+            valorTotalAutomatico = 0;
+        } else {
+            document.querySelectorAll(".btn-servico").forEach((b) => b.classList.remove("selecionado"));
+            btn.classList.add("selecionado");
+            servicoSelecionado = btn.getAttribute("data-nome");
+            valorTotalAutomatico = parseFloat(btn.getAttribute("data-valor")) || 0;
+        }
         labelServicos?.classList.remove("label-erro");
-        servicoSelecionado = btn.getAttribute("data-nome");
-        valorTotalAutomatico = parseFloat(btn.getAttribute("data-valor")) || 0;
         atualizarTextoBotao();
     });
 });
 
+// Pagamento — agora desmarca se clicar de novo
 document.querySelectorAll(".chip-pagamento").forEach((chip) => {
     chip.addEventListener("click", () => {
-        document.querySelectorAll(".chip-pagamento").forEach((c) => c.classList.remove("selecionado"));
-        chip.classList.add("selecionado");
+        if (chip.classList.contains("selecionado")) {
+            chip.classList.remove("selecionado");
+            if (inputPagamento) inputPagamento.value = "";
+        } else {
+            document.querySelectorAll(".chip-pagamento").forEach((c) => c.classList.remove("selecionado"));
+            chip.classList.add("selecionado");
+            if (inputPagamento) inputPagamento.value = chip.getAttribute("data-valor");
+        }
         labelPagamento?.classList.remove("label-erro");
-        if (inputPagamento) inputPagamento.value = chip.getAttribute("data-valor");
     });
 });
 
@@ -530,7 +585,7 @@ checkboxValorDif?.addEventListener("change", () => {
     atualizarTextoBotao();
 });
 
-// Undo inline
+// Undo
 function dispararUndoInline(idDoc) {
     ultimoIdRegistrado = idDoc;
     if (undoContainer) undoContainer.style.display = "block";
@@ -637,9 +692,7 @@ document.getElementById("atendimentoForm")?.addEventListener("submit", async (e)
         dispararUndoInline(docRef.id);
 
         document.getElementById("atendimentoForm")?.reset();
-        document.querySelectorAll(".btn-servico, .chip-pagamento").forEach((b) =>
-            b.classList.remove("selecionado")
-        );
+        document.querySelectorAll(".btn-servico, .chip-pagamento").forEach((b) => b.classList.remove("selecionado"));
         servicoSelecionado = "";
         valorTotalAutomatico = 0;
         if (inputPagamento) inputPagamento.value = "";
@@ -686,7 +739,7 @@ function atualizarHistorico() {
 
     if (listaHoje.length === 0) {
         historicoContainer.innerHTML = `
-            <div style="text-align:center; padding: 30px; color: #a0a0a0; font-size: 0.9rem;">
+            <div style="text-align:center; padding: 30px; color: var(--text-secondary); font-size: 0.9rem;">
                 Nenhum atendimento registrado hoje.
             </div>`;
         if (btnCarregarMais) btnCarregarMais.style.display = "none";
@@ -766,7 +819,10 @@ document.getElementById("btnConfirmar")?.addEventListener("click", async () => {
 // =============================
 document.querySelectorAll(".btn-filtro").forEach((btn) => {
     btn.addEventListener("click", (e) => {
-        document.querySelectorAll(".btn-filtro").forEach((b) => b.classList.remove("active"));
+        // Só afeta os filtros do painel financeiro
+        if (!e.target.closest("#painelFinanceiro")) return;
+
+        document.querySelectorAll("#painelFinanceiro .btn-filtro").forEach((b) => b.classList.remove("active"));
         e.target.classList.add("active");
         periodoSelecionado = e.target.getAttribute("data-periodo");
         atualizarCards();
@@ -811,7 +867,7 @@ function atualizarCards() {
             faturamentoBruto += bruto;
             faturamentoLiquido += liquido;
             totalRepasse += repasse;
-            lucroBarbeiro += a.liquidoBarbeiro || liquido - repasse || 0;
+            lucroBarbeiro += a.liquidoBarbeiro || (liquido - repasse) || 0;
             totalClientes++;
 
             if (a.servico) {
@@ -823,21 +879,21 @@ function atualizarCards() {
     const cardFat = document.querySelector("#faturamentoHoje p");
     if (cardFat) {
         cardFat.innerHTML = `
-            <div style="font-size: 0.85rem; color: #a0a0a0; margin-bottom: 2px;">Seu Lucro Limpo</div>
-            <div style="font-size: 1.9rem; color: #00e676; font-weight: 700; margin-bottom: 12px; line-height: 1.1;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2px;">Seu Lucro Limpo</div>
+            <div style="font-size: 1.9rem; color: var(--success); font-weight: 700; margin-bottom: 12px; line-height: 1.1;">
                 R$ ${formatarMoeda(lucroBarbeiro)}
             </div>
-            <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 10px; font-size: 0.85rem;">
                 <div style="text-align: left;">
-                    <span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Bruto</span>
-                    <span style="color: #00f0ff; font-weight: 600;">R$ ${formatarMoeda(faturamentoBruto)}</span>
+                    <span style="color: var(--text-secondary); display: block; font-size: 0.7rem;">Bruto</span>
+                    <span style="color: var(--primary); font-weight: 600;">R$ ${formatarMoeda(faturamentoBruto)}</span>
                 </div>
                 <div style="text-align: right;">
-                    <span style="color: #a0a0a0; display: block; font-size: 0.7rem;">Repasse (${configSistema.repasseDonoPct || 35}%)</span>
-                    <span style="color: #ffcc00; font-weight: 600;">R$ ${formatarMoeda(totalRepasse)}</span>
+                    <span style="color: var(--text-secondary); display: block; font-size: 0.7rem;">Repasse (${configSistema.repasseDonoPct || 35}%)</span>
+                    <span style="color: var(--warning); font-weight: 600;">R$ ${formatarMoeda(totalRepasse)}</span>
                 </div>
             </div>
-            <div style="font-size: 0.7rem; color: white; margin-top: 10px; font-weight: 300;">
+            <div style="font-size: 0.7rem; color: var(--text); margin-top: 10px; font-weight: 300;">
                 Líquido na Conta: R$ ${formatarMoeda(faturamentoLiquido)}
             </div>
         `;
@@ -846,7 +902,7 @@ function atualizarCards() {
     const ticketMedio = totalClientes > 0 ? faturamentoBruto / totalClientes : 0;
     const cardTicket = document.querySelector("#ticketMedio p");
     if (cardTicket) {
-        cardTicket.innerHTML = `<span style="font-size: 1.1rem; font-weight: 400; color: #e0e7ff;">R$ ${formatarMoeda(ticketMedio)}</span>`;
+        cardTicket.innerHTML = `<span style="font-size: 1.1rem; font-weight: 500; color: var(--text);">R$ ${formatarMoeda(ticketMedio)}</span>`;
     }
 
     let maisVendido = "—";
@@ -857,12 +913,12 @@ function atualizarCards() {
     }
     const cardMaisVendido = document.querySelector("#servicoMaisVendido p");
     if (cardMaisVendido) {
-        cardMaisVendido.innerHTML = `<span style="font-size: 1.1rem; font-weight: 400; color: #e0e7ff;">${maisVendido}</span>`;
+        cardMaisVendido.innerHTML = `<span style="font-size: 1.1rem; font-weight: 500; color: var(--text);">${maisVendido}</span>`;
     }
 
     const cardCli = document.querySelector("#clientesAtendidos p");
     if (cardCli) {
-        cardCli.innerHTML = `<span style="font-size: 1.1rem; font-weight: 400; color: #e0e7ff;">${totalClientes}</span>`;
+        cardCli.innerHTML = `<span style="font-size: 1.1rem; font-weight: 500; color: var(--text);">${totalClientes}</span>`;
     }
 }
 
@@ -899,16 +955,14 @@ window.atualizarGrafico = function () {
         type: "bar",
         data: {
             labels,
-            datasets: [
-                {
-                    label: "Faturamento Bruto",
-                    data: dataFat,
-                    backgroundColor: "rgba(0, 240, 255, 0.4)",
-                    borderColor: "#00f0ff",
-                    borderWidth: 1,
-                    borderRadius: 4
-                }
-            ]
+            datasets: [{
+                label: "Faturamento Bruto",
+                data: dataFat,
+                backgroundColor: "rgba(37, 99, 235, 0.35)",
+                borderColor: "#3B82F6",
+                borderWidth: 1,
+                borderRadius: 4
+            }]
         },
         options: {
             responsive: true,
@@ -917,11 +971,11 @@ window.atualizarGrafico = function () {
                 y: {
                     beginAtZero: true,
                     grid: { color: "rgba(255,255,255,0.05)" },
-                    ticks: { color: "#a0a0a0" }
+                    ticks: { color: "#A0A7B5" }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { color: "#a0a0a0" }
+                    ticks: { color: "#A0A7B5" }
                 }
             },
             plugins: { legend: { display: false } }
@@ -930,53 +984,47 @@ window.atualizarGrafico = function () {
 };
 
 // =============================
-// SALVAR CONFIGURAÇÕES (único listener)
+// RELATÓRIOS - BOTÕES DE PERÍODO
 // =============================
-document.getElementById("formConfiguracoes")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById("btnSalvarConfigs");
-    if (btn) {
-        btn.textContent = "Salvando...";
-        btn.style.opacity = "0.7";
+function setDatasRelatorio(tipo) {
+    document.querySelectorAll("#relatorios .btn-filtro").forEach(btn => btn.classList.remove("active"));
+
+    if (tipo === "hoje") document.getElementById("btnRelHoje")?.classList.add("active");
+    if (tipo === "semana") document.getElementById("btnRelSemana")?.classList.add("active");
+    if (tipo === "mes") document.getElementById("btnRelMes")?.classList.add("active");
+
+    const inputInicio = document.getElementById("dataInicioRelatorio");
+    const inputFim = document.getElementById("dataFimRelatorio");
+    const hoje = new Date();
+
+    if (tipo === "hoje") {
+        const dataStr = formatarDataISO(hoje);
+        if (inputInicio) inputInicio.value = dataStr;
+        if (inputFim) inputFim.value = dataStr;
+    } else if (tipo === "semana") {
+        const diaSemana = hoje.getDay();
+        const diffInicio = hoje.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+        const inicioSemana = new Date(hoje);
+        inicioSemana.setDate(diffInicio);
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 6);
+
+        if (inputInicio) inputInicio.value = formatarDataISO(inicioSemana);
+        if (inputFim) inputFim.value = formatarDataISO(fimSemana);
+    } else if (tipo === "mes") {
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+        if (inputInicio) inputInicio.value = formatarDataISO(inicioMes);
+        if (inputFim) inputFim.value = formatarDataISO(fimMes);
     }
+}
 
-    configSistema.taxaDebito = parseFloat(document.getElementById("cfgTaxaDebito")?.value) || 1.5;
-    configSistema.taxaCredito = parseFloat(document.getElementById("cfgTaxaCredito")?.value) || 3.51;
-    configSistema.repasseDonoPct = parseFloat(document.getElementById("cfgRepasseDono")?.value) || 35;
-
-    configSistema.precos = {
-        "Cabelo + Barba + Sobrancelha": parseFloat(document.getElementById("cfgPrecoCombo3")?.value) || 110,
-        "Cabelo + Barba": parseFloat(document.getElementById("cfgPrecoCombo2")?.value) || 105,
-        "Cabelo + Sobrancelha": parseFloat(document.getElementById("cfgPrecoCabSob")?.value) || 75,
-        "Cabelo": parseFloat(document.getElementById("cfgPrecoCabelo")?.value) || 60,
-        "Barba": parseFloat(document.getElementById("cfgPrecoBarba")?.value) || 50
-    };
-
-    try {
-        await setDoc(doc(db, "configuracoes", "geral"), configSistema);
-        aplicarConfiguracoesNaTela();
-
-        if (btn) {
-            btn.style.opacity = "1";
-            btn.classList.add("success");
-            btn.textContent = "Salvo ✓";
-            setTimeout(() => {
-                btn.classList.remove("success");
-                btn.textContent = "Salvar Alterações";
-            }, 2000);
-        }
-    } catch (error) {
-        console.error(error);
-        if (btn) {
-            btn.style.opacity = "1";
-            btn.textContent = "Erro ao salvar";
-            setTimeout(() => (btn.textContent = "Salvar Alterações"), 2000);
-        }
-    }
-});
+document.getElementById("btnRelHoje")?.addEventListener("click", () => setDatasRelatorio("hoje"));
+document.getElementById("btnRelSemana")?.addEventListener("click", () => setDatasRelatorio("semana"));
+document.getElementById("btnRelMes")?.addEventListener("click", () => setDatasRelatorio("mes"));
 
 // =============================
-// TROCA DE SENHA (único listener)
+// TROCA DE SENHA
 // =============================
 document.getElementById("formAlterarSenha")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1034,145 +1082,78 @@ document.getElementById("formAlterarSenha")?.addEventListener("submit", async (e
 });
 
 // =============================
-// GERAÇÃO DO FECHAMENTO VIA WHATSAPP
+// CONFIGURAÇÕES - LÁPIS (EDITAR ITEM)
 // =============================
-document.getElementById("btnWhatsApp")?.addEventListener("click", async () => {
-    const dataInicio = document.getElementById("dataInicioRelatorio").value;
-    const dataFim = document.getElementById("dataFimRelatorio").value;
+document.querySelectorAll(".config-item").forEach(item => {
+    const btnAlterar = item.querySelector(".btn-alterar");
+    const editBox = item.querySelector(".config-edit");
+    const input = item.querySelector(".input-config");
+    const btnSalvar = item.querySelector(".btn-salvar-item");
+    const btnCancelar = item.querySelector(".btn-cancelar-item");
+    const tipo = item.getAttribute("data-tipo");
+    const campo = item.getAttribute("data-campo");
 
-    if (!dataInicio || !dataFim) {
-        alert("Por favor, selecione as datas inicial e final para gerar o fechamento.");
-        return;
+    if (!btnAlterar || !editBox || !input || !btnSalvar || !btnCancelar) return;
+
+    // Aplica máscara
+    if (tipo === "moeda") {
+        mascaraMoeda(input);
+    } else {
+        mascaraPorcentagem(input);
     }
 
-    const btn = document.getElementById("btnWhatsApp");
-    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Calculando...`;
-    btn.style.opacity = "0.7";
+    // Abrir edição
+    btnAlterar.addEventListener("click", () => {
+        // Fecha outros que estiverem abertos
+        document.querySelectorAll(".config-edit").forEach(el => el.classList.add("hidden"));
+        document.querySelectorAll(".btn-alterar").forEach(btn => btn.style.display = "flex");
 
-    try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Usuário não autenticado");
-
-        // Busca os atendimentos do usuário no Firebase
-        const q = query(collection(db, "atendimentos"), where("userId", "==", user.uid));
-        const snapshot = await getDocs(q);
-
-        let bruto = 0;
-        let descontosTaxa = 0;
-        let repasseTotal = 0;
-        let qtdCortes = 0;
-
-        // Varre os registros para fazer a matemática
-        snapshot.forEach(doc => {
-            const dados = doc.data();
-            const dataAtendimento = dados.dataHora.split('T')[0]; // Isola apenas a data (AAAA-MM-DD)
-
-            // Filtra os registros que caem dentro da janela de tempo escolhida
-            if (dataAtendimento >= dataInicio && dataAtendimento <= dataFim) {
-                const cobrado = dados.valorCobrado || 0;
-                const liquidoMaquininha = dados.valorLiquidoMaquininha || cobrado; // Se for Dinheiro/Pix, é igual ao cobrado
-                
-                bruto += cobrado;
-                descontosTaxa += (cobrado - liquidoMaquininha); // A diferença é o que a maquininha comeu
-                repasseTotal += dados.valorRepasse || 0; // O que vai para o dono da barbearia
-                qtdCortes++;
-            }
-        });
-
-        // O que realmente sobra no seu bolso
-        const liquidoBarbeiro = bruto - descontosTaxa - repasseTotal;
-
-        // Formata as datas para o padrão Brasileiro (DD/MM/AAAA) para ficar bonito no texto
-        const inicioBR = dataInicio.split('-').reverse().join('/');
-        const fimBR = dataFim.split('-').reverse().join('/');
-
-        // Monta a mensagem executiva
-        const texto = `✂️ *Fechamento Marlon Barber*\n` +
-                      `📅 *Período:* ${inicioBR} a ${fimBR}\n\n` +
-                      `💈 *Atendimentos:* ${qtdCortes}\n` +
-                      `💰 *Bruto:* R$ ${formatarMoeda(bruto)}\n` +
-                      `💳 *Taxas Cartão:* - R$ ${formatarMoeda(descontosTaxa)}\n` +
-                      `✂️ *Repasse:* - R$ ${formatarMoeda(repasseTotal)}\n\n` +
-                      `✅ *Líquido:* *R$ ${formatarMoeda(liquidoBarbeiro)}*`;
-
-        // Gera o link universal do WhatsApp
-        const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-        
-        // Abre o link em uma nova aba/janela
-        window.open(url, '_blank');
-
-        // Animação de sucesso no botão
-        btn.innerHTML = `<i class="fab fa-whatsapp"></i> Fechamento Pronto ✓`;
-        btn.style.opacity = "1";
-        btn.classList.add("success");
-        
-        setTimeout(() => {
-            btn.classList.remove("success");
-            btn.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar Fechamento`;
-        }, 2500);
-
-    } catch (error) {
-        console.error("Erro ao gerar fechamento:", error);
-        btn.innerHTML = `Erro ao gerar!`;
-        btn.style.opacity = "1";
-        setTimeout(() => {
-            btn.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar Fechamento`;
-        }, 2000);
-    }
-});
-
-// Função auxiliar para formatar a data para o padrão do calendário (AAAA-MM-DD)
-function formatarDataISO(data) {
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const dia = String(data.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
-}
-
-// Preencher datas rapidamente e dar o feedback visual
-function setDatasRelatorio(tipo) {
-    // 1. Apaga a luz (remove 'active') de todos os 3 botões
-    document.querySelectorAll('#relatorios .btn-filtro').forEach(btn => {
-        btn.classList.remove('active');
+        btnAlterar.style.display = "none";
+        editBox.classList.remove("hidden");
+        input.value = "";
+        input.focus();
     });
-    
-    // 2. Acende a luz (adiciona 'active') só no botão que foi clicado
-    if (tipo === 'hoje') document.getElementById('btnRelHoje').classList.add('active');
-    if (tipo === 'semana') document.getElementById('btnRelSemana').classList.add('active');
-    if (tipo === 'mes') document.getElementById('btnRelMes').classList.add('active');
 
-    // 3. Faz a matemática das datas
-    const inputInicio = document.getElementById('dataInicioRelatorio');
-    const inputFim = document.getElementById('dataFimRelatorio');
-    const hoje = new Date();
+    // Cancelar
+    btnCancelar.addEventListener("click", () => {
+        editBox.classList.add("hidden");
+        btnAlterar.style.display = "flex";
+        input.value = "";
+    });
 
-    if (tipo === 'hoje') {
-        const dataStr = formatarDataISO(hoje);
-        inputInicio.value = dataStr;
-        inputFim.value = dataStr;
-    } 
-    else if (tipo === 'semana') {
-        const diaSemana = hoje.getDay(); // 0 (Dom) a 6 (Sáb)
-        const diffInicio = hoje.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // Força começar na Segunda-feira
-        
-        const inicioSemana = new Date(hoje.setDate(diffInicio));
-        const fimSemana = new Date(hoje.setDate(diffInicio + 6)); // Termina no Domingo
-        
-        inputInicio.value = formatarDataISO(inicioSemana);
-        inputFim.value = formatarDataISO(fimSemana);
-    } 
-    else if (tipo === 'mes') {
-        // Primeiro dia do mês atual
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        // Último dia do mês atual
-        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-        
-        inputInicio.value = formatarDataISO(inicioMes);
-        inputFim.value = formatarDataISO(fimMes);
-    }
-}
+    // Salvar item
+    btnSalvar.addEventListener("click", async () => {
+        const valor = converterParaNumero(input.value);
+        if (valor === null || valor < 0) {
+            input.classList.add("input-erro", "shake");
+            setTimeout(() => input.classList.remove("shake"), 500);
+            setTimeout(() => input.classList.remove("input-erro"), 2000);
+            return;
+        }
 
-// 4. Cria os ouvintes de clique para cada botão
-document.getElementById("btnRelHoje")?.addEventListener("click", () => setDatasRelatorio('hoje'));
-document.getElementById("btnRelSemana")?.addEventListener("click", () => setDatasRelatorio('semana'));
-document.getElementById("btnRelMes")?.addEventListener("click", () => setDatasRelatorio('mes'));
+        if (campo === "taxaDebito" || campo === "taxaCredito" || campo === "repasseDonoPct") {
+            configSistema[campo] = valor;
+        } else {
+            if (!configSistema.precos) configSistema.precos = {};
+            configSistema.precos[campo] = valor;
+        }
+
+        btnSalvar.textContent = "Salvando...";
+        btnSalvar.disabled = true;
+
+        try {
+            await setDoc(doc(db, "configuracoes", "geral"), configSistema);
+            aplicarConfiguracoesNaTela();
+
+            editBox.classList.add("hidden");
+            btnAlterar.style.display = "flex";
+            input.value = "";
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao salvar. Tente novamente.");
+        } finally {
+            btnSalvar.textContent = "Salvar";
+            btnSalvar.disabled = false;
+        }
+    });
+});

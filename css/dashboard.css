@@ -56,6 +56,7 @@
         --overlay: rgba(0, 0, 0, 0.6);
     }
 }
+
 /* ========== RESET & BASE ========== */
 * {
     margin: 0;
@@ -183,7 +184,7 @@ canvas#particles {
 .dashboard-header {
     display: flex;
     align-items: center;
-    padding: 14px 20px;
+    padding: 10px 16px;
     background: var(--header-bg);
     border-bottom: 1px solid var(--border);
     position: sticky;
@@ -199,7 +200,7 @@ canvas#particles {
 }
 
 .logo {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary);
     cursor: pointer;
@@ -212,12 +213,12 @@ canvas#particles {
 .header-actions button {
     background: var(--primary);
     border: none;
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
     color: white;
     cursor: pointer;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -231,39 +232,39 @@ canvas#particles {
 
 /* ========== MAIN ========== */
 .dashboard-main {
-    padding: 0 16px 40px;
+    padding: 0 14px 30px;
     max-width: 500px;
     margin: 0 auto;
 }
 
 .titulo-sessao {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 700;
     text-align: center;
-    margin: 24px 0 20px;
+    margin: 12px 0 14px;
     color: var(--text);
 }
 
 /* ========== CARD PRINCIPAL (Registrar etc) ========== */
 .registrar {
     background: var(--bg-card);
-    padding: 24px 18px;
+    padding: 18px 16px;
     border-radius: 18px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     width: 100%;
-    margin: 20px auto 30px;
+    margin: 20px auto 20px;
 }
 
 /* ========== FORMULÁRIO ========== */
 .input-group {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .input-group input,
 .input-group select {
     width: 100%;
-    padding: 14px 16px;
+    padding: 13px 14px;
     border-radius: 12px;
     border: 1px solid var(--border);
     background: var(--bg);
@@ -279,38 +280,38 @@ canvas#particles {
 }
 
 .label-servico {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--text-secondary);
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-weight: 500;
 }
 
 /* ========== BOTÕES DE SERVIÇO ========== */
 .grupo-servicos-container {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .grupo-botoes-servicos {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 14px;
 }
 
 .btn-servico {
-    padding: 14px 10px;
+    padding: 12px 8px;
     background: var(--bg);
     color: var(--text);
     border: 1.5px solid var(--border);
     border-radius: 14px;
     cursor: pointer;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.87rem;
     transition: all 0.2s ease;
     text-align: center;
-    line-height: 1.35;
-    min-height: 64px;
+    line-height: 1.3;
+    min-height: 58px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -333,10 +334,10 @@ canvas#particles {
 }
 
 .valor-servico-btn {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
+    font-size: 0.88rem;
+    color: var(--success);
     margin-top: 3px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .btn-servico.selecionado .valor-servico-btn {
@@ -347,21 +348,21 @@ canvas#particles {
 .grupo-chips-pagamento {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
 }
 
 .chip-pagamento {
-    padding: 14px 8px;
+    padding: 12px 8px;
     background: var(--bg);
     color: var(--text);
     border: 1.5px solid var(--border);
     border-radius: 14px;
     cursor: pointer;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     transition: all 0.2s ease;
     text-align: center;
-    min-height: 52px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -383,12 +384,12 @@ canvas#particles {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
-    padding: 4px 0;
+    margin-bottom: 14px;
+    padding: 2px 0;
 }
 
 .toggle-label {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -396,8 +397,8 @@ canvas#particles {
 .switch {
     position: relative;
     display: inline-block;
-    width: 52px;
-    height: 30px;
+    width: 50px;
+    height: 28px;
 }
 
 .switch input {
@@ -421,8 +422,8 @@ canvas#particles {
 .slider:before {
     position: absolute;
     content: "";
-    height: 22px;
-    width: 22px;
+    height: 20px;
+    width: 20px;
     left: 3px;
     bottom: 3px;
     background-color: var(--text-secondary);
@@ -451,16 +452,15 @@ input:checked + .slider:before {
 .registrar .btn,
 .btn {
     width: 100%;
-    padding: 16px;
+    padding: 15px;
     border-radius: 14px;
     border: none;
     background: var(--primary);
     color: white;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     cursor: pointer;
     transition: 0.2s;
-    margin-top: 8px;
 }
 
 .registrar .btn:active,
@@ -504,13 +504,13 @@ input:checked + .slider:before {
     border: 1.5px solid var(--border);
     color: var(--text-secondary);
     width: 100%;
-    padding: 14px;
+    padding: 13px;
     border-radius: 14px;
-    font-size: 0.95rem;
+    font-size: 0.93rem;
     font-weight: 600;
     cursor: pointer;
     transition: 0.2s;
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
 .btn-desfazer-ghost:active {
@@ -805,21 +805,6 @@ input:checked + .slider:before {
     display: none !important;
 }
 
-/* ========== RESPONSIVO (já mobile-first) ========== */
-@media (max-width: 400px) {
-    .btn-servico {
-        font-size: 0.85rem;
-        padding: 12px 8px;
-    }
-
-    .titulo-sessao {
-        font-size: 1.15rem;
-    }
-
-    .registrar {
-        padding: 20px 14px;
-    }
-}
 /* ========== TOGGLE DE TEMA ========== */
 .theme-toggle-item {
     margin-top: 8px;
@@ -850,7 +835,6 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* Switch */
 .theme-switch {
     position: relative;
     display: inline-block;
@@ -872,7 +856,7 @@ input:checked + .slider:before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #cbd5e1; /* cor quando tema claro (barrinha escura depois) */
+    background-color: #cbd5e1;
     transition: 0.3s;
     border-radius: 30px;
 }
@@ -884,17 +868,149 @@ input:checked + .slider:before {
     width: 22px;
     left: 4px;
     bottom: 4px;
-    background-color: #1e293b; /* bolinha escura no tema claro */
+    background-color: #1e293b;
     transition: 0.3s;
     border-radius: 50%;
 }
 
-/* Quando está no modo escuro (input checked) */
 .theme-switch input:checked + .theme-slider {
-    background-color: #3b82f6; /* azul */
+    background-color: #3b82f6;
 }
 
 .theme-switch input:checked + .theme-slider:before {
     transform: translateX(22px);
-    background-color: #f1f5f9; /* bolinha clara no tema escuro */
+    background-color: #f1f5f9;
+}
+
+/* ========== RESPONSIVO ========== */
+@media (max-width: 400px) {
+    .btn-servico {
+        font-size: 0.84rem;
+        padding: 11px 6px;
+        min-height: 54px;
+    }
+
+    .titulo-sessao {
+        font-size: 1.15rem;
+        margin: 10px 0 12px;
+    }
+
+    .registrar {
+        padding: 16px 14px;
+    }
+
+    .chip-pagamento {
+        font-size: 0.88rem;
+        min-height: 46px;
+    }
+}
+/* ========== NOVA TELA DE CONFIGURAÇÕES (LÁPIS) ========== */
+/* ========== CONFIGURAÇÕES (versão final) ========== */
+.config-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.config-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.config-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.config-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.config-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.config-nome {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.config-atual {
+    font-size: 0.82rem;
+    color: var(--success);
+}
+
+.config-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 110px;
+}
+
+.btn-alterar {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.btn-alterar:active {
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.input-config {
+    width: 110px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--primary);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 0.95rem;
+    text-align: right;
+    outline: none;
+}
+
+.input-config.hidden {
+    display: none;
+}
+
+/* Botão Salvar Alterações */
+.btn-salvar-configs {
+    margin-top: 24px;
+}
+
+.btn-salvar-configs:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
 }
