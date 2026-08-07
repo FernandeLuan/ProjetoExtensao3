@@ -6,6 +6,9 @@ let graficoFaturamentoInstance = null;
 let graficoTicketInstance = null;
 let graficoAtendimentosInstance = null;
 
+const btnCalendarioPainel = document.getElementById("btnCalendarioPainel");
+const inputDataPainel = document.getElementById("inputDataPainel");
+
 // =============================
 // CÁLCULOS FINANCEIROS
 // =============================
@@ -70,10 +73,29 @@ function formatarTituloData(data) {
     return `${dia} de ${mes} de ${data.getFullYear()}`;
 }
 
+function abrirCalendario(input) {
+    if (!input) return;
+
+    try {
+        if (typeof input.showPicker === "function") {
+            input.showPicker();
+        } else {
+            input.click();
+        }
+    } catch (error) {
+        input.click();
+    }
+}
+
 function atualizarNavegadorData() {
     const label = document.getElementById("labelDataPainel");
     const btnProxima = document.getElementById("btnDataProxima");
     const hoje = inicioDoDia(new Date());
+
+    if (inputDataPainel) {
+        inputDataPainel.max = chaveData(hoje);
+        inputDataPainel.value = chaveData(dataSelecionada);
+    }
 
     if (label) {
         label.textContent = formatarTituloData(dataSelecionada);
@@ -108,6 +130,17 @@ document.getElementById("btnDataProxima")?.addEventListener("click", () => {
     const hoje = inicioDoDia(new Date());
     if (mesmoDia(dataSelecionada, hoje)) return;
     selecionarData(somarDias(dataSelecionada, 1));
+});
+
+btnCalendarioPainel?.addEventListener("click", () => {
+    abrirCalendario(inputDataPainel);
+});
+
+inputDataPainel?.addEventListener("change", () => {
+    if (!inputDataPainel.value) return;
+
+    const [ano, mes, dia] = inputDataPainel.value.split("-").map(Number);
+    selecionarData(new Date(ano, mes - 1, dia));
 });
 
 // =============================
@@ -254,16 +287,10 @@ export function atualizarCards() {
     setTexto("servicoMaisVendidoPainel", resumoAtual.servicoMaisVendido);
 
     const palavraVenda = resumoAtual.quantidadeMaisVendida === 1 ? "venda" : "vendas";
-const metaServico = document.getElementById("servicoMaisVendidoMeta");
-
-if (metaServico) {
-    metaServico.innerHTML = `
-        <span class="finance-service-sales">
-            ${resumoAtual.quantidadeMaisVendida} ${palavraVenda}
-        </span>
-        <span> • ${resumoAtual.percentualMaisVendido}% dos atendimentos</span>
-    `;
-}
+    setTexto(
+        "servicoMaisVendidoMeta",
+        `${resumoAtual.quantidadeMaisVendida} ${palavraVenda} • ${resumoAtual.percentualMaisVendido}% dos atendimentos`
+    );
 
     atualizarComparativo(resumoAtual, resumoAnterior);
 

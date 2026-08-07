@@ -133,13 +133,32 @@
             <i class="fas fa-chevron-left"></i>
         </button>
 
-        <div
-            class="painel-data-label"
-            id="labelDataPainel"
-            aria-live="polite"
-        >
-            Hoje
-        </div>
+<div class="painel-data-center">
+    <span
+        class="painel-data-label"
+        id="labelDataPainel"
+        aria-live="polite"
+    >
+        Hoje
+    </span>
+
+    <button
+        type="button"
+        class="painel-calendar-btn"
+        id="btnCalendarioPainel"
+        aria-label="Escolher uma data no calendário"
+    >
+        <i class="fas fa-calendar-days" aria-hidden="true"></i>
+    </button>
+
+    <input
+        type="date"
+        id="inputDataPainel"
+        class="painel-date-picker"
+        tabindex="-1"
+        aria-hidden="true"
+    >
+</div>
 
         <button
             type="button"
@@ -373,14 +392,71 @@
         </button>
     </section>
 <!-- HISTÓRICO -->
-<section id="historico" class="registrar">
-    <h2 class="titulo-sessao" id="tituloHistorico">Histórico de Hoje</h2>
-    
-    <div id="historicoContainer" class="lista-historico"></div>
+<section id="historico" class="registrar historico-section">
 
-    <button type="button" id="btnCarregarMais" class="btn">
-        Carregar mais antigos...
+    <!-- Navegação por data -->
+    <div
+        class="painel-data-nav historico-data-nav"
+        aria-label="Selecionar data do histórico"
+    >
+        <button
+            type="button"
+            class="painel-data-btn"
+            id="btnHistoricoAnterior"
+            aria-label="Ver dia anterior"
+        >
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+<div class="painel-data-center">
+    <span
+        class="painel-data-label"
+        id="labelDataHistorico"
+        aria-live="polite"
+    >
+        Hoje
+    </span>
+
+    <button
+        type="button"
+        class="painel-calendar-btn"
+        id="btnCalendarioHistorico"
+        aria-label="Escolher uma data no calendário"
+    >
+        <i class="fas fa-calendar-days" aria-hidden="true"></i>
     </button>
+
+    <input
+        type="date"
+        id="inputDataHistorico"
+        class="painel-date-picker"
+        tabindex="-1"
+        aria-hidden="true"
+    >
+</div>
+
+        <button
+            type="button"
+            class="painel-data-btn"
+            id="btnHistoricoProxima"
+            aria-label="Ver próximo dia"
+        >
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <div class="historico-filtros" aria-label="Filtrar histórico por pagamento">
+        <button type="button" class="historico-filtro-btn active" data-historico-pagamento="todos">Todos</button>
+        <button type="button" class="historico-filtro-btn" data-historico-pagamento="pix">Pix</button>
+        <button type="button" class="historico-filtro-btn" data-historico-pagamento="dinheiro">Dinheiro</button>
+        <button type="button" class="historico-filtro-btn" data-historico-pagamento="cartao">Cartão</button>
+    </div>
+
+    <div
+        id="historicoContainer"
+        class="lista-historico"
+    ></div>
+
 </section>
 
 <!-- 5. CONFIGURAÇÕES DE NEGÓCIO -->
@@ -551,6 +627,70 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal editar atendimento -->
+    <div id="modalEditarHistorico" class="modal-confirm historico-edit-modal" aria-hidden="true">
+        <div class="modal-box historico-edit-box">
+            <div class="historico-edit-header">
+                <div>
+                    <h3>Editar atendimento</h3>
+                    <p>Corrija o serviço, valor ou pagamento.</p>
+                </div>
+
+                <button
+                    type="button"
+                    id="btnFecharEdicaoHistorico"
+                    class="historico-edit-close"
+                    aria-label="Fechar edição"
+                >
+                    <i class="fas fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="historico-edit-fields">
+                <label class="historico-edit-field">
+                    <span>Serviço</span>
+                    <select id="editServicoHistorico">
+                        <option value="Cabelo + Barba + Sobrancelha">Cabelo + Barba + Sobrancelha</option>
+                        <option value="Cabelo + Barba">Cabelo + Barba</option>
+                        <option value="Cabelo + Sobrancelha">Cabelo + Sobrancelha</option>
+                        <option value="Cabelo">Cabelo</option>
+                        <option value="Barba">Barba</option>
+                    </select>
+                </label>
+
+                <label class="historico-edit-field">
+                    <span>Valor</span>
+                    <div class="historico-edit-money">
+                        <span>R$</span>
+                        <input
+                            type="tel"
+                            inputmode="numeric"
+                            id="editValorHistorico"
+                            autocomplete="off"
+                            placeholder="0,00"
+                        >
+                    </div>
+                </label>
+
+                <label class="historico-edit-field">
+                    <span>Pagamento</span>
+                    <select id="editPagamentoHistorico">
+                        <option value="Pix">Pix</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Débito">Débito</option>
+                        <option value="Crédito">Crédito</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="modal-actions historico-edit-actions">
+                <button type="button" id="btnCancelarEdicaoHistorico">Cancelar</button>
+                <button type="button" id="btnSalvarEdicaoHistorico">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+
 <div id="financeInfoTooltip" class="finance-info-tooltip" hidden></div>
 </main>
 
