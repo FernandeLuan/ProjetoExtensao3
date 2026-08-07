@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard | Marlon Barber</title>
 
-    <link rel="stylesheet" href="css/dashboard.css?v=2.0">
+    <link rel="stylesheet" href="css/dashboard.css?v=3.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -120,41 +120,222 @@
     </section>
 
     <!-- Painel Financeiro -->
-    <section id="painelFinanceiro" class="registrar">
-        <h2 class="titulo-sessao">Painel Financeiro</h2>
+<section id="painelFinanceiro" class="registrar painel-financeiro">
+    <h2 class="titulo-sessao">Painel</h2>
 
-<div class="filtros-periodo">
-            <button class="btn-filtro active" data-periodo="hoje">Dia</button>
-            <button class="btn-filtro" data-periodo="semana">Semana</button>
-            <button class="btn-filtro" data-periodo="mes">Mês</button>
+    <!-- Navegação por data -->
+    <div class="painel-data-nav" aria-label="Selecionar data do painel">
+        <button
+            type="button"
+            class="painel-data-btn"
+            id="btnDataAnterior"
+            aria-label="Ver dia anterior"
+        >
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div
+            class="painel-data-label"
+            id="labelDataPainel"
+            aria-live="polite"
+        >
+            Hoje
         </div>
 
-        <div class="cards">
-            <div class="card" id="faturamentoHoje">
-                <h3>Faturamento</h3>
-                <p>Carregando...</p>
+        <button
+            type="button"
+            class="painel-data-btn"
+            id="btnDataProxima"
+            aria-label="Ver próximo dia"
+        >
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+ <!-- Card principal -->
+<article class="finance-card finance-overview">
+
+    <div class="finance-overview-top">
+
+        <div>
+            <div class="finance-label-row">
+                <span class="finance-label">Lucro líquido</span>
+
+                <button
+                    type="button"
+                    class="finance-info-btn"
+                    data-info="Valor que fica para o barbeiro após descontar taxas do cartão e o repasse."
+                    aria-label="O que é lucro líquido?"
+                >
+                    <i class="fas fa-circle-info"></i>
+                </button>
             </div>
-            <div class="card" id="ticketMedio">
-                <h3>Ticket Médio</h3>
-                <p>—</p>
-            </div>
-            <div class="card" id="servicoMaisVendido">
-                <h3>Serviço Mais Vendido</h3>
-                <p>—</p>
-            </div>
-            <div class="card" id="clientesAtendidos">
-                <h3>Clientes Atendidos</h3>
-                <p>0</p>
-            </div>
+
+            <strong
+                class="finance-main-value"
+                id="lucroLiquidoPainel"
+            >
+                R$ 0,00
+            </strong>
+
+            <div
+                class="finance-comparison"
+                id="comparativoLucro"
+                hidden
+            ></div>
         </div>
 
-        <div class="card card-chart">
-            <h3>Faturamento Últimos 7 Dias (Bruto)</h3>
-            <div class="chart-wrapper">
-                <canvas id="graficoFaturamento"></canvas>
-            </div>
+        <div
+            class="finance-main-icon"
+            aria-hidden="true"
+        >
+            <i class="fas fa-wallet"></i>
         </div>
-    </section>
+
+    </div>
+
+    <!-- Faturamento + Repasse -->
+    <div class="finance-summary-row">
+
+        <div class="finance-summary-item">
+
+            <div class="finance-summary-label">
+                <span>Faturamento bruto</span>
+
+                <button
+                    type="button"
+                    class="finance-info-btn"
+                    data-info="Total recebido pelos atendimentos antes de taxas e repasses."
+                    aria-label="O que é faturamento bruto?"
+                >
+                    <i class="fas fa-circle-info"></i>
+                </button>
+            </div>
+
+            <strong id="faturamentoBrutoPainel">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+        <div class="finance-summary-item">
+
+            <span>Repasse</span>
+
+            <strong id="repassePainel">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+    </div>
+
+</article>
+
+    <!-- Ticket + Atendimentos -->
+    <div class="finance-mini-grid">
+
+        <article class="finance-card finance-mini-card">
+
+            <div class="finance-label-row">
+                <span class="finance-label">Ticket médio</span>
+
+                <button
+                    type="button"
+                    class="finance-info-btn"
+                    data-info="Valor médio faturado por atendimento no dia selecionado."
+                    aria-label="O que é ticket médio?"
+                >
+                    <i class="fas fa-circle-info"></i>
+                </button>
+            </div>
+
+            <strong
+                class="finance-mini-value"
+                id="ticketMedioPainel"
+            >
+                R$ 0,00
+            </strong>
+
+            <div class="finance-sparkline">
+                <canvas
+                    id="graficoTicketMedio"
+                    aria-label="Ticket médio dos últimos 7 dias"
+                ></canvas>
+            </div>
+
+        </article>
+
+        <article class="finance-card finance-mini-card">
+
+            <span class="finance-label">
+                Atendimentos
+            </span>
+
+            <strong
+                class="finance-mini-value"
+                id="clientesAtendidosPainel"
+            >
+                0
+            </strong>
+
+            <div class="finance-sparkline">
+                <canvas
+                    id="graficoAtendimentos"
+                    aria-label="Atendimentos dos últimos 7 dias"
+                ></canvas>
+            </div>
+
+        </article>
+
+    </div>
+
+    <!-- Serviço mais vendido -->
+    <article class="finance-card finance-service-card">
+
+        <div class="finance-service-content">
+
+            <span class="finance-label">
+                Serviço mais vendido
+            </span>
+
+            <strong
+                class="finance-service-name"
+                id="servicoMaisVendidoPainel"
+            >
+                —
+            </strong>
+
+<span class="finance-service-meta" id="servicoMaisVendidoMeta"></span>
+
+        </div>
+
+        <div
+            class="finance-service-icon"
+            aria-hidden="true"
+        >
+            <i class="fas fa-star"></i>
+        </div>
+
+    </article>
+
+    <!-- Gráfico principal -->
+    <article class="finance-card finance-chart-card">
+
+        <h3>
+            Faturamento dos últimos 7 dias
+        </h3>
+
+        <div class="finance-chart-wrapper">
+            <canvas
+                id="graficoFaturamento"
+                aria-label="Faturamento bruto dos últimos 7 dias"
+            ></canvas>
+        </div>
+
+    </article>
+
+</section>
 
 <!-- 3. RELATÓRIOS -->
     <section id="relatorios" class="registrar">
@@ -371,7 +552,7 @@
             </div>
         </div>
     </div>
-
+<div id="financeInfoTooltip" class="finance-info-tooltip" hidden></div>
 </main>
 
 <nav class="bottom-nav" aria-label="Navegação principal">
@@ -397,6 +578,6 @@
     </button>
 </nav>
 
-<script type="module" src="js/dashboard/index.js?v=2.0"></script>
+<script type="module" src="js/dashboard/index.js?v=3.0"></script>
 </body>
 </html>

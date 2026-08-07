@@ -13,11 +13,10 @@ import {
     doc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state } from "./state.js";
 import { formatarDataISO } from "./utils.js";
 import { carregarConfiguracoes } from "./configuracoes.js";
 import { carregarAtendimentos, atualizarHistorico } from "./historico.js";
-import { atualizarCards, atualizarGrafico, processarFinanceiro } from "./financeiro.js";
+import { abrirPainelHoje, atualizarGrafico, processarFinanceiro } from "./financeiro.js";
 
 // =============================
 // CONTROLE DE TEMA
@@ -33,6 +32,12 @@ function aplicarTema(tema) {
         document.documentElement.classList.add("light");
         document.documentElement.classList.remove("dark");
         if (themeToggle) themeToggle.checked = false;
+    }
+
+    // Redesenha os gráficos se o Painel estiver visível.
+    const painel = document.getElementById("painelFinanceiro");
+    if (painel && getComputedStyle(painel).display !== "none") {
+        requestAnimationFrame(() => atualizarGrafico());
     }
 }
 
@@ -124,15 +129,9 @@ function exibirSecao(href) {
     const targetId = href.slice(1);
     atualizarNavegacaoAtiva(targetId);
 
-    // Painel Financeiro → já carrega o dia
+    // Painel Financeiro → sempre abre na data atual.
     if (href === "#painelFinanceiro") {
-        state.periodoSelecionado = "hoje";
-        document.querySelectorAll("#painelFinanceiro .btn-filtro").forEach((btn) => {
-            btn.classList.remove("active");
-        });
-        document.querySelector('#painelFinanceiro .btn-filtro[data-periodo="hoje"]')?.classList.add("active");
-        atualizarCards();
-        atualizarGrafico();
+        abrirPainelHoje();
     }
 
     // Relatórios → já preenche com a data de hoje
