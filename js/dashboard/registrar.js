@@ -2,7 +2,6 @@ import { state, onStateChange } from "./state.js?v=4.0";
 import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=4.0";
 import { recarregarAtendimentos } from "./data/sync.js?v=4.0";
 import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=4.0";
-import { chaveData, obterDataAtendimento } from "./utils/date.js?v=4.0";
 import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput } from "./utils/money.js?v=4.0";
 import { mostrarErro } from "./services/feedback-service.js?v=4.0";
 
@@ -12,7 +11,6 @@ let valorTotalAutomatico = 0;
 let ultimoIdRegistrado = null;
 let undoInterval = null;
 let undoTimeout = null;
-let timerViradaDoDia = null;
 let feedbackTemporario = false;
 
 const atendimentoForm = document.getElementById("atendimentoForm");
@@ -33,41 +31,18 @@ function getValorCustomizado() {
     return converterParaNumero(inputValorPersonalizado?.value) || 0;
 }
 
-function obterUltimoAtendimentoDeHoje() {
-    const hoje = chaveData(new Date());
-
-    return state.atendimentos
-        .filter((atendimento) => {
-            const data = obterDataAtendimento(atendimento);
-            return data && chaveData(data) === hoje;
-        })
-        .sort((a, b) => obterDataAtendimento(b) - obterDataAtendimento(a))[0] || null;
-}
-
-function formularioDisponivelParaRepetir() {
-    return !servicoSelecionado &&
-        !checkboxValorDif?.checked &&
-        !checkboxObservacao?.checked;
-}
-
-function deveRepetirUltimo() {
-    return formularioDisponivelParaRepetir() && Boolean(obterUltimoAtendimentoDeHoje());
-}
-
 function atualizarTextoBotao() {
     if (!btnRegistrar || feedbackTemporario) return;
 
-    if (deveRepetirUltimo()) {
-        btnRegistrar.innerHTML = '<i class="fas fa-rotate-left" aria-hidden="true"></i><span>Repetir último atendimento</span>';
-        btnRegistrar.classList.add("repeat-mode");
-        return;
-    }
-
-    btnRegistrar.classList.remove("repeat-mode");
-    const valorFinal = checkboxValorDif?.checked ? getValorCustomizado() : valorTotalAutomatico;
+    const valorFinal = checkboxValorDif?.checked
+        ? getValorCustomizado()
+        : valorTotalAutomatico;
 
     if (servicoSelecionado && valorFinal > 0) {
-        btnRegistrar.textContent = `Registrar • R$ ${Number(valorFinal).toFixed(2).replace(".", ",")}`;
+        btnRegistrar.textContent =
+            `Registrar • R$ ${Number(valorFinal)
+                .toFixed(2)
+                .replace(".", ",")}`;
     } else {
         btnRegistrar.textContent = "Registrar Atendimento";
     }
@@ -156,43 +131,6 @@ function aplicarPagamentoPadraoSeVazio() {
     if (pagamento !== "nenhum") selecionarPagamento(pagamento, false);
 }
 
-function preencherUltimoAtendimento() {
-    const ultimo = obterUltimoAtendimentoDeHoje();
-    if (!ultimo) {
-        atualizarTextoBotao();
-        return;
-    }
-
-    const servico = ultimo.servico || "";
-    const pagamento = ultimo.pagamento || "";
-    const valorUltimo = Number(
-        ultimo.valorBrutoTotal ?? ultimo.valorBruto ?? ultimo.valorServicoBruto ?? 0
-    );
-
-    selecionarServico(servico, false);
-    selecionarPagamento(pagamento, false);
-
-    const precoAtual = Number(state.configSistema.precos?.[servico] ?? 0);
-    const foiDiferenciado = ultimo.valorDiferenciado === true ||
-        (valorUltimo > 0 && precoAtual > 0 && Math.abs(valorUltimo - precoAtual) > 0.009);
-
-    definirValorDiferenciado(foiDiferenciado, valorUltimo);
-    // Observação nunca é repetida entre clientes.
-    definirObservacaoAtiva(false, "");
-    atualizarTextoBotao();
-}
-
-function agendarAtualizacaoNaViradaDoDia() {
-    if (timerViradaDoDia) clearTimeout(timerViradaDoDia);
-    const agora = new Date();
-    const proximaVirada = new Date(agora);
-    proximaVirada.setHours(24, 0, 1, 0);
-    timerViradaDoDia = setTimeout(() => {
-        atualizarTextoBotao();
-        agendarAtualizacaoNaViradaDoDia();
-    }, Math.max(1000, proximaVirada.getTime() - agora.getTime()));
-}
-
 function limparFormularioAposRegistro() {
     atendimentoForm?.reset();
     document.querySelectorAll(".btn-servico, .chip-pagamento").forEach((item) => item.classList.remove("selecionado"));
@@ -232,9 +170,11 @@ function dispararUndoInline(idDoc) {
 async function mostrarFeedbackBotao(texto, classe = "success", duracao = 1800) {
     if (!btnRegistrar) return;
     feedbackTemporario = true;
-    btnRegistrar.classList.remove("repeat-mode", "success");
-    if (classe) btnRegistrar.classList.add(classe);
-    btnRegistrar.textContent = texto;
+btnRegistrar.classList.remove("success", "undo-feedback");
+
+if (classe) {
+    btnRegistrar.classList.add(classe);
+}    btnRegistrar.textContent = texto;
     await new Promise((resolve) => setTimeout(resolve, duracao));
     if (classe) btnRegistrar.classList.remove(classe);
     feedbackTemporario = false;
@@ -328,14 +268,11 @@ export function initRegistrar() {
         if (checkboxObservacao.checked) setTimeout(() => inputObservacao?.focus(), 0);
     });
 
-    atendimentoForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (deveRepetirUltimo()) {
-            preencherUltimoAtendimento();
-            return;
-        }
-        await registrarAtendimentoAtual();
-    });
+
+atendimentoForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await registrarAtendimentoAtual();
+});
 
     btnUndoInline?.addEventListener("click", async () => {
         if (!ultimoIdRegistrado) return;
@@ -356,7 +293,6 @@ export function initRegistrar() {
         }
     });
 
-    onStateChange("atendimentos", atualizarTextoBotao);
     onStateChange("configSistema", () => {
         if (servicoSelecionado) {
             valorTotalAutomatico = Number(state.configSistema.precos?.[servicoSelecionado] ?? valorTotalAutomatico);
@@ -368,6 +304,5 @@ export function initRegistrar() {
     definirValorDiferenciado(false, 0);
     definirObservacaoAtiva(false, "");
     aplicarPagamentoPadraoSeVazio();
-    agendarAtualizacaoNaViradaDoDia();
     atualizarTextoBotao();
 }

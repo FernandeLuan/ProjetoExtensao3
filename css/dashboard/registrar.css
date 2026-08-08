@@ -121,7 +121,7 @@
 }
 
 #registrar .label-servico {
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 
 #registrar .grupo-botoes-servicos {
@@ -184,25 +184,7 @@
     font-size: 0.84rem;
 }
 
-.btn-repetir-ultimo {
-    width: 100%;
-    min-height: 34px;
-
-#registrar .btn.repeat-mode {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(37, 99, 235, 0.10);
-    color: var(--primary);
-    border: 1px solid rgba(37, 99, 235, 0.22);
-}
-
-#registrar .btn.repeat-mode:active {
-    background: rgba(37, 99, 235, 0.16);
-}
-
-#registrar .btn.undo-feedback {
-    background: var(--danger);
-    color: #fff;
+/* Botão principal de registrar */
+#registrar #btnRegistrar {
+    margin-top: 8px;
 }
