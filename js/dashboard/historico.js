@@ -1,11 +1,13 @@
-import { state, onStateChange } from "./state.js?v=4.0";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=4.0";
-import { recarregarAtendimentos } from "./data/sync.js?v=4.0";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=4.0";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=4.0";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=4.0";
-import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=4.0";
-import { mostrarErro } from "./services/feedback-service.js?v=4.0";
+import { state, onStateChange } from "./state.js?v=6.1";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=6.1";
+import { recarregarAtendimentosDoDia, invalidarCacheAtendimentos } from "./data/sync.js?v=6.1";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=6.1";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=6.1";
+import { usuarioEhAdmin } from "./permissoes.js?v=6.1";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=6.1";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=6.1";
+import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=6.1";
+import { mostrarErro } from "./services/feedback-service.js?v=6.1";
 
 // =============================
 // ELEMENTOS
@@ -78,9 +80,9 @@ function obterBruto(atendimento) {
 function atendimentoTemValorAjustado(atendimento, bruto = obterBruto(atendimento)) {
     if (atendimento.valorDiferenciado === true) return true;
     if (atendimento.valorDiferenciado === false) return false;
-    const precoPadrao = Number(state.configSistema.precos?.[atendimento.servico]);
-    return Number.isFinite(precoPadrao) && precoPadrao > 0
-        ? Math.abs(Number(bruto) - precoPadrao) > 0.009
+    const precoEsperado = Number(atendimento.precoProfissional ?? atendimento.precoBase ?? state.configSistema.precos?.[atendimento.servico]);
+    return Number.isFinite(precoEsperado) && precoEsperado > 0
+        ? Math.abs(Number(bruto) - precoEsperado) > 0.009
         : false;
 }
 
@@ -129,18 +131,30 @@ function atualizarNavegadorHistorico() {
     }
 }
 
-function selecionarDataHistorico(novaData) {
+async function selecionarDataHistorico(novaData) {
     const hoje = inicioDoDia(new Date());
     const normalizada = inicioDoDia(novaData);
 
     dataHistoricoSelecionada = normalizada > hoje ? hoje : normalizada;
     fecharDetalheHistorico();
+
+    try {
+        await recarregarAtendimentosDoDia(dataHistoricoSelecionada);
+    } catch (error) {
+        console.error("Erro ao carregar o dia do histórico:", error);
+        mostrarErro("Não foi possível carregar este dia.");
+    }
     atualizarHistorico();
 }
 
-export function abrirHistoricoHoje() {
+export async function abrirHistoricoHoje() {
     dataHistoricoSelecionada = inicioDoDia(new Date());
     fecharDetalheHistorico();
+    try {
+        await recarregarAtendimentosDoDia(dataHistoricoSelecionada);
+    } catch (error) {
+        console.error("Erro ao carregar o histórico de hoje:", error);
+    }
     atualizarHistorico();
 }
 
@@ -384,6 +398,7 @@ export function atualizarHistorico() {
         const editado = atendimento.editado === true;
         const observacao = String(atendimento.observacao || "").trim();
         const temDetalhes = Boolean(observacao || editado || valorAjustado || atendimento.retroativo);
+        const podeExcluir = usuarioEhAdmin();
 
         const card = document.createElement("article");
         card.className = "historico-card";
@@ -413,6 +428,13 @@ export function atualizarHistorico() {
                         <i class="fas ${dadosPagamento.icone}" aria-hidden="true"></i>
                         ${escaparHtml(pagamento)}
                     </span>
+
+                    ${usuarioEhAdmin() && atendimento.profissionalNome ? `
+                        <span class="hist-profissional">
+                            <i class="fas fa-user" aria-hidden="true"></i>
+                            ${escaparHtml(atendimento.profissionalNome)}
+                        </span>
+                    ` : ""}
 
                     ${valorAjustado ? `
                         <span class="hist-valor-ajustado">
@@ -456,6 +478,7 @@ export function atualizarHistorico() {
                         <i class="fas fa-pen" aria-hidden="true"></i>
                     </button>
 
+                    ${podeExcluir ? `
                     <button
                         type="button"
                         class="btn-delete-hist"
@@ -463,6 +486,7 @@ export function atualizarHistorico() {
                     >
                         <i class="fas fa-trash" aria-hidden="true"></i>
                     </button>
+                    ` : ""}
                 </div>
             </div>
         `;
@@ -513,6 +537,7 @@ function abrirDetalheHistorico(atendimento) {
         <div class="historico-detalhe-meta">
             <span><i class="fas fa-clock" aria-hidden="true"></i> ${hora}</span>
             <span><i class="fas fa-wallet" aria-hidden="true"></i> ${escaparHtml(pagamento)}</span>
+            ${usuarioEhAdmin() && atendimento.profissionalNome ? `<span><i class="fas fa-user" aria-hidden="true"></i> ${escaparHtml(atendimento.profissionalNome)}</span>` : ""}
             ${valorAjustado ? `<span class="hist-valor-ajustado"><i class="fas fa-tag" aria-hidden="true"></i> Valor ajustado</span>` : ""}
             ${editado ? `<span class="hist-editado"><i class="fas fa-pen" aria-hidden="true"></i> Editado</span>` : ""}
         </div>
@@ -565,24 +590,69 @@ historicoDetalheOverlay?.addEventListener("click", (event) => {
 // =============================
 // EDIÇÃO
 // =============================
-function abrirModalEdicao(atendimento, bruto) {
-    atendimentoEmEdicao = atendimento;
+function membroDoAtendimento(atendimento) {
+    const uid = atendimento?.profissionalUid;
+    if (!uid || uid === state.user?.uid) return state.membroAtual;
+    return (state.equipe || []).find((item) => (item.uid || item.id) === uid) || null;
+}
 
+function preencherSelectsEdicao(atendimento) {
     if (editServicoHistorico) {
-        editServicoHistorico.value = atendimento.servico || "Cabelo";
+        const atual = atendimento.servicoNome || atendimento.servico || "";
+        editServicoHistorico.innerHTML = "";
+
+        obterServicos({ somenteAtivos: true }).forEach((servico) => {
+            const option = document.createElement("option");
+            option.value = servico.nome;
+            option.dataset.servicoId = servico.id;
+            option.textContent = servico.nome;
+            editServicoHistorico.appendChild(option);
+        });
+
+        if (atual && ![...editServicoHistorico.options].some((option) => option.value === atual)) {
+            const option = document.createElement("option");
+            option.value = atual;
+            option.dataset.servicoId = atendimento.servicoId || "";
+            option.textContent = `${atual} (histórico)`;
+            editServicoHistorico.appendChild(option);
+        }
+        editServicoHistorico.value = atual;
     }
 
     if (editPagamentoHistorico) {
-        editPagamentoHistorico.value = atendimento.pagamento || "Dinheiro";
+        const atual = atendimento.pagamento || "Dinheiro";
+        const pagamentos = ["Pix", "Dinheiro", "Débito", "Crédito"];
+        editPagamentoHistorico.innerHTML = "";
+        pagamentos.forEach((pagamento) => {
+            if (!pagamentoEstaAtivo(pagamento) && pagamento !== atual) return;
+            const option = document.createElement("option");
+            option.value = pagamento;
+            option.textContent = pagamentoEstaAtivo(pagamento) ? pagamento : `${pagamento} (desativado)`;
+            editPagamentoHistorico.appendChild(option);
+        });
+        editPagamentoHistorico.value = atual;
     }
+}
 
-    if (editValorHistorico) {
-        editValorHistorico.value = formatarMoeda(bruto);
-    }
+function servicoSelecionadoEdicao() {
+    const option = editServicoHistorico?.selectedOptions?.[0];
+    const id = option?.dataset?.servicoId || null;
+    const servico = id ? obterServicoPorId(id) : obterServicoPorNome(editServicoHistorico?.value);
+    return servico;
+}
 
-    if (editObservacaoHistorico) {
-        editObservacaoHistorico.value = String(atendimento.observacao || "").slice(0, 160);
-    }
+function precoAtualParaEdicao(atendimento) {
+    const servico = servicoSelecionadoEdicao();
+    if (!servico) return null;
+    return resolverPrecoServico(servico, membroDoAtendimento(atendimento));
+}
+
+function abrirModalEdicao(atendimento, bruto) {
+    atendimentoEmEdicao = atendimento;
+    preencherSelectsEdicao(atendimento);
+
+    if (editValorHistorico) editValorHistorico.value = formatarMoeda(bruto);
+    if (editObservacaoHistorico) editObservacaoHistorico.value = String(atendimento.observacao || "").slice(0, 160);
 
     modalEditarHistorico?.classList.add("active");
     modalEditarHistorico?.setAttribute("aria-hidden", "false");
@@ -595,12 +665,10 @@ function fecharModalEdicao() {
 }
 
 editServicoHistorico?.addEventListener("change", () => {
-    const precoPadrao = Number(
-        state.configSistema.precos?.[editServicoHistorico.value]
-    );
-
-    if (editValorHistorico && Number.isFinite(precoPadrao) && precoPadrao > 0) {
-        editValorHistorico.value = formatarMoeda(precoPadrao);
+    if (!atendimentoEmEdicao) return;
+    const resolvido = precoAtualParaEdicao(atendimentoEmEdicao);
+    if (editValorHistorico && Number(resolvido?.preco) > 0) {
+        editValorHistorico.value = formatarMoeda(resolvido.preco);
     }
 });
 
@@ -616,22 +684,21 @@ btnSalvarEdicaoHistorico?.addEventListener("click", async () => {
 
     const original = atendimentoEmEdicao;
     const brutoOriginal = obterBruto(original);
-
-    const servico = editServicoHistorico?.value || original.servico;
+    const servicoNome = editServicoHistorico?.value || original.servicoNome || original.servico;
     const pagamento = editPagamentoHistorico?.value || original.pagamento;
     const valorBruto = converterParaNumero(editValorHistorico?.value) || 0;
     const observacao = String(editObservacaoHistorico?.value || "").trim().slice(0, 160);
 
-    if (!servico || !pagamento || valorBruto <= 0) {
+    if (!servicoNome || !pagamento || valorBruto <= 0) {
         alert("Revise o serviço, o valor e a forma de pagamento.");
         return;
     }
 
+    const nomeOriginal = original.servicoNome || original.servico;
     const alterouFinanceiro =
-        servico !== original.servico ||
+        servicoNome !== nomeOriginal ||
         pagamento !== original.pagamento ||
         Math.abs(valorBruto - brutoOriginal) > 0.009;
-
     const alterouObservacao = observacao !== String(original.observacao || "").trim();
 
     if (!alterouFinanceiro && !alterouObservacao) {
@@ -642,18 +709,32 @@ btnSalvarEdicaoHistorico?.addEventListener("click", async () => {
     let atualizacao = { observacao };
 
     if (alterouFinanceiro) {
-        const precoPadrao = Number(state.configSistema.precos?.[servico]);
-        const valorDiferenciado = Number.isFinite(precoPadrao) && precoPadrao > 0
-            ? Math.abs(valorBruto - precoPadrao) > 0.009
+        const servico = servicoSelecionadoEdicao();
+        const precoResolvido = servico
+            ? resolverPrecoServico(servico, membroDoAtendimento(original))
+            : {
+                preco: Number(original.precoProfissional ?? original.precoBase ?? valorBruto),
+                precoBase: Number(original.precoBase ?? valorBruto),
+                precoProfissional: original.precoProfissional ?? null,
+                origem: original.origemPreco || "padrao"
+            };
+
+        const esperado = Number(precoResolvido.preco || 0);
+        const valorDiferenciado = esperado > 0
+            ? Math.abs(valorBruto - esperado) > 0.009
             : true;
 
         atualizacao = criarAtualizacaoFinanceiraAtendimento({
-            servico,
+            servico: servicoNome,
+            servicoId: servico?.id || original.servicoId || null,
+            precoBase: precoResolvido.precoBase,
+            precoProfissional: precoResolvido.precoProfissional,
+            origemPreco: precoResolvido.origem,
             pagamento,
             valorBruto,
             observacao,
             valorDiferenciado
-        }, state.configSistema);
+        }, state.configSistema, original);
     }
 
     const textoOriginal = btnSalvarEdicaoHistorico.textContent;
@@ -662,13 +743,12 @@ btnSalvarEdicaoHistorico?.addEventListener("click", async () => {
 
     try {
         await editarAtendimento(original.id, atualizacao);
-
         fecharModalEdicao();
         historicoDetalheOverlay?.classList.remove("active");
         historicoDetalheOverlay?.setAttribute("aria-hidden", "true");
         atendimentoDetalheAtual = null;
-
-        await recarregarAtendimentos();
+        invalidarCacheAtendimentos();
+        await recarregarAtendimentosDoDia(dataHistoricoSelecionada);
     } catch (error) {
         console.error("Erro ao editar atendimento:", error);
         mostrarErro("Não foi possível salvar a alteração.");
@@ -704,7 +784,8 @@ btnConfirmar?.addEventListener("click", async () => {
 
         try {
             await excluirAtendimento(idParaExcluir);
-            await recarregarAtendimentos();
+            invalidarCacheAtendimentos();
+        await recarregarAtendimentosDoDia(dataHistoricoSelecionada);
         } catch (error) {
             console.error(error);
             mostrarErro("Não foi possível excluir o atendimento.");

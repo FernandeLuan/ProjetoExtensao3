@@ -1,18 +1,359 @@
-.conta-desc {
-    text-align: center;
-    color: var(--text-secondary);
+/* =============================
+   MINHA CONTA
+============================= */
+
+#conta {
+    padding-bottom: 18px;
+}
+
+
+/* FOTO */
+
+.conta-avatar-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 4px 0 18px;
+}
+
+.conta-avatar-button {
+    position: relative;
+
+    width: 88px;
+    height: 88px;
+
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    cursor: pointer;
+}
+
+.conta-avatar {
+    width: 88px;
+    height: 88px;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    border: 2px solid var(--border);
+
+    background: var(--bg-card);
+    color: var(--primary);
+
+    font-size: 1.9rem;
+    font-weight: 600;
+}
+
+.conta-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.conta-avatar-camera {
+    position: absolute;
+    right: -2px;
+    bottom: 1px;
+
+    width: 29px;
+    height: 29px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: var(--primary);
+    color: #fff;
+
+    border: 3px solid var(--bg-card);
+
+    font-size: 0.7rem;
+}
+
+.conta-avatar-button.carregando {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.conta-alterar-foto {
+    margin-top: 7px;
+    padding: 3px 6px;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--primary);
+
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    cursor: pointer;
+}
+
+
+/* CARDS */
+
+.conta-card {
+    margin-bottom: 10px;
+    padding: 15px;
+
+    border: 1px solid var(--border);
+    border-radius: 16px;
+
+    background: var(--bg-card);
+}
+
+.conta-card h3 {
+    margin: 0 0 13px;
+
+    color: var(--text);
+
     font-size: 0.9rem;
-    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+.conta-info-item {
+    padding: 0 0 12px;
+    margin-bottom: 12px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.conta-info-item-final {
+    margin-bottom: 0;
+    padding-bottom: 0;
+
+    border-bottom: 0;
+}
+
+.conta-info-label {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.conta-info-valor {
+    display: block;
+
+    color: var(--text);
+
+    font-size: 0.86rem;
+    font-weight: 500;
+
+    word-break: break-word;
+}
+
+.conta-email {
+    font-size: 0.8rem;
 }
 
 
-.conta-seguranca-desc {
-    margin-bottom: 25px;
-    color: #a0a0a0;
-    font-size: 0.85rem;
-    text-align: center;
+/* NOME */
+
+.conta-nome-visual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
-#btnSalvarSenha {
-    margin-top: 25px;
+.conta-editar-btn {
+    width: 30px;
+    height: 30px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: transparent;
+    color: var(--primary);
+
+    cursor: pointer;
+
+    font-size: 0.72rem;
+}
+
+.conta-editar-btn:active {
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.conta-nome-editor input {
+    width: 100%;
+    min-height: 42px;
+
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+
+    background: var(--bg);
+    color: var(--text);
+
+    font-family: inherit;
+    font-size: 0.84rem;
+}
+
+.conta-nome-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+
+    margin-top: 8px;
+}
+
+.conta-btn-secundario,
+.conta-btn-salvar {
+    min-height: 38px;
+
+    border-radius: 10px;
+
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.conta-btn-secundario {
+    border: 1px solid var(--border);
+
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.conta-btn-salvar {
+    border: 0;
+
+    background: var(--primary);
+    color: #fff;
+}
+
+
+/* SEGURANÇA */
+
+.conta-security-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.conta-security-toggle {
+    width: 100%;
+    min-height: 52px;
+
+    padding: 0 15px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--text);
+
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.conta-security-toggle span {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.conta-security-toggle span i {
+    color: var(--primary);
+}
+
+.conta-security-chevron {
+    color: var(--text-secondary);
+
+    font-size: 0.72rem;
+
+    transition: transform 0.2s ease;
+}
+
+.conta-security-toggle.aberto
+.conta-security-chevron {
+    transform: rotate(180deg);
+}
+
+.conta-security-content {
+    padding: 3px 15px 15px;
+
+    border-top: 1px solid var(--border);
+}
+
+.conta-security-content .input-group {
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
+#conta #btnSalvarSenha {
+    margin-top: 14px;
+}
+
+
+/* LOGOUT */
+
+.conta-logout-btn {
+    width: 100%;
+    min-height: 48px;
+
+    margin-top: 3px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    border: 1px solid rgba(239, 68, 68, 0.24);
+    border-radius: 14px;
+
+    background: transparent;
+
+    color: #ef4444;
+
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.conta-logout-btn:active {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+
+/* HIDDEN */
+
+.conta-nome-editor[hidden],
+.conta-nome-visual[hidden],
+.conta-security-content[hidden],
+#fotoPerfil[hidden],
+#fotoPerfilFallback[hidden] {
+    display: none;
 }

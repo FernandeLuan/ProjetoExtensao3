@@ -859,3 +859,11 @@
     transform: scale(1.02);
 }
 
+
+.hist-profissional {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: .58rem;
+}

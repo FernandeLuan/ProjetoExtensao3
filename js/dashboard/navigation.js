@@ -1,6 +1,8 @@
-import { abrirPainelHoje } from "./painel.js?v=4.0";
-import { abrirHistoricoHoje } from "./historico.js?v=4.0";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=4.0";
+import { abrirPainelHoje } from "./painel.js?v=6.1";
+import { abrirHistoricoHoje } from "./historico.js?v=6.1";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=6.1";
+import { abrirDespesasAtual } from "./despesas.js?v=6.1";
+import { podeAcessarSecao } from "./permissoes.js?v=6.1";
 
 let inicializado = false;
 
@@ -30,7 +32,11 @@ function atualizarNavegacaoAtiva(targetId) {
         if (ativo) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");
     });
-    menuToggle?.classList.toggle("active", ["configuracoes", "conta"].includes(targetId));
+
+    menuToggle?.classList.toggle(
+        "active",
+        ["configuracoes", "equipe", "despesas", "conta"].includes(targetId)
+    );
 }
 
 function animarEntradaSecao(section) {
@@ -42,6 +48,13 @@ function animarEntradaSecao(section) {
 
 export function exibirSecao(href) {
     if (!href?.startsWith("#")) return;
+    let targetId = href.slice(1);
+
+    if (!podeAcessarSecao(targetId)) {
+        href = "#registrar";
+        targetId = "registrar";
+    }
+
     const target = document.querySelector(href);
     if (!target) return;
 
@@ -50,11 +63,12 @@ export function exibirSecao(href) {
     });
     target.style.display = "block";
     animarEntradaSecao(target);
-    atualizarNavegacaoAtiva(href.slice(1));
+    atualizarNavegacaoAtiva(targetId);
 
-    if (href === "#painelFinanceiro") abrirPainelHoje();
-    if (href === "#historico") abrirHistoricoHoje();
-    if (href === "#relatorios") prepararRelatoriosHoje();
+    if (href === "#painelFinanceiro") void abrirPainelHoje();
+    if (href === "#historico") void abrirHistoricoHoje();
+    if (href === "#relatorios") void prepararRelatoriosHoje();
+    if (href === "#despesas") void abrirDespesasAtual();
 }
 
 export function initNavigation() {
@@ -65,6 +79,7 @@ export function initNavigation() {
         if (sidebarMenu?.classList.contains("active")) fecharMenu();
         else abrirMenu();
     });
+
     sidebarOverlay?.addEventListener("click", fecharMenu);
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") fecharMenu();
@@ -73,6 +88,7 @@ export function initNavigation() {
     bottomNavItems.forEach((item) => {
         item.addEventListener("click", (event) => {
             event.preventDefault();
+            fecharMenu();
             exibirSecao(`#${item.dataset.navTarget}`);
         });
     });

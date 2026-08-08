@@ -1,10 +1,14 @@
-import { criarConfigPadrao } from "./constants.js?v=4.0";
+import { normalizarConfig } from "./constants.js?v=6.1";
 
 export const state = {
     user: null,
+    perfilUsuario: null,
+    membroAtual: null,
+    barbearia: null,
     workspaceId: null,
+    equipe: [],
     atendimentos: [],
-    configSistema: criarConfigPadrao()
+    configSistema: normalizarConfig()
 };
 
 const listeners = new Map();
@@ -33,9 +37,29 @@ export function definirUsuario(user) {
     emitir("user", state.user);
 }
 
+export function definirPerfilUsuario(perfil) {
+    state.perfilUsuario = perfil || null;
+    emitir("perfilUsuario", state.perfilUsuario);
+}
+
+export function definirMembroAtual(membro) {
+    state.membroAtual = membro || null;
+    emitir("membroAtual", state.membroAtual);
+}
+
+export function definirBarbearia(barbearia) {
+    state.barbearia = barbearia || null;
+    emitir("barbearia", state.barbearia);
+}
+
 export function definirWorkspaceId(workspaceId) {
     state.workspaceId = workspaceId || null;
     emitir("workspaceId", state.workspaceId);
+}
+
+export function definirEquipe(equipe) {
+    state.equipe = Array.isArray(equipe) ? equipe : [];
+    emitir("equipe", state.equipe);
 }
 
 export function definirAtendimentos(atendimentos) {
@@ -43,15 +67,19 @@ export function definirAtendimentos(atendimentos) {
     emitir("atendimentos", state.atendimentos);
 }
 
+export function mesclarAtendimentos(atendimentos) {
+    const mapa = new Map((state.atendimentos || []).map((item) => [item.id, item]));
+    (atendimentos || []).forEach((item) => {
+        if (item?.id) mapa.set(item.id, item);
+    });
+    definirAtendimentos([...mapa.values()]);
+}
+
+export function removerAtendimentoDoEstado(id) {
+    definirAtendimentos((state.atendimentos || []).filter((item) => item.id !== id));
+}
+
 export function definirConfiguracoes(config) {
-    const base = criarConfigPadrao();
-    state.configSistema = {
-        ...base,
-        ...(config || {}),
-        precos: {
-            ...base.precos,
-            ...(config?.precos || {})
-        }
-    };
+    state.configSistema = normalizarConfig(config);
     emitir("configSistema", state.configSistema);
 }

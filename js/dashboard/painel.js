@@ -1,8 +1,9 @@
-import { state, onStateChange } from "./state.js?v=4.0";
-import { formatarMoeda } from "./utils/money.js?v=4.0";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=4.0";
-import { abrirSeletorData, setTexto } from "./utils/dom.js?v=4.0";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=4.0";
+import { state, onStateChange } from "./state.js?v=6.1";
+import { formatarMoeda } from "./utils/money.js?v=6.1";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=6.1";
+import { abrirSeletorData, setTexto } from "./utils/dom.js?v=6.1";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=6.1";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=6.1";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -36,17 +37,27 @@ function atualizarNavegadorData() {
     }
 }
 
-function selecionarData(novaData) {
+async function selecionarData(novaData) {
     const hoje = inicioDoDia(new Date());
     const normalizada = inicioDoDia(novaData);
 
     // O painel nunca permite navegar para o futuro.
     dataSelecionada = normalizada > hoje ? hoje : normalizada;
+    try {
+        await garantirAtendimentosPeriodo(somarDias(dataSelecionada, -6), dataSelecionada);
+    } catch (error) {
+        console.error("Erro ao carregar período do painel:", error);
+    }
     atualizarCards();
 }
 
-export function abrirPainelHoje() {
+export async function abrirPainelHoje() {
     dataSelecionada = inicioDoDia(new Date());
+    try {
+        await garantirAtendimentosPeriodo(somarDias(dataSelecionada, -6), dataSelecionada);
+    } catch (error) {
+        console.error("Erro ao carregar painel de hoje:", error);
+    }
     atualizarCards();
 }
 

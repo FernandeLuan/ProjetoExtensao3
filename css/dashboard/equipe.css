@@ -1,0 +1,629 @@
+/* =============================
+   EQUIPE
+============================= */
+
+.equipe-desc {
+    margin: -2px 0 14px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+
+/* RESUMO */
+
+.equipe-resumo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 34px;
+
+    margin-bottom: 15px;
+
+    border-radius: 10px;
+
+    background: var(--bg);
+
+    color: var(--text-secondary);
+
+    font-size: 0.76rem;
+    font-weight: 500;
+}
+
+
+/* GRUPOS */
+
+.equipe-grupo {
+    margin-bottom: 16px;
+}
+
+.equipe-grupo:last-child {
+    margin-bottom: 0;
+}
+
+.equipe-grupo-titulo {
+    margin: 0 0 8px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.74rem;
+    font-weight: 600;
+}
+
+
+/* LISTA */
+
+.equipe-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+
+/* CARD */
+
+.equipe-card {
+    padding: 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 15px;
+
+    background: var(--bg-card);
+
+    transition:
+        opacity 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.equipe-card.desativado {
+    opacity: 0.55;
+}
+
+
+/* TOPO */
+
+.equipe-card-topo {
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+}
+
+.equipe-avatar {
+    width: 46px;
+    height: 46px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        rgba(37, 99, 235, 0.12);
+
+    color: var(--primary);
+
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.equipe-dados {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.equipe-nome {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: 0.86rem;
+    font-weight: 600;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.equipe-email {
+    display: block;
+
+    margin-top: 2px;
+
+    overflow: hidden;
+
+    color: var(--text-secondary);
+
+    font-size: 0.7rem;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* META */
+
+.equipe-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+
+    margin-top: 12px;
+    padding-top: 11px;
+
+    border-top:
+        1px solid var(--border);
+}
+
+.equipe-meta-item {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.equipe-meta-label {
+    color: var(--text-secondary);
+
+    font-size: 0.65rem;
+}
+
+.equipe-meta-item strong {
+    color: var(--text);
+
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+
+/* STATUS */
+
+.equipe-status {
+    width: fit-content;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    font-size: 0.73rem;
+    font-weight: 600;
+}
+
+.equipe-status.ativo {
+    color: var(--success);
+}
+
+.equipe-status.inativo {
+    color: var(--text-secondary);
+}
+
+.equipe-status-dot {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+}
+
+
+/* OWNER */
+
+.equipe-owner-info {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    margin-top: 11px;
+    padding-top: 10px;
+
+    border-top:
+        1px solid var(--border);
+
+    color: var(--text-secondary);
+
+    font-size: 0.68rem;
+}
+
+.equipe-owner-info i {
+    color: var(--primary);
+
+    font-size: 0.68rem;
+}
+
+
+/* AÇÕES */
+
+.equipe-action-btn {
+    width: 100%;
+    min-height: 39px;
+
+    margin-top: 11px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    border-radius: 10px;
+
+    background: transparent;
+
+    font-family: inherit;
+    font-size: 0.73rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.equipe-action-btn.desativar {
+    border:
+        1px solid
+        rgba(239, 68, 68, 0.28);
+
+    color: var(--danger);
+}
+
+.equipe-action-btn.reativar {
+    border:
+        1px solid var(--border);
+
+    color: var(--primary);
+}
+
+.equipe-action-btn:disabled {
+    opacity: 0.5;
+
+    cursor: default;
+}
+
+#equipeBlocoInativos[hidden] {
+    display: none;
+}
+/* ========== ADICIONAR BARBEIRO ========== */
+.equipe-add-btn {
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid rgba(37, 99, 235, 0.24);
+    border-radius: 12px;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.equipe-add-btn:active {
+    transform: scale(0.99);
+}
+
+.equipe-status.pendente {
+    color: var(--warning);
+}
+
+/* ========== MODAIS DA EQUIPE ========== */
+.equipe-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: var(--overlay);
+}
+
+.equipe-modal[hidden] {
+    display: none;
+}
+
+.equipe-modal-card {
+    width: 100%;
+    max-width: 360px;
+    max-height: calc(100dvh - 36px);
+    overflow-y: auto;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+}
+
+.equipe-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.equipe-modal-header h3,
+.equipe-modal-success-copy h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.equipe-modal-header p,
+.equipe-modal-success-copy p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.equipe-modal-close {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.equipe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.equipe-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.equipe-field > span {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.equipe-field input {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.82rem;
+    outline: none;
+}
+
+.equipe-field input:focus {
+    border-color: var(--primary);
+}
+
+.equipe-field small {
+    color: var(--text-secondary);
+    font-size: 0.62rem;
+    line-height: 1.4;
+}
+
+.equipe-temp-password {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+}
+
+.equipe-temp-password input {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.equipe-temp-password button {
+    min-height: 43px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-card);
+    color: var(--primary);
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.equipe-form-status {
+    padding: 9px 10px;
+    border-radius: 10px;
+    background: rgba(22, 163, 74, 0.08);
+    color: var(--success);
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+
+.equipe-form-status.error {
+    background: rgba(220, 38, 38, 0.08);
+    color: var(--danger);
+}
+
+.equipe-create-btn {
+    margin-top: 2px;
+}
+
+.equipe-success-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--success);
+    font-size: 1.05rem;
+}
+
+.equipe-modal-success-copy {
+    text-align: center;
+}
+
+.equipe-credentials {
+    margin-top: 15px;
+    padding: 3px 13px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg);
+}
+
+.equipe-credentials > div {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.equipe-credentials > div:last-child {
+    border-bottom: 0;
+}
+
+.equipe-credentials span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text-secondary);
+    font-size: 0.62rem;
+}
+
+.equipe-credentials strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.78rem;
+    word-break: break-word;
+}
+
+.equipe-password-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: 0.03em;
+}
+
+.equipe-success-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.equipe-secondary-btn,
+.equipe-primary-btn,
+.equipe-done-btn {
+    min-height: 41px;
+    border-radius: 11px;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.equipe-secondary-btn,
+.equipe-primary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.equipe-secondary-btn {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+}
+
+.equipe-primary-btn {
+    border: 0;
+    background: var(--primary);
+    color: #fff;
+}
+
+.equipe-done-btn {
+    width: 100%;
+    margin-top: 8px;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+body.modal-equipe-aberto {
+    overflow: hidden;
+}
+
+/* v2 - financeiro individual */
+.equipe-card-finance { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.equipe-card-finance > div { padding: 7px 8px; border-radius: 9px; background: var(--bg); }
+.equipe-card-finance span { display: block; color: var(--text-secondary); font-size: .55rem; }
+.equipe-card-finance strong { display: block; margin-top: 2px; color: var(--text); font-size: .66rem; }
+.equipe-config-btn { width: 100%; min-height: 36px; margin-top: 7px; border: 1px solid rgba(37,99,235,.2); border-radius: 10px; background: rgba(37,99,235,.07); color: var(--primary); font: inherit; font-size: .62rem; font-weight: 600; cursor: pointer; }
+.equipe-precos-title { display: flex; flex-direction: column; gap: 2px; margin: 12px 0 7px; }
+.equipe-precos-title strong { color: var(--text); font-size: .72rem; }
+.equipe-precos-title span { color: var(--text-secondary); font-size: .58rem; }
+.equipe-precos-lista { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow: auto; }
+.equipe-preco-item { display: grid; grid-template-columns: minmax(0,1fr) 105px; gap: 7px; align-items: center; padding: 8px; border-radius: 10px; background: var(--bg); }
+.equipe-preco-item strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: .62rem; }
+.equipe-preco-item span { display: block; color: var(--text-secondary); font-size: .53rem; }
+.equipe-preco-item input { width: 100%; min-height: 35px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text); padding: 7px; font: inherit; font-size: .62rem; text-align: right; }
+.equipe-financeiro-card { max-height: 88dvh; overflow: auto; }
+
+/* v2.0 - resumo e ações financeiras dos membros */
+.equipe-financeiro-resumo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+.equipe-financeiro-resumo > span {
+    padding: 7px 8px;
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: .55rem;
+}
+.equipe-financeiro-resumo strong {
+    display: block;
+    margin-top: 2px;
+    color: var(--text);
+    font-size: .66rem;
+}
+.equipe-card-acoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+}
+.equipe-card-acoes .equipe-action-btn { margin-top: 0; }
+.equipe-card-acoes .equipe-action-btn:only-child { grid-column: 1 / -1; }
+.equipe-action-btn.configurar {
+    border: 1px solid rgba(37, 99, 235, .22);
+    color: var(--primary);
+    background: rgba(37, 99, 235, .06);
+}
+.equipe-preco-copy { min-width: 0; }
+.equipe-preco-copy small { display: block; margin-top: 2px; color: var(--text-secondary); font-size: .52rem; }
+.equipe-preco-item.desativado { opacity: .55; }
+.equipe-preco-input { min-height: 35px; padding: 0 7px; }
+.equipe-preco-input input { min-height: 33px; }

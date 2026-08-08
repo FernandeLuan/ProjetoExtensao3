@@ -1,33 +1,62 @@
-import { obterDataAtendimento, chaveData } from "../utils/date.js?v=4.0";
+import { obterDataAtendimento, chaveData } from "../utils/date.js?v=6.1";
 
-export function processarFinanceiro(valorBruto, pagamento, config) {
+export function processarFinanceiro(valorBruto, pagamento, config, repassePctInformado = null) {
     const bruto = Number(valorBruto || 0);
-    const taxaDebito = Number(config?.taxaDebito ?? 1.5) / 100;
-    const taxaCredito = Number(config?.taxaCredito ?? 3.51) / 100;
-    const repassePct = Number(config?.repasseDonoPct ?? 35) / 100;
+    const taxaDebitoPct = Number(config?.taxaDebito ?? 1.5);
+    const taxaCreditoPct = Number(config?.taxaCredito ?? 3.51);
+    const repassePct = Number(repassePctInformado ?? config?.repasseDonoPct ?? 35);
 
-    let liquidoConta = bruto;
     let taxaAplicadaPct = 0;
+    if (pagamento === "Débito") taxaAplicadaPct = taxaDebitoPct;
+    if (pagamento === "Crédito") taxaAplicadaPct = taxaCreditoPct;
 
-    if (pagamento === "Débito") {
-        taxaAplicadaPct = Number(config?.taxaDebito ?? 1.5);
-        liquidoConta -= bruto * taxaDebito;
-    } else if (pagamento === "Crédito") {
-        taxaAplicadaPct = Number(config?.taxaCredito ?? 3.51);
-        liquidoConta -= bruto * taxaCredito;
-    }
+    const taxaCartaoValor = bruto * (taxaAplicadaPct / 100);
+    const liquidoConta = bruto - taxaCartaoValor;
 
-    const repasseDono = liquidoConta * repassePct;
+    // Regra acordada: primeiro desconta a taxa do cartão; o repasse é calculado sobre o líquido.
+    const repasseDono = liquidoConta * (repassePct / 100);
     const liquidoBarbeiro = liquidoConta - repasseDono;
 
     return {
         valorBruto: Number(bruto.toFixed(2)),
+        taxaAplicadaPct: Number(taxaAplicadaPct.toFixed(2)),
+        taxaCartaoValor: Number(taxaCartaoValor.toFixed(2)),
         liquidoConta: Number(liquidoConta.toFixed(2)),
+        repasseDonoPct: Number(repassePct.toFixed(2)),
         repasseDono: Number(repasseDono.toFixed(2)),
-        liquidoBarbeiro: Number(liquidoBarbeiro.toFixed(2)),
-        taxaAplicadaPct,
-        repasseDonoPct: Number(config?.repasseDonoPct ?? 35)
+        liquidoBarbeiro: Number(liquidoBarbeiro.toFixed(2))
     };
+}
+
+export function obterBrutoAtendimento(atendimento) {
+    return Number(
+        atendimento?.valorBrutoTotal ??
+        atendimento?.valorBruto ??
+        atendimento?.valorServicoBruto ??
+        atendimento?.financeiro?.valorBruto ??
+        0
+    );
+}
+
+export function obterTaxaCartaoValor(atendimento) {
+    const salvo = Number(atendimento?.financeiro?.taxaCartaoValor);
+    if (Number.isFinite(salvo)) return salvo;
+
+    const bruto = obterBrutoAtendimento(atendimento);
+    const liquido = Number(atendimento?.valorLiquido ?? atendimento?.financeiro?.valorLiquido ?? bruto);
+    return Math.max(0, Number((bruto - liquido).toFixed(2)));
+}
+
+export function obterRepasseAtendimento(atendimento) {
+    return Number(atendimento?.repasseDono ?? atendimento?.financeiro?.repasseDono ?? 0);
+}
+
+export function obterLiquidoBarbeiro(atendimento) {
+    const salvo = Number(atendimento?.liquidoBarbeiro ?? atendimento?.financeiro?.liquidoBarbeiro);
+    if (Number.isFinite(salvo)) return salvo;
+
+    const bruto = obterBrutoAtendimento(atendimento);
+    return bruto - obterTaxaCartaoValor(atendimento) - obterRepasseAtendimento(atendimento);
 }
 
 export function obterAtendimentosDoDia(atendimentos, data) {
@@ -43,21 +72,18 @@ export function obterResumoDoDia(atendimentos, data) {
     let faturamentoBruto = 0;
     let totalRepasse = 0;
     let lucroBarbeiro = 0;
+    let totalTaxas = 0;
     const servicos = {};
 
     lista.forEach((atendimento) => {
-        const bruto = Number(atendimento.valorBrutoTotal ?? atendimento.valorBruto ?? atendimento.valorServicoBruto ?? 0);
-        const liquidoConta = Number(atendimento.valorLiquido ?? bruto);
-        const repasse = Number(atendimento.repasseDono ?? 0);
-        const lucro = Number(atendimento.liquidoBarbeiro ?? (liquidoConta - repasse));
-
+        const bruto = obterBrutoAtendimento(atendimento);
         faturamentoBruto += bruto;
-        totalRepasse += repasse;
-        lucroBarbeiro += lucro;
+        totalRepasse += obterRepasseAtendimento(atendimento);
+        lucroBarbeiro += obterLiquidoBarbeiro(atendimento);
+        totalTaxas += obterTaxaCartaoValor(atendimento);
 
-        if (atendimento.servico) {
-            servicos[atendimento.servico] = (servicos[atendimento.servico] ?? 0) + 1;
-        }
+        const nomeServico = atendimento.servicoNome || atendimento.servico;
+        if (nomeServico) servicos[nomeServico] = (servicos[nomeServico] ?? 0) + 1;
     });
 
     const totalAtendimentos = lista.length;
@@ -76,6 +102,7 @@ export function obterResumoDoDia(atendimentos, data) {
         faturamentoBruto,
         totalRepasse,
         lucroBarbeiro,
+        totalTaxas,
         totalAtendimentos,
         ticketMedio,
         servicoMaisVendido,

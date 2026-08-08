@@ -1,0 +1,112 @@
+/* ========== PRIMEIRO ACESSO ========== */
+.primeiro-acesso-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: var(--bg);
+}
+
+.primeiro-acesso-modal[hidden] {
+    display: none;
+}
+
+.primeiro-acesso-card {
+    width: 100%;
+    max-width: 360px;
+    padding: 22px 18px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.primeiro-acesso-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+    font-size: 1.15rem;
+}
+
+.primeiro-acesso-card h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.08rem;
+}
+
+.primeiro-acesso-card > p {
+    margin: 7px auto 17px;
+    max-width: 280px;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.5;
+}
+
+#formPrimeiroAcesso {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    text-align: left;
+}
+
+.primeiro-acesso-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.primeiro-acesso-field span {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.primeiro-acesso-field input {
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.84rem;
+    outline: none;
+}
+
+.primeiro-acesso-field input:focus {
+    border-color: var(--primary);
+}
+
+.primeiro-acesso-erro {
+    padding: 9px 10px;
+    border-radius: 10px;
+    background: rgba(220, 38, 38, 0.08);
+    color: var(--danger);
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+
+.primeiro-acesso-sair {
+    margin-top: 12px;
+    padding: 7px;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+body.primeiro-acesso-bloqueado {
+    overflow: hidden;
+}

@@ -188,3 +188,4 @@
 #registrar #btnRegistrar {
     margin-top: 8px;
 }
+.btn-servico[hidden], .chip-pagamento[hidden] { display: none !important; }

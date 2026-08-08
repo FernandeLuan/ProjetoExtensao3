@@ -33,6 +33,10 @@
     padding: 7px max(8px, env(safe-area-inset-right)) max(7px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
 }
 
+.bottom-nav.barber-nav {
+    grid-template-columns: repeat(4, 1fr);
+}
+
 .bottom-nav-item {
     position: relative;
     min-width: 0;

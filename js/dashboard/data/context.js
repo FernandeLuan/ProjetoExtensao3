@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=4.0";
+import { db } from "../../firebase-init.js?v=6.1";
 import {
     doc,
     getDoc,
@@ -6,8 +6,21 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=4.0";
-import { definirUsuario, definirWorkspaceId, state } from "../state.js?v=4.0";
+import { SCHEMA_VERSION } from "../constants.js?v=6.1";
+import {
+    definirUsuario,
+    definirPerfilUsuario,
+    definirMembroAtual,
+    definirBarbearia,
+    definirWorkspaceId,
+    state
+} from "../state.js?v=6.1";
+
+function erroContexto(code, message) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
+}
 
 export async function inicializarContexto(user) {
     if (!user?.uid) throw new Error("Usuário não autenticado.");
@@ -16,18 +29,28 @@ export async function inicializarContexto(user) {
 
     const usuarioRef = doc(db, "usuarios", user.uid);
     const usuarioSnap = await getDoc(usuarioRef);
-    const perfil = usuarioSnap.exists() ? usuarioSnap.data() : null;
+    let perfil = usuarioSnap.exists() ? usuarioSnap.data() : null;
     const workspaceId = perfil?.barbeariaId || user.uid;
 
     if (!usuarioSnap.exists()) {
-        await setDoc(usuarioRef, {
+        perfil = {
             email: user.email || "",
             barbeariaId: workspaceId,
-            schemaVersion: SCHEMA_VERSION,
+            schemaVersion: SCHEMA_VERSION
+        };
+
+        await setDoc(usuarioRef, {
+            ...perfil,
             criadoEm: serverTimestamp(),
             atualizadoEm: serverTimestamp()
         });
     } else if (!perfil?.barbeariaId) {
+        perfil = {
+            ...perfil,
+            barbeariaId: workspaceId,
+            schemaVersion: SCHEMA_VERSION
+        };
+
         await setDoc(usuarioRef, {
             barbeariaId: workspaceId,
             schemaVersion: SCHEMA_VERSION,
@@ -36,7 +59,7 @@ export async function inicializarContexto(user) {
     }
 
     const barbeariaRef = doc(db, "barbearias", workspaceId);
-    const barbeariaSnap = await getDoc(barbeariaRef);
+    let barbeariaSnap = await getDoc(barbeariaRef);
 
     if (!barbeariaSnap.exists() && workspaceId === user.uid) {
         await setDoc(barbeariaRef, {
@@ -46,23 +69,46 @@ export async function inicializarContexto(user) {
             criadoEm: serverTimestamp(),
             atualizadoEm: serverTimestamp()
         });
+        barbeariaSnap = await getDoc(barbeariaRef);
     }
 
+    const barbearia = barbeariaSnap.exists() ? barbeariaSnap.data() : null;
+
     const membroRef = doc(db, "barbearias", workspaceId, "membros", user.uid);
-    const membroSnap = await getDoc(membroRef);
+    let membroSnap = await getDoc(membroRef);
 
     if (!membroSnap.exists() && workspaceId === user.uid) {
         await setDoc(membroRef, {
             uid: user.uid,
             email: user.email || "",
-            papel: "owner",
+            nome: perfil?.nome || user.displayName || "",
+            papel: "admin",
             ativo: true,
-            criadoEm: serverTimestamp()
+            repassePct: 0,
+            precosPersonalizados: {},
+            primeiroAcessoPendente: false,
+            criadoEm: serverTimestamp(),
+            atualizadoEm: serverTimestamp()
         });
+        membroSnap = await getDoc(membroRef);
     }
 
+    if (!membroSnap.exists()) {
+        throw erroContexto("SEM_ACESSO", "Sua conta não está vinculada a esta barbearia.");
+    }
+
+    const membro = membroSnap.data();
+
+    if (membro.ativo !== true) {
+        throw erroContexto("ACESSO_DESATIVADO", "Seu acesso à barbearia está desativado.");
+    }
+
+    definirPerfilUsuario(perfil);
+    definirMembroAtual(membro);
+    definirBarbearia(barbearia);
     definirWorkspaceId(workspaceId);
-    return { user, workspaceId };
+
+    return { user, workspaceId, perfil, membro, barbearia };
 }
 
 export function obterWorkspaceId() {

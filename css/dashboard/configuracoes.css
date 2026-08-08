@@ -437,3 +437,30 @@
 .update-version-details p { margin: 0; }
 .update-version-details ul { margin: 7px 0 0 17px; }
 .update-version-details li + li { margin-top: 3px; }
+
+/* v2 - serviços e pagamentos dinâmicos */
+.config-helper { margin: -2px 0 10px; color: var(--text-secondary); font-size: .61rem; line-height: 1.45; }
+.config-servicos-lista, .config-payment-list { display: flex; flex-direction: column; gap: 7px; }
+.config-service-row, .config-payment-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.config-service-row.desativado, .config-payment-row.desativado { opacity: .5; }
+.config-service-main { min-width: 0; }
+.config-service-main strong, .config-payment-row strong { display: block; color: var(--text); font-size: .7rem; }
+.config-service-main span, .config-payment-row span { display: block; margin-top: 2px; color: var(--text-secondary); font-size: .58rem; }
+.config-service-actions { display: flex; align-items: center; gap: 4px; }
+.config-service-actions button:not(.config-mini-switch) { width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--primary); cursor: pointer; }
+.config-mini-switch { min-width: 74px; min-height: 31px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text-secondary); font: inherit; font-size: .55rem; font-weight: 600; cursor: pointer; }
+.config-mini-switch.ativo { background: rgba(22,163,74,.08); border-color: rgba(22,163,74,.18); color: var(--success); }
+.config-add-service { width: 100%; min-height: 39px; margin-top: 8px; border: 1px dashed rgba(37,99,235,.3); border-radius: 11px; background: rgba(37,99,235,.06); color: var(--primary); font: inherit; font-size: .66rem; font-weight: 600; cursor: pointer; }
+.config-novo-servico { margin-top: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.config-novo-servico > input, .config-money-field { width: 100%; min-height: 40px; margin-bottom: 7px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); color: var(--text); font: inherit; font-size: .7rem; outline: none; }
+.config-money-field { display: flex; align-items: center; gap: 6px; }
+.config-money-field input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
+.config-inline-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.config-inline-actions button { min-height: 35px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text-secondary); font: inherit; font-size: .62rem; font-weight: 600; }
+.config-inline-actions button:last-child { border-color: rgba(37,99,235,.22); background: rgba(37,99,235,.08); color: var(--primary); }
+.config-service-edit { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 105px; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border); }
+.config-service-edit input { min-width: 0; min-height: 37px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text); padding: 8px; font: inherit; font-size: .64rem; }
+.config-service-edit-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 5px; }
+.config-service-edit-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-secondary); font: inherit; font-size: .58rem; }
+.config-service-edit-actions button:last-child { color: var(--primary); }
+.config-default-payment { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--border); }

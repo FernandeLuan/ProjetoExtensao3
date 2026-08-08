@@ -30,7 +30,7 @@ body, html {
     border: 1px solid var(--border);
     background: var(--bg);
     color: var(--text);
-    font-size: 1rem;
+    font-size: 0.7rem;
     outline: none;
     transition: border-color 0.2s;
 }

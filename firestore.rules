@@ -5,52 +5,164 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isMember(barbeariaId) {
+    function isActiveMember(barbeariaId) {
       return signedIn()
         && exists(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid))
         && get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.ativo == true;
     }
 
-    function isOwner(barbeariaId) {
+    function hasAdminRole(barbeariaId) {
+      return isActiveMember(barbeariaId)
+        && (
+          get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.papel == "admin"
+          || get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.papel == "owner"
+        );
+    }
+
+    function isTechnicalOwner(barbeariaId) {
       return signedIn()
         && exists(/databases/$(database)/documents/barbearias/$(barbeariaId))
         && get(/databases/$(database)/documents/barbearias/$(barbeariaId)).data.ownerUid == request.auth.uid;
     }
 
+    function isAdmin(barbeariaId) {
+      // owner é aceito apenas para compatibilidade com a base anterior.
+      return isTechnicalOwner(barbeariaId) || hasAdminRole(barbeariaId);
+    }
+
     match /usuarios/{uid} {
-      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && request.auth.uid == uid;
+
+      allow create: if signedIn() && (
+        request.auth.uid == uid
+        || (
+          request.resource.data.barbeariaId is string
+          && isAdmin(request.resource.data.barbeariaId)
+        )
+      );
+
+      allow update: if signedIn() && request.auth.uid == uid;
       allow delete: if false;
     }
 
     match /barbearias/{barbeariaId} {
-      allow read: if signedIn() && (barbeariaId == request.auth.uid || isMember(barbeariaId));
+      allow read: if signedIn() && (
+        barbeariaId == request.auth.uid
+        || isActiveMember(barbeariaId)
+        || isTechnicalOwner(barbeariaId)
+      );
+
       allow create: if signedIn()
         && barbeariaId == request.auth.uid
         && request.resource.data.ownerUid == request.auth.uid;
-      allow update: if isOwner(barbeariaId);
+
+      allow update: if isAdmin(barbeariaId);
       allow delete: if false;
 
       match /membros/{uid} {
-        allow read: if signedIn() && (uid == request.auth.uid || isOwner(barbeariaId));
-        allow create: if signedIn() && (
-          (barbeariaId == request.auth.uid && uid == request.auth.uid && request.resource.data.papel == "owner")
-          || isOwner(barbeariaId)
+        allow read: if signedIn() && (
+          uid == request.auth.uid
+          || isAdmin(barbeariaId)
         );
-        allow update, delete: if isOwner(barbeariaId);
+
+        allow create: if signedIn() && (
+          (
+            barbeariaId == request.auth.uid
+            && uid == request.auth.uid
+            && (
+              request.resource.data.papel == "admin"
+              || request.resource.data.papel == "owner"
+            )
+          )
+          || isAdmin(barbeariaId)
+        );
+
+        allow update: if isAdmin(barbeariaId) || (
+          signedIn()
+          && uid == request.auth.uid
+          && resource.data.ativo == true
+          && (
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(["nome", "atualizadoEm"])
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(["primeiroAcessoPendente", "atualizadoEm"])
+              && request.resource.data.primeiroAcessoPendente == false
+            )
+          )
+        );
+
+        allow delete: if isAdmin(barbeariaId);
       }
 
       match /atendimentos/{atendimentoId} {
-        allow read, create, update, delete: if isMember(barbeariaId);
+        allow read: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && resource.data.profissionalUid == request.auth.uid
+        );
+
+        allow create: if isActiveMember(barbeariaId) && (
+          isAdmin(barbeariaId)
+          || (
+            request.resource.data.profissionalUid == request.auth.uid
+            && request.resource.data.registradoPorUid == request.auth.uid
+          )
+        );
+
+        allow update: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && resource.data.profissionalUid == request.auth.uid
+          && request.resource.data.profissionalUid == resource.data.profissionalUid
+          && request.resource.data.registradoPorUid == resource.data.registradoPorUid
+        );
+
+        // O barbeiro pode excluir apenas o próprio registro (necessário para o "Desfazer").
+        allow delete: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && resource.data.profissionalUid == request.auth.uid
+        );
       }
 
       match /configuracoes/{configId} {
-        allow read: if isMember(barbeariaId);
-        allow create, update: if isOwner(barbeariaId);
+        allow read: if isActiveMember(barbeariaId) || isAdmin(barbeariaId);
+        allow create, update: if isAdmin(barbeariaId);
         allow delete: if false;
+      }
+
+      match /despesas/{despesaId} {
+        allow read: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && resource.data.tipo == "profissional"
+          && resource.data.profissionalUid == request.auth.uid
+        );
+
+        allow create: if isActiveMember(barbeariaId) && (
+          isAdmin(barbeariaId)
+          || (
+            request.resource.data.tipo == "profissional"
+            && request.resource.data.profissionalUid == request.auth.uid
+            && request.resource.data.registradoPorUid == request.auth.uid
+          )
+        );
+
+        allow update: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && resource.data.tipo == "profissional"
+          && resource.data.profissionalUid == request.auth.uid
+          && request.resource.data.tipo == "profissional"
+          && request.resource.data.profissionalUid == resource.data.profissionalUid
+          && request.resource.data.registradoPorUid == resource.data.registradoPorUid
+        );
+
+        allow delete: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && resource.data.tipo == "profissional"
+          && resource.data.profissionalUid == request.auth.uid
+        );
       }
     }
 
-    // Estrutura antiga: bloquear somente DEPOIS que a migração estiver conferida.
+    // Estrutura antiga permanece somente como backup bloqueado.
     match /atendimentos/{documento} {
       allow read, write: if false;
     }

@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=4.0";
+import { db } from "../../firebase-init.js?v=6.1";
 import {
     doc,
     getDoc,
@@ -6,8 +6,9 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { criarConfigPadrao, SCHEMA_VERSION } from "../constants.js?v=4.0";
-import { obterWorkspaceId } from "./context.js?v=4.0";
+import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=6.1";
+import { obterWorkspaceId } from "./context.js?v=6.1";
+import { usuarioEhAdmin } from "../permissoes.js?v=6.1";
 
 function referenciaConfiguracao() {
     return doc(db, "barbearias", obterWorkspaceId(), "configuracoes", "geral");
@@ -19,21 +20,26 @@ export async function carregarConfiguracoesDoBanco() {
 
     if (!snap.exists()) {
         const padrao = criarConfigPadrao();
-        await setDoc(ref, {
-            ...padrao,
-            schemaVersion: SCHEMA_VERSION,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
+
+        if (usuarioEhAdmin()) {
+            await setDoc(ref, {
+                ...padrao,
+                schemaVersion: SCHEMA_VERSION,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
+
         return padrao;
     }
 
-    return snap.data();
+    return normalizarConfig(snap.data());
 }
 
 export async function salvarConfiguracoes(config) {
+    const normalizada = normalizarConfig(config);
     await setDoc(referenciaConfiguracao(), {
-        ...config,
+        ...normalizada,
         schemaVersion: SCHEMA_VERSION,
         updatedAt: serverTimestamp()
     }, { merge: true });

@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebas
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; 
 
 // 2. CONFIGURAÇÃO DAS CHAVES
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBjLqqMcYiUaIZbEvCZA8gv9Zmh26zhLK4",
   authDomain: "barbearia-extensao-ads.firebaseapp.com",
   projectId: "barbearia-extensao-ads",

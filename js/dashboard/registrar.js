@@ -1,13 +1,16 @@
-import { state, onStateChange } from "./state.js?v=4.0";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=4.0";
-import { recarregarAtendimentos } from "./data/sync.js?v=4.0";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=4.0";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput } from "./utils/money.js?v=4.0";
-import { mostrarErro } from "./services/feedback-service.js?v=4.0";
+import { state, onStateChange } from "./state.js?v=6.1";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=6.1";
+import { invalidarCacheAtendimentos, recarregarAtendimentosDoDia } from "./data/sync.js?v=6.1";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=6.1";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=6.1";
+import { usuarioEhAdmin } from "./permissoes.js?v=6.1";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=6.1";
+import { mostrarErro } from "./services/feedback-service.js?v=6.1";
 
 let inicializado = false;
-let servicoSelecionado = "";
+let servicoSelecionadoId = "";
 let valorTotalAutomatico = 0;
+let profissionalSelecionado = null;
 let ultimoIdRegistrado = null;
 let undoInterval = null;
 let undoTimeout = null;
@@ -15,6 +18,8 @@ let feedbackTemporario = false;
 
 const atendimentoForm = document.getElementById("atendimentoForm");
 const btnRegistrar = document.getElementById("btnRegistrar");
+const servicosContainer = document.querySelector("#registrar .grupo-botoes-servicos");
+const pagamentosContainer = document.querySelector("#registrar .grupo-chips-pagamento");
 const inputValorPersonalizado = document.getElementById("valorPersonalizado");
 const checkboxValorDif = document.getElementById("temValorDiferenciado");
 const labelServicos = document.getElementById("labelServicos");
@@ -31,21 +36,29 @@ function getValorCustomizado() {
     return converterParaNumero(inputValorPersonalizado?.value) || 0;
 }
 
+function obterMembroAtualNormalizado() {
+    return {
+        id: state.user?.uid,
+        uid: state.user?.uid,
+        nome: state.perfilUsuario?.nome || state.membroAtual?.nome || state.user?.displayName || state.user?.email || "Profissional",
+        repassePct: Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35),
+        precosPersonalizados: state.membroAtual?.precosPersonalizados || {},
+        ...state.membroAtual
+    };
+}
+
+function resolverProfissionalSelecionado() {
+    profissionalSelecionado = obterMembroAtualNormalizado();
+    return profissionalSelecionado;
+}
+
 function atualizarTextoBotao() {
     if (!btnRegistrar || feedbackTemporario) return;
 
-    const valorFinal = checkboxValorDif?.checked
-        ? getValorCustomizado()
-        : valorTotalAutomatico;
-
-    if (servicoSelecionado && valorFinal > 0) {
-        btnRegistrar.textContent =
-            `Registrar • R$ ${Number(valorFinal)
-                .toFixed(2)
-                .replace(".", ",")}`;
-    } else {
-        btnRegistrar.textContent = "Registrar Atendimento";
-    }
+    const valorFinal = checkboxValorDif?.checked ? getValorCustomizado() : valorTotalAutomatico;
+    btnRegistrar.textContent = servicoSelecionadoId && valorFinal > 0
+        ? `Registrar • R$ ${Number(valorFinal).toFixed(2).replace(".", ",")}`
+        : "Registrar Atendimento";
 }
 
 function dispararErroVisual(elemento) {
@@ -62,22 +75,36 @@ function dispararErroVisualInput(elemento) {
     setTimeout(() => elemento.classList.remove("input-erro"), 3000);
 }
 
-function selecionarServico(nome, permitirDesmarcar = false) {
-    const botao = Array.from(document.querySelectorAll(".btn-servico"))
-        .find((item) => item.dataset.nome === nome);
+function atualizarPrecoServicoSelecionado() {
+    const servico = obterServicoPorId(servicoSelecionadoId);
+    if (!servico) {
+        valorTotalAutomatico = 0;
+        atualizarTextoBotao();
+        return;
+    }
+
+    const resolvido = resolverPrecoServico(servico, profissionalSelecionado || obterMembroAtualNormalizado());
+    valorTotalAutomatico = resolvido.preco;
+
+    const botao = servicosContainer?.querySelector(`[data-servico-id="${CSS.escape(servico.id)}"]`);
+    const valor = botao?.querySelector(".valor-servico-btn");
+    if (valor) valor.textContent = `R$ ${formatarMoeda(resolvido.preco)}`;
+    atualizarTextoBotao();
+}
+
+function selecionarServico(id, permitirDesmarcar = false) {
+    const botao = servicosContainer?.querySelector(`[data-servico-id="${CSS.escape(id)}"]`);
     if (!botao) return false;
 
     if (permitirDesmarcar && botao.classList.contains("selecionado")) {
         botao.classList.remove("selecionado");
-        servicoSelecionado = "";
+        servicoSelecionadoId = "";
         valorTotalAutomatico = 0;
     } else {
-        document.querySelectorAll(".btn-servico").forEach((item) => item.classList.remove("selecionado"));
+        servicosContainer?.querySelectorAll(".btn-servico").forEach((item) => item.classList.remove("selecionado"));
         botao.classList.add("selecionado");
-        servicoSelecionado = botao.dataset.nome || "";
-        valorTotalAutomatico = Number(
-            state.configSistema.precos?.[servicoSelecionado] ?? botao.dataset.valor ?? 0
-        );
+        servicoSelecionadoId = id;
+        atualizarPrecoServicoSelecionado();
     }
 
     labelServicos?.classList.remove("label-erro");
@@ -86,15 +113,14 @@ function selecionarServico(nome, permitirDesmarcar = false) {
 }
 
 function selecionarPagamento(valor, permitirDesmarcar = false) {
-    const chip = Array.from(document.querySelectorAll(".chip-pagamento"))
-        .find((item) => item.dataset.valor === valor);
-    if (!chip) return false;
+    const chip = pagamentosContainer?.querySelector(`[data-valor="${CSS.escape(valor)}"]`);
+    if (!chip || chip.hidden) return false;
 
     if (permitirDesmarcar && chip.classList.contains("selecionado")) {
         chip.classList.remove("selecionado");
         if (inputPagamento) inputPagamento.value = "";
     } else {
-        document.querySelectorAll(".chip-pagamento").forEach((item) => item.classList.remove("selecionado"));
+        pagamentosContainer?.querySelectorAll(".chip-pagamento").forEach((item) => item.classList.remove("selecionado"));
         chip.classList.add("selecionado");
         if (inputPagamento) inputPagamento.value = valor;
     }
@@ -104,12 +130,57 @@ function selecionarPagamento(valor, permitirDesmarcar = false) {
     return true;
 }
 
+function renderizarServicos() {
+    if (!servicosContainer) return;
+
+    const selecionadoAntes = servicoSelecionadoId;
+    servicosContainer.innerHTML = "";
+
+    obterServicos({ somenteAtivos: true }).forEach((servico, indice) => {
+        const preco = resolverPrecoServico(servico, profissionalSelecionado || obterMembroAtualNormalizado()).preco;
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.className = `btn-servico${indice === 0 ? " full-width" : ""}`;
+        botao.dataset.servicoId = servico.id;
+        botao.dataset.nome = servico.nome;
+
+        const nomeServico = document.createElement("span");
+        nomeServico.textContent = servico.nome;
+
+        const valorServico = document.createElement("span");
+        valorServico.className = "valor-servico-btn";
+        valorServico.textContent = `R$ ${formatarMoeda(preco)}`;
+
+        botao.append(nomeServico, valorServico);
+        botao.addEventListener("click", () => selecionarServico(servico.id, true));
+        servicosContainer.appendChild(botao);
+    });
+
+    if (selecionadoAntes && obterServicoPorId(selecionadoAntes)?.ativo !== false) {
+        selecionarServico(selecionadoAntes, false);
+    } else {
+        servicoSelecionadoId = "";
+        valorTotalAutomatico = 0;
+        atualizarTextoBotao();
+    }
+}
+
+function renderizarPagamentos() {
+    pagamentosContainer?.querySelectorAll(".chip-pagamento").forEach((chip) => {
+        const ativo = pagamentoEstaAtivo(chip.dataset.valor);
+        chip.hidden = !ativo;
+        if (!ativo && inputPagamento?.value === chip.dataset.valor) {
+            chip.classList.remove("selecionado");
+            inputPagamento.value = "";
+        }
+    });
+    aplicarPagamentoPadraoSeVazio();
+}
+
 function definirValorDiferenciado(ativo, valor = 0) {
     if (checkboxValorDif) checkboxValorDif.checked = ativo;
     if (campoValorPersonalizado) campoValorPersonalizado.style.display = ativo ? "block" : "none";
-    if (inputValorPersonalizado) {
-        inputValorPersonalizado.value = ativo && valor > 0 ? formatarValorInput(valor) : "";
-    }
+    if (inputValorPersonalizado) inputValorPersonalizado.value = ativo && valor > 0 ? formatarValorInput(valor) : "";
     atualizarTextoBotao();
 }
 
@@ -117,12 +188,11 @@ function definirObservacaoAtiva(ativo, valor = "") {
     if (checkboxObservacao) checkboxObservacao.checked = ativo;
     if (campoObservacao) campoObservacao.style.display = ativo ? "block" : "none";
     if (inputObservacao) inputObservacao.value = ativo ? String(valor || "").slice(0, 160) : "";
-    atualizarTextoBotao();
 }
 
 function obterPagamentoPadrao() {
     const valor = state.configSistema.pagamentoPadrao;
-    return ["Pix", "Dinheiro", "Débito", "Crédito"].includes(valor) ? valor : "nenhum";
+    return pagamentoEstaAtivo(valor) ? valor : "nenhum";
 }
 
 function aplicarPagamentoPadraoSeVazio() {
@@ -133,8 +203,9 @@ function aplicarPagamentoPadraoSeVazio() {
 
 function limparFormularioAposRegistro() {
     atendimentoForm?.reset();
-    document.querySelectorAll(".btn-servico, .chip-pagamento").forEach((item) => item.classList.remove("selecionado"));
-    servicoSelecionado = "";
+    servicosContainer?.querySelectorAll(".btn-servico").forEach((item) => item.classList.remove("selecionado"));
+    pagamentosContainer?.querySelectorAll(".chip-pagamento").forEach((item) => item.classList.remove("selecionado"));
+    servicoSelecionadoId = "";
     valorTotalAutomatico = 0;
     if (inputPagamento) inputPagamento.value = "";
     definirValorDiferenciado(false, 0);
@@ -153,11 +224,8 @@ function dispararUndoInline(idDoc) {
     clearTimeout(undoTimeout);
     undoInterval = setInterval(() => {
         segundosRestantes -= 1;
-        if (segundosRestantes > 0 && btnUndoInline) {
-            btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
-        } else {
-            clearInterval(undoInterval);
-        }
+        if (segundosRestantes > 0 && btnUndoInline) btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
+        else clearInterval(undoInterval);
     }, 1000);
 
     undoTimeout = setTimeout(() => {
@@ -170,11 +238,9 @@ function dispararUndoInline(idDoc) {
 async function mostrarFeedbackBotao(texto, classe = "success", duracao = 1800) {
     if (!btnRegistrar) return;
     feedbackTemporario = true;
-btnRegistrar.classList.remove("success", "undo-feedback");
-
-if (classe) {
-    btnRegistrar.classList.add(classe);
-}    btnRegistrar.textContent = texto;
+    btnRegistrar.classList.remove("success", "undo-feedback");
+    if (classe) btnRegistrar.classList.add(classe);
+    btnRegistrar.textContent = texto;
     await new Promise((resolve) => setTimeout(resolve, duracao));
     if (classe) btnRegistrar.classList.remove(classe);
     feedbackTemporario = false;
@@ -183,39 +249,37 @@ if (classe) {
 
 async function registrarAtendimentoAtual() {
     let temErro = false;
-
-    if (!servicoSelecionado) {
-        dispararErroVisual(labelServicos);
-        temErro = true;
-    }
+    if (!servicoSelecionadoId) { dispararErroVisual(labelServicos); temErro = true; }
 
     const pagamento = inputPagamento?.value;
-    if (!pagamento) {
-        dispararErroVisual(labelPagamento);
-        temErro = true;
-    }
+    if (!pagamento || !pagamentoEstaAtivo(pagamento)) { dispararErroVisual(labelPagamento); temErro = true; }
 
-    let valorServicoBruto = checkboxValorDif?.checked ? getValorCustomizado() : valorTotalAutomatico;
-    if (checkboxValorDif?.checked && valorServicoBruto <= 0) {
-        dispararErroVisualInput(inputValorPersonalizado);
-        temErro = true;
-    }
-
+    const valorServicoBruto = checkboxValorDif?.checked ? getValorCustomizado() : valorTotalAutomatico;
+    if (checkboxValorDif?.checked && valorServicoBruto <= 0) { dispararErroVisualInput(inputValorPersonalizado); temErro = true; }
     if (temErro || valorServicoBruto <= 0) return;
 
-    const observacao = checkboxObservacao?.checked
-        ? String(inputObservacao?.value || "").trim().slice(0, 160)
-        : "";
+    resolverProfissionalSelecionado();
+    const servico = obterServicoPorId(servicoSelecionadoId);
+    if (!servico || !profissionalSelecionado) return;
+
+    const preco = resolverPrecoServico(servico, profissionalSelecionado);
+    const observacao = checkboxObservacao?.checked ? String(inputObservacao?.value || "").trim().slice(0, 160) : "";
 
     const payload = criarPayloadAtendimento({
-        servico: servicoSelecionado,
+        servico: servico.nome,
+        servicoId: servico.id,
+        servicoNome: servico.nome,
+        precoBase: preco.precoBase,
+        precoProfissional: preco.precoProfissional,
+        origemPreco: preco.origem,
         pagamento,
         valorBruto: valorServicoBruto,
         observacao,
         valorDiferenciado: Boolean(checkboxValorDif?.checked),
         dataAtendimento: new Date(),
         retroativo: false,
-        horaInformada: true
+        horaInformada: true,
+        profissional: profissionalSelecionado
     }, state.configSistema);
 
     if (btnRegistrar) {
@@ -228,7 +292,8 @@ async function registrarAtendimentoAtual() {
         const id = await criarAtendimento(payload);
         dispararUndoInline(id);
         limparFormularioAposRegistro();
-        await recarregarAtendimentos();
+        invalidarCacheAtendimentos();
+        await recarregarAtendimentosDoDia(new Date(), { profissionalUid: usuarioEhAdmin() ? null : state.user?.uid });
         if (btnRegistrar) btnRegistrar.style.opacity = "1";
         mostrarFeedbackBotao("Registrado ✓");
     } catch (error) {
@@ -242,15 +307,11 @@ async function registrarAtendimentoAtual() {
     }
 }
 
-export function initRegistrar() {
+export async function initRegistrar() {
     if (inicializado) return;
     inicializado = true;
 
-    document.querySelectorAll(".btn-servico").forEach((btn) => {
-        btn.addEventListener("click", () => selecionarServico(btn.dataset.nome, true));
-    });
-
-    document.querySelectorAll(".chip-pagamento").forEach((chip) => {
+    pagamentosContainer?.querySelectorAll(".chip-pagamento").forEach((chip) => {
         chip.addEventListener("click", () => selecionarPagamento(chip.dataset.valor, true));
     });
 
@@ -261,6 +322,7 @@ export function initRegistrar() {
 
     checkboxValorDif?.addEventListener("change", () => {
         definirValorDiferenciado(checkboxValorDif.checked, getValorCustomizado());
+        if (checkboxValorDif.checked) setTimeout(() => inputValorPersonalizado?.focus(), 0);
     });
 
     checkboxObservacao?.addEventListener("change", () => {
@@ -268,11 +330,10 @@ export function initRegistrar() {
         if (checkboxObservacao.checked) setTimeout(() => inputObservacao?.focus(), 0);
     });
 
-
-atendimentoForm?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await registrarAtendimentoAtual();
-});
+    atendimentoForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await registrarAtendimentoAtual();
+    });
 
     btnUndoInline?.addEventListener("click", async () => {
         if (!ultimoIdRegistrado) return;
@@ -282,7 +343,8 @@ atendimentoForm?.addEventListener("submit", async (event) => {
 
         try {
             await excluirAtendimento(ultimoIdRegistrado);
-            await recarregarAtendimentos();
+            invalidarCacheAtendimentos();
+            await recarregarAtendimentosDoDia(new Date(), { profissionalUid: usuarioEhAdmin() ? null : state.user?.uid });
             if (undoContainer) undoContainer.style.display = "none";
             ultimoIdRegistrado = null;
             mostrarFeedbackBotao("Registro Desfeito ↩", "undo-feedback", 1800);
@@ -293,16 +355,18 @@ atendimentoForm?.addEventListener("submit", async (event) => {
         }
     });
 
-    onStateChange("configSistema", () => {
-        if (servicoSelecionado) {
-            valorTotalAutomatico = Number(state.configSistema.precos?.[servicoSelecionado] ?? valorTotalAutomatico);
-        }
-        aplicarPagamentoPadraoSeVazio();
-        atualizarTextoBotao();
-    });
-
+    resolverProfissionalSelecionado();
+    renderizarServicos();
+    renderizarPagamentos();
     definirValorDiferenciado(false, 0);
     definirObservacaoAtiva(false, "");
     aplicarPagamentoPadraoSeVazio();
     atualizarTextoBotao();
+
+    onStateChange("configSistema", () => {
+        renderizarServicos();
+        renderizarPagamentos();
+        atualizarTextoBotao();
+    });
+
 }

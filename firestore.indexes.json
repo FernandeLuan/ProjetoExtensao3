@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "atendimentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "profissionalUid", "order": "ASCENDING" },
+        { "fieldPath": "dataAtendimento", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "despesas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipo", "order": "ASCENDING" },
+        { "fieldPath": "profissionalUid", "order": "ASCENDING" },
+        { "fieldPath": "dataDespesa", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
