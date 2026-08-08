@@ -1,931 +1,720 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Dashboard | Marlon Barber</title>
-
-    <link rel="stylesheet" href="css/dashboard.css?v=3.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Dashboard | Marlon Barber</title>
+<link href="css/dashboard.css?v=4.0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-<div id="connectionStatus" class="connection-status" role="status" aria-live="polite" hidden>
-    <i class="fas fa-wifi" aria-hidden="true"></i>
-    <span></span>
+<div aria-live="polite" class="connection-status" hidden="" id="connectionStatus" role="status">
+<i aria-hidden="true" class="fas fa-wifi"></i>
+<span></span>
 </div>
-
-<div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-<nav id="sidebarMenu" class="menu-sheet" aria-label="Menu do aplicativo">
-    <div class="menu-sheet-handle" aria-hidden="true"></div>
-    <div class="menu-sheet-title">Menu</div>
-
-    <ul>
-        <li>
-            <a href="#configuracoes">
-                <i class="fas fa-sliders-h"></i>
-                <span>Configurações</span>
-            </a>
-        </li>
-        <li>
-            <a href="#conta">
-                <i class="fas fa-user-lock"></i>
-                <span>Minha Conta</span>
-            </a>
-        </li>
-        <li class="theme-toggle-item">
-            <div class="theme-mode-wrapper">
-                <div class="theme-mode-label">
-                    <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
-                    <span>Tema</span>
-                </div>
-
-                <div class="theme-mode-options" role="group" aria-label="Escolher tema">
-                    <button type="button" class="theme-mode-btn" data-theme-mode="system">Sistema</button>
-                    <button type="button" class="theme-mode-btn" data-theme-mode="light">Claro</button>
-                    <button type="button" class="theme-mode-btn" data-theme-mode="dark">Escuro</button>
-                </div>
-            </div>
-        </li>
-        <li class="menu-divider" aria-hidden="true"></li>
-        <li>
-            <a href="#" id="logoutBtnSide" class="menu-logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sair do Sistema</span>
-            </a>
-        </li>
-    </ul>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<nav aria-label="Menu do aplicativo" class="menu-sheet" id="sidebarMenu">
+<div aria-hidden="true" class="menu-sheet-handle"></div>
+<div class="menu-sheet-title">Menu</div>
+<ul>
+<li>
+<a href="#configuracoes">
+<i class="fas fa-sliders-h"></i>
+<span>Configurações</span>
+</a>
+</li>
+<li>
+<a href="#conta">
+<i class="fas fa-user-lock"></i>
+<span>Minha Conta</span>
+</a>
+</li>
+<li class="theme-toggle-item">
+<div class="theme-mode-wrapper">
+<div class="theme-mode-label">
+<i aria-hidden="true" class="fas fa-circle-half-stroke"></i>
+<span>Tema</span>
+</div>
+<div aria-label="Escolher tema" class="theme-mode-options" role="group">
+<button class="theme-mode-btn" data-theme-mode="system" type="button">Sistema</button>
+<button class="theme-mode-btn" data-theme-mode="light" type="button">Claro</button>
+<button class="theme-mode-btn" data-theme-mode="dark" type="button">Escuro</button>
+</div>
+</div>
+</li>
+<li aria-hidden="true" class="menu-divider"></li>
+<li>
+<a class="menu-logout" href="#" id="logoutBtnSide">
+<i class="fas fa-sign-out-alt"></i>
+<span>Sair do Sistema</span>
+</a>
+</li>
+</ul>
 </nav>
-
 <main class="dashboard-main">
+<!-- Registrar -->
+<section class="registrar" id="registrar">
+<h2 class="titulo-sessao">Registrar Atendimento</h2>
 
-    <!-- Registrar -->
-    <section id="registrar" class="registrar">
-        <h2 class="titulo-sessao">Registrar Atendimento</h2>
-
-        <button
-            type="button"
-            id="btnRepetirUltimo"
-            class="btn-repetir-ultimo"
-            hidden
-        >
-            <i class="fas fa-rotate-left" aria-hidden="true"></i>
-            <span>Repetir último atendimento</span>
-        </button>
-
-        <form id="atendimentoForm">
-            <div class="input-group grupo-servicos-container">
-                <label class="label-servico" id="labelServicos">Serviços:</label>
-                <div class="grupo-botoes-servicos">
-                    <button type="button" class="btn-servico full-width" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110">
-                        Cabelo + Barba + Sobrancelha<br>
-                        <span class="valor-servico-btn">R$ 110,00</span>
-                    </button>
-                    <button type="button" class="btn-servico" data-nome="Cabelo + Barba" data-valor="105">
-                        Cabelo + Barba<br>
-                        <span class="valor-servico-btn">R$ 105,00</span>
-                    </button>
-                    <button type="button" class="btn-servico" data-nome="Cabelo + Sobrancelha" data-valor="75">
-                        Cabelo + Sobrancelha<br>
-                        <span class="valor-servico-btn">R$ 75,00</span>
-                    </button>
-                    <button type="button" class="btn-servico" data-nome="Cabelo" data-valor="60">
-                        Cabelo<br>
-                        <span class="valor-servico-btn">R$ 60,00</span>
-                    </button>
-                    <button type="button" class="btn-servico" data-nome="Barba" data-valor="50">
-                        Barba<br>
-                        <span class="valor-servico-btn">R$ 50,00</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="input-group pagamento-group">
-                <label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
-                <div class="grupo-chips-pagamento">
-                    <button type="button" class="chip-pagamento" data-valor="Crédito"><i class="fas fa-credit-card" aria-hidden="true"></i><span>Crédito</span></button>
-                    <button type="button" class="chip-pagamento" data-valor="Débito"><i class="fas fa-credit-card" aria-hidden="true"></i><span>Débito</span></button>
-                    <button type="button" class="chip-pagamento" data-valor="Pix"><i class="fas fa-qrcode" aria-hidden="true"></i><span>Pix</span></button>
-                    <button type="button" class="chip-pagamento" data-valor="Dinheiro"><i class="fas fa-money-bill-wave" aria-hidden="true"></i><span>Dinheiro</span></button>
-                </div>
-                <input type="hidden" id="pagamento" required>
-            </div>
-
-            <div class="input-group toggle-container">
-                <label class="toggle-label" for="temValorDiferenciado">Aplicar Valor Diferenciado?</label>
-                <label class="switch">
-                    <input type="checkbox" id="temValorDiferenciado">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="input-group" id="campoValorPersonalizado">
-                <input type="tel" id="valorPersonalizado" placeholder="0,00" inputmode="numeric">
-            </div>
-
-            <div class="input-group toggle-container toggle-container-compact">
-                <label class="toggle-label" for="temObservacao">Registrar Observação</label>
-                <label class="switch">
-                    <input type="checkbox" id="temObservacao">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="input-group" id="campoObservacao">
-                <input
-                    type="text"
-                    id="observacaoAtendimento"
-                    maxlength="160"
-                    autocomplete="off"
-                    placeholder="Ex.: desconto, cortesia, cliente antigo..."
-                >
-            </div>
-
-            <button type="submit" class="btn" id="btnRegistrar">Registrar Atendimento</button>
-
-            <div id="undoContainer">
-                <button type="button" id="btnUndoInline" class="btn-desfazer-ghost">
+<form id="atendimentoForm">
+<div class="input-group grupo-servicos-container">
+<label class="label-servico" id="labelServicos">Serviços:</label>
+<div class="grupo-botoes-servicos">
+<button class="btn-servico full-width" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" type="button">
+                        Cabelo + Barba + Sobrancelha<br/>
+<span class="valor-servico-btn">R$ 110,00</span>
+</button>
+<button class="btn-servico" data-nome="Cabelo + Barba" data-valor="105" type="button">
+                        Cabelo + Barba<br/>
+<span class="valor-servico-btn">R$ 105,00</span>
+</button>
+<button class="btn-servico" data-nome="Cabelo + Sobrancelha" data-valor="75" type="button">
+                        Cabelo + Sobrancelha<br/>
+<span class="valor-servico-btn">R$ 75,00</span>
+</button>
+<button class="btn-servico" data-nome="Cabelo" data-valor="60" type="button">
+                        Cabelo<br/>
+<span class="valor-servico-btn">R$ 60,00</span>
+</button>
+<button class="btn-servico" data-nome="Barba" data-valor="50" type="button">
+                        Barba<br/>
+<span class="valor-servico-btn">R$ 50,00</span>
+</button>
+</div>
+</div>
+<div class="input-group pagamento-group">
+<label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
+<div class="grupo-chips-pagamento">
+<button class="chip-pagamento" data-valor="Crédito" type="button"><i aria-hidden="true" class="fas fa-credit-card"></i><span>Crédito</span></button>
+<button class="chip-pagamento" data-valor="Débito" type="button"><i aria-hidden="true" class="fas fa-credit-card"></i><span>Débito</span></button>
+<button class="chip-pagamento" data-valor="Pix" type="button"><i aria-hidden="true" class="fas fa-qrcode"></i><span>Pix</span></button>
+<button class="chip-pagamento" data-valor="Dinheiro" type="button"><i aria-hidden="true" class="fas fa-money-bill-wave"></i><span>Dinheiro</span></button>
+</div>
+<input id="pagamento" required="" type="hidden"/>
+</div>
+<div class="input-group toggle-container">
+<label class="toggle-label" for="temValorDiferenciado">Aplicar Valor Diferenciado?</label>
+<label class="switch">
+<input id="temValorDiferenciado" type="checkbox"/>
+<span class="slider round"></span>
+</label>
+</div>
+<div class="input-group" id="campoValorPersonalizado">
+<input id="valorPersonalizado" inputmode="numeric" placeholder="0,00" type="tel"/>
+</div>
+<div class="input-group toggle-container toggle-container-compact">
+<label class="toggle-label" for="temObservacao">Registrar Observação</label>
+<label class="switch">
+<input id="temObservacao" type="checkbox"/>
+<span class="slider round"></span>
+</label>
+</div>
+<div class="input-group" id="campoObservacao">
+<input autocomplete="off" id="observacaoAtendimento" maxlength="160" placeholder="Ex.: desconto, cortesia, cliente antigo..." type="text"/>
+</div>
+<button class="btn" id="btnRegistrar" type="submit">Registrar Atendimento</button>
+<div id="undoContainer">
+<button class="btn-desfazer-ghost" id="btnUndoInline" type="button">
                     Desfazer Registro (10s)
                 </button>
-            </div>
-        </form>
-    </section>
-
-    <!-- Painel Financeiro -->
-<section id="painelFinanceiro" class="registrar painel-financeiro">
-
-    <!-- Navegação por data -->
-    <div class="painel-data-nav" aria-label="Selecionar data do painel">
-        <button
-            type="button"
-            class="painel-data-btn"
-            id="btnDataAnterior"
-            aria-label="Ver dia anterior"
-        >
-            <i class="fas fa-chevron-left"></i>
-        </button>
-
+</div>
+</form>
+</section>
+<!-- Painel Financeiro -->
+<section class="registrar painel-financeiro" id="painelFinanceiro">
+<!-- Navegação por data -->
+<div aria-label="Selecionar data do painel" class="painel-data-nav">
+<button aria-label="Ver dia anterior" class="painel-data-btn" id="btnDataAnterior" type="button">
+<i class="fas fa-chevron-left"></i>
+</button>
 <div class="painel-data-center">
-    <span
-        class="painel-data-label"
-        id="labelDataPainel"
-        aria-live="polite"
-    >
+<span aria-live="polite" class="painel-data-label" id="labelDataPainel">
         Hoje
     </span>
-
-    <button
-        type="button"
-        class="painel-calendar-btn"
-        id="btnCalendarioPainel"
-        aria-label="Escolher uma data no calendário"
-    >
-        <i class="fas fa-calendar-days" aria-hidden="true"></i>
-    </button>
-
-    <input
-        type="date"
-        id="inputDataPainel"
-        class="painel-date-picker"
-        tabindex="-1"
-        aria-hidden="true"
-    >
+<button aria-label="Escolher uma data no calendário" class="painel-calendar-btn" id="btnCalendarioPainel" type="button">
+<i aria-hidden="true" class="fas fa-calendar-days"></i>
+</button>
+<input aria-hidden="true" class="painel-date-picker" id="inputDataPainel" tabindex="-1" type="date"/>
 </div>
-
-        <button
-            type="button"
-            class="painel-data-btn"
-            id="btnDataProxima"
-            aria-label="Ver próximo dia"
-        >
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-
- <!-- Card principal -->
+<button aria-label="Ver próximo dia" class="painel-data-btn" id="btnDataProxima" type="button">
+<i class="fas fa-chevron-right"></i>
+</button>
+</div>
+<!-- Card principal -->
 <article class="finance-card finance-overview">
-
-    <div class="finance-overview-top">
-
-        <div>
-            <div class="finance-label-row">
-                <span class="finance-label">Lucro líquido</span>
-
-                <button
-                    type="button"
-                    class="finance-info-btn"
-                    data-info="Valor que fica para o barbeiro após descontar taxas do cartão e o repasse."
-                    aria-label="O que é lucro líquido?"
-                >
-                    <i class="fas fa-circle-info"></i>
-                </button>
-            </div>
-
-            <strong
-                class="finance-main-value"
-                id="lucroLiquidoPainel"
-            >
+<div class="finance-overview-top">
+<div>
+<div class="finance-label-row">
+<span class="finance-label">Lucro líquido</span>
+<button aria-label="O que é lucro líquido?" class="finance-info-btn" data-info="Valor que fica para o barbeiro após descontar taxas do cartão e o repasse." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong class="finance-main-value" id="lucroLiquidoPainel">
                 R$ 0,00
             </strong>
-
-            <div
-                class="finance-comparison"
-                id="comparativoLucro"
-                hidden
-            ></div>
-        </div>
-
-        <div
-            class="finance-main-icon"
-            aria-hidden="true"
-        >
-            <i class="fas fa-wallet"></i>
-        </div>
-
-    </div>
-
-    <!-- Faturamento + Repasse -->
-    <div class="finance-summary-row">
-
-        <div class="finance-summary-item">
-
-            <div class="finance-summary-label">
-                <span>Faturamento bruto</span>
-
-                <button
-                    type="button"
-                    class="finance-info-btn"
-                    data-info="Total recebido pelos atendimentos antes de taxas e repasses."
-                    aria-label="O que é faturamento bruto?"
-                >
-                    <i class="fas fa-circle-info"></i>
-                </button>
-            </div>
-
-            <strong id="faturamentoBrutoPainel">
+<div class="finance-comparison" hidden="" id="comparativoLucro"></div>
+</div>
+<div aria-hidden="true" class="finance-main-icon">
+<i class="fas fa-wallet"></i>
+</div>
+</div>
+<!-- Faturamento + Repasse -->
+<div class="finance-summary-row">
+<div class="finance-summary-item">
+<div class="finance-summary-label">
+<span>Faturamento bruto</span>
+<button aria-label="O que é faturamento bruto?" class="finance-info-btn" data-info="Total recebido pelos atendimentos antes de taxas e repasses." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong id="faturamentoBrutoPainel">
                 R$ 0,00
             </strong>
-
-        </div>
-
-        <div class="finance-summary-item">
-
-            <span>Repasse</span>
-
-            <strong id="repassePainel">
+</div>
+<div class="finance-summary-item">
+<span>Repasse</span>
+<strong id="repassePainel">
                 R$ 0,00
             </strong>
-
-        </div>
-
-    </div>
-
+</div>
+</div>
 </article>
-
-    <!-- Ticket + Atendimentos -->
-    <div class="finance-mini-grid">
-
-        <article class="finance-card finance-mini-card">
-
-            <div class="finance-label-row">
-                <span class="finance-label">Ticket médio</span>
-
-                <button
-                    type="button"
-                    class="finance-info-btn"
-                    data-info="Valor médio faturado por atendimento no dia selecionado."
-                    aria-label="O que é ticket médio?"
-                >
-                    <i class="fas fa-circle-info"></i>
-                </button>
-            </div>
-
-            <strong
-                class="finance-mini-value"
-                id="ticketMedioPainel"
-            >
+<!-- Ticket + Atendimentos -->
+<div class="finance-mini-grid">
+<article class="finance-card finance-mini-card">
+<div class="finance-label-row">
+<span class="finance-label">Ticket médio</span>
+<button aria-label="O que é ticket médio?" class="finance-info-btn" data-info="Valor médio faturado por atendimento no dia selecionado." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong class="finance-mini-value" id="ticketMedioPainel">
                 R$ 0,00
             </strong>
-
-            <div class="finance-sparkline">
-                <canvas
-                    id="graficoTicketMedio"
-                    aria-label="Ticket médio dos últimos 7 dias"
-                ></canvas>
-            </div>
-
-        </article>
-
-        <article class="finance-card finance-mini-card">
-
-            <span class="finance-label">
+<div class="finance-sparkline">
+<canvas aria-label="Ticket médio dos últimos 7 dias" id="graficoTicketMedio"></canvas>
+</div>
+</article>
+<article class="finance-card finance-mini-card">
+<span class="finance-label">
                 Atendimentos
             </span>
-
-            <strong
-                class="finance-mini-value"
-                id="clientesAtendidosPainel"
-            >
+<strong class="finance-mini-value" id="clientesAtendidosPainel">
                 0
             </strong>
-
-            <div class="finance-sparkline">
-                <canvas
-                    id="graficoAtendimentos"
-                    aria-label="Atendimentos dos últimos 7 dias"
-                ></canvas>
-            </div>
-
-        </article>
-
-    </div>
-
-    <!-- Serviço mais vendido -->
-    <article class="finance-card finance-service-card">
-
-        <div class="finance-service-content">
-
-            <span class="finance-label">
+<div class="finance-sparkline">
+<canvas aria-label="Atendimentos dos últimos 7 dias" id="graficoAtendimentos"></canvas>
+</div>
+</article>
+</div>
+<!-- Serviço mais vendido -->
+<article class="finance-card finance-service-card">
+<div class="finance-service-content">
+<span class="finance-label">
                 Serviço mais vendido
             </span>
-
-            <strong
-                class="finance-service-name"
-                id="servicoMaisVendidoPainel"
-            >
+<strong class="finance-service-name" id="servicoMaisVendidoPainel">
                 —
             </strong>
-
 <span class="finance-service-meta" id="servicoMaisVendidoMeta"></span>
-
-        </div>
-
-        <div
-            class="finance-service-icon"
-            aria-hidden="true"
-        >
-            <i class="fas fa-star"></i>
-        </div>
-
-    </article>
-
-    <!-- Gráfico principal -->
-    <article class="finance-card finance-chart-card">
-
-        <h3>
+</div>
+<div aria-hidden="true" class="finance-service-icon">
+<i class="fas fa-star"></i>
+</div>
+</article>
+<!-- Gráfico principal -->
+<article class="finance-card finance-chart-card">
+<h3>
             Faturamento dos últimos 7 dias
         </h3>
-
-        <div class="finance-chart-wrapper">
-            <canvas
-                id="graficoFaturamento"
-                aria-label="Faturamento bruto dos últimos 7 dias"
-            ></canvas>
-        </div>
-
-    </article>
-
+<div class="finance-chart-wrapper">
+<canvas aria-label="Faturamento bruto dos últimos 7 dias" id="graficoFaturamento"></canvas>
+</div>
+</article>
 </section>
-
 <!-- 3. RELATÓRIOS -->
-    <section id="relatorios" class="registrar">
-        <h2 class="titulo-sessao">Relatórios e Fechamento</h2>
-        
-        <div class="relatorios-periodo">
-            
-            <div class="filtros-periodo relatorios-filtros">
-                <button type="button" class="btn-filtro" id="btnRelHoje">Dia</button>
-                <button type="button" class="btn-filtro" id="btnRelSemana">Semana</button>
-                <button type="button" class="btn-filtro" id="btnRelMes">Mês</button>
-            </div>
-
-            <div class="input-group sem-margem">
-                <label class="label-servico">Data Inicial:</label>
-                <input type="date" id="dataInicioRelatorio" required>
-            </div>
-            <div class="input-group sem-margem">
-                <label class="label-servico">Data Final:</label>
-                <input type="date" id="dataFimRelatorio" required>
-            </div>
-
-        </div>
-
-        <div class="export-actions">
-            <button type="button" class="btn btn-export btn-export-excel" id="btnExportCSV">
-                <i class="fas fa-file-csv"></i> Excel
+<section class="registrar" id="relatorios">
+<h2 class="titulo-sessao">Relatórios e Fechamento</h2>
+<div class="relatorios-periodo">
+<div class="filtros-periodo relatorios-filtros">
+<button class="btn-filtro" id="btnRelHoje" type="button">Dia</button>
+<button class="btn-filtro" id="btnRelSemana" type="button">Semana</button>
+<button class="btn-filtro" id="btnRelMes" type="button">Mês</button>
+</div>
+<div class="input-group sem-margem">
+<label class="label-servico">Data Inicial:</label>
+<input id="dataInicioRelatorio" required="" type="date"/>
+</div>
+<div class="input-group sem-margem">
+<label class="label-servico">Data Final:</label>
+<input id="dataFimRelatorio" required="" type="date"/>
+</div>
+</div>
+<div class="export-actions">
+<button class="btn btn-export btn-export-excel" id="btnExportCSV" type="button">
+<i class="fas fa-file-csv"></i> Excel
             </button>
-            <button type="button" class="btn btn-export btn-export-pdf" id="btnExportPDF">
-                <i class="fas fa-file-pdf"></i> PDF
+<button class="btn btn-export btn-export-pdf" id="btnExportPDF" type="button">
+<i class="fas fa-file-pdf"></i> PDF
             </button>
-        </div>
-        
-        <button type="button" class="btn" id="btnWhatsApp">
-            <i class="fab fa-whatsapp"></i> Enviar Fechamento
+</div>
+<button class="btn" id="btnWhatsApp" type="button">
+<i class="fab fa-whatsapp"></i> Enviar Fechamento
         </button>
-    </section>
+</section>
 <!-- HISTÓRICO -->
-<section id="historico" class="registrar historico-section">
-
-    <!-- Navegação por data -->
-    <div
-        class="painel-data-nav historico-data-nav"
-        aria-label="Selecionar data do histórico"
-    >
-        <button
-            type="button"
-            class="painel-data-btn"
-            id="btnHistoricoAnterior"
-            aria-label="Ver dia anterior"
-        >
-            <i class="fas fa-chevron-left"></i>
-        </button>
-
+<section class="registrar historico-section" id="historico">
+<!-- Navegação por data -->
+<div aria-label="Selecionar data do histórico" class="painel-data-nav historico-data-nav">
+<button aria-label="Ver dia anterior" class="painel-data-btn" id="btnHistoricoAnterior" type="button">
+<i class="fas fa-chevron-left"></i>
+</button>
 <div class="painel-data-center">
-    <span
-        class="painel-data-label"
-        id="labelDataHistorico"
-        aria-live="polite"
-    >
+<span aria-live="polite" class="painel-data-label" id="labelDataHistorico">
         Hoje
     </span>
-
-    <button
-        type="button"
-        class="painel-calendar-btn"
-        id="btnCalendarioHistorico"
-        aria-label="Escolher uma data no calendário"
-    >
-        <i class="fas fa-calendar-days" aria-hidden="true"></i>
-    </button>
-
-    <input
-        type="date"
-        id="inputDataHistorico"
-        class="painel-date-picker"
-        tabindex="-1"
-        aria-hidden="true"
-    >
+<button aria-label="Escolher uma data no calendário" class="painel-calendar-btn" id="btnCalendarioHistorico" type="button">
+<i aria-hidden="true" class="fas fa-calendar-days"></i>
+</button>
+<input aria-hidden="true" class="painel-date-picker" id="inputDataHistorico" tabindex="-1" type="date"/>
 </div>
-
-        <button
-            type="button"
-            class="painel-data-btn"
-            id="btnHistoricoProxima"
-            aria-label="Ver próximo dia"
-        >
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-
-    <div class="historico-filtros" aria-label="Filtrar histórico">
-        <button type="button" class="historico-filtro-btn active" data-historico-pagamento="todos">Todos</button>
-        <button type="button" class="historico-filtro-btn" data-historico-pagamento="pix">Pix</button>
-        <button type="button" class="historico-filtro-btn" data-historico-pagamento="dinheiro">Dinheiro</button>
-        <button type="button" class="historico-filtro-btn" data-historico-pagamento="cartao">Cartão</button>
-        <button
-            type="button"
-            class="historico-filtro-more"
-            id="btnAbrirFiltrosHistorico"
-            aria-label="Abrir filtros avançados"
-        >
-            <i class="fas fa-sliders" aria-hidden="true"></i>
-            <span id="historicoFiltroBadge" class="historico-filtro-badge" hidden>0</span>
-        </button>
-    </div>
-
-    <div
-        id="historicoContainer"
-        class="lista-historico"
-    ></div>
-
+<button aria-label="Ver próximo dia" class="painel-data-btn" id="btnHistoricoProxima" type="button">
+<i class="fas fa-chevron-right"></i>
+</button>
+</div>
+<div aria-label="Filtrar histórico" class="historico-filtros">
+<button class="historico-filtro-btn active" data-historico-pagamento="todos" type="button">Todos</button>
+<button class="historico-filtro-btn" data-historico-pagamento="pix" type="button">Pix</button>
+<button class="historico-filtro-btn" data-historico-pagamento="dinheiro" type="button">Dinheiro</button>
+<button class="historico-filtro-btn" data-historico-pagamento="cartao" type="button">Cartão</button>
+<button aria-label="Abrir filtros avançados" class="historico-filtro-more" id="btnAbrirFiltrosHistorico" type="button">
+<i aria-hidden="true" class="fas fa-sliders"></i>
+<span class="historico-filtro-badge" hidden="" id="historicoFiltroBadge">0</span>
+</button>
+</div>
+<div class="lista-historico" id="historicoContainer"></div>
 </section>
-
 <!-- 5. CONFIGURAÇÕES -->
-<section id="configuracoes" class="registrar configuracoes-high-level">
-    <h2 class="titulo-sessao">Configurações</h2>
-
-    <div class="config-groups">
-        <div class="config-group">
-            <button
-                type="button"
-                class="config-group-toggle"
-                data-config-group="negocio"
-                aria-expanded="false"
-                aria-controls="configGroupNegocio"
-            >
-                <span class="config-group-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span>
-                <span class="config-group-copy">
-                    <strong>Configurações de negócio</strong>
-                    <small>Taxas, repasse e preços dos serviços</small>
-                </span>
-                <i class="fas fa-chevron-down config-group-chevron" aria-hidden="true"></i>
-            </button>
-
-            <div id="configGroupNegocio" class="config-group-content" hidden>
-
-    <!-- TAXAS E REPASSE -->
-    <h3 class="config-section-title"><i class="fas fa-percentage"></i> Taxas e Repasse</h3>
-
-    <div class="config-list">
-        <div class="config-item" data-campo="taxaDebito" data-tipo="porcentagem">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-credit-card"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Débito (%)</span>
-                    <span class="config-atual" id="lblAtualDebito">Atual: 1,50%</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="5">
-            </div>
-        </div>
-
-        <div class="config-item" data-campo="taxaCredito" data-tipo="porcentagem">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-credit-card"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Crédito (%)</span>
-                    <span class="config-atual" id="lblAtualCredito">Atual: 3,51%</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="5">
-            </div>
-        </div>
-
-        <div class="config-item" data-campo="repasseDonoPct" data-tipo="porcentagem">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-user"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Repasse Dono (%)</span>
-                    <span class="config-atual" id="lblAtualRepasse">Atual: 35%</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0" class="input-config hidden" maxlength="5">
-            </div>
-        </div>
-    </div>
-
-    <!-- PREÇOS DOS SERVIÇOS -->
-    <h3 class="config-section-title config-precos-title"><i class="fas fa-tag"></i> Preços dos Serviços</h3>
-
-    <div class="config-list">
-        <div class="config-item" data-campo="Cabelo + Barba + Sobrancelha" data-tipo="moeda">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-cut"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Cabelo + Barba + Sobrancelha</span>
-                    <span class="config-atual" id="labelAtualCombo3">Atual: R$ 110,00</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
-            </div>
-        </div>
-
-        <div class="config-item" data-campo="Cabelo + Barba" data-tipo="moeda">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-cut"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Cabelo + Barba</span>
-                    <span class="config-atual" id="labelAtualCombo2">Atual: R$ 105,00</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
-            </div>
-        </div>
-
-        <div class="config-item" data-campo="Cabelo + Sobrancelha" data-tipo="moeda">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-cut"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Cabelo + Sobrancelha</span>
-                    <span class="config-atual" id="labelAtualCabSob">Atual: R$ 75,00</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
-            </div>
-        </div>
-
-        <div class="config-item" data-campo="Cabelo" data-tipo="moeda">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-cut"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Cabelo</span>
-                    <span class="config-atual" id="labelAtualCabelo">Atual: R$ 60,00</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
-            </div>
-        </div>
-
-        <div class="config-item" data-campo="Barba" data-tipo="moeda">
-            <div class="config-item-left">
-                <div class="config-icon"><i class="fas fa-cut"></i></div>
-                <div class="config-info">
-                    <span class="config-nome">Barba</span>
-                    <span class="config-atual" id="labelAtualBarba">Atual: R$ 50,00</span>
-                </div>
-            </div>
-            <div class="config-action">
-                <button type="button" class="btn-alterar"><i class="fas fa-pen"></i> Alterar</button>
-                <input type="text" inputmode="decimal" placeholder="0,00" class="input-config hidden" maxlength="6">
-            </div>
-        </div>
-    </div>
-
-    <!-- Botão global de salvar -->
-    <button type="button" class="btn btn-salvar-configs" id="btnSalvarConfigs" disabled>
+<section class="registrar configuracoes-high-level" id="configuracoes">
+<h2 class="titulo-sessao">Configurações</h2>
+<div class="config-groups">
+<div class="config-group">
+<button aria-controls="configGroupNegocio" aria-expanded="false" class="config-group-toggle" data-config-group="negocio" type="button">
+<span class="config-group-icon"><i aria-hidden="true" class="fas fa-briefcase"></i></span>
+<span class="config-group-copy">
+<strong>Configurações de negócio</strong>
+<small>Taxas, repasse e preços dos serviços</small>
+</span>
+<i aria-hidden="true" class="fas fa-chevron-down config-group-chevron"></i>
+</button>
+<div class="config-group-content" hidden="" id="configGroupNegocio">
+<!-- TAXAS E REPASSE -->
+<h3 class="config-section-title"><i class="fas fa-percentage"></i> Taxas e Repasse</h3>
+<div class="config-list">
+<div class="config-item" data-campo="taxaDebito" data-tipo="porcentagem">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-credit-card"></i></div>
+<div class="config-info">
+<span class="config-nome">Débito (%)</span>
+<span class="config-atual" id="lblAtualDebito">Atual: 1,50%</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="5" placeholder="0,00" type="text"/>
+</div>
+</div>
+<div class="config-item" data-campo="taxaCredito" data-tipo="porcentagem">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-credit-card"></i></div>
+<div class="config-info">
+<span class="config-nome">Crédito (%)</span>
+<span class="config-atual" id="lblAtualCredito">Atual: 3,51%</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="5" placeholder="0,00" type="text"/>
+</div>
+</div>
+<div class="config-item" data-campo="repasseDonoPct" data-tipo="porcentagem">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-user"></i></div>
+<div class="config-info">
+<span class="config-nome">Repasse Dono (%)</span>
+<span class="config-atual" id="lblAtualRepasse">Atual: 35%</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="5" placeholder="0" type="text"/>
+</div>
+</div>
+</div>
+<!-- PREÇOS DOS SERVIÇOS -->
+<h3 class="config-section-title config-precos-title"><i class="fas fa-tag"></i> Preços dos Serviços</h3>
+<div class="config-list">
+<div class="config-item" data-campo="Cabelo + Barba + Sobrancelha" data-tipo="moeda">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-cut"></i></div>
+<div class="config-info">
+<span class="config-nome">Cabelo + Barba + Sobrancelha</span>
+<span class="config-atual" id="labelAtualCombo3">Atual: R$ 110,00</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="6" placeholder="0,00" type="text"/>
+</div>
+</div>
+<div class="config-item" data-campo="Cabelo + Barba" data-tipo="moeda">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-cut"></i></div>
+<div class="config-info">
+<span class="config-nome">Cabelo + Barba</span>
+<span class="config-atual" id="labelAtualCombo2">Atual: R$ 105,00</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="6" placeholder="0,00" type="text"/>
+</div>
+</div>
+<div class="config-item" data-campo="Cabelo + Sobrancelha" data-tipo="moeda">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-cut"></i></div>
+<div class="config-info">
+<span class="config-nome">Cabelo + Sobrancelha</span>
+<span class="config-atual" id="labelAtualCabSob">Atual: R$ 75,00</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="6" placeholder="0,00" type="text"/>
+</div>
+</div>
+<div class="config-item" data-campo="Cabelo" data-tipo="moeda">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-cut"></i></div>
+<div class="config-info">
+<span class="config-nome">Cabelo</span>
+<span class="config-atual" id="labelAtualCabelo">Atual: R$ 60,00</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="6" placeholder="0,00" type="text"/>
+</div>
+</div>
+<div class="config-item" data-campo="Barba" data-tipo="moeda">
+<div class="config-item-left">
+<div class="config-icon"><i class="fas fa-cut"></i></div>
+<div class="config-info">
+<span class="config-nome">Barba</span>
+<span class="config-atual" id="labelAtualBarba">Atual: R$ 50,00</span>
+</div>
+</div>
+<div class="config-action">
+<button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button>
+<input class="input-config hidden" inputmode="decimal" maxlength="6" placeholder="0,00" type="text"/>
+</div>
+</div>
+</div>
+<!-- Botão global de salvar -->
+<button class="btn btn-salvar-configs" disabled="" id="btnSalvarConfigs" type="button">
         Salvar Alterações
     </button>
-            </div>
-        </div>
-
-        <div class="config-group">
-            <button
-                type="button"
-                class="config-group-toggle"
-                data-config-group="preferencias"
-                aria-expanded="false"
-                aria-controls="configGroupPreferencias"
-            >
-                <span class="config-group-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
-                <span class="config-group-copy">
-                    <strong>Preferências do aplicativo</strong>
-                    <small>Comportamento padrão no atendimento</small>
-                </span>
-                <i class="fas fa-chevron-down config-group-chevron" aria-hidden="true"></i>
-            </button>
-
-            <div id="configGroupPreferencias" class="config-group-content" hidden>
-                <div class="config-preference-card">
-                    <div class="config-preference-copy">
-                        <strong>Pagamento padrão</strong>
-                        <span>Pré-seleciona a forma de pagamento ao iniciar um novo atendimento.</span>
-                    </div>
-
-                    <div class="config-payment-options" id="pagamentoPadraoOptions" role="group" aria-label="Pagamento padrão">
-                        <button type="button" data-pagamento-padrao="nenhum">Nenhum</button>
-                        <button type="button" data-pagamento-padrao="Pix">Pix</button>
-                        <button type="button" data-pagamento-padrao="Dinheiro">Dinheiro</button>
-                        <button type="button" data-pagamento-padrao="Débito">Débito</button>
-                        <button type="button" data-pagamento-padrao="Crédito">Crédito</button>
-                    </div>
-
-                    <div id="pagamentoPadraoStatus" class="config-save-status" aria-live="polite"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="config-group">
-            <button
-                type="button"
-                class="config-group-toggle"
-                data-config-group="sobre"
-                aria-expanded="false"
-                aria-controls="configGroupSobre"
-            >
-                <span class="config-group-icon"><i class="fas fa-circle-info" aria-hidden="true"></i></span>
-                <span class="config-group-copy">
-                    <strong>Sobre e atualizações</strong>
-                    <small>Versão instalada e histórico de melhorias</small>
-                </span>
-                <i class="fas fa-chevron-down config-group-chevron" aria-hidden="true"></i>
-            </button>
-
-            <div id="configGroupSobre" class="config-group-content" hidden>
-                <div class="app-version-row">
-                    <div>
-                        <strong>Marlon Barber</strong>
-                        <span>Versão instalada</span>
-                    </div>
-                    <span id="appVersion" class="app-version-badge">v1.1.0</span>
-                </div>
-
-                <div class="update-history">
-                    <article class="update-history-item">
-                        <div class="update-history-head">
-                            <strong>v1.1.0</strong>
-                            <time datetime="2026-08-07">07/08/2026</time>
-                        </div>
-                        <p>Melhorias no registro rápido, observações, Histórico, filtros, tema automático e experiência mobile.</p>
-                    </article>
-
-                    <article class="update-history-item">
-                        <div class="update-history-head">
-                            <strong>v1.0.0</strong>
-                            <span>Base</span>
-                        </div>
-                        <p>Versão inicial do dashboard mobile com registro, Painel, Histórico, relatórios e configurações.</p>
-                    </article>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
+</div>
+<div class="config-group">
+<button aria-controls="configGroupPreferencias" aria-expanded="false" class="config-group-toggle" data-config-group="preferencias" type="button">
+<span class="config-group-icon"><i aria-hidden="true" class="fas fa-sliders"></i></span>
+<span class="config-group-copy">
+<strong>Preferências do aplicativo</strong>
+<small>Comportamento padrão no atendimento</small>
+</span>
+<i aria-hidden="true" class="fas fa-chevron-down config-group-chevron"></i>
+</button>
+<div class="config-group-content" hidden="" id="configGroupPreferencias">
+<div class="config-preference-card">
+<div class="config-preference-copy">
+<strong>Pagamento padrão</strong>
+<span>Pré-seleciona a forma de pagamento ao iniciar um novo atendimento.</span>
+</div>
+<div aria-label="Pagamento padrão" class="config-payment-options" id="pagamentoPadraoOptions" role="group">
+<button data-pagamento-padrao="nenhum" type="button">Nenhum</button>
+<button data-pagamento-padrao="Pix" type="button">Pix</button>
+<button data-pagamento-padrao="Dinheiro" type="button">Dinheiro</button>
+<button data-pagamento-padrao="Débito" type="button">Débito</button>
+<button data-pagamento-padrao="Crédito" type="button">Crédito</button>
+</div>
+<div aria-live="polite" class="config-save-status" id="pagamentoPadraoStatus"></div>
+</div>
+</div>
+</div>
+<div class="config-group">
+<button aria-controls="configGroupRetroativo" aria-expanded="false" class="config-group-toggle" data-config-group="retroativo" type="button">
+<span class="config-group-icon"><i aria-hidden="true" class="fas fa-calendar-plus"></i></span>
+<span class="config-group-copy">
+<strong>Atendimento retroativo</strong>
+<small>Registre um atendimento realizado em outra data</small>
+</span>
+<i aria-hidden="true" class="fas fa-chevron-down config-group-chevron"></i>
+</button>
+<div class="config-group-content" hidden="" id="configGroupRetroativo">
+<form class="retro-form" id="formAtendimentoRetroativo" novalidate="">
+<label class="retro-field">
+<span>Data</span>
+<input id="retroData" required="" type="date"/>
+</label>
+<label class="retro-field">
+<span>Serviço</span>
+<select id="retroServico" required="">
+<option value="">Selecione</option>
+<option value="Cabelo + Barba + Sobrancelha">Cabelo + Barba + Sobrancelha</option>
+<option value="Cabelo + Barba">Cabelo + Barba</option>
+<option value="Cabelo + Sobrancelha">Cabelo + Sobrancelha</option>
+<option value="Cabelo">Cabelo</option>
+<option value="Barba">Barba</option>
+</select>
+</label>
+<label class="retro-field">
+<span>Forma de pagamento</span>
+<select id="retroPagamento" required="">
+<option value="">Selecione</option>
+<option value="Pix">Pix</option>
+<option value="Dinheiro">Dinheiro</option>
+<option value="Débito">Débito</option>
+<option value="Crédito">Crédito</option>
+</select>
+</label>
+<div class="retro-toggle-row">
+<label for="retroValorDiferenciado">Aplicar Valor Diferenciado?</label>
+<label class="switch">
+<input id="retroValorDiferenciado" type="checkbox"/>
+<span class="slider round"></span>
+</label>
+</div>
+<div class="retro-conditional" hidden="" id="retroCampoValor">
+<label class="retro-field">
+<span>Valor do atendimento</span>
+<div class="retro-money-input"><span>R$</span><input autocomplete="off" id="retroValor" inputmode="numeric" placeholder="0,00" type="tel"/></div>
+</label>
+</div>
+<div class="retro-toggle-row">
+<label for="retroTemObservacao">Registrar Observação</label>
+<label class="switch">
+<input id="retroTemObservacao" type="checkbox"/>
+<span class="slider round"></span>
+</label>
+</div>
+<div class="retro-conditional" hidden="" id="retroCampoObservacao">
+<label class="retro-field">
+<span>Observação</span>
+<input autocomplete="off" id="retroObservacao" maxlength="160" placeholder="Ex.: desconto, cortesia, cliente antigo..." type="text"/>
+</label>
+</div>
+<button class="btn retro-submit" id="btnSalvarRetroativo" type="submit">Salvar Atendimento</button>
+<div aria-live="polite" class="config-save-status retro-status" id="retroStatus"></div>
+</form>
+</div>
+</div><div class="config-group">
+<button aria-controls="configGroupSobre" aria-expanded="false" class="config-group-toggle" data-config-group="sobre" type="button">
+<span class="config-group-icon"><i aria-hidden="true" class="fas fa-circle-info"></i></span>
+<span class="config-group-copy">
+<strong>Sobre e atualizações</strong>
+<small>Versão instalada e histórico de melhorias</small>
+</span>
+<i aria-hidden="true" class="fas fa-chevron-down config-group-chevron"></i>
+</button>
+<div class="config-group-content" hidden="" id="configGroupSobre">
+<div class="app-version-row">
+<div>
+<strong>Marlon Barber</strong>
+<span>Versão instalada</span>
+</div>
+<span class="app-version-badge" id="appVersion">v1.2.0</span>
+</div>
+<div class="update-history"><article class="update-version-item">
+<button aria-controls="updateDetails120" aria-expanded="false" class="update-version-toggle" type="button">
+<span class="update-version-title"><strong>v1.2.0</strong><span>07/08/2026</span></span>
+<i aria-hidden="true" class="fas fa-chevron-down"></i>
+</button>
+<div class="update-version-details" hidden="" id="updateDetails120">
+<p>Arquitetura modular, ambientes separados por barbearia/usuário, atendimento retroativo, histórico de versões expansível, filtros refinados e repetição do último atendimento integrada ao botão principal.</p>
+<ul><li>CSS e JavaScript reorganizados em módulos por responsabilidade.</li><li>Dados isolados por ambiente para testes e crescimento futuro.</li><li>Atendimento retroativo com as mesmas regras financeiras do registro normal.</li><li>Repetir último atendimento usa o próprio botão Registrar e nunca salva sozinho.</li><li>Filtros do Histórico com seleção visual personalizada.</li></ul></div>
+</article><article class="update-version-item">
+<button aria-controls="updateDetails110" aria-expanded="false" class="update-version-toggle" type="button">
+<span class="update-version-title"><strong>v1.1.0</strong><span>07/08/2026</span></span>
+<i aria-hidden="true" class="fas fa-chevron-down"></i>
+</button>
+<div class="update-version-details" hidden="" id="updateDetails110">
+<p>Melhorias no registro rápido, observações, Histórico, filtros, tema automático e experiência mobile.</p>
+<ul><li>Observações e edição no Histórico.</li><li>Tema Sistema, Claro e Escuro.</li><li>Filtros combinados e detalhes dos atendimentos.</li></ul></div>
+</article><article class="update-version-item">
+<button aria-controls="updateDetails100" aria-expanded="false" class="update-version-toggle" type="button">
+<span class="update-version-title"><strong>v1.0.0</strong><span>Base</span></span>
+<i aria-hidden="true" class="fas fa-chevron-down"></i>
+</button>
+<div class="update-version-details" hidden="" id="updateDetails100">
+<p>Versão inicial do dashboard mobile com registro, Painel, Histórico, relatórios e configurações.</p>
+</div>
+</article></div>
+</div>
+</div>
+</div>
 </section>
-    <!-- 6. MINHA CONTA -->
-    <section id="conta" class="registrar">
-        <h2 class="titulo-sessao">Minha Conta</h2>
-        <div class="conta-seguranca-desc">
+<!-- 6. MINHA CONTA -->
+<section class="registrar" id="conta">
+<h2 class="titulo-sessao">Minha Conta</h2>
+<div class="conta-seguranca-desc">
             Gerencie a segurança do seu aplicativo.
         </div>
-        
-        <form id="formAlterarSenha">
-            <div class="input-group">
-                <label class="label-servico">Senha Atual</label>
-                <input type="password" id="senhaAtual" placeholder="Digite sua senha atual" required>
-            </div>
-            <div class="input-group">
-                <label class="label-servico">Nova Senha</label>
-                <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" required>
-            </div>
-            <div class="input-group">
-                <label class="label-servico">Confirmar Nova Senha</label>
-                <input type="password" id="confirmaSenha" placeholder="Repita a nova senha" required>
-            </div>
-            
-            <button type="submit" class="btn" id="btnSalvarSenha">Atualizar Senha</button>
-        </form>
-    </section>
-
-    <!-- Modal exclusão -->
-    <div id="modalConfirm" class="modal-confirm">
-        <div class="modal-box">
-            <h3>Confirmar exclusão</h3>
-            <p id="modalDescricao">Você tem certeza?</p>
-            <div class="modal-actions">
-                <button type="button" id="btnCancelar">Cancelar</button>
-                <button type="button" id="btnConfirmar">Sim, excluir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtros avançados do Histórico -->
-    <div id="modalFiltrosHistorico" class="historico-filter-overlay" aria-hidden="true">
-        <div class="historico-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="tituloFiltrosHistorico">
-            <div class="historico-filter-header">
-                <div>
-                    <h3 id="tituloFiltrosHistorico">Filtros</h3>
-                    <p>Combine os filtros sem poluir a lista.</p>
-                </div>
-                <button type="button" id="btnFecharFiltrosHistorico" class="historico-filter-close" aria-label="Fechar filtros">
-                    <i class="fas fa-xmark" aria-hidden="true"></i>
-                </button>
-            </div>
-
-            <div class="historico-filter-body">
-                <div class="historico-filter-group">
-                    <span class="historico-filter-title">Serviço</span>
-                    <div class="historico-service-filter" role="group" aria-label="Filtrar por serviço">
-                        <button type="button" data-historico-servico="todos">Todos</button>
-                        <button type="button" data-historico-servico="cabelo">Cabelo</button>
-                        <button type="button" data-historico-servico="barba">Barba</button>
-                        <button type="button" data-historico-servico="combos">Combos</button>
-                    </div>
-                </div>
-
-                <label class="historico-filter-check">
-                    <span>Somente registros editados</span>
-                    <input type="checkbox" id="filtroHistoricoEditados">
-                </label>
-
-                <label class="historico-filter-check">
-                    <span>Somente valores ajustados</span>
-                    <input type="checkbox" id="filtroHistoricoAjustados">
-                </label>
-            </div>
-
-            <div class="historico-filter-actions">
-                <button type="button" id="btnLimparFiltrosHistorico" class="historico-filter-clear">Limpar filtros</button>
-                <button type="button" id="btnAplicarFiltrosHistorico" class="historico-filter-apply">Aplicar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Detalhes sobrepostos do atendimento -->
-    <div id="historicoDetalheOverlay" class="historico-detalhe-overlay" aria-hidden="true">
-        <article class="historico-detalhe-card" role="dialog" aria-modal="true" aria-labelledby="historicoDetalheTitulo">
-            <button type="button" id="btnFecharDetalheHistorico" class="historico-detalhe-close" aria-label="Fechar detalhes">
-                <i class="fas fa-xmark" aria-hidden="true"></i>
-            </button>
-            <div id="historicoDetalheConteudo"></div>
-        </article>
-    </div>
-
-    <!-- Modal editar atendimento -->
-    <div id="modalEditarHistorico" class="modal-confirm historico-edit-modal" aria-hidden="true">
-        <div class="modal-box historico-edit-box">
-            <div class="historico-edit-header">
-                <div>
-                    <h3>Editar atendimento</h3>
-                    <p>Corrija serviço, valor, pagamento ou observação.</p>
-                </div>
-
-                <button
-                    type="button"
-                    id="btnFecharEdicaoHistorico"
-                    class="historico-edit-close"
-                    aria-label="Fechar edição"
-                >
-                    <i class="fas fa-xmark" aria-hidden="true"></i>
-                </button>
-            </div>
-
-            <div class="historico-edit-fields">
-                <label class="historico-edit-field">
-                    <span>Serviço</span>
-                    <select id="editServicoHistorico">
-                        <option value="Cabelo + Barba + Sobrancelha">Cabelo + Barba + Sobrancelha</option>
-                        <option value="Cabelo + Barba">Cabelo + Barba</option>
-                        <option value="Cabelo + Sobrancelha">Cabelo + Sobrancelha</option>
-                        <option value="Cabelo">Cabelo</option>
-                        <option value="Barba">Barba</option>
-                    </select>
-                </label>
-
-                <label class="historico-edit-field">
-                    <span>Valor</span>
-                    <div class="historico-edit-money">
-                        <span>R$</span>
-                        <input
-                            type="tel"
-                            inputmode="numeric"
-                            id="editValorHistorico"
-                            autocomplete="off"
-                            placeholder="0,00"
-                        >
-                    </div>
-                </label>
-
-                <label class="historico-edit-field">
-                    <span>Pagamento</span>
-                    <select id="editPagamentoHistorico">
-                        <option value="Pix">Pix</option>
-                        <option value="Dinheiro">Dinheiro</option>
-                        <option value="Débito">Débito</option>
-                        <option value="Crédito">Crédito</option>
-                    </select>
-                </label>
-
-                <label class="historico-edit-field">
-                    <span>Observação</span>
-                    <input
-                        type="text"
-                        id="editObservacaoHistorico"
-                        maxlength="160"
-                        autocomplete="off"
-                        placeholder="Ex.: desconto, cortesia, cliente antigo..."
-                    >
-                </label>
-            </div>
-
-            <div class="modal-actions historico-edit-actions">
-                <button type="button" id="btnCancelarEdicaoHistorico">Cancelar</button>
-                <button type="button" id="btnSalvarEdicaoHistorico">Salvar</button>
-            </div>
-        </div>
-    </div>
-
-<div id="financeInfoTooltip" class="finance-info-tooltip" hidden></div>
+<form id="formAlterarSenha">
+<div class="input-group">
+<label class="label-servico">Senha Atual</label>
+<input id="senhaAtual" placeholder="Digite sua senha atual" required="" type="password"/>
+</div>
+<div class="input-group">
+<label class="label-servico">Nova Senha</label>
+<input id="novaSenha" placeholder="Mínimo 6 caracteres" required="" type="password"/>
+</div>
+<div class="input-group">
+<label class="label-servico">Confirmar Nova Senha</label>
+<input id="confirmaSenha" placeholder="Repita a nova senha" required="" type="password"/>
+</div>
+<button class="btn" id="btnSalvarSenha" type="submit">Atualizar Senha</button>
+</form>
+</section>
+<!-- Modal exclusão -->
+<div class="modal-confirm" id="modalConfirm">
+<div class="modal-box">
+<h3>Confirmar exclusão</h3>
+<p id="modalDescricao">Você tem certeza?</p>
+<div class="modal-actions">
+<button id="btnCancelar" type="button">Cancelar</button>
+<button id="btnConfirmar" type="button">Sim, excluir</button>
+</div>
+</div>
+</div>
+<!-- Filtros avançados do Histórico -->
+<div aria-hidden="true" class="historico-filter-overlay" id="modalFiltrosHistorico">
+<div aria-labelledby="tituloFiltrosHistorico" aria-modal="true" class="historico-filter-sheet" role="dialog">
+<div class="historico-filter-header">
+<div>
+<h3 id="tituloFiltrosHistorico">Filtros</h3>
+<p>Combine os filtros sem poluir a lista.</p>
+</div>
+<button aria-label="Fechar filtros" class="historico-filter-close" id="btnFecharFiltrosHistorico" type="button">
+<i aria-hidden="true" class="fas fa-xmark"></i>
+</button>
+</div>
+<div class="historico-filter-body">
+<div class="historico-filter-group">
+<span class="historico-filter-title">Serviço</span>
+<div aria-label="Filtrar por serviço" class="historico-service-filter" role="group">
+<button data-historico-servico="todos" type="button">Todos</button>
+<button data-historico-servico="cabelo" type="button">Cabelo</button>
+<button data-historico-servico="barba" type="button">Barba</button>
+<button data-historico-servico="combos" type="button">Combos</button>
+</div>
+</div>
+<label class="historico-filter-check"><input class="historico-filter-check-input" id="filtroHistoricoEditados" type="checkbox"/><span aria-hidden="true" class="historico-filter-check-mark"><i class="fas fa-check"></i></span><span class="historico-filter-check-copy">Somente registros editados</span></label>
+<label class="historico-filter-check"><input class="historico-filter-check-input" id="filtroHistoricoAjustados" type="checkbox"/><span aria-hidden="true" class="historico-filter-check-mark"><i class="fas fa-check"></i></span><span class="historico-filter-check-copy">Somente valores ajustados</span></label>
+</div>
+<div class="historico-filter-actions">
+<button class="historico-filter-clear" id="btnLimparFiltrosHistorico" type="button">Limpar filtros</button>
+<button class="historico-filter-apply" id="btnAplicarFiltrosHistorico" type="button">Aplicar</button>
+</div>
+</div>
+</div>
+<!-- Detalhes sobrepostos do atendimento -->
+<div aria-hidden="true" class="historico-detalhe-overlay" id="historicoDetalheOverlay">
+<article aria-labelledby="historicoDetalheTitulo" aria-modal="true" class="historico-detalhe-card" role="dialog">
+<button aria-label="Fechar detalhes" class="historico-detalhe-close" id="btnFecharDetalheHistorico" type="button">
+<i aria-hidden="true" class="fas fa-xmark"></i>
+</button>
+<div id="historicoDetalheConteudo"></div>
+</article>
+</div>
+<!-- Modal editar atendimento -->
+<div aria-hidden="true" class="modal-confirm historico-edit-modal" id="modalEditarHistorico">
+<div class="modal-box historico-edit-box">
+<div class="historico-edit-header">
+<div>
+<h3>Editar atendimento</h3>
+<p>Corrija serviço, valor, pagamento ou observação.</p>
+</div>
+<button aria-label="Fechar edição" class="historico-edit-close" id="btnFecharEdicaoHistorico" type="button">
+<i aria-hidden="true" class="fas fa-xmark"></i>
+</button>
+</div>
+<div class="historico-edit-fields">
+<label class="historico-edit-field">
+<span>Serviço</span>
+<select id="editServicoHistorico">
+<option value="Cabelo + Barba + Sobrancelha">Cabelo + Barba + Sobrancelha</option>
+<option value="Cabelo + Barba">Cabelo + Barba</option>
+<option value="Cabelo + Sobrancelha">Cabelo + Sobrancelha</option>
+<option value="Cabelo">Cabelo</option>
+<option value="Barba">Barba</option>
+</select>
+</label>
+<label class="historico-edit-field">
+<span>Valor</span>
+<div class="historico-edit-money">
+<span>R$</span>
+<input autocomplete="off" id="editValorHistorico" inputmode="numeric" placeholder="0,00" type="tel"/>
+</div>
+</label>
+<label class="historico-edit-field">
+<span>Pagamento</span>
+<select id="editPagamentoHistorico">
+<option value="Pix">Pix</option>
+<option value="Dinheiro">Dinheiro</option>
+<option value="Débito">Débito</option>
+<option value="Crédito">Crédito</option>
+</select>
+</label>
+<label class="historico-edit-field">
+<span>Observação</span>
+<input autocomplete="off" id="editObservacaoHistorico" maxlength="160" placeholder="Ex.: desconto, cortesia, cliente antigo..." type="text"/>
+</label>
+</div>
+<div class="modal-actions historico-edit-actions">
+<button id="btnCancelarEdicaoHistorico" type="button">Cancelar</button>
+<button id="btnSalvarEdicaoHistorico" type="button">Salvar</button>
+</div>
+</div>
+</div>
+<div class="finance-info-tooltip" hidden="" id="financeInfoTooltip"></div>
 </main>
-
-<nav class="bottom-nav" aria-label="Navegação principal">
-    <a href="#registrar" class="bottom-nav-item active" data-nav-target="registrar" aria-current="page">
-        <i class="fas fa-house"></i>
-        <span>Início</span>
-    </a>
-    <a href="#painelFinanceiro" class="bottom-nav-item" data-nav-target="painelFinanceiro">
-        <i class="fas fa-chart-line"></i>
-        <span>Painel</span>
-    </a>
-    <a href="#historico" class="bottom-nav-item" data-nav-target="historico">
-        <i class="fas fa-clock-rotate-left"></i>
-        <span>Histórico</span>
-    </a>
-    <a href="#relatorios" class="bottom-nav-item" data-nav-target="relatorios">
-        <i class="fas fa-file-lines"></i>
-        <span>Relatório</span>
-    </a>
-    <button type="button" id="menuToggle" class="bottom-nav-item bottom-nav-menu" aria-label="Abrir menu" aria-expanded="false">
-        <i class="fas fa-bars"></i>
-        <span>Menu</span>
-    </button>
+<nav aria-label="Navegação principal" class="bottom-nav">
+<a aria-current="page" class="bottom-nav-item active" data-nav-target="registrar" href="#registrar">
+<i class="fas fa-house"></i>
+<span>Início</span>
+</a>
+<a class="bottom-nav-item" data-nav-target="painelFinanceiro" href="#painelFinanceiro">
+<i class="fas fa-chart-line"></i>
+<span>Painel</span>
+</a>
+<a class="bottom-nav-item" data-nav-target="historico" href="#historico">
+<i class="fas fa-clock-rotate-left"></i>
+<span>Histórico</span>
+</a>
+<a class="bottom-nav-item" data-nav-target="relatorios" href="#relatorios">
+<i class="fas fa-file-lines"></i>
+<span>Relatório</span>
+</a>
+<button aria-expanded="false" aria-label="Abrir menu" class="bottom-nav-item bottom-nav-menu" id="menuToggle" type="button">
+<i class="fas fa-bars"></i>
+<span>Menu</span>
+</button>
 </nav>
-
-<script type="module" src="js/dashboard/index.js?v=3.0"></script>
+<script src="js/dashboard/index.js?v=4.0" type="module"></script>
 </body>
 </html>

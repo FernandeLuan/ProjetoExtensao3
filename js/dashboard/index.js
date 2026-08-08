@@ -1,2 +1,2 @@
-// Ponto de entrada do dashboard.
-import "./ui.js?v=3.0";
+// Ponto de entrada único do dashboard.
+import "./app.js?v=4.0";

@@ -1,5 +1,8 @@
-import { state } from "./state.js";
-import { formatarMoeda, formatarDataISO } from "./utils.js";
+import { state, onStateChange } from "./state.js?v=4.0";
+import { formatarMoeda } from "./utils/money.js?v=4.0";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=4.0";
+import { abrirSeletorData, setTexto } from "./utils/dom.js?v=4.0";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=4.0";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -10,83 +13,8 @@ const btnCalendarioPainel = document.getElementById("btnCalendarioPainel");
 const inputDataPainel = document.getElementById("inputDataPainel");
 
 // =============================
-// CÁLCULOS FINANCEIROS
+// NAVEGAÇÃO DE DATA
 // =============================
-export function processarFinanceiro(valorBruto, pagamento) {
-    const taxaDebito = (state.configSistema.taxaDebito ?? 1.5) / 100;
-    const taxaCredito = (state.configSistema.taxaCredito ?? 3.51) / 100;
-    const repassePct = (state.configSistema.repasseDonoPct ?? 35) / 100;
-
-    let liquidoConta = valorBruto;
-
-    if (pagamento === "Débito") {
-        liquidoConta -= valorBruto * taxaDebito;
-    } else if (pagamento === "Crédito") {
-        liquidoConta -= valorBruto * taxaCredito;
-    }
-
-    const repasseDono = liquidoConta * repassePct;
-    const liquidoBarbeiro = liquidoConta - repasseDono;
-
-    return {
-        liquidoConta: Number(liquidoConta.toFixed(2)),
-        repasseDono: Number(repasseDono.toFixed(2)),
-        liquidoBarbeiro: Number(liquidoBarbeiro.toFixed(2))
-    };
-}
-
-// =============================
-// DATA DO PAINEL
-// =============================
-function inicioDoDia(data) {
-    const resultado = new Date(data);
-    resultado.setHours(0, 0, 0, 0);
-    return resultado;
-}
-
-function somarDias(data, quantidade) {
-    const resultado = inicioDoDia(data);
-    resultado.setDate(resultado.getDate() + quantidade);
-    return resultado;
-}
-
-function chaveData(data) {
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const dia = String(data.getDate()).padStart(2, "0");
-    return `${ano}-${mes}-${dia}`;
-}
-
-function mesmoDia(dataA, dataB) {
-    return chaveData(dataA) === chaveData(dataB);
-}
-
-function formatarTituloData(data) {
-    const hoje = inicioDoDia(new Date());
-    const dia = String(data.getDate()).padStart(2, "0");
-    const mes = data.toLocaleDateString("pt-BR", { month: "long" });
-
-    if (mesmoDia(data, hoje)) {
-        return `Hoje • ${dia} de ${mes}`;
-    }
-
-    return `${dia} de ${mes} de ${data.getFullYear()}`;
-}
-
-function abrirCalendario(input) {
-    if (!input) return;
-
-    try {
-        if (typeof input.showPicker === "function") {
-            input.showPicker();
-        } else {
-            input.click();
-        }
-    } catch (error) {
-        input.click();
-    }
-}
-
 function atualizarNavegadorData() {
     const label = document.getElementById("labelDataPainel");
     const btnProxima = document.getElementById("btnDataProxima");
@@ -133,89 +61,19 @@ document.getElementById("btnDataProxima")?.addEventListener("click", () => {
 });
 
 btnCalendarioPainel?.addEventListener("click", () => {
-    abrirCalendario(inputDataPainel);
+    abrirSeletorData(inputDataPainel);
 });
 
 inputDataPainel?.addEventListener("change", () => {
     if (!inputDataPainel.value) return;
 
-    const [ano, mes, dia] = inputDataPainel.value.split("-").map(Number);
-    selecionarData(new Date(ano, mes - 1, dia));
+    const data = dataDeInput(inputDataPainel.value);
+    if (data) selecionarData(data);
 });
-
-// =============================
-// RESUMO DE UM DIA
-// =============================
-function obterAtendimentosDoDia(data) {
-    const chave = chaveData(data);
-
-    return state.atendimentos.filter((atendimento) => {
-        const dataAtendimento = new Date(atendimento.data);
-        return chaveData(dataAtendimento) === chave;
-    });
-}
-
-function obterResumoDoDia(data) {
-    const lista = obterAtendimentosDoDia(data);
-    let faturamentoBruto = 0;
-    let totalRepasse = 0;
-    let lucroBarbeiro = 0;
-    const servicos = {};
-
-    lista.forEach((atendimento) => {
-        const bruto = Number(atendimento.valorBrutoTotal ?? atendimento.valorBruto ?? 0);
-        const liquidoConta = Number(atendimento.valorLiquido ?? bruto);
-        const repasse = Number(atendimento.repasseDono ?? 0);
-        const lucro = Number(atendimento.liquidoBarbeiro ?? (liquidoConta - repasse));
-
-        faturamentoBruto += bruto;
-        totalRepasse += repasse;
-        lucroBarbeiro += lucro;
-
-        if (atendimento.servico) {
-            servicos[atendimento.servico] = (servicos[atendimento.servico] ?? 0) + 1;
-        }
-    });
-
-    const totalAtendimentos = lista.length;
-    const ticketMedio = totalAtendimentos > 0
-        ? faturamentoBruto / totalAtendimentos
-        : 0;
-
-    let servicoMaisVendido = "—";
-    let quantidadeMaisVendida = 0;
-
-    Object.entries(servicos).forEach(([servico, quantidade]) => {
-        if (quantidade > quantidadeMaisVendida) {
-            servicoMaisVendido = servico;
-            quantidadeMaisVendida = quantidade;
-        }
-    });
-
-    const percentualMaisVendido = totalAtendimentos > 0
-        ? Math.round((quantidadeMaisVendida / totalAtendimentos) * 100)
-        : 0;
-
-    return {
-        faturamentoBruto,
-        totalRepasse,
-        lucroBarbeiro,
-        totalAtendimentos,
-        ticketMedio,
-        servicoMaisVendido,
-        quantidadeMaisVendida,
-        percentualMaisVendido
-    };
-}
 
 // =============================
 // PAINEL FINANCEIRO
 // =============================
-function setTexto(id, texto) {
-    const elemento = document.getElementById(id);
-    if (elemento) elemento.textContent = texto;
-}
-
 function atualizarComparativo(resumoAtual, resumoAnterior) {
     const comparativo = document.getElementById("comparativoLucro");
     if (!comparativo) return;
@@ -276,8 +134,8 @@ if (variacao > 0) {
 export function atualizarCards() {
     atualizarNavegadorData();
 
-    const resumoAtual = obterResumoDoDia(dataSelecionada);
-    const resumoAnterior = obterResumoDoDia(somarDias(dataSelecionada, -1));
+    const resumoAtual = obterResumoDoDia(state.atendimentos, dataSelecionada);
+    const resumoAnterior = obterResumoDoDia(state.atendimentos, somarDias(dataSelecionada, -1));
 
     setTexto("lucroLiquidoPainel", `R$ ${formatarMoeda(resumoAtual.lucroBarbeiro)}`);
     setTexto("faturamentoBrutoPainel", `R$ ${formatarMoeda(resumoAtual.faturamentoBruto)}`);
@@ -309,7 +167,7 @@ function obterSerieSeteDias() {
 
     for (let deslocamento = 6; deslocamento >= 0; deslocamento--) {
         const data = somarDias(dataSelecionada, -deslocamento);
-        const resumo = obterResumoDoDia(data);
+        const resumo = obterResumoDoDia(state.atendimentos, data);
 
         serie.push({
             label: `${String(data.getDate()).padStart(2, "0")}/${String(data.getMonth() + 1).padStart(2, "0")}`,
@@ -653,45 +511,8 @@ graficoAtendimentosInstance = criarSparklineBarras(
 }
 
 // =============================
-// RELATÓRIOS - BOTÕES DE PERÍODO
+// TOOLTIP DE INFORMAÇÕES
 // =============================
-function setDatasRelatorio(tipo) {
-    document.querySelectorAll("#relatorios .btn-filtro").forEach((btn) => btn.classList.remove("active"));
-
-    if (tipo === "hoje") document.getElementById("btnRelHoje")?.classList.add("active");
-    if (tipo === "semana") document.getElementById("btnRelSemana")?.classList.add("active");
-    if (tipo === "mes") document.getElementById("btnRelMes")?.classList.add("active");
-
-    const inputInicio = document.getElementById("dataInicioRelatorio");
-    const inputFim = document.getElementById("dataFimRelatorio");
-    const hoje = new Date();
-
-    if (tipo === "hoje") {
-        const dataStr = formatarDataISO(hoje);
-        if (inputInicio) inputInicio.value = dataStr;
-        if (inputFim) inputFim.value = dataStr;
-    } else if (tipo === "semana") {
-        const diaSemana = hoje.getDay();
-        const diffInicio = hoje.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
-        const inicioSemana = new Date(hoje);
-        inicioSemana.setDate(diffInicio);
-        const fimSemana = new Date(inicioSemana);
-        fimSemana.setDate(inicioSemana.getDate() + 6);
-
-        if (inputInicio) inputInicio.value = formatarDataISO(inicioSemana);
-        if (inputFim) inputFim.value = formatarDataISO(fimSemana);
-    } else if (tipo === "mes") {
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-        if (inputInicio) inputInicio.value = formatarDataISO(inicioMes);
-        if (inputFim) inputFim.value = formatarDataISO(fimMes);
-    }
-}
-
-document.getElementById("btnRelHoje")?.addEventListener("click", () => setDatasRelatorio("hoje"));
-document.getElementById("btnRelSemana")?.addEventListener("click", () => setDatasRelatorio("semana"));
-document.getElementById("btnRelMes")?.addEventListener("click", () => setDatasRelatorio("mes"));
-
 const financeInfoTooltip = document.getElementById("financeInfoTooltip");
 
 let financeInfoTimer = null;
@@ -754,3 +575,6 @@ document.querySelectorAll(".finance-info-btn").forEach((btn) => {
 });
 
 document.addEventListener("click", esconderFinanceInfo);
+
+onStateChange("atendimentos", () => atualizarCards());
+onStateChange("configSistema", () => atualizarCards());

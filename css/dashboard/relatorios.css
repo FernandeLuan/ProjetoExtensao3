@@ -1,0 +1,63 @@
+/* ========== FILTROS ========== */
+.filtros-periodo {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.btn-filtro {
+    flex: 1;
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
+    padding: 11px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.btn-filtro.active {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+
+.relatorios-periodo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.relatorios-filtros,
+.sem-margem {
+    margin-bottom: 0;
+}
+
+.export-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-export {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.btn-export-excel {
+    background: rgba(33, 115, 70, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.btn-export-pdf {
+    background: rgba(211, 47, 47, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+}
+

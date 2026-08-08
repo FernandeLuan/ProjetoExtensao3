@@ -1,0 +1,69 @@
+/* Balão de conexão */
+.connection-status {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    z-index: 12000;
+    max-width: calc(100vw - 28px);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-card);
+    color: var(--text);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.16);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translate(-50%, -12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.connection-status[hidden] {
+    display: none;
+}
+
+.connection-status.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.connection-status.offline i {
+    color: var(--danger);
+}
+
+.connection-status.online i {
+    color: var(--success);
+}
+
+
+/* Feedback centralizado */
+.app-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    z-index: 13000;
+    max-width: calc(100vw - 28px);
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-card);
+    color: var(--text);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+    transform: translate(-50%, 10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.app-toast.error { border-color: rgba(239,68,68,.24); color: var(--danger); }
+.app-toast.success { border-color: rgba(34,197,94,.24); color: var(--success); }

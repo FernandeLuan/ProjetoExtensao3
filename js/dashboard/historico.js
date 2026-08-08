@@ -1,17 +1,11 @@
-import { db } from "../firebase-init.js";
-
-import {
-    collection,
-    getDocs,
-    deleteDoc,
-    updateDoc,
-    serverTimestamp,
-    doc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-import { state } from "./state.js";
-import { atualizarCards, processarFinanceiro } from "./financeiro.js";
-
+import { state, onStateChange } from "./state.js?v=4.0";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=4.0";
+import { recarregarAtendimentos } from "./data/sync.js?v=4.0";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=4.0";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=4.0";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=4.0";
+import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=4.0";
+import { mostrarErro } from "./services/feedback-service.js?v=4.0";
 
 // =============================
 // ELEMENTOS
@@ -71,151 +65,29 @@ let atendimentoDetalheAtual = null;
 
 
 // =============================
-// UTILITÁRIOS
+// UTILITÁRIOS DO HISTÓRICO
 // =============================
-function inicioDoDia(data) {
-    const resultado = new Date(data);
-    resultado.setHours(0, 0, 0, 0);
-    return resultado;
-}
-
-function somarDias(data, quantidade) {
-    const resultado = inicioDoDia(data);
-    resultado.setDate(resultado.getDate() + quantidade);
-    return resultado;
-}
-
-function chaveData(data) {
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const dia = String(data.getDate()).padStart(2, "0");
-    return `${ano}-${mes}-${dia}`;
-}
-
-function mesmoDia(dataA, dataB) {
-    return chaveData(dataA) === chaveData(dataB);
-}
-
-function formatarTituloData(data) {
-    const hoje = inicioDoDia(new Date());
-    const dia = String(data.getDate()).padStart(2, "0");
-    const mes = data.toLocaleDateString("pt-BR", { month: "long" });
-
-    if (mesmoDia(data, hoje)) {
-        return `Hoje • ${dia} de ${mes}`;
-    }
-
-    return `${dia} de ${mes} de ${data.getFullYear()}`;
-}
-
-function formatarMoedaHistorico(valor) {
-    return Number(valor || 0).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-function converterMoedaHistorico(valor) {
-    if (!valor) return 0;
-
-    const normalizado = valor
-        .toString()
-        .trim()
-        .replace(/\./g, "")
-        .replace(",", ".");
-
-    return Number(normalizado) || 0;
-}
-
-function aplicarMascaraMoedaHistorico(input) {
-    if (!input) return;
-
-    let digitos = input.value.replace(/\D/g, "");
-
-    if (!digitos) {
-        input.value = "";
-        return;
-    }
-
-    const numero = Number(digitos) / 100;
-
-    input.value = numero.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-function escaparHtml(valor) {
-    return String(valor ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
 function normalizarPagamento(pagamento) {
     return String(pagamento || "").trim().toLowerCase();
 }
 
 function obterBruto(atendimento) {
-    return Number(
-        atendimento.valorBrutoTotal ??
-        atendimento.valorBruto ??
-        atendimento.valorServicoBruto ??
-        0
-    );
+    return Number(atendimento.valorBrutoTotal ?? atendimento.valorBruto ?? atendimento.valorServicoBruto ?? 0);
 }
 
 function atendimentoTemValorAjustado(atendimento, bruto = obterBruto(atendimento)) {
     if (atendimento.valorDiferenciado === true) return true;
     if (atendimento.valorDiferenciado === false) return false;
-
     const precoPadrao = Number(state.configSistema.precos?.[atendimento.servico]);
-
-    if (!Number.isFinite(precoPadrao) || precoPadrao <= 0) {
-        return false;
-    }
-
-    return Math.abs(Number(bruto) - precoPadrao) > 0.009;
+    return Number.isFinite(precoPadrao) && precoPadrao > 0
+        ? Math.abs(Number(bruto) - precoPadrao) > 0.009
+        : false;
 }
 
-function dataDoCampo(valor) {
-    if (!valor) return null;
-
-    if (typeof valor.toDate === "function") {
-        return valor.toDate();
-    }
-
-    const data = valor instanceof Date ? valor : new Date(valor);
-    return Number.isNaN(data.getTime()) ? null : data;
-}
-
-function formatarDataHoraEdicao(valor) {
-    const data = dataDoCampo(valor);
-    if (!data) return "Data da edição indisponível";
-
-    const dataFormatada = data.toLocaleDateString("pt-BR");
-    const hora = data.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-
-    return `${dataFormatada} às ${hora}`;
-}
-
-function abrirCalendario(input) {
-    if (!input) return;
-
-    try {
-        if (typeof input.showPicker === "function") {
-            input.showPicker();
-        } else {
-            input.click();
-        }
-    } catch (error) {
-        input.click();
-    }
+function obterRotuloHora(atendimento) {
+    if (atendimento.retroativo === true && atendimento.horaInformada === false) return "Retroativo";
+    const data = obterDataAtendimento(atendimento);
+    return data ? data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
 }
 
 function obterDadosPagamento(pagamento) {
@@ -283,14 +155,14 @@ btnHistoricoProxima?.addEventListener("click", () => {
 });
 
 btnCalendarioHistorico?.addEventListener("click", () => {
-    abrirCalendario(inputDataHistorico);
+    abrirSeletorData(inputDataHistorico);
 });
 
 inputDataHistorico?.addEventListener("change", () => {
     if (!inputDataHistorico.value) return;
 
-    const [ano, mes, dia] = inputDataHistorico.value.split("-").map(Number);
-    selecionarDataHistorico(new Date(ano, mes - 1, dia));
+    const data = dataDeInput(inputDataHistorico.value);
+    if (data) selecionarDataHistorico(data);
 });
 
 
@@ -457,30 +329,6 @@ atualizarFiltroAtivo();
 
 
 // =============================
-// BANCO DE DADOS
-// =============================
-export async function carregarAtendimentos() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "atendimentos"));
-
-        state.atendimentos = [];
-
-        querySnapshot.forEach((documento) => {
-            state.atendimentos.push({
-                id: documento.id,
-                ...documento.data()
-            });
-        });
-
-        atualizarHistorico();
-        atualizarCards();
-    } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-    }
-}
-
-
-// =============================
 // HISTÓRICO
 // =============================
 export function atualizarHistorico() {
@@ -493,15 +341,11 @@ export function atualizarHistorico() {
     const chaveSelecionada = chaveData(dataHistoricoSelecionada);
 
     const listaDia = state.atendimentos.filter((atendimento) => {
-        if (!atendimento.data) return false;
-
-        const dataAtendimento = new Date(atendimento.data);
-        if (Number.isNaN(dataAtendimento.getTime())) return false;
-
-        return chaveData(dataAtendimento) === chaveSelecionada;
+        const dataAtendimento = obterDataAtendimento(atendimento);
+        return dataAtendimento && chaveData(dataAtendimento) === chaveSelecionada;
     });
 
-    listaDia.sort((a, b) => new Date(b.data) - new Date(a.data));
+    listaDia.sort((a, b) => obterDataAtendimento(b) - obterDataAtendimento(a));
 
     if (listaDia.length === 0) {
         const hoje = inicioDoDia(new Date());
@@ -532,17 +376,14 @@ export function atualizarHistorico() {
         const bruto = obterBruto(atendimento);
         const liquido = Number(atendimento.valorLiquido ?? 0);
 
-        const hora = new Date(atendimento.data).toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
+        const hora = obterRotuloHora(atendimento);
 
         const pagamento = atendimento.pagamento || "—";
         const dadosPagamento = obterDadosPagamento(pagamento);
         const valorAjustado = atendimentoTemValorAjustado(atendimento, bruto);
         const editado = atendimento.editado === true;
         const observacao = String(atendimento.observacao || "").trim();
-        const temDetalhes = Boolean(observacao || editado || valorAjustado);
+        const temDetalhes = Boolean(observacao || editado || valorAjustado || atendimento.retroativo);
 
         const card = document.createElement("article");
         card.className = "historico-card";
@@ -598,11 +439,11 @@ export function atualizarHistorico() {
             <div class="hist-right">
                 <div class="hist-valores">
                     <span class="hist-bruto">
-                        R$ ${formatarMoedaHistorico(bruto)}
+                        R$ ${formatarMoeda(bruto)}
                     </span>
 
                     <span class="hist-liquido">
-                        Líq. R$ ${formatarMoedaHistorico(liquido)}
+                        Líq. R$ ${formatarMoeda(liquido)}
                     </span>
                 </div>
 
@@ -660,16 +501,13 @@ function abrirDetalheHistorico(atendimento) {
     const valorAjustado = atendimentoTemValorAjustado(atendimento, bruto);
     const editado = atendimento.editado === true;
     const pagamento = atendimento.pagamento || "—";
-    const hora = new Date(atendimento.data).toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
+    const hora = obterRotuloHora(atendimento);
 
     historicoDetalheConteudo.innerHTML = `
         <div class="historico-detalhe-title">
             <span>Atendimento</span>
             <h3 id="historicoDetalheTitulo">${escaparHtml(atendimento.servico || "Atendimento")}</h3>
-            <strong class="historico-detalhe-value">R$ ${formatarMoedaHistorico(bruto)}</strong>
+            <strong class="historico-detalhe-value">R$ ${formatarMoeda(bruto)}</strong>
         </div>
 
         <div class="historico-detalhe-meta">
@@ -679,7 +517,7 @@ function abrirDetalheHistorico(atendimento) {
             ${editado ? `<span class="hist-editado"><i class="fas fa-pen" aria-hidden="true"></i> Editado</span>` : ""}
         </div>
 
-        ${(observacao || editado) ? '<div class="historico-detalhe-divider"></div>' : ""}
+        ${(observacao || editado || atendimento.retroativo) ? '<div class="historico-detalhe-divider"></div>' : ""}
 
         ${observacao ? `
             <div class="historico-detalhe-block">
@@ -688,10 +526,17 @@ function abrirDetalheHistorico(atendimento) {
             </div>
         ` : ""}
 
+        ${atendimento.retroativo ? `
+            <div class="historico-detalhe-block">
+                <span>Registro</span>
+                <p>Atendimento inserido retroativamente para a data selecionada.</p>
+            </div>
+        ` : ""}
+
         ${editado ? `
             <div class="historico-detalhe-block">
                 <span>Última edição</span>
-                <p class="historico-detalhe-editado">${escaparHtml(formatarDataHoraEdicao(atendimento.editadoEm))}</p>
+                <p class="historico-detalhe-editado">${escaparHtml(formatarDataHora(atendimento.editadoEm))}</p>
             </div>
         ` : ""}
     `;
@@ -732,7 +577,7 @@ function abrirModalEdicao(atendimento, bruto) {
     }
 
     if (editValorHistorico) {
-        editValorHistorico.value = formatarMoedaHistorico(bruto);
+        editValorHistorico.value = formatarMoeda(bruto);
     }
 
     if (editObservacaoHistorico) {
@@ -755,12 +600,12 @@ editServicoHistorico?.addEventListener("change", () => {
     );
 
     if (editValorHistorico && Number.isFinite(precoPadrao) && precoPadrao > 0) {
-        editValorHistorico.value = formatarMoedaHistorico(precoPadrao);
+        editValorHistorico.value = formatarMoeda(precoPadrao);
     }
 });
 
 editValorHistorico?.addEventListener("input", () => {
-    aplicarMascaraMoedaHistorico(editValorHistorico);
+    aplicarMascaraMoedaInput(editValorHistorico);
 });
 
 btnFecharEdicaoHistorico?.addEventListener("click", fecharModalEdicao);
@@ -774,7 +619,7 @@ btnSalvarEdicaoHistorico?.addEventListener("click", async () => {
 
     const servico = editServicoHistorico?.value || original.servico;
     const pagamento = editPagamentoHistorico?.value || original.pagamento;
-    const valorBruto = converterMoedaHistorico(editValorHistorico?.value);
+    const valorBruto = converterParaNumero(editValorHistorico?.value) || 0;
     const observacao = String(editObservacaoHistorico?.value || "").trim().slice(0, 160);
 
     if (!servico || !pagamento || valorBruto <= 0) {
@@ -794,31 +639,21 @@ btnSalvarEdicaoHistorico?.addEventListener("click", async () => {
         return;
     }
 
-    const atualizacao = {
-        observacao,
-        editado: true,
-        editadoEm: serverTimestamp()
-    };
+    let atualizacao = { observacao };
 
     if (alterouFinanceiro) {
-        const financeiro = processarFinanceiro(valorBruto, pagamento);
         const precoPadrao = Number(state.configSistema.precos?.[servico]);
+        const valorDiferenciado = Number.isFinite(precoPadrao) && precoPadrao > 0
+            ? Math.abs(valorBruto - precoPadrao) > 0.009
+            : true;
 
-        const valorDiferenciado =
-            Number.isFinite(precoPadrao) && precoPadrao > 0
-                ? Math.abs(valorBruto - precoPadrao) > 0.009
-                : true;
-
-        Object.assign(atualizacao, {
+        atualizacao = criarAtualizacaoFinanceiraAtendimento({
             servico,
             pagamento,
-            valorServicoBruto: Number(valorBruto.toFixed(2)),
-            valorBrutoTotal: Number(valorBruto.toFixed(2)),
-            valorLiquido: financeiro.liquidoConta,
-            repasseDono: financeiro.repasseDono,
-            liquidoBarbeiro: financeiro.liquidoBarbeiro,
+            valorBruto,
+            observacao,
             valorDiferenciado
-        });
+        }, state.configSistema);
     }
 
     const textoOriginal = btnSalvarEdicaoHistorico.textContent;
@@ -826,20 +661,17 @@ btnSalvarEdicaoHistorico?.addEventListener("click", async () => {
     btnSalvarEdicaoHistorico.disabled = true;
 
     try {
-        await updateDoc(
-            doc(db, "atendimentos", original.id),
-            atualizacao
-        );
+        await editarAtendimento(original.id, atualizacao);
 
         fecharModalEdicao();
         historicoDetalheOverlay?.classList.remove("active");
         historicoDetalheOverlay?.setAttribute("aria-hidden", "true");
         atendimentoDetalheAtual = null;
 
-        await carregarAtendimentos();
+        await recarregarAtendimentos();
     } catch (error) {
         console.error("Erro ao editar atendimento:", error);
-        alert("Não foi possível salvar a alteração.");
+        mostrarErro("Não foi possível salvar a alteração.");
     } finally {
         btnSalvarEdicaoHistorico.textContent = textoOriginal;
         btnSalvarEdicaoHistorico.disabled = false;
@@ -855,7 +687,7 @@ function abrirModalExclusao(id, servico, valor) {
 
     if (modalDescricao) {
         modalDescricao.innerHTML =
-            `Excluir o atendimento de <b>${escaparHtml(servico)} (R$ ${formatarMoedaHistorico(valor)})</b>?`;
+            `Excluir o atendimento de <b>${escaparHtml(servico)} (R$ ${formatarMoeda(valor)})</b>?`;
     }
 
     modalConfirm?.classList.add("active");
@@ -871,10 +703,11 @@ btnConfirmar?.addEventListener("click", async () => {
         btnConfirmar.textContent = "Excluindo...";
 
         try {
-            await deleteDoc(doc(db, "atendimentos", idParaExcluir));
-            await carregarAtendimentos();
+            await excluirAtendimento(idParaExcluir);
+            await recarregarAtendimentos();
         } catch (error) {
             console.error(error);
+            mostrarErro("Não foi possível excluir o atendimento.");
         }
 
         btnConfirmar.textContent = "Sim, excluir";
@@ -901,3 +734,7 @@ document.addEventListener("keydown", (event) => {
         fecharDetalheHistorico();
     }
 });
+
+
+onStateChange("atendimentos", atualizarHistorico);
+onStateChange("configSistema", atualizarHistorico);

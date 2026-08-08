@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // TEMPORÁRIO: mantém o app antigo funcionando durante a migração.
+    match /atendimentos/{documento} {
+      allow read, write: if signedIn();
+    }
+
+    match /configuracoes/{documento} {
+      allow read, write: if signedIn();
+    }
+
+    // Cada usuário só prepara o próprio perfil e workspace de destino.
+    match /usuarios/{uid} {
+      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    match /barbearias/{barbeariaId} {
+      allow read, create, update: if signedIn() && request.auth.uid == barbeariaId;
+      allow delete: if false;
+
+      match /{document=**} {
+        allow read, write: if signedIn() && request.auth.uid == barbeariaId;
+      }
+    }
+  }
+}

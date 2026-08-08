@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(barbeariaId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid))
+        && get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.ativo == true;
+    }
+
+    function isOwner(barbeariaId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/barbearias/$(barbeariaId))
+        && get(/databases/$(database)/documents/barbearias/$(barbeariaId)).data.ownerUid == request.auth.uid;
+    }
+
+    match /usuarios/{uid} {
+      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    match /barbearias/{barbeariaId} {
+      allow read: if signedIn() && (barbeariaId == request.auth.uid || isMember(barbeariaId));
+      allow create: if signedIn()
+        && barbeariaId == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isOwner(barbeariaId);
+      allow delete: if false;
+
+      match /membros/{uid} {
+        allow read: if signedIn() && (uid == request.auth.uid || isOwner(barbeariaId));
+        allow create: if signedIn() && (
+          (barbeariaId == request.auth.uid && uid == request.auth.uid && request.resource.data.papel == "owner")
+          || isOwner(barbeariaId)
+        );
+        allow update, delete: if isOwner(barbeariaId);
+      }
+
+      match /atendimentos/{atendimentoId} {
+        allow read, create, update, delete: if isMember(barbeariaId);
+      }
+
+      match /configuracoes/{configId} {
+        allow read: if isMember(barbeariaId);
+        allow create, update: if isOwner(barbeariaId);
+        allow delete: if false;
+      }
+    }
+
+    // Estrutura antiga: bloquear somente DEPOIS que a migração estiver conferida.
+    match /atendimentos/{documento} {
+      allow read, write: if false;
+    }
+
+    match /configuracoes/{documento} {
+      allow read, write: if false;
+    }
+  }
+}

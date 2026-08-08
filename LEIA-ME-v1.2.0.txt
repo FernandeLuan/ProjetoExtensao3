@@ -1,0 +1,148 @@
+MARLON BARBER v1.2.0 — ARQUITETURA MODULAR + AMBIENTES SEPARADOS
+=================================================================
+
+IMPORTANTE: NÃO PUBLIQUE firestore.rules ANTES DE MIGRAR A CONTA DE PRODUÇÃO.
+
+ORDEM SEGURA PARA PUBLICAÇÃO
+----------------------------
+1. Faça backup do repositório atual.
+2. No Firebase/Firestore, confira se as regras atuais permitem que a conta
+   autenticada leia a estrutura antiga e grave a nova. Se a migração der
+   "permission-denied", publique TEMPORARIAMENTE firestore-migracao.rules.
+   Ele mantém o app antigo funcionando e só permite criar o novo workspace
+   usando o próprio UID autenticado.
+3. Do pacote novo, publique primeiro SOMENTE:
+   - migrar-dados.html
+   - js/migrar-dados.js
+4. Entre no dashboard usando a conta de produção do seu irmão.
+5. Abra /migrar-dados.html.
+6. Clique em "Conferir dados" e confirme:
+   - e-mail correto;
+   - UID correto;
+   - quantidade de atendimentos antigos;
+   - configuração encontrada.
+7. Digite MIGRAR e execute.
+8. Aguarde a mensagem de migração concluída e verificada.
+   A ferramenta COPIA e NÃO APAGA a estrutura antiga.
+9. Agora substitua o projeto pelos arquivos desta versão.
+   Para a arquitetura ficar limpa, substitua a pasta js/dashboard inteira
+   e a pasta css/dashboard inteira, além de dashboard.html e css/dashboard.css.
+10. Teste novamente com a conta do seu irmão e confira Histórico/Painel.
+11. No Firebase Authentication, crie seu usuário de teste com seu e-mail.
+12. Entre com seu e-mail. O sistema criará um ambiente vazio e independente.
+13. Só depois desses testes publique o conteúdo de firestore.rules no Firebase.
+    Esse é o arquivo FINAL e bloqueia a antiga coleção global.
+
+NOVA ESTRUTURA DE DADOS
+-----------------------
+usuarios/{uid}
+  -> barbeariaId
+
+barbearias/{barbeariaId}
+  membros/{uid}
+  atendimentos/{atendimentoId}
+  configuracoes/geral
+
+Hoje, para cada novo proprietário, barbeariaId = UID do próprio usuário.
+Isso separa totalmente seu ambiente de testes do ambiente de produção.
+A estrutura já permite, futuramente, colocar vários usuários na mesma
+barbearia apenas vinculando-os como membros do mesmo barbeariaId.
+
+ARQUITETURA JAVASCRIPT
+----------------------
+js/dashboard/
+  index.js                 entrada
+  app.js                   bootstrap/auth
+  constants.js             defaults, versão, schema
+  state.js                 estado compartilhado + listeners
+  registrar.js             tela Início
+  painel.js                Painel e gráficos
+  historico.js             Histórico, filtros e edição
+  configuracoes.js         Configurações
+  retroativo.js            Atendimento retroativo
+  navigation.js            navegação
+  theme.js                 Sistema/Claro/Escuro
+  connectivity.js          indicador online/offline
+  conta.js                 alteração de senha
+  relatorios.js            atalhos de data
+  data/
+    context.js             usuário + barbearia atual
+    atendimentos-repository.js
+    configuracoes-repository.js
+    sync.js
+  services/
+    atendimento-model.js
+    financeiro-service.js
+    feedback-service.js
+  utils/
+    date.js
+    money.js
+    dom.js
+
+Acesso ao Firestore fica concentrado em data/. Cálculos ficam em services/.
+
+ARQUITETURA CSS
+---------------
+css/dashboard.css é apenas a entrada com @imports.
+css/dashboard/
+  theme.css
+  base.css
+  navigation.css
+  layout.css
+  registrar.css
+  painel.css
+  historico.css
+  relatorios.css
+  configuracoes.css
+  conta.css
+  modals.css
+  utilities.css
+
+AJUSTES FUNCIONAIS DA v1.2.0
+----------------------------
+- Repetir último atendimento usa o MESMO botão Registrar.
+- Se o formulário estiver vazio e houver atendimento HOJE:
+    "Repetir último atendimento"
+  O toque somente preenche serviço, pagamento e valor; NÃO salva.
+- Nunca procura atendimento de ontem, sexta, domingo etc.
+- Observação nunca é copiada na repetição.
+- Sem proteção de registro duplicado (decisão intencional).
+- Filtros avançados com check circular personalizado.
+- Limpar filtros continua dentro do painel de filtros.
+- Observação no registro e na edição.
+- Editado + data/hora da última edição.
+- Card de detalhes fecha ao tocar fora; se estiver editando, a edição é preservada.
+- Pagamento padrão salvo por ambiente.
+- Indicador de conexão no topo.
+- Tema Sistema/Claro/Escuro.
+- Configurações em cards expansíveis; clicar fora fecha o card aberto.
+- Sobre e atualizações mostra as versões recolhidas; cada versão abre pela seta.
+- Atendimento retroativo antes de Sobre e atualizações:
+    Data, Serviço, Forma de pagamento,
+    Aplicar Valor Diferenciado?, Registrar Observação e Salvar.
+- Registro retroativo não inventa hora de atendimento: no Histórico aparece
+  "Retroativo" no lugar do horário quando a hora não foi informada.
+- .painel-calendar-btn preservado com font-size: 1rem.
+
+MODELO DE ATENDIMENTO NOVO
+--------------------------
+Novos registros mantêm os campos antigos usados pela interface e adicionam:
+- dataAtendimento
+- createdAt / updatedAt (servidor)
+- schemaVersion
+- financeiro com snapshot das taxas/repasses aplicados
+- retroativo / horaInformada
+
+Isso garante que alterações futuras de taxa não mudem o significado financeiro
+de um atendimento já registrado.
+
+ARQUIVOS DE REGRAS
+-------------------
+- firestore-migracao.rules = somente para a janela de migração, se necessário.
+- firestore.rules = regras finais da arquitetura multiusuário.
+
+OBSERVAÇÃO SOBRE A MIGRAÇÃO
+---------------------------
+Os registros antigos são copiados com os MESMOS IDs.
+A migração é idempotente e pode ser executada novamente se necessário.
+Ela não exclui atendimentos nem configurações do banco antigo.

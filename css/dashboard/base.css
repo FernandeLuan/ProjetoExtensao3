@@ -1,0 +1,223 @@
+/* ========== RESET & BASE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+
+
+/* ========== FORMULÁRIO ========== */
+.input-group {
+    margin-bottom: 12px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: var(--primary);
+}
+
+.label-servico {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+
+/* ========== TOGGLE ========== */
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding: 2px 0;
+}
+
+.toggle-label {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg);
+    border: 1.5px solid var(--border);
+    transition: 0.3s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: 0.3s;
+}
+
+input:checked + .slider {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+    background-color: white;
+}
+
+.slider.round {
+    border-radius: 30px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* ========== BOTÃO PRINCIPAL ========== */
+.btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    font-size: 1.02rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+    background: var(--primary-hover);
+}
+
+.btn.success {
+    background: var(--success);
+}
+
+/* ========== BOTÕES SECUNDÁRIOS ========== */
+.btn-desfazer-ghost {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text-secondary);
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    font-size: 0.93rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 10px;
+}
+
+.btn-desfazer-ghost:active {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+
+/* ========== ESTADOS DE ERRO ========== */
+.label-erro {
+    color: var(--danger) !important;
+}
+
+.input-erro {
+    border-color: var(--danger) !important;
+}
+
+.shake {
+    animation: tremer 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes tremer {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+    40%, 60% { transform: translate3d(6px, 0, 0); }
+}
+
+
+/* ========== UTILITÁRIOS ========== */
+.hidden {
+    display: none !important;
+}
+
+
+/* ========== IPHONE 13 PRO / BASE MOBILE ========== */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100dvh;
+}
+
+
+/* Transição discreta entre telas */
+main > section.section-enter {
+    animation: sectionEnter 0.17s ease both;
+}
+
+@keyframes sectionEnter {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main > section.section-enter {
+        animation: none;
+    }
+}
+

@@ -1,265 +1,269 @@
-import { db } from "../firebase-init.js";
-import {
-    doc,
-    getDoc,
-    setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { APP_VERSION } from "./constants.js?v=4.0";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=4.0";
+import { salvarConfiguracoes, atualizarConfiguracoes } from "./data/configuracoes-repository.js?v=4.0";
+import { converterParaNumero, formatarMoeda } from "./utils/money.js?v=4.0";
+import { mostrarErro } from "./services/feedback-service.js?v=4.0";
 
-import { state } from "./state.js";
-import { formatarMoeda, converterParaNumero } from "./utils.js";
+let inicializado = false;
+let camposAlterados = {};
 
-// =============================
-// CONFIGURAÇÕES
-// =============================
-export async function carregarConfiguracoes() {
-    try {
-        const docRef = doc(db, "configuracoes", "geral");
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            state.configSistema = { ...state.configSistema, ...docSnap.data() };
-        } else {
-            await setDoc(docRef, state.configSistema);
-        }
-        aplicarConfiguracoesNaTela();
-    } catch (error) {
-        console.error("Erro ao carregar configs:", error);
-        aplicarConfiguracoesNaTela();
-    }
-}
+const btnSalvarConfigs = document.getElementById("btnSalvarConfigs");
+const configItems = document.querySelectorAll(".config-item");
+const configGroupToggles = document.querySelectorAll(".config-group-toggle");
+const pagamentoPadraoButtons = document.querySelectorAll("[data-pagamento-padrao]");
+const pagamentoPadraoStatus = document.getElementById("pagamentoPadraoStatus");
 
 function aplicarConfiguracoesNaTela() {
-    if (!state.configSistema.precos) {
-        state.configSistema.precos = {
-            "Cabelo + Barba + Sobrancelha": 110,
-            "Cabelo + Barba": 105,
-            "Cabelo + Sobrancelha": 75,
-            "Cabelo": 60,
-            "Barba": 50
-        };
-    }
-
-    const setText = (id, texto) => {
+    const config = state.configSistema;
+    const precos = config.precos || {};
+    const set = (id, texto) => {
         const el = document.getElementById(id);
         if (el) el.textContent = texto;
     };
 
-    setText("lblAtualDebito", `Atual: ${Number(state.configSistema.taxaDebito || 1.5).toFixed(2).replace(".", ",")}%`);
-    setText("lblAtualCredito", `Atual: ${Number(state.configSistema.taxaCredito || 3.51).toFixed(2).replace(".", ",")}%`);
-    setText("lblAtualRepasse", `Atual: ${Number(state.configSistema.repasseDonoPct || 35)}%`);
+    set("lblAtualDebito", `Atual: ${Number(config.taxaDebito ?? 1.5).toFixed(2).replace(".", ",")}%`);
+    set("lblAtualCredito", `Atual: ${Number(config.taxaCredito ?? 3.51).toFixed(2).replace(".", ",")}%`);
+    set("lblAtualRepasse", `Atual: ${Number(config.repasseDonoPct ?? 35).toFixed(2).replace(".", ",")}%`);
+    set("labelAtualCombo3", `Atual: R$ ${formatarMoeda(precos["Cabelo + Barba + Sobrancelha"] ?? 110)}`);
+    set("labelAtualCombo2", `Atual: R$ ${formatarMoeda(precos["Cabelo + Barba"] ?? 105)}`);
+    set("labelAtualCabSob", `Atual: R$ ${formatarMoeda(precos["Cabelo + Sobrancelha"] ?? 75)}`);
+    set("labelAtualCabelo", `Atual: R$ ${formatarMoeda(precos.Cabelo ?? 60)}`);
+    set("labelAtualBarba", `Atual: R$ ${formatarMoeda(precos.Barba ?? 50)}`);
 
-    setText("labelAtualCombo3", `Atual: R$ ${formatarMoeda(state.configSistema.precos["Cabelo + Barba + Sobrancelha"] || 110)}`);
-    setText("labelAtualCombo2", `Atual: R$ ${formatarMoeda(state.configSistema.precos["Cabelo + Barba"] || 105)}`);
-    setText("labelAtualCabSob", `Atual: R$ ${formatarMoeda(state.configSistema.precos["Cabelo + Sobrancelha"] || 75)}`);
-    setText("labelAtualCabelo", `Atual: R$ ${formatarMoeda(state.configSistema.precos["Cabelo"] || 60)}`);
-    setText("labelAtualBarba", `Atual: R$ ${formatarMoeda(state.configSistema.precos["Barba"] || 50)}`);
-
-    // Atualiza botões da tela Registrar
-    document.querySelectorAll(".btn-servico").forEach(btn => {
-        const nome = btn.getAttribute("data-nome");
-        if (state.configSistema.precos[nome] !== undefined) {
-            const novoValor = state.configSistema.precos[nome];
-            btn.setAttribute("data-valor", novoValor);
-            const spanValor = btn.querySelector(".valor-servico-btn");
-            if (spanValor) spanValor.textContent = `R$ ${formatarMoeda(novoValor)}`;
-        }
+    document.querySelectorAll(".btn-servico").forEach((btn) => {
+        const nome = btn.dataset.nome;
+        if (precos[nome] === undefined) return;
+        btn.dataset.valor = precos[nome];
+        const valor = btn.querySelector(".valor-servico-btn");
+        if (valor) valor.textContent = `R$ ${formatarMoeda(precos[nome])}`;
     });
-}
 
-// =============================
-// CONFIGURAÇÕES - EDIÇÃO INLINE + SALVAR GLOBAL
-// =============================
-const btnSalvarConfigs = document.getElementById("btnSalvarConfigs");
-let camposAlterados = {}; // guarda o que o usuário mudou
+    atualizarPagamentoPadraoConfig();
+    const versao = document.getElementById("appVersion");
+    if (versao) versao.textContent = `v${APP_VERSION}`;
+}
 
 function atualizarEstadoBotaoSalvar() {
-    if (!btnSalvarConfigs) return;
-    const temAlteracao = Object.keys(camposAlterados).length > 0;
-    btnSalvarConfigs.disabled = !temAlteracao;
+    if (btnSalvarConfigs) btnSalvarConfigs.disabled = Object.keys(camposAlterados).length === 0;
 }
 
-// Máscara de porcentagem limitada (máx 11,11)
 function mascaraPorcentagem(input, maxDigitosInteiros) {
-    input.addEventListener("input", (e) => {
-        // Pega somente os números
-        let value = e.target.value.replace(/\D/g, "");
-
-        // Remove zeros que pertencem à formatação anterior.
-        // Ex.: "0,014" vira "14"
-        value = value.replace(/^0+/, "");
-
-        // Se apagou tudo, deixa o campo vazio
-        if (value === "") {
-            e.target.value = "";
+    input.addEventListener("input", (event) => {
+        let value = event.target.value.replace(/\D/g, "").replace(/^0+/, "");
+        if (!value) {
+            event.target.value = "";
             return;
         }
-
-        // Débito/Crédito: máximo 3 dígitos → 9,99
-        // Repasse: máximo 4 dígitos → 99,99
         const maxDigitos = maxDigitosInteiros + 2;
-
-        // Se ultrapassou o limite, mantém o valor já permitido
-        if (value.length > maxDigitos) {
-            value = value.slice(0, maxDigitos);
-        }
-
-        const numero = parseInt(value, 10) / 100;
-
-        e.target.value = numero
-            .toFixed(2)
-            .replace(".", ",");
+        if (value.length > maxDigitos) value = value.slice(0, maxDigitos);
+        event.target.value = (Number.parseInt(value, 10) / 100).toFixed(2).replace(".", ",");
     });
 }
 
-// Máscara de moeda limitada (máx 111,11)
 function mascaraMoedaLimitada(input) {
-    input.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/\D/g, "");
-
-        if (value === "") {
-            e.target.value = "";
+    input.addEventListener("input", (event) => {
+        let value = event.target.value.replace(/\D/g, "");
+        if (!value) {
+            event.target.value = "";
             return;
         }
-
-        // Limita a 5 dígitos (11111 → 111,11)
         if (value.length > 5) value = value.slice(0, 5);
-
-        value = (parseInt(value, 10) / 100).toFixed(2);
-        value = value.replace(".", ",");
-
-        e.target.value = value;
+        event.target.value = (Number.parseInt(value, 10) / 100).toFixed(2).replace(".", ",");
     });
 }
 
-// Inicializa os itens de configuração
-const configItems = document.querySelectorAll(".config-item");
-
-configItems.forEach(item => {
+function fecharCampoConfigSeVazio(item) {
     const btnAlterar = item.querySelector(".btn-alterar");
     const input = item.querySelector(".input-config");
-    const tipo = item.getAttribute("data-tipo");
-    const campo = item.getAttribute("data-campo");
+    const campo = item.dataset.campo;
+    if (!btnAlterar || !input || input.classList.contains("hidden")) return;
 
-    if (!btnAlterar || !input) return;
+    const valor = converterParaNumero(input.value);
+    if (valor !== null && valor > 0) return;
 
-if (tipo === "moeda") {
-    mascaraMoedaLimitada(input);
-} else {
-    // Débito e Crédito → x,xx
-    if (campo === "taxaDebito" || campo === "taxaCredito") {
-        mascaraPorcentagem(input, 1);
-    }
-
-    // Repasse → xx,xx
-    else if (campo === "repasseDonoPct") {
-        mascaraPorcentagem(input, 2);
-    }
+    delete camposAlterados[campo];
+    input.classList.add("hidden");
+    btnAlterar.classList.remove("hidden");
+    input.value = "";
+    atualizarEstadoBotaoSalvar();
 }
 
-    // Clica em Alterar → esconde botão e mostra input
-    btnAlterar.addEventListener("click", () => {
-        btnAlterar.classList.add("hidden");
-        input.classList.remove("hidden");
-        input.value = "";
-        input.focus();
+function fecharGrupo(botao) {
+    if (!botao) return;
+    const id = botao.getAttribute("aria-controls");
+    const conteudo = id ? document.getElementById(id) : null;
+    botao.setAttribute("aria-expanded", "false");
+    if (conteudo) conteudo.hidden = true;
+}
+
+function fecharVersoesAtualizacao() {
+    document.querySelectorAll(".update-version-toggle").forEach((botao) => {
+        botao.setAttribute("aria-expanded", "false");
+        const id = botao.getAttribute("aria-controls");
+        const detalhe = id ? document.getElementById(id) : null;
+        if (detalhe) detalhe.hidden = true;
     });
+}
 
-input.addEventListener("input", () => {
-    const valor = converterParaNumero(input.value);
-
-    // Vazio ou zero não é considerado alteração
-    if (valor === null || valor === 0) {
-        delete camposAlterados[campo];
-    } else {
-        camposAlterados[campo] = valor;
-    }
-
-    atualizarEstadoBotaoSalvar();
-});
-});
-// =============================
-// FECHA CAMPOS VAZIOS AO CLICAR FORA
-// =============================
-document.addEventListener("click", (e) => {
-    configItems.forEach((item) => {
-        const btnAlterar = item.querySelector(".btn-alterar");
-        const input = item.querySelector(".input-config");
-        const campo = item.getAttribute("data-campo");
-
-        if (!btnAlterar || !input) return;
-
-        // Já está fechado
-        if (input.classList.contains("hidden")) return;
-
-        // Clicou dentro do próprio item
-        if (item.contains(e.target)) return;
-
-        const valor = converterParaNumero(input.value);
-
-        // Tem valor válido → mantém aberto
-        if (valor !== null && valor > 0) return;
-
-        // Vazio ou zero → fecha e ignora alteração
-        delete camposAlterados[campo];
-
-        input.classList.add("hidden");
-        btnAlterar.classList.remove("hidden");
-        input.value = "";
-
-        atualizarEstadoBotaoSalvar();
+function fecharOutrosGruposConfig(excecao = null) {
+    configGroupToggles.forEach((botao) => {
+        if (botao !== excecao) fecharGrupo(botao);
     });
-});
-// Botão Salvar Alterações (global)
-btnSalvarConfigs?.addEventListener("click", async () => {
-    if (Object.keys(camposAlterados).length === 0) return;
+}
+
+function obterPagamentoPadrao() {
+    const valor = state.configSistema.pagamentoPadrao;
+    return ["Pix", "Dinheiro", "Débito", "Crédito"].includes(valor) ? valor : "nenhum";
+}
+
+function atualizarPagamentoPadraoConfig() {
+    const atual = obterPagamentoPadrao();
+    pagamentoPadraoButtons.forEach((botao) => {
+        const ativo = botao.dataset.pagamentoPadrao === atual;
+        botao.classList.toggle("active", ativo);
+        botao.setAttribute("aria-pressed", String(ativo));
+    });
+}
+
+async function salvarCamposAlterados() {
+    if (!Object.keys(camposAlterados).length) return;
+
+    const novaConfig = {
+        ...state.configSistema,
+        precos: { ...(state.configSistema.precos || {}) }
+    };
+
+    Object.entries(camposAlterados).forEach(([campo, valor]) => {
+        if (["taxaDebito", "taxaCredito", "repasseDonoPct"].includes(campo)) novaConfig[campo] = valor;
+        else novaConfig.precos[campo] = valor;
+    });
 
     btnSalvarConfigs.textContent = "Salvando...";
     btnSalvarConfigs.disabled = true;
 
-    // Aplica as alterações
-    for (const campo in camposAlterados) {
-        const valor = camposAlterados[campo];
-
-        if (campo === "taxaDebito" || campo === "taxaCredito" || campo === "repasseDonoPct") {
-            state.configSistema[campo] = valor;
-        } else {
-            if (!state.configSistema.precos) state.configSistema.precos = {};
-            state.configSistema.precos[campo] = valor;
-        }
-    }
-
     try {
-        await setDoc(doc(db, "configuracoes", "geral"), state.configSistema);
-        aplicarConfiguracoesNaTela();
-
-        // Limpa estado
+        await salvarConfiguracoes(novaConfig);
+        definirConfiguracoes(novaConfig);
         camposAlterados = {};
-        configItems.forEach(item => {
+        configItems.forEach((item) => {
             const btn = item.querySelector(".btn-alterar");
             const input = item.querySelector(".input-config");
-            if (btn) btn.classList.remove("hidden");
-            if (input) {
-                input.classList.add("hidden");
-                input.value = "";
-            }
+            btn?.classList.remove("hidden");
+            input?.classList.add("hidden");
+            if (input) input.value = "";
         });
-
-        // Animação de sucesso
         btnSalvarConfigs.classList.add("success");
         btnSalvarConfigs.textContent = "Salvo ✓";
-
         setTimeout(() => {
             btnSalvarConfigs.classList.remove("success");
             btnSalvarConfigs.textContent = "Salvar Alterações";
-            atualizarEstadoBotaoSalvar(); // volta a ficar desabilitado
+            atualizarEstadoBotaoSalvar();
         }, 2000);
-
     } catch (error) {
-        console.error(error);
+        console.error("Erro ao salvar configurações:", error);
+        mostrarErro("Não foi possível salvar as configurações.");
         btnSalvarConfigs.textContent = "Erro ao salvar";
         setTimeout(() => {
             btnSalvarConfigs.textContent = "Salvar Alterações";
             atualizarEstadoBotaoSalvar();
         }, 2000);
     }
-});
+}
+
+export function initConfiguracoes() {
+    if (inicializado) return;
+    inicializado = true;
+
+    configItems.forEach((item) => {
+        const btnAlterar = item.querySelector(".btn-alterar");
+        const input = item.querySelector(".input-config");
+        const tipo = item.dataset.tipo;
+        const campo = item.dataset.campo;
+        if (!btnAlterar || !input) return;
+
+        if (tipo === "moeda") mascaraMoedaLimitada(input);
+        else if (["taxaDebito", "taxaCredito"].includes(campo)) mascaraPorcentagem(input, 1);
+        else if (campo === "repasseDonoPct") mascaraPorcentagem(input, 2);
+
+        btnAlterar.addEventListener("click", () => {
+            btnAlterar.classList.add("hidden");
+            input.classList.remove("hidden");
+            input.value = "";
+            input.focus();
+        });
+
+        input.addEventListener("input", () => {
+            const valor = converterParaNumero(input.value);
+            if (valor === null || valor === 0) delete camposAlterados[campo];
+            else camposAlterados[campo] = valor;
+            atualizarEstadoBotaoSalvar();
+        });
+    });
+
+    document.addEventListener("click", (event) => {
+        configItems.forEach((item) => {
+            if (!item.contains(event.target)) fecharCampoConfigSeVazio(item);
+        });
+
+        const grupoClicado = event.target.closest?.(".config-group");
+        if (!grupoClicado) fecharOutrosGruposConfig();
+    });
+
+    configGroupToggles.forEach((botao) => {
+        botao.addEventListener("click", () => {
+            const id = botao.getAttribute("aria-controls");
+            const conteudo = id ? document.getElementById(id) : null;
+            if (!conteudo) return;
+            const vaiAbrir = botao.getAttribute("aria-expanded") !== "true";
+
+            if (vaiAbrir) {
+                fecharOutrosGruposConfig(botao);
+                if (botao.dataset.configGroup === "sobre") fecharVersoesAtualizacao();
+            }
+
+            botao.setAttribute("aria-expanded", String(vaiAbrir));
+            conteudo.hidden = !vaiAbrir;
+        });
+    });
+
+    document.querySelectorAll(".update-version-toggle").forEach((botao) => {
+        botao.addEventListener("click", () => {
+            const id = botao.getAttribute("aria-controls");
+            const detalhe = id ? document.getElementById(id) : null;
+            if (!detalhe) return;
+            const abrir = botao.getAttribute("aria-expanded") !== "true";
+            botao.setAttribute("aria-expanded", String(abrir));
+            detalhe.hidden = !abrir;
+        });
+    });
+
+    pagamentoPadraoButtons.forEach((botao) => {
+        botao.addEventListener("click", async () => {
+            const valor = botao.dataset.pagamentoPadrao || "nenhum";
+            pagamentoPadraoButtons.forEach((item) => item.disabled = true);
+            if (pagamentoPadraoStatus) pagamentoPadraoStatus.textContent = "Salvando...";
+
+            try {
+                await atualizarConfiguracoes({ pagamentoPadrao: valor });
+                definirConfiguracoes({ ...state.configSistema, pagamentoPadrao: valor });
+                if (pagamentoPadraoStatus) {
+                    pagamentoPadraoStatus.textContent = "Padrão salvo ✓";
+                    setTimeout(() => {
+                        if (pagamentoPadraoStatus.textContent === "Padrão salvo ✓") pagamentoPadraoStatus.textContent = "";
+                    }, 2200);
+                }
+            } catch (error) {
+                console.error("Erro ao salvar pagamento padrão:", error);
+                mostrarErro("Não foi possível salvar o pagamento padrão.");
+                if (pagamentoPadraoStatus) pagamentoPadraoStatus.textContent = "Não foi possível salvar.";
+            } finally {
+                pagamentoPadraoButtons.forEach((item) => item.disabled = false);
+            }
+        });
+    });
+
+    btnSalvarConfigs?.addEventListener("click", salvarCamposAlterados);
+    onStateChange("configSistema", aplicarConfiguracoesNaTela);
+    aplicarConfiguracoesNaTela();
+    fecharVersoesAtualizacao();
+}

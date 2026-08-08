@@ -1,0 +1,39 @@
+/* ========== MAIN ========== */
+.dashboard-main {
+    padding: 0 14px calc(88px + env(safe-area-inset-bottom));
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.titulo-sessao {
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 10px 0 12px;
+    color: var(--text);
+}
+
+/* ========== CARD PRINCIPAL (Registrar etc) ========== */
+.registrar {
+    background: var(--bg-card);
+    padding: 1px 14px 16px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    width: 100%;
+    margin: 20px auto 20px;
+}
+
+
+/* ========== ESTADOS INICIAIS CONTROLADOS PELO JS ========== */
+#painelFinanceiro,
+#relatorios,
+#historico,
+#configuracoes,
+#conta,
+#campoValorPersonalizado,
+#campoObservacao,
+#undoContainer {
+    display: none;
+}
+

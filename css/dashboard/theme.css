@@ -1,0 +1,106 @@
+/* ================================
+   MARLON BARBER - DASHBOARD
+   Tema automático + Mobile First
+   ================================ */
+
+/* ========== VARIÁVEIS DE COR ========== */
+:root, :root.light {
+    --bg: #F8F9FB;
+    --bg-card: #FFFFFF;
+    --text: #111827;
+    --text-secondary: #6B7280;
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --success: #16A34A;
+    --danger: #DC2626;
+    --warning: #FBBF24D6;
+    --border: rgba(0, 0, 0, 0.08);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --overlay: rgba(0, 0, 0, 0.4);
+}
+
+:root.dark {
+    --bg: #0F1115;
+    --bg-card: #181B22;
+    --text: #F1F3F5;
+    --text-secondary: #A0A7B5;
+    --primary: #3B82F6;
+    --primary-hover: #60A5FA;
+    --success: #22C55E;
+    --danger: #EF4444;
+    --warning: #FBBF24D6;
+    --border: rgba(255, 255, 255, 0.08);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --header-bg: rgba(15, 17, 21, 0.92);
+    --overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Fallback caso o JS ainda não tenha rodado */
+@media (prefers-color-scheme: dark) {
+    :root:not(.light):not(.dark) {
+        --bg: #0F1115;
+        --bg-card: #181B22;
+        --text: #F1F3F5;
+        --text-secondary: #A0A7B5;
+        --primary: #3B82F6;
+        --primary-hover: #60A5FA;
+        --success: #22C55E;
+        --danger: #EF4444;
+        --warning: #FBBF24D6;
+        --border: rgba(255, 255, 255, 0.08);
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        --header-bg: rgba(15, 17, 21, 0.92);
+        --overlay: rgba(0, 0, 0, 0.6);
+    }
+}
+
+
+/* Tema: Sistema / Claro / Escuro */
+.menu-sheet .theme-mode-wrapper {
+    padding: 9px 10px 10px;
+    border-radius: 12px;
+    background: var(--bg);
+}
+
+.theme-mode-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.theme-mode-label i {
+    width: 18px;
+    text-align: center;
+    color: var(--primary);
+}
+
+.theme-mode-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.theme-mode-btn {
+    min-width: 0;
+    padding: 7px 4px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.62rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.theme-mode-btn.active {
+    border-color: rgba(37, 99, 235, 0.3);
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+}
+

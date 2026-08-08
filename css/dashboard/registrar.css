@@ -1,0 +1,208 @@
+/* ========== BOTÕES DE SERVIÇO ========== */
+.grupo-servicos-container {
+    margin-bottom: 4px;
+}
+
+.grupo-botoes-servicos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.btn-servico {
+    padding: 11px 6px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.84rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    line-height: 1.3;
+    min-height: 54px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-servico:active {
+    transform: scale(0.97);
+}
+
+.btn-servico.selecionado {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.btn-servico.full-width {
+    grid-column: 1 / -1;
+}
+
+.valor-servico-btn {
+    font-size: 0.88rem;
+    color: var(--success);
+    margin-top: 3px;
+    font-weight: 600;
+}
+
+.btn-servico.selecionado .valor-servico-btn {
+    color: var(--primary);
+}
+
+/* ========== CHIPS DE PAGAMENTO ========== */
+.grupo-chips-pagamento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.chip-pagamento {
+    padding: 12px 8px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chip-pagamento:active {
+    transform: scale(0.97);
+}
+
+.chip-pagamento.selecionado {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+
+/* ========== AJUSTES DE LAYOUT ========== */
+.pagamento-group {
+    margin-bottom: 25px;
+}
+
+#campoValorPersonalizado {
+    margin-bottom: 20px;
+}
+
+#undoContainer,
+#btnWhatsApp {
+    margin-top: 15px;
+}
+
+
+/* Início mais compacto */
+#registrar {
+    padding-bottom: 13px;
+}
+
+#registrar .titulo-sessao {
+    margin-bottom: 8px;
+}
+
+#registrar .label-servico,
+#registrar .toggle-label {
+    font-size: 0.78rem;
+}
+
+#registrar .label-servico {
+    margin-bottom: 6px;
+}
+
+#registrar .grupo-botoes-servicos {
+    gap: 7px;
+    margin-bottom: 10px;
+}
+
+#registrar .btn-servico {
+    min-height: 50px;
+    padding: 9px 6px;
+    font-size: 0.80rem;
+}
+
+#registrar .valor-servico-btn {
+    font-size: 0.82rem;
+    margin-top: 2px;
+}
+
+#registrar .pagamento-group {
+    margin-bottom: 10px;
+}
+
+#registrar .grupo-chips-pagamento {
+    gap: 7px;
+}
+
+#registrar .chip-pagamento {
+    min-height: 43px;
+    gap: 6px;
+    padding: 10px 6px;
+    font-size: 0.80rem;
+}
+
+#registrar .chip-pagamento i {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+#registrar .chip-pagamento.selecionado i {
+    color: var(--primary);
+}
+
+#registrar .toggle-container {
+    margin-bottom: 8px;
+}
+
+#registrar .toggle-container-compact {
+    margin-top: 2px;
+}
+
+#registrar #campoValorPersonalizado,
+#registrar #campoObservacao {
+    margin-bottom: 9px;
+}
+
+#registrar #campoValorPersonalizado input,
+#registrar #campoObservacao input {
+    min-height: 42px;
+    padding: 10px 12px;
+    font-size: 0.84rem;
+}
+
+.btn-repetir-ultimo {
+    width: 100%;
+    min-height: 34px;
+
+#registrar .btn.repeat-mode {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(37, 99, 235, 0.10);
+    color: var(--primary);
+    border: 1px solid rgba(37, 99, 235, 0.22);
+}
+
+#registrar .btn.repeat-mode:active {
+    background: rgba(37, 99, 235, 0.16);
+}
+
+#registrar .btn.undo-feedback {
+    background: var(--danger);
+    color: #fff;
+}
