@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Sr NK • Limpar ambiente de teste</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #0d0f13;
+            color: #f5f7fb;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 24px 16px 48px; background: #0d0f13; }
+        main { width: min(100%, 620px); margin: 0 auto; }
+        h1 { margin: 0 0 8px; font-size: 1.35rem; }
+        p { color: #aab2c2; line-height: 1.55; }
+        .card { margin-top: 16px; padding: 18px; border: 1px solid #262b35; border-radius: 16px; background: #14171d; }
+        .ambiente { margin-top: 4px; font-weight: 700; word-break: break-all; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+        .metric { padding: 12px; border: 1px solid #292f3a; border-radius: 12px; background: #101319; }
+        .metric span { display: block; margin-bottom: 5px; color: #919bad; font-size: .78rem; }
+        .metric strong { font-size: 1.15rem; }
+        .alerta { margin-top: 14px; padding: 12px; border: 1px solid rgba(251,191,36,.35); border-radius: 12px; color: #f8d879; background: rgba(251,191,36,.08); line-height: 1.5; }
+        .preserva { margin-top: 14px; padding: 12px; border: 1px solid rgba(34,197,94,.28); border-radius: 12px; color: #9ee6b8; background: rgba(34,197,94,.07); line-height: 1.5; }
+        label { display: block; margin-top: 16px; color: #aab2c2; font-size: .82rem; }
+        input { width: 100%; min-height: 44px; margin-top: 7px; padding: 10px 12px; border: 1px solid #303744; border-radius: 11px; outline: none; background: #0f1217; color: #f8fafc; font: inherit; }
+        input:focus { border-color: #64748b; }
+        button { width: 100%; min-height: 46px; margin-top: 10px; border: 0; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer; }
+        #btnAnalisar { background: #1e293b; color: #f8fafc; }
+        #btnLimpar { background: #b91c1c; color: white; }
+        button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
+        pre { min-height: 120px; margin: 16px 0 0; padding: 14px; overflow: auto; border: 1px solid #292f3a; border-radius: 12px; background: #0b0d11; color: #d7deea; white-space: pre-wrap; line-height: 1.5; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Limpar ambiente de teste</h1>
+    <p>Ferramenta temporária para zerar somente os registros transacionais do ambiente de teste do Sr NK.</p>
+
+    <div class="card">
+        <div>Ambiente autenticado:</div>
+        <div id="ambiente" class="ambiente">Carregando...</div>
+
+        <div class="grid">
+            <div class="metric"><span>Atendimentos</span><strong id="qtdAtendimentos">—</strong></div>
+            <div class="metric"><span>Despesas</span><strong id="qtdDespesas">—</strong></div>
+            <div class="metric"><span>Resumos profissionais</span><strong id="qtdResumosProf">—</strong></div>
+            <div class="metric"><span>Resumos barbearia</span><strong id="qtdResumosBarb">—</strong></div>
+        </div>
+
+        <div class="alerta">
+            A ferramenta é bloqueada fora do ambiente <strong>teste-&lt;seu UID&gt;</strong>. Ela não executa no ambiente de produção do Marlon.
+        </div>
+
+        <div class="preserva">
+            Serão preservados: equipe, serviços, configurações, formas de pagamento, usuários e autenticação. Os documentos de resumo existentes serão zerados, não excluídos.
+        </div>
+
+        <button id="btnAnalisar" type="button" disabled>Analisar ambiente de teste</button>
+
+        <label for="confirmacao">
+            Depois da análise, digite <strong>LIMPAR TESTE</strong> para liberar a limpeza:
+        </label>
+        <input id="confirmacao" type="text" autocomplete="off" spellcheck="false" disabled placeholder="LIMPAR TESTE">
+        <button id="btnLimpar" type="button" disabled>Limpar registros de teste</button>
+
+        <pre id="status">Aguardando autenticação...</pre>
+    </div>
+</main>
+<script type="module" src="./js/limpar-ambiente-teste.js?v=1"></script>
+</body>
+</html>
