@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Sr NK • Migração de resumos</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #0d0f13;
+            color: #f5f7fb;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 24px 16px 48px; background: #0d0f13; }
+        main { width: min(100%, 620px); margin: 0 auto; }
+        h1 { margin: 0 0 8px; font-size: 1.35rem; }
+        p { color: #aab2c2; line-height: 1.55; }
+        .card { margin-top: 16px; padding: 18px; border: 1px solid #262b35; border-radius: 16px; background: #14171d; }
+        .ambiente { font-weight: 700; word-break: break-all; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+        .metric { padding: 12px; border: 1px solid #292f3a; border-radius: 12px; background: #101319; }
+        .metric span { display: block; margin-bottom: 5px; color: #919bad; font-size: .78rem; }
+        .metric strong { font-size: 1.15rem; }
+        button { width: 100%; min-height: 46px; margin-top: 10px; border: 0; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer; }
+        #btnAnalisar { background: #1e293b; color: #f8fafc; }
+        #btnMigrar { background: #2563eb; color: white; }
+        button:disabled { opacity: .45; cursor: not-allowed; }
+        pre { min-height: 120px; margin: 16px 0 0; padding: 14px; overflow: auto; border: 1px solid #292f3a; border-radius: 12px; background: #0b0d11; color: #d7deea; white-space: pre-wrap; line-height: 1.5; }
+        .alerta { margin-top: 14px; padding: 12px; border: 1px solid rgba(251,191,36,.35); border-radius: 12px; color: #f8d879; background: rgba(251,191,36,.08); line-height: 1.5; }
+        .ok { color: #7ee2a8; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Migração de resumos</h1>
+    <p>Ferramenta temporária para incorporar registros antigos à nova arquitetura de resumos do Sr NK.</p>
+
+    <div class="card">
+        <div>Ambiente:</div>
+        <div id="ambiente" class="ambiente">Carregando...</div>
+
+        <div class="grid">
+            <div class="metric"><span>Atendimentos pendentes</span><strong id="qtdAtendimentos">—</strong></div>
+            <div class="metric"><span>Despesas pendentes</span><strong id="qtdDespesas">—</strong></div>
+            <div class="metric"><span>Legados sem profissional</span><strong id="qtdSemProfissional">—</strong></div>
+            <div class="metric"><span>Registros já migrados</span><strong id="qtdJaMigrados">—</strong></div>
+        </div>
+
+        <div class="alerta">
+            Registros antigos sem <strong>profissionalUid</strong> não serão atribuídos automaticamente a ninguém. Eles ficarão de fora para tratarmos depois com segurança.
+        </div>
+
+        <button id="btnAnalisar" type="button" disabled>Analisar registros</button>
+        <button id="btnMigrar" type="button" disabled>Migrar pendentes para resumos</button>
+        <pre id="status">Aguardando autenticação...</pre>
+    </div>
+</main>
+<script type="module" src="./js/migrar-resumos.js?v=1"></script>
+</body>
+</html>
