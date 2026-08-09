@@ -1,16 +1,15 @@
 import { db } from "../../firebase-init.js?v=7.4";
 import {
-    addDoc,
     collection,
-    deleteDoc,
     doc,
+    getDoc,
     getDocs,
     orderBy,
     query,
     serverTimestamp,
     Timestamp,
-    updateDoc,
-    where
+    where,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { SCHEMA_VERSION } from "../constants.js?v=7.4";
@@ -18,6 +17,10 @@ import { state } from "../state.js?v=7.4";
 import { usuarioEhAdmin } from "../permissoes.js?v=7.4";
 import { obterUidAtual, obterWorkspaceId } from "./context.js?v=7.4";
 import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
+import {
+    anexarDeltasDespesasAoBatch,
+    RESUMO_VERSION
+} from "./resumos-repository.js?v=7.4";
 
 const CACHE_DESPESAS_MS = 2 * 60 * 1000;
 const cacheDespesas = new Map();
@@ -40,8 +43,20 @@ function colecaoDespesas() {
     return collection(db, "barbearias", obterWorkspaceId(), "despesas");
 }
 
+function documentoDespesa(id) {
+    return doc(db, "barbearias", obterWorkspaceId(), "despesas", id);
+}
+
 function nomeAtual() {
     return String(state.perfilUsuario?.nome || state.membroAtual?.nome || state.user?.email || "Profissional").trim();
+}
+
+async function obterDespesaOriginal(id, originalInformado = null) {
+    if (originalInformado?.id === id) return originalInformado;
+
+    const snap = await getDoc(documentoDespesa(id));
+    registrarConsultaFirestore("despesas/original", snap.exists() ? 1 : 0, id);
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function listarDespesasPorPeriodo(
@@ -106,8 +121,7 @@ export async function criarDespesa({ data, categoria, descricao, valor, tipo = "
     const uid = obterUidAtual();
     const tipoFinal = usuarioEhAdmin() && tipo === "barbearia" ? "barbearia" : "profissional";
     const dataDespesa = data instanceof Date ? data : new Date(data);
-
-    const ref = await addDoc(colecaoDespesas(), {
+    const dados = {
         profissionalUid: tipoFinal === "profissional" ? uid : null,
         profissionalNome: tipoFinal === "profissional" ? nomeAtual() : "Barbearia",
         registradoPorUid: uid,
@@ -119,23 +133,64 @@ export async function criarDespesa({ data, categoria, descricao, valor, tipo = "
         data: dataDespesa.toISOString(),
         dataDespesa,
         schemaVersion: SCHEMA_VERSION,
+        resumoVersion: RESUMO_VERSION
+    };
+
+    const ref = doc(colecaoDespesas());
+    const batch = writeBatch(db);
+
+    batch.set(ref, {
+        ...dados,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     });
+
+    anexarDeltasDespesasAoBatch(batch, [
+        { despesa: dados, sinal: 1 }
+    ]);
+
+    await batch.commit();
     invalidarCacheDespesas();
     return ref;
 }
 
-export async function editarDespesa(id, alteracoes) {
-    await updateDoc(doc(db, "barbearias", obterWorkspaceId(), "despesas", id), {
+export async function editarDespesa(id, alteracoes, originalInformado = null) {
+    const original = await obterDespesaOriginal(id, originalInformado);
+    if (!original) throw new Error("Despesa não encontrada.");
+
+    const nova = { ...original, ...alteracoes };
+    const batch = writeBatch(db);
+
+    batch.update(documentoDespesa(id), {
         ...alteracoes,
         updatedAt: serverTimestamp(),
         editado: true
     });
+
+    if (Number(original.resumoVersion || 0) >= RESUMO_VERSION) {
+        anexarDeltasDespesasAoBatch(batch, [
+            { despesa: original, sinal: -1 },
+            { despesa: nova, sinal: 1 }
+        ]);
+    }
+
+    await batch.commit();
     invalidarCacheDespesas();
 }
 
-export async function excluirDespesa(id) {
-    await deleteDoc(doc(db, "barbearias", obterWorkspaceId(), "despesas", id));
+export async function excluirDespesa(id, originalInformado = null) {
+    const original = await obterDespesaOriginal(id, originalInformado);
+    if (!original) throw new Error("Despesa não encontrada.");
+
+    const batch = writeBatch(db);
+    batch.delete(documentoDespesa(id));
+
+    if (Number(original.resumoVersion || 0) >= RESUMO_VERSION) {
+        anexarDeltasDespesasAoBatch(batch, [
+            { despesa: original, sinal: -1 }
+        ]);
+    }
+
+    await batch.commit();
     invalidarCacheDespesas();
 }

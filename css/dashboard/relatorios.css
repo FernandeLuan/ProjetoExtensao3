@@ -140,7 +140,9 @@
 }
 
 .relatorio-profissional-field {
-    padding: 0 1px;
+    position: relative;
+
+    padding: 0;
     margin-bottom: 12px;
 }
 
@@ -148,19 +150,39 @@
     width: 100%;
     min-height: 42px;
 
-    padding: 8px 10px;
+    padding: 8px 38px 8px 12px;
 
     border: 1px solid var(--border);
     border-radius: 11px;
     outline: none;
 
-    background: var(--bg);
+    background: var(--bg-card);
     color: var(--text);
 
     font: inherit;
-    font-size: 0.72rem;
-}
+    font-size: 0.82rem;
+    font-weight: 500;
 
+    appearance: none;
+    -webkit-appearance: none;
+
+    cursor: pointer;
+}
+.relatorio-profissional-field::after {
+    content: "\f078";
+
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+
+    color: var(--text-secondary);
+
+    font-family: "Font Awesome 6 Free";
+    font-size: 0.62rem;
+    font-weight: 900;
+
+    pointer-events: none;
+}
 /* Loading fica no fim da tela, sem interromper o topo do relatório. */
 .relatorio-loading {
     min-height: 42px;
@@ -330,8 +352,8 @@
     background: var(--bg);
 }
 
-.relatorio-kpis span {
-    display: flex;
+    .relatorio-kpis span {
+display: flex;
     align-items: center;
     gap: 5px;
 
@@ -384,30 +406,111 @@
     font-weight: 600;
 }
 
+.relatorio-kpis span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    margin-bottom: 3px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.69rem;
+    font-weight: 500;
+}
+
+.relatorio-kpis strong {
+    color: var(--text);
+
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.relatorio-card {
+    margin-top: 10px;
+    padding: 14px 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 15px;
+
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+}
+
+.relatorio-card-head h3 {
+    margin: 0;
+
+    color: var(--text);
+
+    font-size: 0.84rem;
+    font-weight: 500;
+}
+
 .relatorio-card-head p {
     margin: 3px 0 0;
 
     color: var(--text-secondary);
 
-    font-size: 0.59rem;
+    font-size: 0.66rem;
     line-height: 1.4;
 }
 
-.relatorio-card-head > i {
-    width: 31px;
-    height: 31px;
+.relatorio-equipe-item strong {
+    display: block;
 
-    flex: 0 0 31px;
+    overflow: hidden;
 
-    display: grid;
-    place-items: center;
+    color: var(--text);
 
-    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 500;
 
-    background: rgba(37, 99, 235, 0.1);
-    color: var(--primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-    font-size: 0.72rem;
+.relatorio-equipe-item span {
+    color: var(--text-secondary);
+
+    font-size: 0.64rem;
+}
+
+.relatorio-equipe-item > div:last-child strong {
+    font-weight: 600;
+}
+
+.relatorio-ranking-copy strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: 0.76rem;
+    font-weight: 500;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.relatorio-ranking-copy small {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.64rem;
+}
+
+.relatorio-ranking-value {
+    color: var(--text);
+
+    font-size: 0.76rem;
+    font-weight: 600;
+
+    text-align: right;
+    white-space: nowrap !important;
 }
 
 /* GRÁFICOS */

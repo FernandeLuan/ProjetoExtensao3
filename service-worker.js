@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.1.4-leituras-seguras";
+const CACHE_NAME = "sr-nk-v2.1.5-resumos-base";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -38,7 +38,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Navegação: tenta a rede primeiro para respeitar login e atualizações.
+  // Navegação: rede primeiro para receber imediatamente a versão publicada.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -52,7 +52,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Arquivos estáticos locais: cache primeiro, atualização em segundo plano.
+  // JS e CSS: rede primeiro. Isso evita que o PWA execute uma versão antiga
+  // do código na primeira abertura depois de uma publicação.
+  if (url.pathname.endsWith(".js") || url.pathname.endsWith(".css")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Demais arquivos estáticos: cache primeiro, atualização silenciosa depois.
   event.respondWith(
     caches.match(request).then((cached) => {
       const network = fetch(request).then((response) => {

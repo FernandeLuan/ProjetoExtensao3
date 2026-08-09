@@ -91,7 +91,7 @@ async function salvarDespesa(event){
    if(despesaEmEdicao){
      const tipoFinal=usuarioEhAdmin()?tipo:"profissional";const alt={data:data.toISOString(),dataDespesa:Timestamp.fromDate(data),categoria,descricao:descricao.slice(0,120),valor:Number(valor.toFixed(2)),tipo:tipoFinal};
      if(usuarioEhAdmin()&&tipoFinal==="barbearia"){alt.profissionalUid=null;alt.profissionalNome="Barbearia";}else if(tipoFinal==="profissional"&&!despesaEmEdicao.profissionalUid){alt.profissionalUid=state.user?.uid||null;alt.profissionalNome=String(state.perfilUsuario?.nome||state.membroAtual?.nome||state.user?.email||"Administrador");}
-     await editarDespesa(despesaEmEdicao.id,alt);mostrarSucesso("Despesa atualizada.");
+     await editarDespesa(despesaEmEdicao.id,alt,despesaEmEdicao);mostrarSucesso("Despesa atualizada.");
    }else{await criarDespesa({data,categoria,descricao,valor,tipo});mostrarSucesso("Despesa registrada.");}
    fecharModalDespesa({forcar:true});await carregarDespesasMes();
  }catch(error){console.error(error);mostrarErro("Não foi possível salvar a despesa.");}
@@ -100,7 +100,7 @@ async function salvarDespesa(event){
 
 function abrirExclusaoDespesa(d){despesaParaExcluir=d;if(descricaoExcluir)descricaoExcluir.textContent=`Excluir “${d.descricao||d.categoria||"Despesa"}” no valor de ${moeda(d.valor)}?`;modalExcluir?.classList.add("active");modalExcluir?.setAttribute("aria-hidden","false");}
 function fecharExclusaoDespesa(){despesaParaExcluir=null;modalExcluir?.classList.remove("active");modalExcluir?.setAttribute("aria-hidden","true");}
-async function confirmarExclusaoDespesa(){if(!despesaParaExcluir?.id)return;const id=despesaParaExcluir.id;btnConfirmarExcluir.disabled=true;btnConfirmarExcluir.textContent="Excluindo...";try{await excluirDespesa(id);despesasMes=despesasMes.filter(i=>i.id!==id);renderizarDespesas();mostrarSucesso("Despesa excluída.");fecharExclusaoDespesa();}catch(error){console.error(error);mostrarErro("Não foi possível excluir a despesa.");}finally{btnConfirmarExcluir.disabled=false;btnConfirmarExcluir.textContent="Excluir";}}
+async function confirmarExclusaoDespesa(){if(!despesaParaExcluir?.id)return;const id=despesaParaExcluir.id;btnConfirmarExcluir.disabled=true;btnConfirmarExcluir.textContent="Excluindo...";try{await excluirDespesa(id,despesaParaExcluir);despesasMes=despesasMes.filter(i=>i.id!==id);renderizarDespesas();mostrarSucesso("Despesa excluída.");fecharExclusaoDespesa();}catch(error){console.error(error);mostrarErro("Não foi possível excluir a despesa.");}finally{btnConfirmarExcluir.disabled=false;btnConfirmarExcluir.textContent="Excluir";}}
 
 export function initDespesas(){
  if(inicializado)return;inicializado=true;

@@ -160,6 +160,31 @@ service cloud.firestore {
           && resource.data.profissionalUid == request.auth.uid
         );
       }
+
+
+      // Resumos derivados por profissional. São cache financeiro diário e podem ser
+      // reconstruídos a partir de atendimentos/despesas se necessário.
+      match /resumosProfissionais/{uid}/dias/{diaId} {
+        allow read: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && uid == request.auth.uid
+        );
+
+        allow create, update: if isAdmin(barbeariaId) || (
+          isActiveMember(barbeariaId)
+          && uid == request.auth.uid
+          && request.resource.data.profissionalUid == request.auth.uid
+        );
+
+        allow delete: if false;
+      }
+
+      // Resumo diário da barbearia guarda apenas dados agregados administrativos,
+      // como despesas da própria barbearia.
+      match /resumosBarbearia/{diaId} {
+        allow read, create, update: if isAdmin(barbeariaId);
+        allow delete: if false;
+      }
     }
 
     // Estrutura antiga permanece somente como backup bloqueado.
