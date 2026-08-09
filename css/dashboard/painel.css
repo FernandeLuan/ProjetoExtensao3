@@ -141,7 +141,6 @@
 .finance-summary-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    margin-top: 13px;
     padding-top: 13px;
     border-top: 1px solid var(--border);
 }

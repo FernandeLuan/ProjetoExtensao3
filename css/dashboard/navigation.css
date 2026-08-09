@@ -48,15 +48,14 @@
 
 /* Tema claro */
 [data-theme="light"] .bottom-nav {
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.90);
 
-    border-color: rgba(15, 23, 42, 0.08);
+    border-color: rgba(49, 99, 214, 0.1);
 
     box-shadow:
-        0 8px 30px rgba(15, 23, 42, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        0 8px 28px rgba(15, 23, 42, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
-
 .bottom-nav.barber-nav {
     grid-template-columns: repeat(4, 1fr);
 }
