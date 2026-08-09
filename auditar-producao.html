@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>Sr NK • Auditoria de produção</title>
+    <title>Sr NK • Auditoria de produção v3</title>
     <style>
         :root {
             color-scheme: dark;
@@ -13,6 +13,7 @@
             color: #f5f7fb;
         }
         * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
         body { margin: 0; padding: 24px 16px 48px; background: #0d0f13; }
         main { width: min(100%, 720px); margin: 0 auto; }
         h1 { margin: 0 0 8px; font-size: 1.35rem; }
@@ -34,16 +35,16 @@
 </head>
 <body>
 <main>
-    <h1>Auditoria da produção <small style="font-size:.52em;opacity:.65;font-weight:600;">v2</small></h1>
+    <h1>Auditoria da produção <small style="font-size:.52em;opacity:.65;font-weight:600;">v3</small></h1>
     <p>Leitura única para mapear os dados atuais antes de migrar a produção do Sr NK para os resumos.</p>
 
     <div class="card">
         <div>Ambiente autenticado:</div>
-        <div id="ambiente" class="ambiente">Carregando...</div>
+        <div id="ambiente" class="ambiente">Inicializando auditoria v3...</div>
         <div id="badge" class="badge" hidden>PRODUÇÃO CONFIRMADA</div>
 
         <div class="seguro">
-            Esta ferramenta é <strong>somente leitura</strong>. Ela não possui código de criação, edição ou exclusão de documentos.
+            Esta ferramenta é <strong>somente leitura</strong>. Ela não cria, edita nem exclui documentos.
         </div>
 
         <div class="grid">
@@ -58,14 +59,474 @@
         </div>
 
         <div class="alerta">
-            A ferramenta é travada para o ID de produção esperado e recusa ambientes cujo ID começa com <strong>teste-</strong>.
+            Travada para a produção <strong>3TYly8cYfAWxI9LCdnAJgKL6t2s2</strong> e recusa qualquer ambiente <strong>teste-</strong>.
         </div>
 
         <button id="btnAnalisar" type="button" disabled>Analisar produção</button>
         <button id="btnCopiar" type="button" disabled>Copiar resultado</button>
-        <pre id="status">Aguardando autenticação...</pre>
+        <pre id="status">Carregando módulo de auditoria v3...</pre>
     </div>
 </main>
-<script type="module" src="./js/auditar-producao.js?v=2"></script>
+
+<script>
+(function () {
+    const status = document.getElementById("status");
+    window.addEventListener("error", (event) => {
+        status.textContent =
+            "ERRO AO CARREGAR A AUDITORIA v3\n\n" +
+            (event.message || "Erro desconhecido") +
+            (event.filename ? "\nArquivo: " + event.filename : "") +
+            (event.lineno ? "\nLinha: " + event.lineno : "");
+    });
+    window.addEventListener("unhandledrejection", (event) => {
+        const motivo = event.reason?.message || String(event.reason || "Erro desconhecido");
+        status.textContent = "ERRO NA AUDITORIA v3\n\n" + motivo;
+    });
+})();
+</script>
+
+<script type="module">
+import { auth, db } from "./js/firebase-init.js?v=audit-v3";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const PRODUCAO_ID = "3TYly8cYfAWxI9LCdnAJgKL6t2s2";
+
+const el = (id) => document.getElementById(id);
+const ambienteEl = el("ambiente");
+const badgeEl = el("badge");
+const qtdAtendimentosEl = el("qtdAtendimentos");
+const qtdDespesasEl = el("qtdDespesas");
+const qtdLegadosEl = el("qtdLegados");
+const qtdDuplicadosEl = el("qtdDuplicados");
+const qtdResumosProfEl = el("qtdResumosProf");
+const qtdResumosBarbEl = el("qtdResumosBarb");
+const dataInicialEl = el("dataInicial");
+const dataFinalEl = el("dataFinal");
+const btnAnalisar = el("btnAnalisar");
+const btnCopiar = el("btnCopiar");
+const statusEl = el("status");
+
+let contexto = null;
+let ultimoRelatorio = "";
+
+function setStatus(texto) {
+    ultimoRelatorio = texto;
+    statusEl.textContent = texto;
+    btnCopiar.disabled = !texto;
+}
+
+function limparTexto(valor) {
+    return String(valor ?? "").trim();
+}
+
+function numero(valor) {
+    const n = Number(valor);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function centavosRegistro(item) {
+    const valoresEmCentavos = [
+        item?.valorBrutoCentavos,
+        item?.valorFinalCentavos,
+        item?.valorCentavos
+    ];
+
+    const valoresEmReais = [
+        item?.valorBrutoTotal,
+        item?.valorBruto,
+        item?.valorServicoBruto,
+        item?.financeiro?.valorBruto,
+        item?.valorFinal,
+        item?.valor
+    ];
+
+    for (const candidato of valoresEmCentavos) {
+        if (candidato === null || candidato === undefined || candidato === "") continue;
+        const n = Number(candidato);
+        if (Number.isFinite(n)) return Math.round(n);
+    }
+
+    for (const candidato of valoresEmReais) {
+        if (candidato === null || candidato === undefined || candidato === "") continue;
+        const n = Number(candidato);
+        if (Number.isFinite(n)) return Math.round(n * 100);
+    }
+
+    return 0;
+}
+
+function origemValorRegistro(item) {
+    const candidatos = [
+        ["valorBrutoCentavos", item?.valorBrutoCentavos],
+        ["valorFinalCentavos", item?.valorFinalCentavos],
+        ["valorCentavos", item?.valorCentavos],
+        ["valorBrutoTotal", item?.valorBrutoTotal],
+        ["valorBruto", item?.valorBruto],
+        ["valorServicoBruto", item?.valorServicoBruto],
+        ["financeiro.valorBruto", item?.financeiro?.valorBruto],
+        ["valorFinal", item?.valorFinal],
+        ["valor", item?.valor]
+    ];
+
+    for (const [nome, valor] of candidatos) {
+        if (valor === null || valor === undefined || valor === "") continue;
+        if (Number.isFinite(Number(valor))) return nome;
+    }
+
+    return "sem campo de valor reconhecido";
+}
+
+function paraDate(valor) {
+    if (!valor) return null;
+    if (valor instanceof Date && !Number.isNaN(valor.getTime())) return valor;
+    if (typeof valor?.toDate === "function") {
+        const d = valor.toDate();
+        return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null;
+    }
+    if (typeof valor === "number") {
+        const d = new Date(valor);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (typeof valor === "string") {
+        const texto = valor.trim();
+        if (!texto) return null;
+        const normalizado = /^\d{4}-\d{2}-\d{2}$/.test(texto) ? `${texto}T12:00:00` : texto;
+        const d = new Date(normalizado);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+}
+
+function dataAtendimento(item) {
+    return paraDate(item?.dataAtendimento)
+        || paraDate(item?.dataHora)
+        || paraDate(item?.data)
+        || paraDate(item?.criadoEm);
+}
+
+function dataDespesa(item) {
+    return paraDate(item?.dataDespesa)
+        || paraDate(item?.data)
+        || paraDate(item?.criadoEm);
+}
+
+function formatarData(date) {
+    if (!date) return "—";
+    return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+    }).format(date);
+}
+
+function formatarDataHora(date) {
+    if (!date) return "sem data";
+    return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(date);
+}
+
+function formaPagamento(item) {
+    return limparTexto(item?.formaPagamento || item?.pagamento || item?.metodoPagamento).toLowerCase();
+}
+
+function servico(item) {
+    return limparTexto(
+        item?.servicoNome
+        || item?.servico
+        || item?.nomeServico
+        || item?.servicos?.map?.((s) => s?.nome || s)?.join?.("+")
+        || ""
+    ).toLowerCase();
+}
+
+function horarioConfiavel(item) {
+    if (item?.horaInformada === true) return true;
+    if (item?.criadoEm && !item?.migradoV2) return true;
+    return false;
+}
+
+function chavePossivelDuplicado(item) {
+    const data = dataAtendimento(item);
+    if (!data || !horarioConfiavel(item)) return null;
+
+    return [
+        data.getTime(),
+        limparTexto(item?.profissionalUid),
+        servico(item),
+        centavosRegistro(item),
+        formaPagamento(item)
+    ].join("|");
+}
+
+function agruparPossiveisDuplicados(atendimentos) {
+    const mapa = new Map();
+
+    atendimentos.forEach((item) => {
+        const chave = chavePossivelDuplicado(item);
+        if (!chave) return;
+        if (!mapa.has(chave)) mapa.set(chave, []);
+        mapa.get(chave).push(item);
+    });
+
+    return [...mapa.values()].filter((grupo) => grupo.length > 1);
+}
+
+function compararDatas(a, b) {
+    return a.getTime() - b.getTime();
+}
+
+async function carregarContextoSomenteLeitura(user) {
+    ambienteEl.textContent = "Validando usuário...";
+    setStatus("Módulo v3 carregado.\nValidando o usuário autenticado...");
+
+    const usuarioSnap = await getDoc(doc(db, "usuarios", user.uid));
+    if (!usuarioSnap.exists()) {
+        throw new Error("O documento do usuário autenticado não existe.");
+    }
+
+    const perfil = usuarioSnap.data();
+    const workspaceId = limparTexto(perfil?.barbeariaId);
+
+    if (!workspaceId) throw new Error("O usuário autenticado não possui barbeariaId.");
+    if (workspaceId.startsWith("teste-")) {
+        throw new Error("Você está no ambiente de TESTE. Entre com a conta da produção do Marlon.");
+    }
+    if (workspaceId !== PRODUCAO_ID) {
+        throw new Error(`Ambiente recusado por segurança: ${workspaceId}`);
+    }
+
+    ambienteEl.textContent = "Produção localizada. Validando permissões...";
+
+    const [barbeariaSnap, membroSnap] = await Promise.all([
+        getDoc(doc(db, "barbearias", workspaceId)),
+        getDoc(doc(db, "barbearias", workspaceId, "membros", user.uid))
+    ]);
+
+    if (!barbeariaSnap.exists()) throw new Error("A barbearia de produção não foi encontrada.");
+    if (!membroSnap.exists()) throw new Error("O usuário não é membro da barbearia de produção.");
+
+    const membro = membroSnap.data();
+    const papel = limparTexto(membro?.papel).toLowerCase();
+
+    if (!["admin", "owner"].includes(papel)) {
+        throw new Error(`A auditoria exige Admin/Owner. Papel atual: ${papel || "não informado"}.`);
+    }
+
+    return {
+        user,
+        workspaceId,
+        perfil,
+        barbearia: barbeariaSnap.data(),
+        membro
+    };
+}
+
+async function analisar() {
+    if (!contexto?.workspaceId) return;
+
+    btnAnalisar.disabled = true;
+    setStatus("Lendo a produção...\n\nNenhum documento será alterado.");
+
+    try {
+        const base = ["barbearias", contexto.workspaceId];
+
+        const [atendSnap, despesasSnap, membrosSnap, resumoBarbSnap] = await Promise.all([
+            getDocs(collection(db, ...base, "atendimentos")),
+            getDocs(collection(db, ...base, "despesas")),
+            getDocs(collection(db, ...base, "membros")),
+            getDocs(collection(db, ...base, "resumosBarbearia"))
+        ]);
+
+        const atendimentos = atendSnap.docs.map((snap) => ({ id: snap.id, ...snap.data() }));
+        const despesas = despesasSnap.docs.map((snap) => ({ id: snap.id, ...snap.data() }));
+        const membros = membrosSnap.docs.map((snap) => ({ id: snap.id, ...snap.data() }));
+
+        const resumosPorProfissional = [];
+        for (const membro of membros) {
+            const diasSnap = await getDocs(
+                collection(db, ...base, "resumosProfissionais", membro.id, "dias")
+            );
+            if (diasSnap.size > 0) {
+                resumosPorProfissional.push({
+                    uid: membro.id,
+                    nome: limparTexto(membro.nome) || limparTexto(membro.email) || membro.id,
+                    quantidade: diasSnap.size
+                });
+            }
+        }
+
+        const legados = atendimentos.filter((item) => !limparTexto(item?.profissionalUid));
+        const comProfissional = atendimentos.length - legados.length;
+        const semData = atendimentos.filter((item) => !dataAtendimento(item));
+        const marcadosResumo = atendimentos.filter((item) => numero(item?.resumoVersion) > 0);
+        const duplicados = agruparPossiveisDuplicados(atendimentos);
+        const valorTotalCentavos = atendimentos.reduce((total, item) => total + centavosRegistro(item), 0);
+
+        const origemValor = new Map();
+        atendimentos.forEach((item) => {
+            const origem = origemValorRegistro(item);
+            origemValor.set(origem, (origemValor.get(origem) || 0) + 1);
+        });
+
+        const horariosConfiaveis = atendimentos.filter(horarioConfiavel).length;
+        const datasAtendimentos = atendimentos.map(dataAtendimento).filter(Boolean).sort(compararDatas);
+        const datasDespesas = despesas.map(dataDespesa).filter(Boolean).sort(compararDatas);
+        const todasDatas = [...datasAtendimentos, ...datasDespesas].sort(compararDatas);
+        const primeiraData = todasDatas[0] || null;
+        const ultimaData = todasDatas[todasDatas.length - 1] || null;
+
+        qtdAtendimentosEl.textContent = String(atendimentos.length);
+        qtdDespesasEl.textContent = String(despesas.length);
+        qtdLegadosEl.textContent = String(legados.length);
+        qtdDuplicadosEl.textContent = String(duplicados.reduce((total, grupo) => total + grupo.length, 0));
+        qtdResumosProfEl.textContent = String(resumosPorProfissional.reduce((t, x) => t + x.quantidade, 0));
+        qtdResumosBarbEl.textContent = String(resumoBarbSnap.size);
+        dataInicialEl.textContent = formatarData(primeiraData);
+        dataFinalEl.textContent = formatarData(ultimaData);
+
+        const linhas = [
+            "AUDITORIA v3 CONCLUÍDA — SOMENTE LEITURA",
+            "",
+            `Ambiente: ${contexto.workspaceId}`,
+            `Barbearia: ${limparTexto(contexto.barbearia?.nome) || "sem nome"}`,
+            `Conta usada: ${contexto.user.email || contexto.user.uid}`,
+            `Papel: ${limparTexto(contexto.membro?.papel) || "—"}`,
+            "",
+            "DADOS PRINCIPAIS",
+            `- Atendimentos: ${atendimentos.length}`,
+            `- Despesas: ${despesas.length}`,
+            `- Atendimentos com profissionalUid: ${comProfissional}`,
+            `- Atendimentos SEM profissionalUid: ${legados.length}`,
+            `- Atendimentos sem data reconhecível: ${semData.length}`,
+            `- Atendimentos já marcados com resumoVersion: ${marcadosResumo.length}`,
+            `- Primeiro registro reconhecido: ${formatarData(primeiraData)}`,
+            `- Último registro reconhecido: ${formatarData(ultimaData)}`,
+            `- Faturamento bruto reconhecido: R$ ${(valorTotalCentavos / 100).toFixed(2).replace(".", ",")}`,
+            `- Registros com horário explicitamente confiável: ${horariosConfiaveis}`,
+            "",
+            "MEMBROS DA PRODUÇÃO"
+        ];
+
+        if (!membros.length) {
+            linhas.push("- nenhum membro encontrado");
+        } else {
+            membros.forEach((m) => {
+                linhas.push(
+                    `- ${limparTexto(m.nome) || limparTexto(m.email) || m.id} | ` +
+                    `uid: ${m.id} | papel: ${limparTexto(m.papel) || "—"} | ativo: ${m.ativo === true ? "sim" : "não"}`
+                );
+            });
+        }
+
+        linhas.push("", "CAMPOS DE VALOR DETECTADOS");
+        [...origemValor.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([origem, quantidade]) => linhas.push(`- ${origem}: ${quantidade}`));
+
+        linhas.push(
+            "",
+            "RESUMOS EXISTENTES",
+            `- Dias em resumos profissionais: ${resumosPorProfissional.reduce((t, x) => t + x.quantidade, 0)}`,
+            `- Dias em resumos da barbearia: ${resumoBarbSnap.size}`,
+            "",
+            "LEGADOS SEM profissionalUid"
+        );
+
+        if (!legados.length) {
+            linhas.push("- nenhum");
+        } else {
+            legados.slice(0, 50).forEach((item) => {
+                linhas.push(
+                    `- ${item.id} | ${formatarDataHora(dataAtendimento(item))} | ` +
+                    `${limparTexto(item.servicoNome || item.servico || item.nomeServico) || "serviço não identificado"} | ` +
+                    `R$ ${(centavosRegistro(item) / 100).toFixed(2).replace(".", ",")} | ` +
+                    `${limparTexto(item.formaPagamento || item.pagamento || item.metodoPagamento) || "pagamento não identificado"} | ` +
+                    `campo: ${origemValorRegistro(item)}`
+                );
+            });
+        }
+
+        linhas.push("", "POSSÍVEIS DUPLICADOS");
+        if (!duplicados.length) {
+            linhas.push("- nenhum candidato com horário confiável encontrado");
+        } else {
+            linhas.push("Atenção: candidatos apenas; nada será excluído automaticamente.");
+            duplicados.slice(0, 20).forEach((grupo, indice) => {
+                linhas.push(`- Grupo ${indice + 1}: ${grupo.map((item) => item.id).join(", ")}`);
+            });
+        }
+
+        linhas.push(
+            "",
+            "NENHUM DADO FOI MODIFICADO.",
+            "Envie este resultado no chat antes de qualquer migração."
+        );
+
+        setStatus(linhas.join("\n"));
+    } catch (error) {
+        console.error(error);
+        setStatus(`Erro durante a auditoria v3:\n${error.message}\n\nNenhum dado foi alterado.`);
+    } finally {
+        btnAnalisar.disabled = false;
+    }
+}
+
+btnAnalisar.addEventListener("click", analisar);
+
+btnCopiar.addEventListener("click", async () => {
+    if (!ultimoRelatorio) return;
+    try {
+        await navigator.clipboard.writeText(ultimoRelatorio);
+        const original = btnCopiar.textContent;
+        btnCopiar.textContent = "Copiado";
+        setTimeout(() => { btnCopiar.textContent = original; }, 1400);
+    } catch {
+        window.prompt("Copie o relatório abaixo:", ultimoRelatorio);
+    }
+});
+
+setStatus("Módulo v3 carregado.\nAguardando o Firebase informar o usuário autenticado...");
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        ambienteEl.textContent = "Não autenticado";
+        badgeEl.hidden = true;
+        btnAnalisar.disabled = true;
+        setStatus("Entre no Sr NK com a conta da PRODUÇÃO e abra esta página novamente.");
+        return;
+    }
+
+    try {
+        contexto = await carregarContextoSomenteLeitura(user);
+        ambienteEl.textContent = `${contexto.workspaceId} • ${limparTexto(contexto.barbearia?.nome) || "Sr NK"}`;
+        badgeEl.hidden = false;
+        btnAnalisar.disabled = false;
+        setStatus(
+            `Auditoria v3 pronta.\n` +
+            `Ambiente: ${contexto.workspaceId}\n` +
+            `Usuário: ${contexto.user.email || contexto.user.uid}\n\n` +
+            `Clique em “Analisar produção”.`
+        );
+    } catch (error) {
+        console.error(error);
+        contexto = null;
+        ambienteEl.textContent = "Acesso bloqueado";
+        badgeEl.hidden = true;
+        btnAnalisar.disabled = true;
+        setStatus(`Não foi possível abrir a auditoria v3:\n${error.message}\n\nNenhum dado foi alterado.`);
+    }
+});
+</script>
 </body>
 </html>
