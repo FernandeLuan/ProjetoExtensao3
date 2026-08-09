@@ -1,15 +1,15 @@
-import { state } from "./state.js?v=6.1";
+import { state } from "./state.js?v=7.4";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=6.1";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=6.1";
-import { obterServicos } from "./services/catalogo-service.js?v=6.1";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=6.1";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=6.1";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=6.1";
+} from "./data/equipe-repository.js?v=7.4";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=7.4";
+import { obterServicos } from "./services/catalogo-service.js?v=7.4";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=7.4";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
 
 let inicializado = false;
 let carregando = false;
@@ -179,7 +179,7 @@ function fecharModalAcessoCriado() {
 
 function montarTextoAcesso(acesso) {
     return [
-        "Seu acesso ao Marlon Barber foi criado.",
+        "Seu acesso ao Sr NK foi criado.",
         "",
         `Nome: ${acesso.nome}`,
         `E-mail: ${acesso.email}`,
@@ -222,7 +222,7 @@ async function compartilharAcessoCriado() {
 
     if (navigator.share) {
         try {
-            await navigator.share({ title: "Acesso Marlon Barber", text: texto });
+            await navigator.share({ title: "Acesso Sr NK", text: texto });
             return;
         } catch (error) {
             if (error?.name === "AbortError") return;
@@ -551,7 +551,7 @@ export async function carregarEquipe() {
 
 async function prepararEquipe() {
     try {
-        const membroAtual = await obterMembroAtual();
+        const membroAtual = state.membroAtual || await obterMembroAtual();
         const podeGerenciar = membroAtual?.ativo === true && papelEhAdmin(membroAtual?.papel);
         if (menuEquipeItem) menuEquipeItem.hidden = !podeGerenciar;
         if (btnAdicionarBarbeiro) btnAdicionarBarbeiro.hidden = !podeGerenciar;
@@ -593,5 +593,9 @@ export function initEquipe() {
         if (event.target === modalFinanceiro) fecharFinanceiroMembro();
     });
 
-    prepararEquipe();
+}
+
+export async function abrirEquipe() {
+    if (!inicializado) return;
+    await prepararEquipe();
 }

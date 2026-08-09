@@ -1,16 +1,16 @@
-/* Marlon Barber - entrada modular do dashboard */
-@import url("./dashboard/theme.css?v=6.1");
-@import url("./dashboard/base.css?v=6.1");
-@import url("./dashboard/navigation.css?v=6.1");
-@import url("./dashboard/layout.css?v=6.1");
-@import url("./dashboard/registrar.css?v=6.1");
-@import url("./dashboard/painel.css?v=6.1");
-@import url("./dashboard/historico.css?v=6.1");
-@import url("./dashboard/relatorios.css?v=6.1");
-@import url("./dashboard/configuracoes.css?v=6.1");
-@import url("./dashboard/equipe.css?v=6.1");
-@import url("./dashboard/despesas.css?v=6.1");
-@import url("./dashboard/primeiro-acesso.css?v=6.1");
-@import url("./dashboard/conta.css?v=6.1");
-@import url("./dashboard/modals.css?v=6.1");
-@import url("./dashboard/utilities.css?v=6.1");
+/* Sr NK - entrada modular do dashboard */
+@import url("./dashboard/theme.css?v=7.1");
+@import url("./dashboard/base.css?v=7.1");
+@import url("./dashboard/navigation.css?v=7.1");
+@import url("./dashboard/layout.css?v=7.1");
+@import url("./dashboard/registrar.css?v=7.1");
+@import url("./dashboard/painel.css?v=7.1");
+@import url("./dashboard/historico.css?v=7.1");
+@import url("./dashboard/relatorios.css?v=7.1");
+@import url("./dashboard/configuracoes.css?v=7.1");
+@import url("./dashboard/equipe.css?v=7.1");
+@import url("./dashboard/despesas.css?v=7.1");
+@import url("./dashboard/primeiro-acesso.css?v=7.1");
+@import url("./dashboard/conta.css?v=7.1");
+@import url("./dashboard/modals.css?v=7.1");
+@import url("./dashboard/utilities.css?v=7.1");

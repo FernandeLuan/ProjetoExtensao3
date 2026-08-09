@@ -1,11 +1,11 @@
-import { state, onStateChange } from "./state.js?v=6.1";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=6.1";
-import { invalidarCacheAtendimentos, recarregarAtendimentosDoDia } from "./data/sync.js?v=6.1";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=6.1";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=6.1";
-import { usuarioEhAdmin } from "./permissoes.js?v=6.1";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=6.1";
-import { mostrarErro } from "./services/feedback-service.js?v=6.1";
+import { state, onStateChange } from "./state.js?v=7.4";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=7.4";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=7.4";
+import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=7.4";
+import { mostrarErro } from "./services/feedback-service.js?v=7.4";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -29,6 +29,7 @@ const campoValorPersonalizado = document.getElementById("campoValorPersonalizado
 const checkboxObservacao = document.getElementById("temObservacao");
 const campoObservacao = document.getElementById("campoObservacao");
 const inputObservacao = document.getElementById("observacaoAtendimento");
+const labelObservacao = document.getElementById("labelObservacaoRegistrar");
 const undoContainer = document.getElementById("undoContainer");
 const btnUndoInline = document.getElementById("btnUndoInline");
 
@@ -255,7 +256,18 @@ async function registrarAtendimentoAtual() {
     if (!pagamento || !pagamentoEstaAtivo(pagamento)) { dispararErroVisual(labelPagamento); temErro = true; }
 
     const valorServicoBruto = checkboxValorDif?.checked ? getValorCustomizado() : valorTotalAutomatico;
-    if (checkboxValorDif?.checked && valorServicoBruto <= 0) { dispararErroVisualInput(inputValorPersonalizado); temErro = true; }
+    if (checkboxValorDif?.checked && valorServicoBruto <= 0) {
+        dispararErroVisualInput(inputValorPersonalizado);
+        temErro = true;
+    }
+
+    const observacaoInformada = String(inputObservacao?.value || "").trim();
+    if (checkboxObservacao?.checked && !observacaoInformada) {
+        dispararErroVisual(labelObservacao);
+        dispararErroVisualInput(inputObservacao);
+        temErro = true;
+    }
+
     if (temErro || valorServicoBruto <= 0) return;
 
     resolverProfissionalSelecionado();
@@ -263,7 +275,7 @@ async function registrarAtendimentoAtual() {
     if (!servico || !profissionalSelecionado) return;
 
     const preco = resolverPrecoServico(servico, profissionalSelecionado);
-    const observacao = checkboxObservacao?.checked ? String(inputObservacao?.value || "").trim().slice(0, 160) : "";
+    const observacao = checkboxObservacao?.checked ? observacaoInformada.slice(0, 160) : "";
 
     const payload = criarPayloadAtendimento({
         servico: servico.nome,
@@ -292,8 +304,9 @@ async function registrarAtendimentoAtual() {
         const id = await criarAtendimento(payload);
         dispararUndoInline(id);
         limparFormularioAposRegistro();
+        // O novo atendimento já entra no state local pelo repository.
+        // Apenas invalida o cache para a próxima tela aberta buscar dados frescos.
         invalidarCacheAtendimentos();
-        await recarregarAtendimentosDoDia(new Date(), { profissionalUid: usuarioEhAdmin() ? null : state.user?.uid });
         if (btnRegistrar) btnRegistrar.style.opacity = "1";
         mostrarFeedbackBotao("Registrado ✓");
     } catch (error) {
@@ -317,7 +330,13 @@ export async function initRegistrar() {
 
     inputValorPersonalizado?.addEventListener("input", () => {
         aplicarMascaraMoedaInput(inputValorPersonalizado);
+        inputValorPersonalizado.classList.remove("input-erro");
         atualizarTextoBotao();
+    });
+
+    inputObservacao?.addEventListener("input", () => {
+        inputObservacao.classList.remove("input-erro");
+        labelObservacao?.classList.remove("label-erro");
     });
 
     checkboxValorDif?.addEventListener("change", () => {
@@ -344,7 +363,6 @@ export async function initRegistrar() {
         try {
             await excluirAtendimento(ultimoIdRegistrado);
             invalidarCacheAtendimentos();
-            await recarregarAtendimentosDoDia(new Date(), { profissionalUid: usuarioEhAdmin() ? null : state.user?.uid });
             if (undoContainer) undoContainer.style.display = "none";
             ultimoIdRegistrado = null;
             mostrarFeedbackBotao("Registro Desfeito ↩", "undo-feedback", 1800);

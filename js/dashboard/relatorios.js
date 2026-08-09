@@ -1,22 +1,32 @@
-import { state } from "./state.js?v=6.1";
-import { listarAtendimentosPorPeriodo } from "./data/atendimentos-repository.js?v=6.1";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=6.1";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=6.1";
-import { usuarioEhAdmin } from "./permissoes.js?v=6.1";
+import { APP_NAME } from "./constants.js?v=7.4";
+import { state } from "./state.js?v=7.4";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=7.4";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=7.4";
+import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./services/financeiro-service.js?v=6.1";
-import { chaveData, dataDeInput, inicioDoDia, somarDias, obterDataAtendimento } from "./utils/date.js?v=6.1";
-import { formatarMoeda } from "./utils/money.js?v=6.1";
-import { escaparHtml } from "./utils/dom.js?v=6.1";
+} from "./services/financeiro-service.js?v=7.4";
+import {
+    chaveData,
+    dataDeInput,
+    inicioDoDia,
+    somarDias,
+    obterDataAtendimento,
+    formatarTituloData
+} from "./utils/date.js?v=7.4";
+import { formatarMoeda } from "./utils/money.js?v=7.4";
+import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=7.4";
 
 let inicializado = false;
-let periodoAtual = "hoje";
 let relatorioAtual = null;
 let charts = {};
+let timerInfo = null;
+let periodoInicio = inicioDoDia(new Date());
+let periodoFim = inicioDoDia(new Date());
 
 const el = (id) => document.getElementById(id);
 const inicioInput = el("dataInicioRelatorio");
@@ -26,7 +36,11 @@ const profissionalField = el("relatorioProfissionalField");
 const profissionalSelect = el("relatorioProfissionalSelect");
 const loading = el("relatorioLoading");
 const status = el("relatorioStatus");
-const fluxoCard = el("relatorioFluxoCard");
+const infoTooltip = el("relatorioInfoTooltip");
+const labelData = el("labelDataRelatorio");
+const btnAnterior = el("btnRelDataAnterior");
+const btnProxima = el("btnRelDataProxima");
+const btnCalendario = el("btnCalendarioRelatorio");
 
 function moeda(valor) {
     return `R$ ${formatarMoeda(Number(valor || 0))}`;
@@ -49,56 +63,172 @@ function setStatus(texto = "", erro = false) {
     status.classList.toggle("error", Boolean(erro));
 }
 
-function inicioFimPeriodo(tipo) {
-    const hoje = inicioDoDia(new Date());
-    if (tipo === "semana") return { inicio: somarDias(hoje, -6), fim: hoje };
-    if (tipo === "mes") return { inicio: new Date(hoje.getFullYear(), hoje.getMonth(), 1), fim: hoje };
-    return { inicio: hoje, fim: hoje };
+function setCarregando(ativo) {
+    if (!loading) return;
+    loading.hidden = !ativo;
+}
+
+function diasNoPeriodo(inicio = periodoInicio, fim = periodoFim) {
+    const msDia = 24 * 60 * 60 * 1000;
+    return Math.max(1, Math.round((inicioDoDia(fim) - inicioDoDia(inicio)) / msDia) + 1);
 }
 
 function formatarPeriodo(inicio, fim) {
     if (chaveData(inicio) === chaveData(fim)) {
-        return inicio.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+        return formatarTituloData(inicio);
     }
+
+    const mesmoMes =
+        inicio.getFullYear() === fim.getFullYear() &&
+        inicio.getMonth() === fim.getMonth();
+
+    if (mesmoMes) {
+        const diaInicio = String(inicio.getDate()).padStart(2, "0");
+        const diaFim = String(fim.getDate()).padStart(2, "0");
+        const mes = fim.toLocaleDateString("pt-BR", { month: "long" });
+        return `${diaInicio} a ${diaFim} de ${mes} de ${fim.getFullYear()}`;
+    }
+
     return `${inicio.toLocaleDateString("pt-BR")} a ${fim.toLocaleDateString("pt-BR")}`;
 }
 
-function atualizarBotoesPeriodo(tipo) {
-    document.querySelectorAll("#relatorios .btn-filtro").forEach((btn) => btn.classList.remove("active"));
-    const mapa = { hoje: "btnRelHoje", semana: "btnRelSemana", mes: "btnRelMes", periodo: "btnRelPeriodo" };
-    el(mapa[tipo])?.classList.add("active");
+function atualizarNavegadorPeriodo() {
+    const hoje = inicioDoDia(new Date());
+
+    if (labelData) {
+        labelData.textContent = formatarPeriodo(periodoInicio, periodoFim);
+    }
+
+    if (inicioInput) {
+        inicioInput.max = chaveData(hoje);
+        inicioInput.value = chaveData(periodoInicio);
+    }
+
+    if (fimInput) {
+        fimInput.max = chaveData(hoje);
+        fimInput.value = chaveData(periodoFim);
+        fimInput.min = chaveData(periodoInicio);
+    }
+
+    if (btnProxima) {
+        const estaNoHoje = periodoFim >= hoje;
+        btnProxima.disabled = estaNoHoje;
+        btnProxima.setAttribute("aria-disabled", String(estaNoHoje));
+    }
 }
 
-function definirDatas(tipo) {
-    periodoAtual = tipo;
-    atualizarBotoesPeriodo(tipo);
-    const { inicio, fim } = inicioFimPeriodo(tipo);
-    if (inicioInput) inicioInput.value = chaveData(inicio);
-    if (fimInput) fimInput.value = chaveData(fim);
-    if (periodoCustom) periodoCustom.hidden = tipo !== "periodo";
-    return { inicio, fim };
+function abrirPeriodoPersonalizado() {
+    if (!periodoCustom) return;
+    periodoCustom.hidden = !periodoCustom.hidden;
+    atualizarNavegadorPeriodo();
+
 }
 
-function obterDatasSelecionadas() {
+function fecharPeriodoPersonalizado() {
+    if (periodoCustom) periodoCustom.hidden = true;
+}
+
+function aplicarPeriodo(inicio, fim, { carregar = true } = {}) {
+    const hoje = inicioDoDia(new Date());
+    let novoInicio = inicioDoDia(inicio);
+    let novoFim = inicioDoDia(fim);
+
+    if (novoInicio > novoFim) [novoInicio, novoFim] = [novoFim, novoInicio];
+    if (novoFim > hoje) novoFim = hoje;
+    if (novoInicio > hoje) novoInicio = hoje;
+
+    periodoInicio = novoInicio;
+    periodoFim = novoFim;
+    atualizarNavegadorPeriodo();
+
+    if (carregar) carregarRelatorio();
+}
+
+function irPeriodoAnterior() {
+    const dias = diasNoPeriodo();
+    const novoFim = somarDias(periodoInicio, -1);
+    const novoInicio = somarDias(novoFim, -(dias - 1));
+    fecharPeriodoPersonalizado();
+    aplicarPeriodo(novoInicio, novoFim);
+}
+
+function irProximoPeriodo() {
+    const hoje = inicioDoDia(new Date());
+    if (periodoFim >= hoje) return;
+
+    const dias = diasNoPeriodo();
+    let novoInicio = somarDias(periodoFim, 1);
+    let novoFim = somarDias(novoInicio, dias - 1);
+
+    if (novoFim > hoje) {
+        novoFim = hoje;
+        novoInicio = somarDias(novoFim, -(dias - 1));
+    }
+
+    fecharPeriodoPersonalizado();
+    aplicarPeriodo(novoInicio, novoFim);
+}
+
+function validarPeriodoDosInputs() {
     const inicio = dataDeInput(inicioInput?.value);
     const fim = dataDeInput(fimInput?.value);
-    if (!inicio || !fim) throw new Error("Selecione um período válido.");
+    const hoje = inicioDoDia(new Date());
+
+    if (!inicio || !fim) throw new Error("Selecione as duas datas.");
     if (inicio > fim) throw new Error("A data inicial não pode ser maior que a final.");
-    if (fim > inicioDoDia(new Date())) throw new Error("O relatório não pode usar uma data futura.");
+    if (fim > hoje) throw new Error("O relatório não pode usar uma data futura.");
+
     return { inicio, fim };
 }
 
 function agrupar(lista, chaveFn, valorFn = () => 1) {
     const mapa = new Map();
+
     lista.forEach((item) => {
         const chave = chaveFn(item) || "Outros";
         mapa.set(chave, (mapa.get(chave) || 0) + Number(valorFn(item) || 0));
     });
+
     return [...mapa.entries()].sort((a, b) => b[1] - a[1]);
 }
 
+function nomeSnapshotProfissional(uid) {
+    if (!uid) return "";
+
+    const registro = (state.atendimentos || []).find((atendimento) => {
+        if (atendimento?.profissionalUid !== uid) return false;
+
+        const nome = String(atendimento?.profissionalNome || "").trim();
+        if (!nome) return false;
+
+        return !nome.includes("@");
+    });
+
+    return String(registro?.profissionalNome || "").trim();
+}
+
 function nomeMembro(membro) {
-    return String(membro?.nome || membro?.email || "Profissional").trim();
+    const uid = membro?.uid || membro?.id;
+
+    if (uid === state.user?.uid) {
+        const atual = String(
+            state.perfilUsuario?.nome ||
+            state.membroAtual?.nome ||
+            state.user?.displayName ||
+            nomeSnapshotProfissional(uid) ||
+            ""
+        ).trim();
+
+        if (atual && !atual.includes("@")) return atual;
+    }
+
+    const nome = String(membro?.nome || "").trim();
+    if (nome && !nome.includes("@")) return nome;
+
+    const snapshot = nomeSnapshotProfissional(uid);
+    if (snapshot) return snapshot;
+
+    return String(membro?.email || "Profissional").trim();
 }
 
 async function prepararSeletorProfissional() {
@@ -112,12 +242,15 @@ async function prepararSeletorProfissional() {
 
     profissionalField.hidden = false;
     const valorAnterior = profissionalSelect.value || "barbearia";
-    const membros = await listarMembrosEquipe();
+    const membros = (state.equipe || []).length
+        ? state.equipe
+        : await listarMembrosEquipe();
     const ativos = membros
         .filter((membro) => membro.ativo === true)
         .sort((a, b) => nomeMembro(a).localeCompare(nomeMembro(b), "pt-BR"));
 
     profissionalSelect.innerHTML = '<option value="barbearia">Barbearia</option>';
+
     ativos.forEach((membro) => {
         const option = document.createElement("option");
         option.value = membro.uid || membro.id;
@@ -125,7 +258,9 @@ async function prepararSeletorProfissional() {
         profissionalSelect.appendChild(option);
     });
 
-    const existe = [...profissionalSelect.options].some((option) => option.value === valorAnterior);
+    const existe = [...profissionalSelect.options]
+        .some((option) => option.value === valorAnterior);
+
     profissionalSelect.value = existe ? valorAnterior : "barbearia";
 }
 
@@ -136,21 +271,22 @@ function coresGrafico() {
     const aviso = estilo.getPropertyValue("--warning").trim() || "#fbbf24";
     const texto = estilo.getPropertyValue("--text-secondary").trim() || "#8a8a8a";
     const borda = estilo.getPropertyValue("--border").trim() || "rgba(128,128,128,.25)";
+
     return {
         principal,
         sucesso,
         aviso,
         texto,
         borda,
-        paleta: [principal, sucesso, aviso, "#8b5cf6", "#06b6d4", "#f97316", "#ec4899", "#64748b"]
+        // Ordem visual pedida: 1º amarelo, 2º verde, 3º azul.
+        paleta: [aviso, sucesso, principal, "#8b5cf6", "#06b6d4", "#f97316", "#ec4899", "#64748b"]
     };
 }
 
 function destruirGrafico(nome) {
-    if (charts[nome]) {
-        charts[nome].destroy();
-        charts[nome] = null;
-    }
+    if (!charts[nome]) return;
+    charts[nome].destroy();
+    charts[nome] = null;
 }
 
 function graficoLinhaDiaria(atendimentos, inicio, fim) {
@@ -159,16 +295,22 @@ function graficoLinhaDiaria(atendimentos, inicio, fim) {
     if (!canvas || typeof Chart === "undefined") return;
 
     const porDia = new Map();
-    atendimentos.forEach((a) => {
-        const data = obterDataAtendimento(a);
+
+    atendimentos.forEach((atendimento) => {
+        const data = obterDataAtendimento(atendimento);
         if (!data) return;
+
         const chave = chaveData(data);
-        porDia.set(chave, (porDia.get(chave) || 0) + obterBrutoAtendimento(a));
+        porDia.set(
+            chave,
+            (porDia.get(chave) || 0) + obterBrutoAtendimento(atendimento)
+        );
     });
 
     const labels = [];
     const dados = [];
     let cursor = inicioDoDia(inicio);
+
     while (cursor <= fim) {
         const chave = chaveData(cursor);
         labels.push(cursor.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }));
@@ -177,12 +319,13 @@ function graficoLinhaDiaria(atendimentos, inicio, fim) {
     }
 
     const c = coresGrafico();
+
     charts.faturamento = new Chart(canvas, {
         type: "line",
         data: {
             labels,
             datasets: [{
-                label: "Faturamento",
+                label: "Faturamento bruto",
                 data: dados,
                 borderColor: c.principal,
                 backgroundColor: `${c.principal}22`,
@@ -197,11 +340,25 @@ function graficoLinhaDiaria(atendimentos, inicio, fim) {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => moeda(ctx.raw) } }
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => moeda(ctx.raw)
+                    }
+                }
             },
             scales: {
-                x: { ticks: { color: c.texto, maxTicksLimit: 7 }, grid: { display: false } },
-                y: { beginAtZero: true, ticks: { color: c.texto, callback: (v) => `R$ ${Number(v).toLocaleString("pt-BR")}` }, grid: { color: c.borda } }
+                x: {
+                    ticks: { color: c.texto, maxTicksLimit: 7 },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: c.texto,
+                        callback: (v) => `R$ ${Number(v).toLocaleString("pt-BR")}`
+                    },
+                    grid: { color: c.borda }
+                }
             }
         }
     });
@@ -222,93 +379,121 @@ function graficoRosca(nome, canvasId, entradas, labelFn) {
             labels: dados.map(([rotulo]) => rotulo),
             datasets: [{
                 data: dados.map(([, valor]) => valor),
-                backgroundColor: semDados ? [c.borda] : dados.map((_, i) => c.paleta[i % c.paleta.length]),
+                backgroundColor: semDados
+                    ? [c.borda]
+                    : dados.map((_, indice) => c.paleta[indice % c.paleta.length]),
                 borderWidth: 0,
-                hoverOffset: semDados ? 0 : 4
+                hoverOffset: semDados ? 0 : 6,
+                spacing: semDados ? 0 : 3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: "68%",
+            cutout: "67%",
+            layout: { padding: 18 },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     enabled: !semDados,
-                    callbacks: { label: (ctx) => labelFn ? labelFn(ctx) : String(ctx.raw) }
+                    callbacks: {
+                        label: (ctx) => labelFn ? labelFn(ctx) : String(ctx.raw)
+                    }
                 }
             }
         }
     });
 }
 
-function graficoBarrasDespesas(entradas) {
-    destruirGrafico("despesas");
-    const canvas = el("graficoRelatorioDespesas");
-    if (!canvas || typeof Chart === "undefined") return;
-    const c = coresGrafico();
-    const dados = entradas.length ? entradas : [["Sem despesas", 0]];
-
-    charts.despesas = new Chart(canvas, {
-        type: "bar",
-        data: {
-            labels: dados.map(([nome]) => nome),
-            datasets: [{ data: dados.map(([, valor]) => valor), backgroundColor: c.principal, borderRadius: 7 }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => moeda(ctx.raw) } } },
-            scales: {
-                x: { ticks: { color: c.texto }, grid: { display: false } },
-                y: { beginAtZero: true, ticks: { color: c.texto, callback: (v) => `R$ ${Number(v).toLocaleString("pt-BR")}` }, grid: { color: c.borda } }
-            }
-        }
-    });
-}
-
-function renderRanking(containerId, entradas, { totalBase = 0, valorMonetario = false, subtituloFn = null } = {}) {
+function renderRanking(
+    containerId,
+    entradas,
+    { totalBase = 0, valorMonetario = false, subtituloFn = null } = {}
+) {
     const container = el(containerId);
     if (!container) return;
+
     container.innerHTML = "";
 
     if (!entradas.length) {
-        container.innerHTML = '<div class="relatorio-ranking-vazio">Sem dados no período.</div>';
+        container.innerHTML =
+            '<div class="relatorio-ranking-vazio">Sem dados no período.</div>';
         return;
     }
+
+    const c = coresGrafico();
 
     entradas.forEach(([nome, valor], indice) => {
         const item = document.createElement("div");
         item.className = "relatorio-ranking-item";
-        const percentual = totalBase > 0 ? (Number(valor) / totalBase) * 100 : 0;
-        const valorTexto = valorMonetario ? moeda(valor) : `${Number(valor)} atendimento${Number(valor) === 1 ? "" : "s"}`;
-        const sub = subtituloFn ? subtituloFn(nome, valor) : `${percentual.toFixed(1).replace(".", ",")}%`;
+
+        const percentual =
+            totalBase > 0
+                ? (Number(valor) / totalBase) * 100
+                : 0;
+
+        const valorTexto =
+            valorMonetario
+                ? moeda(valor)
+                : `${Number(valor)} atendimento${Number(valor) === 1 ? "" : "s"}`;
+
+        const sub =
+            subtituloFn
+                ? subtituloFn(nome, valor)
+                : `${percentual.toFixed(1).replace(".", ",")}%`;
+
+        const cor = c.paleta[indice % c.paleta.length];
+
         item.innerHTML = `
-            <span class="relatorio-ranking-pos">${indice + 1}</span>
-            <div class="relatorio-ranking-copy"><strong>${escaparHtml(nome)}</strong><small>${escaparHtml(sub)}</small></div>
-            <strong class="relatorio-ranking-value">${escaparHtml(valorTexto)}</strong>`;
+            <span class="relatorio-ranking-pos" style="--rank-color:${cor}">${indice + 1}</span>
+            <div class="relatorio-ranking-copy">
+                <strong>${escaparHtml(nome)}</strong>
+                <small>${escaparHtml(sub)}</small>
+            </div>
+            <strong class="relatorio-ranking-value">${escaparHtml(valorTexto)}</strong>
+        `;
+
         container.appendChild(item);
     });
 }
 
 function calcularResumo(atendimentos, despesas, visaoBarbearia) {
-    const faturamento = atendimentos.reduce((s, a) => s + obterBrutoAtendimento(a), 0);
-    const taxas = atendimentos.reduce((s, a) => s + obterTaxaCartaoValor(a), 0);
-    const repasse = atendimentos.reduce((s, a) => s + obterRepasseAtendimento(a), 0);
-    const liquidoBarbeiro = atendimentos.reduce((s, a) => s + obterLiquidoBarbeiro(a), 0);
+    const faturamento =
+        atendimentos.reduce((soma, atendimento) =>
+            soma + obterBrutoAtendimento(atendimento), 0);
 
-    const despesasConsideradas = despesas.filter((d) => visaoBarbearia ? d.tipo === "barbearia" : d.tipo !== "barbearia");
-    const totalDespesas = despesasConsideradas.reduce((s, d) => s + Number(d.valor || 0), 0);
+    const taxas =
+        atendimentos.reduce((soma, atendimento) =>
+            soma + obterTaxaCartaoValor(atendimento), 0);
 
-    const debito = atendimentos
-        .filter((a) => a.pagamento === "Débito")
-        .reduce((s, a) => s + obterTaxaCartaoValor(a), 0);
-    const credito = atendimentos
-        .filter((a) => a.pagamento === "Crédito")
-        .reduce((s, a) => s + obterTaxaCartaoValor(a), 0);
+    const repasse =
+        atendimentos.reduce((soma, atendimento) =>
+            soma + obterRepasseAtendimento(atendimento), 0);
 
-    const ticket = atendimentos.length ? faturamento / atendimentos.length : 0;
-    const resultado = visaoBarbearia ? repasse : liquidoBarbeiro - totalDespesas;
+    const liquidoBarbeiro =
+        atendimentos.reduce((soma, atendimento) =>
+            soma + obterLiquidoBarbeiro(atendimento), 0);
+
+    const despesasConsideradas =
+        despesas.filter((despesa) =>
+            visaoBarbearia
+                ? despesa.tipo === "barbearia"
+                : despesa.tipo !== "barbearia"
+        );
+
+    const totalDespesas =
+        despesasConsideradas.reduce((soma, despesa) =>
+            soma + Number(despesa.valor || 0), 0);
+
+    const ticket =
+        atendimentos.length
+            ? faturamento / atendimentos.length
+            : 0;
+
+    const resultado =
+        visaoBarbearia
+            ? repasse
+            : liquidoBarbeiro - totalDespesas;
 
     return {
         faturamento,
@@ -317,8 +502,6 @@ function calcularResumo(atendimentos, despesas, visaoBarbearia) {
         liquidoBarbeiro,
         totalDespesas,
         despesasConsideradas,
-        debito,
-        credito,
         ticket,
         resultado
     };
@@ -328,11 +511,25 @@ function calcularAjustes(atendimentos) {
     let quantidade = 0;
     let diferenca = 0;
 
-    atendimentos.forEach((a) => {
-        const esperado = Number(a.precoProfissional ?? a.precoBase);
-        const bruto = obterBrutoAtendimento(a);
-        const ajustado = a.valorDiferenciado === true || a.origemPreco === "ajustado" || (Number.isFinite(esperado) && esperado > 0 && Math.abs(bruto - esperado) > 0.009);
+    atendimentos.forEach((atendimento) => {
+        const esperado = Number(
+            atendimento.precoProfissional ??
+            atendimento.precoBase
+        );
+
+        const bruto = obterBrutoAtendimento(atendimento);
+
+        const ajustado =
+            atendimento.valorDiferenciado === true ||
+            atendimento.origemPreco === "ajustado" ||
+            (
+                Number.isFinite(esperado) &&
+                esperado > 0 &&
+                Math.abs(bruto - esperado) > 0.009
+            );
+
         if (!ajustado || !Number.isFinite(esperado) || esperado <= 0) return;
+
         quantidade += 1;
         diferenca += bruto - esperado;
     });
@@ -340,95 +537,207 @@ function calcularAjustes(atendimentos) {
     return { quantidade, diferenca };
 }
 
+function nomeProfissionalAtendimento(atendimento) {
+    const uid = atendimento?.profissionalUid;
+
+    if (!uid) {
+        return "Registros antigos sem profissional";
+    }
+
+    if (uid === state.user?.uid) {
+        return String(
+            state.perfilUsuario?.nome ||
+            state.membroAtual?.nome ||
+            atendimento.profissionalNome ||
+            state.user?.displayName ||
+            state.user?.email ||
+            "Profissional"
+        );
+    }
+
+    const membro = (state.equipe || [])
+        .find((item) => (item.uid || item.id) === uid);
+
+    return membro
+        ? nomeMembro(membro)
+        : String(atendimento.profissionalNome || "Profissional");
+}
+
 function renderEquipe(atendimentos) {
     const card = el("relatorioEquipeCard");
     const lista = el("relatorioEquipeLista");
+
     if (!card || !lista) return;
 
-    const exibir = usuarioEhAdmin() && profissionalSelect?.value === "barbearia";
+    const exibir =
+        usuarioEhAdmin() &&
+        profissionalSelect?.value === "barbearia";
+
     card.hidden = !exibir;
     if (!exibir) return;
 
     lista.innerHTML = "";
     const mapa = new Map();
-    atendimentos.forEach((a) => {
-        const uid = a.profissionalUid || "sem-profissional";
-        if (!mapa.has(uid)) mapa.set(uid, { nome: a.profissionalNome || "Sem profissional", qtd: 0, faturamento: 0, repasse: 0 });
+
+    atendimentos.forEach((atendimento) => {
+        const uid = atendimento.profissionalUid || "__legado__";
+
+        if (!mapa.has(uid)) {
+            mapa.set(uid, {
+                nome: nomeProfissionalAtendimento(atendimento),
+                qtd: 0,
+                faturamento: 0,
+                repasse: 0
+            });
+        }
+
         const item = mapa.get(uid);
         item.qtd += 1;
-        item.faturamento += obterBrutoAtendimento(a);
-        item.repasse += obterRepasseAtendimento(a);
+        item.faturamento += obterBrutoAtendimento(atendimento);
+        item.repasse += obterRepasseAtendimento(atendimento);
     });
 
-    const dados = [...mapa.values()].sort((a, b) => b.faturamento - a.faturamento);
+    const dados = [...mapa.values()]
+        .sort((a, b) => b.faturamento - a.faturamento);
+
     if (!dados.length) {
-        lista.innerHTML = '<div class="relatorio-ranking-vazio">Sem produção no período.</div>';
+        lista.innerHTML =
+            '<div class="relatorio-ranking-vazio">Sem produção no período.</div>';
         return;
     }
 
     dados.forEach((item) => {
         const linha = document.createElement("div");
         linha.className = "relatorio-equipe-item";
-        linha.innerHTML = `<div><strong>${escaparHtml(item.nome)}</strong><span>${item.qtd} atendimento${item.qtd === 1 ? "" : "s"}</span></div><div><strong>${moeda(item.faturamento)}</strong><span>Repasse ${moeda(item.repasse)}</span></div>`;
+        linha.innerHTML = `
+            <div>
+                <strong>${escaparHtml(item.nome)}</strong>
+                <span>${item.qtd} atendimento${item.qtd === 1 ? "" : "s"}</span>
+            </div>
+            <div>
+                <strong>${moeda(item.faturamento)}</strong>
+                <span>Repasse ${moeda(item.repasse)}</span>
+            </div>
+        `;
         lista.appendChild(linha);
     });
 }
 
 function renderizar(relatorio) {
-    const { atendimentos, despesas, inicio, fim, visaoBarbearia, nomeVisao } = relatorio;
-    const resumo = calcularResumo(atendimentos, despesas, visaoBarbearia);
-    const ajustes = calcularAjustes(atendimentos);
+    const {
+        atendimentos,
+        despesas,
+        inicio,
+        fim,
+        visaoBarbearia
+    } = relatorio;
 
-    setTexto("relatorioResultadoLabel", visaoBarbearia ? "Repasse previsto" : "Resultado profissional");
-    setTexto("relatorioResultado", moeda(resumo.resultado));
-    setTexto("relatorioPeriodoLabel", `${nomeVisao} • ${formatarPeriodo(inicio, fim)}`);
+    const resumo =
+        calcularResumo(
+            atendimentos,
+            despesas,
+            visaoBarbearia
+        );
+
+    const ajustes =
+        calcularAjustes(atendimentos);
+
+    setTexto(
+        "relatorioResultadoLabel",
+        visaoBarbearia
+            ? "Repasse previsto"
+            : "Resultado profissional"
+    );
+
+    setTexto(
+        "relatorioResultado",
+        moeda(resumo.resultado)
+    );
+
+    const detalheResultado = el("relatorioResultadoDetalhe");
+
+    if (detalheResultado) {
+        detalheResultado.hidden = true;
+        detalheResultado.textContent = "";
+    }
+
+    // A visão já está identificada no select. Aqui mostramos somente o período.
+    setTexto(
+        "relatorioPeriodoLabel",
+        formatarPeriodo(inicio, fim)
+    );
+
     setTexto("relatorioFaturamento", moeda(resumo.faturamento));
     setTexto("relatorioAtendimentos", String(atendimentos.length));
     setTexto("relatorioTicket", moeda(resumo.ticket));
     setTexto("relatorioDespesas", moeda(resumo.totalDespesas));
-    setTexto(
-        "relatorioDespesasDescricao",
-        visaoBarbearia
-            ? "Custos lançados como despesa da barbearia"
-            : "Onde o dinheiro profissional foi usado"
-    );
-
-    if (fluxoCard) fluxoCard.hidden = visaoBarbearia;
-    setTexto("fluxoFaturamento", moeda(resumo.faturamento));
-    setTexto("fluxoTaxas", `- ${moeda(resumo.taxas)}`);
-    setTexto("fluxoRepasse", `- ${moeda(resumo.repasse)}`);
-    setTexto("fluxoDespesas", `- ${moeda(resumo.totalDespesas)}`);
-    setTexto("fluxoResultado", moeda(resumo.liquidoBarbeiro - resumo.totalDespesas));
-
-    setTexto("relatorioTaxasTotal", moeda(resumo.taxas));
-    setTexto("relatorioTaxaDebito", moeda(resumo.debito));
-    setTexto("relatorioTaxaCredito", moeda(resumo.credito));
-    const percentualTaxas = resumo.faturamento > 0 ? (resumo.taxas / resumo.faturamento) * 100 : 0;
-    setTexto("relatorioTaxasPercentual", `${percentualTaxas.toFixed(2).replace(".", ",")}% do faturamento`);
-
     setTexto("relatorioAjustesQtd", String(ajustes.quantidade));
     setTexto("relatorioAjustesValor", moedaSinal(ajustes.diferenca));
 
-    const servicosQtd = agrupar(atendimentos, (a) => a.servicoNome || a.servico || "Outros");
-    const servicosFaturamento = new Map(agrupar(atendimentos, (a) => a.servicoNome || a.servico || "Outros", obterBrutoAtendimento));
-    const pagamentos = agrupar(atendimentos, (a) => a.pagamento || "Outros", obterBrutoAtendimento);
-    const categoriasDespesa = agrupar(resumo.despesasConsideradas, (d) => d.categoria || "Outros", (d) => Number(d.valor || 0));
+    const servicosQtd =
+        agrupar(
+            atendimentos,
+            (a) => a.servicoNome || a.servico || "Outros"
+        );
 
-    graficoLinhaDiaria(atendimentos, inicio, fim);
-    graficoRosca("servicos", "graficoRelatorioServicos", servicosQtd, (ctx) => `${ctx.raw} atendimento${ctx.raw === 1 ? "" : "s"}`);
-    graficoRosca("pagamentos", "graficoRelatorioPagamentos", pagamentos, (ctx) => moeda(ctx.raw));
-    graficoBarrasDespesas(categoriasDespesa);
+    const servicosFaturamento =
+        new Map(
+            agrupar(
+                atendimentos,
+                (a) => a.servicoNome || a.servico || "Outros",
+                obterBrutoAtendimento
+            )
+        );
 
-    renderRanking("relatorioServicosLista", servicosQtd, {
-        totalBase: atendimentos.length,
-        subtituloFn: (nome, qtd) => {
-            const percentual = atendimentos.length ? (qtd / atendimentos.length) * 100 : 0;
-            return `${percentual.toFixed(1).replace(".", ",")}% • ${moeda(servicosFaturamento.get(nome) || 0)}`;
-        }
-    });
-    renderRanking("relatorioPagamentosLista", pagamentos, { totalBase: resumo.faturamento, valorMonetario: true });
-    renderRanking("relatorioDespesasLista", categoriasDespesa, { totalBase: resumo.totalDespesas, valorMonetario: true });
+    const pagamentos =
+        agrupar(
+            atendimentos,
+            (a) => a.pagamento || "Outros",
+            obterBrutoAtendimento
+        );
+
     renderEquipe(atendimentos);
+    graficoLinhaDiaria(atendimentos, inicio, fim);
+
+    graficoRosca(
+        "servicos",
+        "graficoRelatorioServicos",
+        servicosQtd,
+        (ctx) =>
+            `${ctx.raw} atendimento${ctx.raw === 1 ? "" : "s"}`
+    );
+
+    graficoRosca(
+        "pagamentos",
+        "graficoRelatorioPagamentos",
+        pagamentos,
+        (ctx) => moeda(ctx.raw)
+    );
+
+    renderRanking(
+        "relatorioServicosLista",
+        servicosQtd,
+        {
+            totalBase: atendimentos.length,
+            subtituloFn: (nome, qtd) => {
+                const percentual =
+                    atendimentos.length
+                        ? (qtd / atendimentos.length) * 100
+                        : 0;
+
+                return `${percentual.toFixed(1).replace(".", ",")}% • bruto ${moeda(servicosFaturamento.get(nome) || 0)}`;
+            }
+        }
+    );
+
+    renderRanking(
+        "relatorioPagamentosLista",
+        pagamentos,
+        {
+            totalBase: resumo.faturamento,
+            valorMonetario: true
+        }
+    );
 
     relatorio.resumo = resumo;
     relatorio.ajustes = ajustes;
@@ -436,115 +745,210 @@ function renderizar(relatorio) {
 
 function obterNomeVisao(uid, visaoBarbearia) {
     if (visaoBarbearia) return "Barbearia";
-    if (!uid || uid === state.user?.uid) return state.perfilUsuario?.nome || state.membroAtual?.nome || "Meu desempenho";
-    const membro = (state.equipe || []).find((item) => (item.uid || item.id) === uid);
+
+    if (!uid || uid === state.user?.uid) {
+        return (
+            state.perfilUsuario?.nome ||
+            state.membroAtual?.nome ||
+            state.user?.displayName ||
+            "Meu desempenho"
+        );
+    }
+
+    const membro =
+        (state.equipe || [])
+            .find((item) => (item.uid || item.id) === uid);
+
     return nomeMembro(membro);
 }
 
 export async function carregarRelatorio() {
-    let datas;
-    try {
-        datas = obterDatasSelecionadas();
-    } catch (error) {
-        setStatus(error.message, true);
-        return;
-    }
+    const inicio = inicioDoDia(periodoInicio);
+    const fim = inicioDoDia(periodoFim);
 
     const admin = usuarioEhAdmin();
-    const selecao = admin ? (profissionalSelect?.value || "barbearia") : state.user?.uid;
-    const visaoBarbearia = admin && selecao === "barbearia";
-    const profissionalUid = visaoBarbearia ? null : selecao;
+    const selecao =
+        admin
+            ? (profissionalSelect?.value || "barbearia")
+            : state.user?.uid;
 
-    if (loading) loading.hidden = false;
+    const visaoBarbearia =
+        admin &&
+        selecao === "barbearia";
+
+    const profissionalUid =
+        visaoBarbearia
+            ? null
+            : selecao;
+
+    setCarregando(true);
     setStatus();
 
     try {
-        const [atendimentos, despesas] = await Promise.all([
-            listarAtendimentosPorPeriodo(datas.inicio, datas.fim, { profissionalUid }),
-            listarDespesasPorPeriodo(datas.inicio, datas.fim, {
-                profissionalUid: visaoBarbearia ? null : profissionalUid,
-                incluirBarbearia: visaoBarbearia
-            })
-        ]);
+        const [atendimentos, despesas] =
+            await Promise.all([
+                obterAtendimentosPeriodo(
+                    inicio,
+                    fim,
+                    { profissionalUid }
+                ),
+                listarDespesasPorPeriodo(
+                    inicio,
+                    fim,
+                    {
+                        profissionalUid:
+                            visaoBarbearia
+                                ? null
+                                : profissionalUid,
+                        incluirBarbearia:
+                            visaoBarbearia
+                    }
+                )
+            ]);
 
         relatorioAtual = {
-            ...datas,
+            inicio,
+            fim,
             atendimentos,
             despesas,
             visaoBarbearia,
             profissionalUid,
-            nomeVisao: obterNomeVisao(profissionalUid, visaoBarbearia)
+            nomeVisao:
+                obterNomeVisao(
+                    profissionalUid,
+                    visaoBarbearia
+                )
         };
+
         renderizar(relatorioAtual);
     } catch (error) {
-        console.error("Erro ao carregar relatório:", error);
+        console.error(
+            "Erro ao carregar relatório:",
+            error
+        );
+
         setStatus(
-            String(error?.message || "").includes("index")
-                ? "O Firestore pediu um índice para esta consulta. Publique os índices do pacote v2.0."
+            String(error?.message || "")
+                .toLowerCase()
+                .includes("index")
+                ? "O Firestore pediu um índice para esta consulta. Confira os índices publicados."
                 : "Não foi possível carregar o relatório.",
             true
         );
     } finally {
-        if (loading) loading.hidden = true;
+        setCarregando(false);
     }
 }
 
 function montarResumoWhatsApp() {
     if (!relatorioAtual?.resumo) return "";
+
     const r = relatorioAtual;
     const s = r.resumo;
+
     const linhas = [
-        "✂️ *Marlon Barber*",
-        `*${r.visaoBarbearia ? "Fechamento geral" : `Resumo • ${r.nomeVisao}`}*`,
+        `*${APP_NAME.toUpperCase()}*`,
+        r.visaoBarbearia
+            ? "*FECHAMENTO DA BARBEARIA*"
+            : `*RESUMO PROFISSIONAL - ${r.nomeVisao}*`,
         formatarPeriodo(r.inicio, r.fim),
         "",
-        "📊 *RESUMO*",
         `Atendimentos: ${r.atendimentos.length}`,
-        `Faturamento: ${moeda(s.faturamento)}`,
-        `Ticket médio: ${moeda(s.ticket)}`,
-        "",
-        "💳 *PAGAMENTOS*"
+        `Faturamento bruto: ${moeda(s.faturamento)}`,
+        `Ticket médio bruto: ${moeda(s.ticket)}`
     ];
 
-    const pagamentos = agrupar(r.atendimentos, (a) => a.pagamento || "Outros", obterBrutoAtendimento);
-    pagamentos.forEach(([nome, valor]) => linhas.push(`${nome}: ${moeda(valor)}`));
-    linhas.push(`Taxas de cartão: ${moeda(s.taxas)}`);
+    if (r.visaoBarbearia) {
+        linhas.push(
+            `Repasse previsto: ${moeda(s.repasse)}`,
+            `Despesas da barbearia: ${moeda(s.totalDespesas)}`
+        );
+    } else {
+        linhas.push(
+            `Taxas de cartão: ${moeda(s.taxas)}`,
+            `Repasse ao proprietário: ${moeda(s.repasse)}`,
+            `Despesas profissionais: ${moeda(s.totalDespesas)}`,
+            `*Resultado profissional: ${moeda(s.resultado)}*`
+        );
+    }
+
+    const pagamentos =
+        agrupar(
+            r.atendimentos,
+            (a) => a.pagamento || "Outros",
+            obterBrutoAtendimento
+        );
+
+    if (pagamentos.length) {
+        linhas.push("", "*FORMAS DE PAGAMENTO*");
+        pagamentos.forEach(
+            ([nome, valor]) =>
+                linhas.push(`${nome}: ${moeda(valor)}`)
+        );
+    }
 
     if (r.visaoBarbearia) {
-        linhas.push("", "💰 *REPASSES*", `Repasse previsto: ${moeda(s.repasse)}`, `Despesas da barbearia: ${moeda(s.totalDespesas)}`);
-
         const mapaEquipe = new Map();
+
         r.atendimentos.forEach((a) => {
-            const uid = a.profissionalUid || "sem";
-            if (!mapaEquipe.has(uid)) mapaEquipe.set(uid, { nome: a.profissionalNome || "Sem profissional", qtd: 0, bruto: 0, repasse: 0 });
+            const uid = a.profissionalUid || "__legado__";
+
+            if (!mapaEquipe.has(uid)) {
+                mapaEquipe.set(uid, {
+                    nome: nomeProfissionalAtendimento(a),
+                    qtd: 0,
+                    bruto: 0,
+                    repasse: 0
+                });
+            }
+
             const item = mapaEquipe.get(uid);
             item.qtd += 1;
             item.bruto += obterBrutoAtendimento(a);
             item.repasse += obterRepasseAtendimento(a);
         });
+
         if (mapaEquipe.size) {
-            linhas.push("", "👥 *PROFISSIONAIS*");
-            [...mapaEquipe.values()].forEach((item) => {
-                linhas.push(`${item.nome}: ${item.qtd} atend. • ${moeda(item.bruto)} • Repasse ${moeda(item.repasse)}`);
-            });
+            linhas.push("", "*EQUIPE*");
+
+            [...mapaEquipe.values()]
+                .forEach((item) => {
+                    linhas.push(
+                        `${item.nome}: ${item.qtd} atend. | bruto ${moeda(item.bruto)} | repasse ${moeda(item.repasse)}`
+                    );
+                });
         }
-    } else {
-        linhas.push(
-            "",
-            "💰 *REPASSE E RESULTADO*",
-            `Base após taxas: ${moeda(s.faturamento - s.taxas)}`,
-            `Repasse ao proprietário: ${moeda(s.repasse)}`,
-            `Receita do barbeiro: ${moeda(s.liquidoBarbeiro)}`,
-            `Despesas: ${moeda(s.totalDespesas)}`,
-            `*Resultado profissional: ${moeda(s.liquidoBarbeiro - s.totalDespesas)}*`
-        );
     }
 
-    const servicos = agrupar(r.atendimentos, (a) => a.servicoNome || a.servico || "Outros");
+    const servicos =
+        agrupar(
+            r.atendimentos,
+            (a) => a.servicoNome || a.servico || "Outros"
+        );
+
     if (servicos.length) {
-        const [maisVendido, qtd] = servicos[0];
-        const pct = r.atendimentos.length ? (qtd / r.atendimentos.length) * 100 : 0;
-        linhas.push("", "✂️ *SERVIÇO MAIS VENDIDO*", `${maisVendido}: ${qtd} • ${pct.toFixed(1).replace(".", ",")}%`);
+        linhas.push("", "*SERVIÇOS*");
+
+        servicos
+            .slice(0, 5)
+            .forEach(([nome, qtd]) => {
+                const pct =
+                    r.atendimentos.length
+                        ? (qtd / r.atendimentos.length) * 100
+                        : 0;
+
+                linhas.push(
+                    `${nome}: ${qtd} (${pct.toFixed(1).replace(".", ",")}%)`
+                );
+            });
+    }
+
+    if (r.ajustes?.quantidade) {
+        linhas.push(
+            "",
+            "*AJUSTES DE PREÇO*",
+            `${r.ajustes.quantidade} atendimento(s) | diferença ${moedaSinal(r.ajustes.diferenca)}`
+        );
     }
 
     return linhas.join("\n");
@@ -552,137 +956,223 @@ function montarResumoWhatsApp() {
 
 function enviarWhatsApp() {
     const mensagem = montarResumoWhatsApp();
+
     if (!mensagem) {
-        setStatus("Carregue um relatório antes de compartilhar.", true);
+        setStatus(
+            "Carregue um relatório antes de compartilhar.",
+            true
+        );
         return;
     }
-    const url = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+
+    window.open(
+        `https://wa.me/?text=${encodeURIComponent(mensagem)}`,
+        "_blank",
+        "noopener,noreferrer"
+    );
 }
 
-async function gerarPDF() {
-    if (!relatorioAtual) {
-        setStatus("Carregue um relatório antes de gerar o PDF.", true);
-        return;
-    }
+function mostrarInfoResultado(event) {
+    if (!infoTooltip || !relatorioAtual?.resumo) return;
 
-    const conteudo = el("relatorioConteudo");
-    const botao = el("btnExportPDF");
-    if (!conteudo || typeof html2canvas === "undefined" || !window.jspdf?.jsPDF) {
-        setStatus("Não foi possível carregar o gerador de PDF. Confira sua conexão.", true);
-        return;
-    }
+    event?.stopPropagation();
 
-    if (botao) {
-        botao.disabled = true;
-        botao.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><span>Gerando PDF...</span>';
-    }
-    setStatus("Gerando PDF...");
+    clearTimeout(timerInfo);
 
-    try {
-        const canvas = await html2canvas(conteudo, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: getComputedStyle(document.body).backgroundColor || "#ffffff",
-            windowWidth: Math.max(document.documentElement.clientWidth, 390)
-        });
+    const botao =
+        event?.currentTarget ||
+        el("btnInfoResultadoRelatorio");
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-        const largura = 190;
-        const margem = 10;
-        const alturaImagem = canvas.height * largura / canvas.width;
-        const alturaPagina = 277;
-        const imagem = canvas.toDataURL("image/jpeg", 0.92);
+    if (!botao) return;
 
-        let restante = alturaImagem;
-        let posY = margem;
-        pdf.addImage(imagem, "JPEG", margem, posY, largura, alturaImagem);
-        restante -= alturaPagina;
+    infoTooltip.textContent =
+        relatorioAtual.visaoBarbearia
+            ? "Repasse previsto é o valor líquido que a barbearia deve receber dos profissionais. A taxa do cartão é descontada antes do cálculo do repasse."
+            : "Resultado profissional é o valor que resta depois das taxas do cartão, do repasse ao proprietário e das despesas profissionais do período.";
 
-        while (restante > 0) {
-            posY -= alturaPagina;
-            pdf.addPage();
-            pdf.addImage(imagem, "JPEG", margem, posY, largura, alturaImagem);
-            restante -= alturaPagina;
-        }
+    infoTooltip.hidden = false;
 
-        const nome = `marlon-barber-relatorio-${chaveData(relatorioAtual.inicio)}-a-${chaveData(relatorioAtual.fim)}.pdf`;
-        const blob = pdf.output("blob");
-        const arquivo = new File([blob], nome, { type: "application/pdf" });
+    const rect = botao.getBoundingClientRect();
 
-        const podeCompartilharArquivo = Boolean(
-            navigator.share
-            && navigator.canShare
-            && navigator.canShare({ files: [arquivo] })
+    requestAnimationFrame(() => {
+        const larguraTooltip =
+            infoTooltip.offsetWidth;
+
+        const metade =
+            larguraTooltip / 2;
+
+        const margem = 16;
+
+        let centroX =
+            rect.left +
+            rect.width / 2;
+
+        centroX = Math.max(
+            margem + metade,
+            Math.min(
+                window.innerWidth -
+                    margem -
+                    metade,
+                centroX
+            )
         );
 
-        if (podeCompartilharArquivo) {
-            try {
-                await navigator.share({
-                    title: "Relatório Marlon Barber",
-                    text: `Relatório • ${formatarPeriodo(relatorioAtual.inicio, relatorioAtual.fim)}`,
-                    files: [arquivo]
-                });
-                setStatus("PDF pronto para compartilhamento.");
-            } catch (shareError) {
-                if (shareError?.name === "AbortError") {
-                    setStatus("Compartilhamento do PDF cancelado.");
-                } else {
-                    pdf.save(nome);
-                    setStatus("PDF gerado com sucesso.");
+        infoTooltip.style.left =
+            `${centroX}px`;
+
+        infoTooltip.style.top =
+            `${rect.top - 9}px`;
+    });
+
+    timerInfo = setTimeout(
+        () => {
+            infoTooltip.hidden = true;
+        },
+        5000
+    );
+}
+
+function registrarEventosData() {
+    btnAnterior?.addEventListener(
+        "click",
+        irPeriodoAnterior
+    );
+
+    btnProxima?.addEventListener(
+        "click",
+        irProximoPeriodo
+    );
+
+    btnCalendario?.addEventListener(
+        "click",
+        abrirPeriodoPersonalizado
+    );
+
+    document
+        .querySelectorAll(
+            "#relatorioPeriodoCustom .relatorio-date-control"
+        )
+        .forEach((controle) => {
+            controle.addEventListener(
+                "click",
+                (event) => {
+                    const input =
+                        el(
+                            controle.dataset
+                                .dateTarget
+                        );
+
+                    if (!input) return;
+
+                    if (event.target.closest("input")) {
+                        if (typeof input.showPicker === "function") {
+                            event.preventDefault();
+                            try {
+                                input.showPicker();
+                            } catch {
+                                // O clique nativo permanece como fallback.
+                            }
+                        }
+                        return;
+                    }
+
+                    abrirSeletorData(input);
+                }
+            );
+        });
+
+    [inicioInput, fimInput]
+        .filter(Boolean)
+        .forEach((input) => {
+            input.addEventListener("pointerdown", (event) => {
+                if (typeof input.showPicker !== "function") return;
+
+                event.preventDefault();
+
+                try {
+                    input.showPicker();
+                } catch {
+                    // Em navegadores sem suporte, o input date segue com o comportamento nativo.
+                }
+            });
+        });
+
+    inicioInput?.addEventListener(
+        "change",
+        () => {
+            if (fimInput) {
+                fimInput.min =
+                    inicioInput.value;
+            }
+        }
+    );
+
+    el("btnAplicarPeriodoRelatorio")
+        ?.addEventListener(
+            "click",
+            () => {
+                try {
+                    const {
+                        inicio,
+                        fim
+                    } =
+                        validarPeriodoDosInputs();
+
+                    fecharPeriodoPersonalizado();
+                    aplicarPeriodo(
+                        inicio,
+                        fim
+                    );
+                } catch (error) {
+                    setStatus(
+                        error.message,
+                        true
+                    );
                 }
             }
-        } else {
-            pdf.save(nome);
-            setStatus("PDF gerado com sucesso.");
-        }
-    } catch (error) {
-        console.error("Erro ao gerar PDF:", error);
-        setStatus("Não foi possível gerar o PDF.", true);
-    } finally {
-        if (botao) {
-            botao.disabled = false;
-            botao.innerHTML = '<i class="fas fa-file-pdf"></i><span>Gerar PDF</span>';
-        }
-    }
+        );
 }
 
 export async function prepararRelatoriosHoje() {
-    definirDatas("hoje");
-    await prepararSeletorProfissional();
+    const hoje = inicioDoDia(new Date());
+
+    fecharPeriodoPersonalizado();
+    aplicarPeriodo(hoje, hoje, { carregar: false });
+
+    if (!inicializado) return;
+
+    if (usuarioEhAdmin()) {
+        await prepararSeletorProfissional();
+    }
     await carregarRelatorio();
 }
 
-export function initRelatorios() {
+export async function initRelatorios() {
     if (inicializado) return;
     inicializado = true;
 
-    const hoje = chaveData(new Date());
-    if (inicioInput) inicioInput.max = hoje;
-    if (fimInput) fimInput.max = hoje;
+    periodoInicio = inicioDoDia(new Date());
+    periodoFim = inicioDoDia(new Date());
 
-    el("btnRelHoje")?.addEventListener("click", async () => {
-        definirDatas("hoje");
-        await carregarRelatorio();
-    });
-    el("btnRelSemana")?.addEventListener("click", async () => {
-        definirDatas("semana");
-        await carregarRelatorio();
-    });
-    el("btnRelMes")?.addEventListener("click", async () => {
-        definirDatas("mes");
-        await carregarRelatorio();
-    });
-    el("btnRelPeriodo")?.addEventListener("click", () => {
-        periodoAtual = "periodo";
-        atualizarBotoesPeriodo("periodo");
-        if (periodoCustom) periodoCustom.hidden = false;
-    });
-    el("btnAplicarPeriodoRelatorio")?.addEventListener("click", carregarRelatorio);
-    profissionalSelect?.addEventListener("change", carregarRelatorio);
-    el("btnWhatsApp")?.addEventListener("click", enviarWhatsApp);
-    el("btnExportPDF")?.addEventListener("click", gerarPDF);
+    atualizarNavegadorPeriodo();
+    registrarEventosData();
 
-    definirDatas("hoje");
+
+    profissionalSelect
+        ?.addEventListener(
+            "change",
+            carregarRelatorio
+        );
+
+    el("btnWhatsApp")
+        ?.addEventListener(
+            "click",
+            enviarWhatsApp
+        );
+
+    el("btnInfoResultadoRelatorio")
+        ?.addEventListener(
+            "click",
+            mostrarInfoResultado
+        );
 }

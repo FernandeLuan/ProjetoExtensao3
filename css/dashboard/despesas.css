@@ -1,39 +1,49 @@
-.despesas-page { padding-bottom: 17px; }
-.despesas-periodo-nav { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; gap: 7px; margin-bottom: 9px; }
-.despesas-periodo-nav button { width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg); color: var(--text-secondary); cursor: pointer; }
-.despesas-periodo-nav button:disabled { opacity: .35; }
-.despesas-periodo-nav strong { text-align: center; color: var(--text); font-size: .76rem; font-weight: 600; text-transform: capitalize; }
-.despesas-total-card { padding: 15px; margin-bottom: 8px; border-radius: 15px; border: 1px solid rgba(220, 38, 38, .12); background: rgba(220, 38, 38, .045); }
-.despesas-total-card span, .despesas-total-card small { display: block; color: var(--text-secondary); font-size: .62rem; }
-.despesas-total-card strong { display: block; margin: 2px 0; color: var(--text); font-size: 1.35rem; }
-.despesas-add-btn { width: 100%; min-height: 42px; margin-bottom: 10px; border: 1px dashed rgba(37, 99, 235, .32); border-radius: 12px; background: rgba(37, 99, 235, .07); color: var(--primary); font: inherit; font-size: .72rem; font-weight: 600; cursor: pointer; }
-.despesas-lista { display: flex; flex-direction: column; gap: 7px; }
-.despesa-card { display: grid; grid-template-columns: 39px minmax(0,1fr) auto; gap: 9px; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 13px; background: var(--bg); }
-.despesa-icon { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 10px; background: rgba(220,38,38,.07); color: var(--danger); font-size: .75rem; }
-.despesa-info { min-width: 0; }
-.despesa-info strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: .7rem; }
-.despesa-info span { display: block; margin-top: 2px; color: var(--text-secondary); font-size: .56rem; }
-.despesa-valor { text-align: right; }
-.despesa-valor strong { display: block; color: var(--text); font-size: .7rem; }
-.despesa-actions { display: flex; justify-content: flex-end; gap: 3px; margin-top: 2px; }
-.despesa-actions button { width: 25px; height: 25px; border: 0; border-radius: 7px; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: .6rem; }
-.despesa-actions button:last-child { color: var(--danger); }
-.despesas-empty { padding: 28px 12px; text-align: center; color: var(--text-secondary); font-size: .68rem; }
-.equipe-money-field, .equipe-percent-field { display: flex; align-items: center; gap: 7px; min-height: 42px; padding: 0 11px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg); color: var(--text-secondary); }
-.equipe-money-field input, .equipe-percent-field input { flex: 1; min-width: 0; border: 0 !important; background: transparent !important; padding: 0 !important; color: var(--text); outline: 0; }
+.despesas-page { padding-bottom:17px; }
+.despesas-periodo-nav { display:grid; grid-template-columns:38px 1fr 38px; align-items:center; gap:7px; margin-bottom:9px; }
+.despesas-periodo-nav button { width:38px; height:38px; border:1px solid var(--border); border-radius:11px; background:var(--bg); color:var(--text-secondary); cursor:pointer; }
+.despesas-periodo-nav button:disabled { opacity:.35; }
+.despesas-periodo-nav strong { text-align:center; color:var(--text); font-size:.76rem; font-weight:600; text-transform:capitalize; }
+.despesas-total-card { padding:14px; margin-bottom:8px; border-radius:15px; border:1px solid rgba(220,38,38,.12); background:rgba(220,38,38,.045); }
+.despesas-total-card span,.despesas-total-card small { display:block; color:var(--text-secondary); font-size:.62rem; }
+.despesas-total-card strong { display:block; margin:2px 0; color:var(--text); font-size:1.3rem; }
+.despesas-add-btn { width:100%; min-height:42px; margin-bottom:10px; border:1px solid rgba(37,99,235,.24); border-radius:12px; background:rgba(37,99,235,.08); color:var(--primary); font:inherit; font-size:.72rem; font-weight:600; cursor:pointer; }
+.despesas-lista { display:flex; flex-direction:column; gap:7px; }
+.despesas-lista.carregando { opacity:.55; pointer-events:none; }
+.despesas-vazio { display:flex; flex-direction:column; align-items:center; text-align:center; gap:5px; padding:28px 15px; color:var(--text-secondary); }
+.despesas-vazio i { font-size:1.1rem; color:var(--primary); opacity:.75; }
+.despesas-vazio strong { color:var(--text); font-size:.72rem; }
+.despesas-vazio span { font-size:.6rem; line-height:1.45; }
 
-/* v2.0 - cards de despesa */
-.despesa-item { padding: 11px; border: 1px solid var(--border); border-radius: 13px; background: var(--bg); }
-.despesa-item-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.despesa-item-info { min-width: 0; }
-.despesa-item-info strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: .72rem; }
-.despesa-item-info span { display: block; margin-top: 2px; color: var(--text-secondary); font-size: .58rem; }
-.despesa-item-valor { color: var(--text); font-size: .74rem; white-space: nowrap; }
-.despesa-item-acoes { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--border); }
-.despesa-item-acoes button { min-height: 30px; display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 8px; background: transparent; color: var(--text-secondary); font: inherit; font-size: .59rem; cursor: pointer; }
-.despesa-item-acoes .despesa-item-excluir { color: var(--danger); }
-.despesas-vazio { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px; padding: 28px 15px; color: var(--text-secondary); }
-.despesas-vazio i { font-size: 1.15rem; color: var(--primary); opacity: .75; }
-.despesas-vazio strong { color: var(--text); font-size: .72rem; }
-.despesas-vazio span { font-size: .6rem; line-height: 1.45; }
-.despesas-lista.carregando { opacity: .55; pointer-events: none; }
+.despesa-item { padding:10px 11px; border:1px solid var(--border); border-radius:13px; background:var(--bg); }
+.despesa-item-main { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.despesa-item-copy { min-width:0; }
+.despesa-item-title-row { display:flex; align-items:center; gap:6px; min-width:0; }
+.despesa-item-title-row strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); font-size:.72rem; }
+.despesa-item-copy > span { display:block; margin-top:3px; color:var(--text-secondary); font-size:.58rem; }
+.despesa-tipo-badge { flex:0 0 auto; padding:3px 5px; border-radius:999px; background:rgba(37,99,235,.08); color:var(--primary); font-size:.49rem; font-weight:600; }
+.despesa-item-valor { color:var(--text); font-size:.75rem; white-space:nowrap; }
+.despesa-item-acoes { display:flex; justify-content:flex-end; gap:7px; margin-top:8px; padding-top:7px; border-top:1px solid var(--border); }
+.despesa-item-acoes button { min-height:29px; display:inline-flex; align-items:center; gap:5px; padding:0 4px; border:0; background:transparent; color:var(--text-secondary); font:inherit; font-size:.58rem; cursor:pointer; }
+.despesa-item-acoes .despesa-item-excluir { color:var(--danger); }
+
+/* Modal de despesa com o mesmo padrão do app */
+.despesa-modal { padding:14px; }
+.despesa-modal-card { max-width:360px; padding:17px; border-radius:18px; }
+.despesa-modal .equipe-modal-header { margin-bottom:14px; }
+.despesa-modal .equipe-modal-header h3 { font-size:.96rem; }
+.despesa-modal .equipe-modal-header p { font-size:.64rem; }
+.despesa-form { gap:10px; }
+.despesa-form .equipe-field { gap:5px; }
+.despesa-form .equipe-field > span { font-size:.65rem; font-weight:500; }
+.despesa-form .equipe-field input,
+.despesa-form .equipe-field select { width:100%; min-height:42px; padding:10px 11px; border:1px solid var(--border); border-radius:11px; background:var(--bg); color:var(--text); font:inherit; font-size:.75rem; outline:none; appearance:auto; }
+.despesa-form .equipe-field input:focus,
+.despesa-form .equipe-field select:focus { border-color:var(--primary); }
+.despesa-date-control { display:flex; align-items:center; min-height:42px; border:1px solid var(--border); border-radius:11px; background:var(--bg); overflow:hidden; cursor:pointer; }
+.despesa-date-control input { flex:1; min-width:0; border:0 !important; background:transparent !important; cursor:pointer; }
+.despesa-date-control button { width:40px; align-self:stretch; display:grid; place-items:center; border:0; background:transparent; color:var(--text-secondary); cursor:pointer; }
+.equipe-money-field { display:flex; align-items:center; gap:7px; min-height:42px; padding:0 11px; border:1px solid var(--border); border-radius:11px; background:var(--bg); color:var(--text-secondary); }
+.equipe-money-field input { flex:1; min-width:0; border:0 !important; background:transparent !important; padding:0 !important; color:var(--text); outline:0; }
+.despesa-submit { min-height:43px !important; margin-top:2px; border-radius:12px !important; font-size:.74rem !important; }
+.despesa-form-status:empty,.despesa-form-status[hidden] { display:none !important; }
+.despesa-confirm-box { max-width:340px; }

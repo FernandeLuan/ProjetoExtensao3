@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=6.1";
+import { db } from "../../firebase-init.js?v=7.4";
 import {
     collection,
     doc,
@@ -9,15 +9,27 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=6.1";
-import { state, definirEquipe, definirMembroAtual } from "../state.js?v=6.1";
-import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=6.1";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=6.1";
+import { SCHEMA_VERSION } from "../constants.js?v=7.4";
+import { state, definirEquipe, definirMembroAtual } from "../state.js?v=7.4";
+import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=7.4";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=7.4";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
+
+const CACHE_EQUIPE_MS = 5 * 60 * 1000;
+let cacheEquipe = null;
+let cacheEquipeEm = 0;
+let consultaEquipeEmAndamento = null;
+
+export function invalidarCacheEquipe() {
+    cacheEquipe = null;
+    cacheEquipeEm = 0;
+}
 
 export async function obterMembroAtual() {
     const workspaceId = obterWorkspaceId();
     const uid = obterUidAtual();
     const snap = await getDoc(doc(db, "barbearias", workspaceId, "membros", uid));
+    registrarConsultaFirestore("equipe/membro-atual", 1);
     if (!snap.exists()) return null;
     const membro = { id: snap.id, ...snap.data() };
     definirMembroAtual(membro);
@@ -27,16 +39,48 @@ export async function obterMembroAtual() {
 export async function obterMembroPorUid(uid) {
     if (!uid) return null;
     const snap = await getDoc(doc(db, "barbearias", obterWorkspaceId(), "membros", uid));
+    registrarConsultaFirestore("equipe/membro", 1);
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-export async function listarMembrosEquipe() {
-    const snapshot = await getDocs(collection(db, "barbearias", obterWorkspaceId(), "membros"));
-    const membros = snapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
-    definirEquipe(membros);
-    const atual = membros.find((membro) => (membro.uid || membro.id) === state.user?.uid);
-    if (atual) definirMembroAtual(atual);
-    return membros;
+export async function listarMembrosEquipe({ forcar = false } = {}) {
+    const cacheValido =
+        !forcar &&
+        Array.isArray(cacheEquipe) &&
+        (Date.now() - cacheEquipeEm) < CACHE_EQUIPE_MS;
+
+    if (cacheValido) return cacheEquipe;
+    if (consultaEquipeEmAndamento) return consultaEquipeEmAndamento;
+
+    consultaEquipeEmAndamento = (async () => {
+        const snapshot = await getDocs(
+            collection(db, "barbearias", obterWorkspaceId(), "membros")
+        );
+        registrarConsultaFirestore("equipe", snapshot.size);
+
+        const membros = snapshot.docs.map((documento) => ({
+            id: documento.id,
+            ...documento.data()
+        }));
+
+        // Preenche o cache ANTES de emitir o estado. Assim um listener de "equipe"
+        // nunca dispara outra consulta recursiva ao Firestore.
+        cacheEquipe = membros;
+        cacheEquipeEm = Date.now();
+
+        definirEquipe(membros);
+        const atual = membros.find(
+            (membro) => (membro.uid || membro.id) === state.user?.uid
+        );
+        if (atual) definirMembroAtual(atual);
+        return membros;
+    })();
+
+    try {
+        return await consultaEquipeEmAndamento;
+    } finally {
+        consultaEquipeEmAndamento = null;
+    }
 }
 
 export async function criarAcessoBarbeiroNoBanco({ uid, nome, email }) {
@@ -76,6 +120,7 @@ export async function criarAcessoBarbeiroNoBanco({ uid, nome, email }) {
     });
 
     await batch.commit();
+    invalidarCacheEquipe();
 }
 
 export async function alterarStatusMembro(uid, ativo) {
@@ -85,6 +130,7 @@ export async function alterarStatusMembro(uid, ativo) {
 
     const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
     const snap = await getDoc(membroRef);
+    registrarConsultaFirestore("equipe/alterar-status", 1);
     if (!snap.exists()) throw new Error("Membro não encontrado.");
 
     if (papelEhAdmin(snap.data().papel)) {
@@ -95,6 +141,7 @@ export async function alterarStatusMembro(uid, ativo) {
         ativo: Boolean(ativo),
         atualizadoEm: serverTimestamp()
     });
+    invalidarCacheEquipe();
 }
 
 export async function atualizarFinanceiroMembro(uid, { repassePct, precosPersonalizados }) {
@@ -117,4 +164,5 @@ export async function atualizarFinanceiroMembro(uid, { repassePct, precosPersona
         precosPersonalizados: precos,
         atualizadoEm: serverTimestamp()
     });
+    invalidarCacheEquipe();
 }

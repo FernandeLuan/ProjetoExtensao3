@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=6.1";
+import { db } from "../../firebase-init.js?v=7.4";
 import {
     doc,
     getDoc,
@@ -6,9 +6,10 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=6.1";
-import { obterWorkspaceId } from "./context.js?v=6.1";
-import { usuarioEhAdmin } from "../permissoes.js?v=6.1";
+import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=7.4";
+import { obterWorkspaceId } from "./context.js?v=7.4";
+import { usuarioEhAdmin } from "../permissoes.js?v=7.4";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
 
 function referenciaConfiguracao() {
     return doc(db, "barbearias", obterWorkspaceId(), "configuracoes", "geral");
@@ -17,6 +18,7 @@ function referenciaConfiguracao() {
 export async function carregarConfiguracoesDoBanco() {
     const ref = referenciaConfiguracao();
     const snap = await getDoc(ref);
+    registrarConsultaFirestore("configuracoes", 1);
 
     if (!snap.exists()) {
         const padrao = criarConfigPadrao();

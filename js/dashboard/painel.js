@@ -1,9 +1,9 @@
-import { state, onStateChange } from "./state.js?v=6.1";
-import { formatarMoeda } from "./utils/money.js?v=6.1";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=6.1";
-import { abrirSeletorData, setTexto } from "./utils/dom.js?v=6.1";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=6.1";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=6.1";
+import { state, onStateChange } from "./state.js?v=7.4";
+import { formatarMoeda } from "./utils/money.js?v=7.4";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=7.4";
+import { abrirSeletorData, setTexto } from "./utils/dom.js?v=7.4";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=7.4";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=7.4";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -156,10 +156,13 @@ export function atualizarCards() {
     setTexto("servicoMaisVendidoPainel", resumoAtual.servicoMaisVendido);
 
     const palavraVenda = resumoAtual.quantidadeMaisVendida === 1 ? "venda" : "vendas";
-    setTexto(
-        "servicoMaisVendidoMeta",
-        `${resumoAtual.quantidadeMaisVendida} ${palavraVenda} • ${resumoAtual.percentualMaisVendido}% dos atendimentos`
-    );
+    const metaServico = document.getElementById("servicoMaisVendidoMeta");
+
+    if (metaServico) {
+        metaServico.innerHTML =
+            `<span class="finance-service-sales">${resumoAtual.quantidadeMaisVendida} ${palavraVenda}</span>` +
+            ` • ${resumoAtual.percentualMaisVendido}% dos atendimentos`;
+    }
 
     atualizarComparativo(resumoAtual, resumoAnterior);
 
@@ -587,5 +590,10 @@ document.querySelectorAll(".finance-info-btn").forEach((btn) => {
 
 document.addEventListener("click", esconderFinanceInfo);
 
-onStateChange("atendimentos", () => atualizarCards());
-onStateChange("configSistema", () => atualizarCards());
+function painelEstaVisivel(){
+    const painel=document.getElementById("painelFinanceiro");
+    return Boolean(painel && getComputedStyle(painel).display !== "none");
+}
+
+onStateChange("atendimentos", () => { if (painelEstaVisivel()) atualizarCards(); });
+onStateChange("configSistema", () => { if (painelEstaVisivel()) atualizarCards(); });

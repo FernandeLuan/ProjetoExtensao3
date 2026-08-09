@@ -1,5 +1,5 @@
-import { SCHEMA_VERSION } from "../constants.js?v=6.1";
-import { processarFinanceiro } from "./financeiro-service.js?v=6.1";
+import { SCHEMA_VERSION } from "../constants.js?v=7.4";
+import { processarFinanceiro } from "./financeiro-service.js?v=7.4";
 
 function snapshotFinanceiro(financeiro, config) {
     return {

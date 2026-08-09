@@ -1,8 +1,11 @@
-import { abrirPainelHoje } from "./painel.js?v=6.1";
-import { abrirHistoricoHoje } from "./historico.js?v=6.1";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=6.1";
-import { abrirDespesasAtual } from "./despesas.js?v=6.1";
-import { podeAcessarSecao } from "./permissoes.js?v=6.1";
+import { abrirPainelHoje } from "./painel.js?v=7.4";
+import { abrirHistoricoHoje } from "./historico.js?v=7.4";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=7.4";
+import { abrirDespesasAtual } from "./despesas.js?v=7.4";
+import { abrirEquipe } from "./equipe.js?v=7.4";
+import { abrirConta } from "./conta.js?v=7.4";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=7.4";
+import { podeAcessarSecao } from "./permissoes.js?v=7.4";
 
 let inicializado = false;
 
@@ -69,6 +72,9 @@ export function exibirSecao(href) {
     if (href === "#historico") void abrirHistoricoHoje();
     if (href === "#relatorios") void prepararRelatoriosHoje();
     if (href === "#despesas") void abrirDespesasAtual();
+    if (href === "#equipe") void abrirEquipe();
+    if (href === "#conta") void abrirConta();
+    if (href === "#configuracoes") void prepararRetroativoParaUso();
 }
 
 export function initNavigation() {

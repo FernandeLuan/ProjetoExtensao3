@@ -1,4 +1,4 @@
-import { state } from "../state.js?v=6.1";
+import { state } from "../state.js?v=7.4";
 
 export function obterServicos({ somenteAtivos = false } = {}) {
     const servicos = Array.isArray(state.configSistema?.servicos)

@@ -357,3 +357,13 @@
 #fotoPerfilFallback[hidden] {
     display: none;
 }
+/* Aparência fica em Minha Conta para manter o menu principal limpo */
+.conta-theme-copy { margin:-2px 0 10px; color:var(--text-secondary); font-size:.64rem; line-height:1.45; }
+.conta-theme-options { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.conta-theme-options button { min-height:38px; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text-secondary); font:inherit; font-size:.66rem; font-weight:600; cursor:pointer; }
+.conta-theme-options button.active { border-color:rgba(37,99,235,.3); background:rgba(37,99,235,.1); color:var(--primary); }
+
+/* Aparência segue o mesmo acordeão visual de Segurança. */
+.conta-theme-card .conta-security-content {
+    padding-top: 12px;
+}

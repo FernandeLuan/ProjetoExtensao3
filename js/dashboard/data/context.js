@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=6.1";
+import { db } from "../../firebase-init.js?v=7.4";
 import {
     doc,
     getDoc,
@@ -6,7 +6,7 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=6.1";
+import { SCHEMA_VERSION } from "../constants.js?v=7.4";
 import {
     definirUsuario,
     definirPerfilUsuario,
@@ -14,7 +14,8 @@ import {
     definirBarbearia,
     definirWorkspaceId,
     state
-} from "../state.js?v=6.1";
+} from "../state.js?v=7.4";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
 
 function erroContexto(code, message) {
     const error = new Error(message);
@@ -29,6 +30,7 @@ export async function inicializarContexto(user) {
 
     const usuarioRef = doc(db, "usuarios", user.uid);
     const usuarioSnap = await getDoc(usuarioRef);
+    registrarConsultaFirestore("contexto/usuario", 1);
     let perfil = usuarioSnap.exists() ? usuarioSnap.data() : null;
     const workspaceId = perfil?.barbeariaId || user.uid;
 
@@ -60,22 +62,25 @@ export async function inicializarContexto(user) {
 
     const barbeariaRef = doc(db, "barbearias", workspaceId);
     let barbeariaSnap = await getDoc(barbeariaRef);
+    registrarConsultaFirestore("contexto/barbearia", 1);
 
     if (!barbeariaSnap.exists() && workspaceId === user.uid) {
         await setDoc(barbeariaRef, {
-            nome: "Marlon Barber",
+            nome: "Sr NK",
             ownerUid: user.uid,
             schemaVersion: SCHEMA_VERSION,
             criadoEm: serverTimestamp(),
             atualizadoEm: serverTimestamp()
         });
         barbeariaSnap = await getDoc(barbeariaRef);
+        registrarConsultaFirestore("contexto/barbearia", 1);
     }
 
     const barbearia = barbeariaSnap.exists() ? barbeariaSnap.data() : null;
 
     const membroRef = doc(db, "barbearias", workspaceId, "membros", user.uid);
     let membroSnap = await getDoc(membroRef);
+    registrarConsultaFirestore("contexto/membro", 1);
 
     if (!membroSnap.exists() && workspaceId === user.uid) {
         await setDoc(membroRef, {
@@ -91,6 +96,7 @@ export async function inicializarContexto(user) {
             atualizadoEm: serverTimestamp()
         });
         membroSnap = await getDoc(membroRef);
+        registrarConsultaFirestore("contexto/membro", 1);
     }
 
     if (!membroSnap.exists()) {

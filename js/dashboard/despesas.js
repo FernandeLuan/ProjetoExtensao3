@@ -1,343 +1,114 @@
 import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { criarDespesa, editarDespesa, excluirDespesa, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
+import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
+import { state } from "./state.js?v=7.4";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=7.4";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=7.4";
+import { abrirSeletorData } from "./utils/dom.js?v=7.4";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
 
-import {
-    criarDespesa,
-    editarDespesa,
-    excluirDespesa,
-    listarDespesasPorPeriodo
-} from "./data/despesas-repository.js?v=6.1";
-import { usuarioEhAdmin } from "./permissoes.js?v=6.1";
-import { state } from "./state.js?v=6.1";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=6.1";
-import { chaveData, dataDeInput, inicioDoDia } from "./utils/date.js?v=6.1";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=6.1";
+let inicializado=false;
+let mesSelecionado=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let despesasMes=[];
+let despesaEmEdicao=null;
+let despesaParaExcluir=null;
 
-let inicializado = false;
-let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-let despesasMes = [];
-let despesaEmEdicao = null;
+const btnMesAnterior=document.getElementById("btnDespesaMesAnterior"),btnMesProximo=document.getElementById("btnDespesaMesProximo"),mesLabel=document.getElementById("despesasMesLabel"),totalEl=document.getElementById("despesasTotal"),quantidadeEl=document.getElementById("despesasQuantidade"),listaEl=document.getElementById("despesasLista"),btnNova=document.getElementById("btnNovaDespesa");
+const modal=document.getElementById("modalDespesa"),tituloModal=document.getElementById("tituloModalDespesa"),btnFecharModal=document.getElementById("btnFecharModalDespesa"),form=document.getElementById("formDespesa"),inputData=document.getElementById("despesaData"),inputCategoria=document.getElementById("despesaCategoria"),inputDescricao=document.getElementById("despesaDescricao"),inputValor=document.getElementById("despesaValor"),tipoField=document.getElementById("despesaTipoField"),inputTipo=document.getElementById("despesaTipo"),statusEl=document.getElementById("despesaStatus"),btnSalvar=document.getElementById("btnSalvarDespesa"),btnCalendario=document.getElementById("btnCalendarioDespesa");
+const labels={data:document.getElementById("labelDespesaData"),categoria:document.getElementById("labelDespesaCategoria"),descricao:document.getElementById("labelDespesaDescricao"),valor:document.getElementById("labelDespesaValor")};
+const modalExcluir=document.getElementById("modalConfirmDespesa"),descricaoExcluir=document.getElementById("modalDescricaoDespesa"),btnCancelarExcluir=document.getElementById("btnCancelarDespesa"),btnConfirmarExcluir=document.getElementById("btnConfirmarDespesa");
 
-const btnMesAnterior = document.getElementById("btnDespesaMesAnterior");
-const btnMesProximo = document.getElementById("btnDespesaMesProximo");
-const mesLabel = document.getElementById("despesasMesLabel");
-const totalEl = document.getElementById("despesasTotal");
-const quantidadeEl = document.getElementById("despesasQuantidade");
-const listaEl = document.getElementById("despesasLista");
-const btnNova = document.getElementById("btnNovaDespesa");
+function obterPeriodoMes(data=mesSelecionado){return {inicio:new Date(data.getFullYear(),data.getMonth(),1),fim:new Date(data.getFullYear(),data.getMonth()+1,0)};}
+function formatarMes(data){const t=data.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});return t.charAt(0).toUpperCase()+t.slice(1);}
+function moeda(v){return `R$ ${formatarMoeda(Number(v||0))}`;}
+function atualizarNavegacaoMes(){if(mesLabel)mesLabel.textContent=formatarMes(mesSelecionado);if(btnMesProximo){const h=new Date(),atual=new Date(h.getFullYear(),h.getMonth(),1),bloq=mesSelecionado>=atual;btnMesProximo.disabled=bloq;btnMesProximo.setAttribute("aria-disabled",String(bloq));}}
+function erroLabel(el){el?.classList.add("label-erro","shake");setTimeout(()=>el?.classList.remove("shake"),500);setTimeout(()=>el?.classList.remove("label-erro"),3000);}
+function erroInput(el){el?.classList.add("input-erro","shake");setTimeout(()=>el?.classList.remove("shake"),500);setTimeout(()=>el?.classList.remove("input-erro"),3000);}
+function limparErro(el,label){el?.classList.remove("input-erro");label?.classList.remove("label-erro");}
+function setStatus(texto="",erro=false){if(!statusEl)return;statusEl.textContent=texto;statusEl.hidden=!texto;statusEl.classList.toggle("error",erro);}
 
-const modal = document.getElementById("modalDespesa");
-const tituloModal = document.getElementById("tituloModalDespesa");
-const btnFecharModal = document.getElementById("btnFecharModalDespesa");
-const form = document.getElementById("formDespesa");
-const inputData = document.getElementById("despesaData");
-const inputCategoria = document.getElementById("despesaCategoria");
-const inputDescricao = document.getElementById("despesaDescricao");
-const inputValor = document.getElementById("despesaValor");
-const tipoField = document.getElementById("despesaTipoField");
-const inputTipo = document.getElementById("despesaTipo");
-const statusEl = document.getElementById("despesaStatus");
-const btnSalvar = document.getElementById("btnSalvarDespesa");
-
-function obterPeriodoMes(data = mesSelecionado) {
-    const inicio = new Date(data.getFullYear(), data.getMonth(), 1);
-    const fim = new Date(data.getFullYear(), data.getMonth() + 1, 0);
-    return { inicio, fim };
+function dataHoraExibicao(despesa){
+ const data=paraDate(despesa.dataDespesa)||paraDate(despesa.data);
+ const registro=paraDate(despesa.createdAt)||data;
+ const dia=data?data.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}).replace(".",""):"—";
+ const hora=registro?registro.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
+ return `${dia} • ${hora}`;
 }
 
-function formatarMes(data) {
-    const texto = data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
+function criarCardDespesa(d){
+ const card=document.createElement("article");card.className="despesa-item";
+ const badge=d.tipo==="barbearia"&&usuarioEhAdmin()?'<span class="despesa-tipo-badge">Barbearia</span>':"";
+ card.innerHTML=`<div class="despesa-item-main"><div class="despesa-item-copy"><div class="despesa-item-title-row"><strong>${String(d.descricao||d.categoria||"Despesa").replaceAll("<","&lt;")}</strong>${badge}</div><span>${dataHoraExibicao(d)} • ${String(d.categoria||"Outros")}</span></div><strong class="despesa-item-valor">${moeda(d.valor)}</strong></div><div class="despesa-item-acoes"><button type="button" class="despesa-editar"><i class="fas fa-pen"></i><span>Editar</span></button><button type="button" class="despesa-item-excluir"><i class="fas fa-trash"></i><span>Excluir</span></button></div>`;
+ card.querySelector(".despesa-editar")?.addEventListener("click",()=>abrirModalDespesa(d));
+ card.querySelector(".despesa-item-excluir")?.addEventListener("click",()=>abrirExclusaoDespesa(d));
+ return card;
 }
 
-function moeda(valor) {
-    return `R$ ${formatarMoeda(Number(valor || 0))}`;
+function renderizarDespesas(){
+ if(!listaEl)return;listaEl.innerHTML="";const total=despesasMes.reduce((s,i)=>s+Number(i.valor||0),0);if(totalEl)totalEl.textContent=moeda(total);if(quantidadeEl)quantidadeEl.textContent=despesasMes.length===1?"1 lançamento":`${despesasMes.length} lançamentos`;
+ if(!despesasMes.length){listaEl.innerHTML='<div class="despesas-vazio"><i class="fas fa-receipt"></i><strong>Nenhuma despesa neste mês</strong><span>Lance materiais e outros custos profissionais deste período.</span></div>';return;}
+ despesasMes.forEach(d=>listaEl.appendChild(criarCardDespesa(d)));
 }
 
-function paraDate(valor) {
-    if (!valor) return null;
-    if (typeof valor?.toDate === "function") return valor.toDate();
-    const data = new Date(valor);
-    return Number.isNaN(data.getTime()) ? null : data;
+export async function carregarDespesasMes(){
+ atualizarNavegacaoMes();listaEl?.classList.add("carregando");
+ try{const {inicio,fim}=obterPeriodoMes();despesasMes=await listarDespesasPorPeriodo(inicio,fim,{incluirBarbearia:usuarioEhAdmin()});if(usuarioEhAdmin())despesasMes=despesasMes.filter(i=>i.tipo==="barbearia"||i.profissionalUid===state.user?.uid);renderizarDespesas();return despesasMes;}
+ catch(error){console.error(error);despesasMes=[];renderizarDespesas();mostrarErro("Não foi possível carregar as despesas.");return [];}
+ finally{listaEl?.classList.remove("carregando");}
+}
+export async function abrirDespesasAtual(){await carregarDespesasMes();}
+
+function limitesMesParaModal(){
+ const {inicio,fim}=obterPeriodoMes();const hoje=inicioDoDia(new Date());const max=fim>hoje?hoje:fim;return {min:chaveData(inicio),max:chaveData(max),inicio,fim:max};
+}
+function dataPadraoNovoLancamento(){const {inicio,fim}=limitesMesParaModal();const hoje=inicioDoDia(new Date());return hoje>=inicio&&hoje<=fim?hoje:fim;}
+function combinarDataComHora(data, horaReferencia=new Date()){const r=new Date(data);r.setHours(horaReferencia.getHours(),horaReferencia.getMinutes(),horaReferencia.getSeconds(),0);return r;}
+
+function abrirModalDespesa(despesa=null){
+ despesaEmEdicao=despesa;form?.reset();setStatus();const admin=usuarioEhAdmin();if(tipoField)tipoField.hidden=!admin;if(inputTipo)inputTipo.disabled=!admin;
+ const limites=limitesMesParaModal();if(inputData){inputData.min=limites.min;inputData.max=limites.max;}
+ if(despesa){
+   if(tituloModal)tituloModal.textContent="Editar despesa";const data=paraDate(despesa.dataDespesa)||paraDate(despesa.data)||dataPadraoNovoLancamento();if(inputData)inputData.value=chaveData(data);if(inputCategoria)inputCategoria.value=despesa.categoria||"Outros";if(inputDescricao)inputDescricao.value=despesa.descricao||"";if(inputValor)inputValor.value=formatarMoeda(Number(despesa.valor||0));if(inputTipo)inputTipo.value=admin&&despesa.tipo==="barbearia"?"barbearia":"profissional";if(btnSalvar)btnSalvar.textContent="Salvar alterações";
+ } else {
+   if(tituloModal)tituloModal.textContent="Nova despesa";if(inputData)inputData.value=chaveData(dataPadraoNovoLancamento());if(inputCategoria)inputCategoria.value="Material";if(inputTipo)inputTipo.value="profissional";if(btnSalvar)btnSalvar.textContent="Registrar despesa";
+ }
+ if(modal)modal.hidden=false;document.body.classList.add("modal-equipe-aberto");setTimeout(()=>inputDescricao?.focus(),0);
+}
+function fecharModalDespesa({forcar=false}={}){if(btnSalvar?.disabled&&!forcar)return;if(modal)modal.hidden=true;document.body.classList.remove("modal-equipe-aberto");despesaEmEdicao=null;setStatus();}
+
+async function salvarDespesa(event){
+ event.preventDefault();setStatus();const dataBase=dataDeInput(inputData?.value),valor=converterParaNumero(inputValor?.value),descricao=String(inputDescricao?.value||"").trim(),categoria=String(inputCategoria?.value||""),tipo=usuarioEhAdmin()?(inputTipo?.value||"profissional"):"profissional";let erro=false;
+ const limites=limitesMesParaModal();
+ if(!dataBase||dataBase<inicioDoDia(limites.inicio)||dataBase>inicioDoDia(limites.fim)){erroLabel(labels.data);erroInput(inputData);erro=true;}
+ if(!categoria){erroLabel(labels.categoria);erroInput(inputCategoria);erro=true;}
+ if(!descricao){erroLabel(labels.descricao);erroInput(inputDescricao);erro=true;}
+ if(!Number.isFinite(valor)||valor<=0){erroLabel(labels.valor);erroInput(inputValor);erro=true;}
+ if(erro)return;
+ const originalData=despesaEmEdicao?(paraDate(despesaEmEdicao.dataDespesa)||paraDate(despesaEmEdicao.data)):null;
+ const data=combinarDataComHora(dataBase,originalData||new Date());
+ btnSalvar.disabled=true;btnSalvar.textContent=despesaEmEdicao?"Salvando...":"Registrando...";
+ try{
+   if(despesaEmEdicao){
+     const tipoFinal=usuarioEhAdmin()?tipo:"profissional";const alt={data:data.toISOString(),dataDespesa:Timestamp.fromDate(data),categoria,descricao:descricao.slice(0,120),valor:Number(valor.toFixed(2)),tipo:tipoFinal};
+     if(usuarioEhAdmin()&&tipoFinal==="barbearia"){alt.profissionalUid=null;alt.profissionalNome="Barbearia";}else if(tipoFinal==="profissional"&&!despesaEmEdicao.profissionalUid){alt.profissionalUid=state.user?.uid||null;alt.profissionalNome=String(state.perfilUsuario?.nome||state.membroAtual?.nome||state.user?.email||"Administrador");}
+     await editarDespesa(despesaEmEdicao.id,alt);mostrarSucesso("Despesa atualizada.");
+   }else{await criarDespesa({data,categoria,descricao,valor,tipo});mostrarSucesso("Despesa registrada.");}
+   fecharModalDespesa({forcar:true});await carregarDespesasMes();
+ }catch(error){console.error(error);mostrarErro("Não foi possível salvar a despesa.");}
+ finally{btnSalvar.disabled=false;btnSalvar.textContent=despesaEmEdicao?"Salvar alterações":"Registrar despesa";}
 }
 
-function atualizarNavegacaoMes() {
-    if (mesLabel) mesLabel.textContent = formatarMes(mesSelecionado);
+function abrirExclusaoDespesa(d){despesaParaExcluir=d;if(descricaoExcluir)descricaoExcluir.textContent=`Excluir “${d.descricao||d.categoria||"Despesa"}” no valor de ${moeda(d.valor)}?`;modalExcluir?.classList.add("active");modalExcluir?.setAttribute("aria-hidden","false");}
+function fecharExclusaoDespesa(){despesaParaExcluir=null;modalExcluir?.classList.remove("active");modalExcluir?.setAttribute("aria-hidden","true");}
+async function confirmarExclusaoDespesa(){if(!despesaParaExcluir?.id)return;const id=despesaParaExcluir.id;btnConfirmarExcluir.disabled=true;btnConfirmarExcluir.textContent="Excluindo...";try{await excluirDespesa(id);despesasMes=despesasMes.filter(i=>i.id!==id);renderizarDespesas();mostrarSucesso("Despesa excluída.");fecharExclusaoDespesa();}catch(error){console.error(error);mostrarErro("Não foi possível excluir a despesa.");}finally{btnConfirmarExcluir.disabled=false;btnConfirmarExcluir.textContent="Excluir";}}
 
-    if (btnMesProximo) {
-        const hoje = new Date();
-        const mesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        const noMesAtual = mesSelecionado.getTime() >= mesAtual.getTime();
-        btnMesProximo.disabled = noMesAtual;
-        btnMesProximo.setAttribute("aria-disabled", String(noMesAtual));
-    }
-}
-
-function criarCardDespesa(despesa) {
-    const card = document.createElement("article");
-    card.className = "despesa-item";
-
-    const topo = document.createElement("div");
-    topo.className = "despesa-item-topo";
-
-    const info = document.createElement("div");
-    info.className = "despesa-item-info";
-
-    const titulo = document.createElement("strong");
-    titulo.textContent = despesa.descricao || despesa.categoria || "Despesa";
-
-    const meta = document.createElement("span");
-    const data = paraDate(despesa.dataDespesa) || paraDate(despesa.data);
-    const dataTexto = data
-        ? data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(".", "")
-        : "—";
-    const tipoTexto = despesa.tipo === "barbearia" ? "Barbearia" : despesa.categoria || "Profissional";
-    meta.textContent = `${dataTexto} • ${tipoTexto}`;
-
-    info.append(titulo, meta);
-
-    const valor = document.createElement("strong");
-    valor.className = "despesa-item-valor";
-    valor.textContent = moeda(despesa.valor);
-
-    topo.append(info, valor);
-    card.appendChild(topo);
-
-    const rodape = document.createElement("div");
-    rodape.className = "despesa-item-acoes";
-
-    const editar = document.createElement("button");
-    editar.type = "button";
-    editar.innerHTML = '<i class="fas fa-pen"></i><span>Editar</span>';
-    editar.addEventListener("click", () => abrirModalDespesa(despesa));
-
-    const excluir = document.createElement("button");
-    excluir.type = "button";
-    excluir.className = "despesa-item-excluir";
-    excluir.innerHTML = '<i class="fas fa-trash"></i><span>Excluir</span>';
-    excluir.addEventListener("click", () => removerDespesa(despesa));
-
-    rodape.append(editar, excluir);
-    card.appendChild(rodape);
-    return card;
-}
-
-function renderizarDespesas() {
-    if (!listaEl) return;
-    listaEl.innerHTML = "";
-
-    const total = despesasMes.reduce((soma, item) => soma + Number(item.valor || 0), 0);
-    if (totalEl) totalEl.textContent = moeda(total);
-    if (quantidadeEl) {
-        quantidadeEl.textContent = despesasMes.length === 1
-            ? "1 lançamento"
-            : `${despesasMes.length} lançamentos`;
-    }
-
-    if (!despesasMes.length) {
-        const vazio = document.createElement("div");
-        vazio.className = "despesas-vazio";
-        vazio.innerHTML = '<i class="fas fa-receipt"></i><strong>Nenhuma despesa neste mês</strong><span>Use “Lançar despesa” quando comprar material ou tiver outro custo profissional.</span>';
-        listaEl.appendChild(vazio);
-        return;
-    }
-
-    despesasMes.forEach((despesa) => listaEl.appendChild(criarCardDespesa(despesa)));
-}
-
-export async function carregarDespesasMes({ forcar = false } = {}) {
-    atualizarNavegacaoMes();
-    if (listaEl) listaEl.classList.add("carregando");
-
-    try {
-        const { inicio, fim } = obterPeriodoMes();
-        despesasMes = await listarDespesasPorPeriodo(inicio, fim, {
-            incluirBarbearia: usuarioEhAdmin()
-        });
-
-        if (usuarioEhAdmin()) {
-            despesasMes = despesasMes.filter((item) =>
-                item.tipo === "barbearia" || item.profissionalUid === state.user?.uid
-            );
-        }
-        renderizarDespesas();
-        return despesasMes;
-    } catch (error) {
-        console.error("Erro ao carregar despesas:", error);
-        despesasMes = [];
-        renderizarDespesas();
-        mostrarErro("Não foi possível carregar as despesas.");
-        return [];
-    } finally {
-        if (listaEl) listaEl.classList.remove("carregando");
-    }
-}
-
-export async function abrirDespesasAtual() {
-    await carregarDespesasMes({ forcar: true });
-}
-
-function setStatus(texto = "", erro = false) {
-    if (!statusEl) return;
-    statusEl.textContent = texto;
-    statusEl.hidden = !texto;
-    statusEl.classList.toggle("error", Boolean(erro));
-}
-
-function abrirModalDespesa(despesa = null) {
-    despesaEmEdicao = despesa;
-    form?.reset();
-    setStatus();
-
-    const admin = usuarioEhAdmin();
-    if (tipoField) tipoField.hidden = !admin;
-
-    if (despesa) {
-        if (tituloModal) tituloModal.textContent = "Editar despesa";
-        const data = paraDate(despesa.dataDespesa) || paraDate(despesa.data) || new Date();
-        if (inputData) inputData.value = chaveData(data);
-        if (inputCategoria) inputCategoria.value = despesa.categoria || "Outros";
-        if (inputDescricao) inputDescricao.value = despesa.descricao || "";
-        if (inputValor) inputValor.value = formatarMoeda(Number(despesa.valor || 0));
-        if (inputTipo) inputTipo.value = admin && despesa.tipo === "barbearia" ? "barbearia" : "profissional";
-        if (btnSalvar) btnSalvar.textContent = "Salvar alterações";
-    } else {
-        if (tituloModal) tituloModal.textContent = "Nova despesa";
-        if (inputData) inputData.value = chaveData(new Date());
-        if (inputCategoria) inputCategoria.value = "Material";
-        if (inputTipo) inputTipo.value = "profissional";
-        if (btnSalvar) btnSalvar.textContent = "Registrar despesa";
-    }
-
-    if (inputData) inputData.max = chaveData(new Date());
-    if (modal) modal.hidden = false;
-    document.body.classList.add("modal-equipe-aberto");
-    setTimeout(() => inputDescricao?.focus(), 0);
-}
-
-function fecharModalDespesa() {
-    if (btnSalvar?.disabled) return;
-    if (modal) modal.hidden = true;
-    document.body.classList.remove("modal-equipe-aberto");
-    despesaEmEdicao = null;
-    setStatus();
-}
-
-async function salvarDespesa(event) {
-    event.preventDefault();
-
-    const data = dataDeInput(inputData?.value);
-    const valor = converterParaNumero(inputValor?.value);
-    const descricao = String(inputDescricao?.value || "").trim();
-    const categoria = String(inputCategoria?.value || "Outros");
-    const tipo = usuarioEhAdmin() ? (inputTipo?.value || "profissional") : "profissional";
-
-    if (!data || data > inicioDoDia(new Date())) {
-        setStatus("Informe uma data válida, sem usar uma data futura.", true);
-        return;
-    }
-
-    if (!descricao) {
-        setStatus("Informe uma descrição para a despesa.", true);
-        inputDescricao?.focus();
-        return;
-    }
-
-    if (!Number.isFinite(valor) || valor <= 0) {
-        setStatus("Informe um valor maior que zero.", true);
-        inputValor?.focus();
-        return;
-    }
-
-    if (btnSalvar) {
-        btnSalvar.disabled = true;
-        btnSalvar.textContent = despesaEmEdicao ? "Salvando..." : "Registrando...";
-    }
-
-    try {
-        if (despesaEmEdicao) {
-            // Não troca o responsável histórico da despesa ao editar.
-            const tipoFinal = usuarioEhAdmin() ? tipo : "profissional";
-            const alteracoes = {
-                data: data.toISOString(),
-                dataDespesa: Timestamp.fromDate(data),
-                categoria,
-                descricao: descricao.slice(0, 120),
-                valor: Number(valor.toFixed(2)),
-                tipo: tipoFinal
-            };
-
-            // Se um admin transformar uma despesa própria em despesa da barbearia,
-            // o relatório deixa de atribuí-la ao profissional.
-            if (usuarioEhAdmin() && tipoFinal === "barbearia") {
-                alteracoes.profissionalUid = null;
-                alteracoes.profissionalNome = "Barbearia";
-            } else if (usuarioEhAdmin() && tipoFinal === "profissional" && !despesaEmEdicao.profissionalUid) {
-                alteracoes.profissionalUid = state.user?.uid || null;
-                alteracoes.profissionalNome = String(state.perfilUsuario?.nome || state.membroAtual?.nome || state.user?.email || "Administrador");
-            }
-
-            await editarDespesa(despesaEmEdicao.id, alteracoes);
-            mostrarSucesso("Despesa atualizada.");
-        } else {
-            await criarDespesa({ data, categoria, descricao, valor, tipo });
-            mostrarSucesso("Despesa registrada.");
-        }
-
-        mesSelecionado = new Date(data.getFullYear(), data.getMonth(), 1);
-        fecharModalDespesa();
-        await carregarDespesasMes({ forcar: true });
-    } catch (error) {
-        console.error("Erro ao salvar despesa:", error);
-        setStatus(error?.message || "Não foi possível salvar a despesa.", true);
-    } finally {
-        if (btnSalvar) {
-            btnSalvar.disabled = false;
-            btnSalvar.textContent = despesaEmEdicao ? "Salvar alterações" : "Registrar despesa";
-        }
-    }
-}
-
-async function removerDespesa(despesa) {
-    const nome = despesa.descricao || despesa.categoria || "esta despesa";
-    if (!window.confirm(`Excluir ${nome}? Esta ação não poderá ser desfeita.`)) return;
-
-    try {
-        await excluirDespesa(despesa.id);
-        despesasMes = despesasMes.filter((item) => item.id !== despesa.id);
-        renderizarDespesas();
-        mostrarSucesso("Despesa excluída.");
-    } catch (error) {
-        console.error("Erro ao excluir despesa:", error);
-        mostrarErro("Não foi possível excluir a despesa.");
-    }
-}
-
-export function initDespesas() {
-    if (inicializado) return;
-    inicializado = true;
-
-    inputValor?.addEventListener("input", () => aplicarMascaraMoedaInput(inputValor, 9));
-
-    btnMesAnterior?.addEventListener("click", async () => {
-        mesSelecionado = new Date(mesSelecionado.getFullYear(), mesSelecionado.getMonth() - 1, 1);
-        await carregarDespesasMes({ forcar: true });
-    });
-
-    btnMesProximo?.addEventListener("click", async () => {
-        const proximo = new Date(mesSelecionado.getFullYear(), mesSelecionado.getMonth() + 1, 1);
-        const hoje = new Date();
-        const atual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        if (proximo > atual) return;
-        mesSelecionado = proximo;
-        await carregarDespesasMes({ forcar: true });
-    });
-
-    btnNova?.addEventListener("click", () => abrirModalDespesa());
-    btnFecharModal?.addEventListener("click", fecharModalDespesa);
-    form?.addEventListener("submit", salvarDespesa);
-    modal?.addEventListener("click", (event) => {
-        if (event.target === modal) fecharModalDespesa();
-    });
-
-    atualizarNavegacaoMes();
+export function initDespesas(){
+ if(inicializado)return;inicializado=true;
+ inputValor?.addEventListener("input",()=>{aplicarMascaraMoedaInput(inputValor,9);limparErro(inputValor,labels.valor);});inputDescricao?.addEventListener("input",()=>limparErro(inputDescricao,labels.descricao));inputCategoria?.addEventListener("change",()=>limparErro(inputCategoria,labels.categoria));inputData?.addEventListener("change",()=>limparErro(inputData,labels.data));
+ btnCalendario?.addEventListener("click",()=>abrirSeletorData(inputData));inputData?.parentElement?.addEventListener("click",e=>{if(!e.target.closest("button"))abrirSeletorData(inputData);});
+ btnMesAnterior?.addEventListener("click",async()=>{mesSelecionado=new Date(mesSelecionado.getFullYear(),mesSelecionado.getMonth()-1,1);await carregarDespesasMes();});
+ btnMesProximo?.addEventListener("click",async()=>{const p=new Date(mesSelecionado.getFullYear(),mesSelecionado.getMonth()+1,1),h=new Date(),a=new Date(h.getFullYear(),h.getMonth(),1);if(p>a)return;mesSelecionado=p;await carregarDespesasMes();});
+ btnNova?.addEventListener("click",()=>abrirModalDespesa());btnFecharModal?.addEventListener("click",()=>fecharModalDespesa());form?.addEventListener("submit",salvarDespesa);modal?.addEventListener("click",e=>{if(e.target===modal)fecharModalDespesa();});
+ btnCancelarExcluir?.addEventListener("click",fecharExclusaoDespesa);btnConfirmarExcluir?.addEventListener("click",confirmarExclusaoDespesa);modalExcluir?.addEventListener("click",e=>{if(e.target===modalExcluir)fecharExclusaoDespesa();});
+ atualizarNavegacaoMes();
 }

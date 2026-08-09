@@ -426,7 +426,7 @@
     background: var(--border);
 }
 .finance-service-sales {
-    color: var(--warning);
+    color: #ebbc41d6;
     font-weight: 600;
 }
 .painel-data-center {

@@ -1,4 +1,4 @@
-import { normalizarConfig } from "./constants.js?v=6.1";
+import { normalizarConfig } from "./constants.js?v=7.4";
 
 export const state = {
     user: null,
@@ -77,6 +77,15 @@ export function mesclarAtendimentos(atendimentos) {
 
 export function removerAtendimentoDoEstado(id) {
     definirAtendimentos((state.atendimentos || []).filter((item) => item.id !== id));
+}
+
+export function atualizarAtendimentoNoEstado(id, alteracoes = {}) {
+    if (!id) return;
+    definirAtendimentos(
+        (state.atendimentos || []).map((item) =>
+            item.id === id ? { ...item, ...alteracoes } : item
+        )
+    );
 }
 
 export function definirConfiguracoes(config) {

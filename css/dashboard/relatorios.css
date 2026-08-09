@@ -1,99 +1,678 @@
-.relatorios-page { padding-bottom: 18px; }
+/* Relatório — mesmo contêiner transparente do Painel/Histórico */
+#relatorios {
+    margin-top: 12px;
+    padding: 0;
 
-.relatorio-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-.filtros-periodo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 0; }
-.btn-filtro { min-width: 0; background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); padding: 9px 4px; border-radius: 11px; cursor: pointer; font-weight: 600; font-size: .68rem; }
-.btn-filtro.active { background: rgba(37, 99, 235, .12); color: var(--primary); border-color: rgba(37, 99, 235, .35); }
+    border: 0;
 
-.relatorio-periodo-custom { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 10px; border: 1px solid var(--border); border-radius: 13px; background: var(--bg); }
-.relatorio-periodo-custom label, .relatorio-profissional-field { display: flex; flex-direction: column; gap: 4px; color: var(--text-secondary); font-size: .65rem; }
-.relatorio-periodo-custom input, .relatorio-profissional-field select { width: 100%; min-height: 38px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); color: var(--text); padding: 8px; font: inherit; font-size: .72rem; outline: none; }
-.relatorio-periodo-custom button { grid-column: 1 / -1; min-height: 38px; border: 0; border-radius: 10px; background: var(--primary); color: #fff; font: inherit; font-size: .72rem; font-weight: 600; }
-.relatorio-profissional-field { padding: 0 1px; }
-
-.relatorio-loading { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; margin-bottom: 10px; color: var(--text-secondary); font-size: .7rem; }
-
-.relatorio-hero { position: relative; overflow: hidden; padding: 17px 16px; border: 1px solid rgba(37, 99, 235, .18); border-radius: 17px; background: linear-gradient(145deg, rgba(37, 99, 235, .14), rgba(37, 99, 235, .035)); margin-bottom: 9px; }
-.relatorio-hero::after { content: ""; position: absolute; width: 110px; height: 110px; right: -40px; top: -45px; border-radius: 50%; background: rgba(37, 99, 235, .08); }
-.relatorio-hero span, .relatorio-hero small { display: block; color: var(--text-secondary); font-size: .68rem; }
-.relatorio-hero strong { display: block; margin: 2px 0 3px; color: var(--text); font-size: 1.75rem; line-height: 1.1; letter-spacing: -.04em; }
-
-.relatorio-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 9px; }
-.relatorio-kpis article { padding: 11px; border: 1px solid var(--border); border-radius: 13px; background: var(--bg); }
-.relatorio-kpis span { display: block; color: var(--text-secondary); font-size: .62rem; margin-bottom: 2px; }
-.relatorio-kpis strong { color: var(--text); font-size: .86rem; }
-
-.relatorio-card { margin-top: 9px; padding: 13px; border: 1px solid var(--border); border-radius: 15px; background: var(--bg); }
-.relatorio-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-.relatorio-card-head h3 { margin: 0; color: var(--text); font-size: .8rem; font-weight: 600; }
-.relatorio-card-head p { margin: 2px 0 0; color: var(--text-secondary); font-size: .58rem; line-height: 1.35; }
-.relatorio-card-head > i { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(37, 99, 235, .1); color: var(--primary); font-size: .72rem; }
-
-.relatorio-fluxo { display: grid; justify-items: stretch; gap: 4px; }
-.relatorio-fluxo > div { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 9px; border-radius: 10px; background: var(--bg-card); }
-.relatorio-fluxo > div span { color: var(--text-secondary); font-size: .64rem; }
-.relatorio-fluxo > div strong { color: var(--text); font-size: .72rem; }
-.relatorio-fluxo > i { text-align: center; color: var(--text-secondary); font-size: .55rem; opacity: .7; }
-.relatorio-fluxo > div.resultado { background: rgba(22, 163, 74, .09); border: 1px solid rgba(22, 163, 74, .16); }
-.relatorio-fluxo > div.resultado strong { color: var(--success); font-size: .82rem; }
-
-.relatorio-chart { position: relative; width: 100%; }
-.relatorio-chart-line { height: 180px; }
-.relatorio-chart-donut { height: 190px; max-width: 270px; margin: 0 auto; }
-.relatorio-chart-bar { height: 180px; }
-
-.relatorio-ranking { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.relatorio-ranking-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 9px; align-items: center; padding: 8px 9px; border-radius: 10px; background: var(--bg-card); }
-.relatorio-ranking-item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: .67rem; font-weight: 600; }
-.relatorio-ranking-item > span { color: var(--text); font-size: .67rem; font-weight: 600; }
-.relatorio-ranking-item small { grid-column: 1 / -1; color: var(--text-secondary); font-size: .57rem; }
-
-.relatorio-big-number { display: block; color: var(--text); font-size: 1.3rem; margin: -2px 0 9px; }
-.relatorio-taxas-grid, .relatorio-ajustes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.relatorio-taxas-grid div, .relatorio-ajustes-grid div { padding: 9px; border-radius: 10px; background: var(--bg-card); }
-.relatorio-taxas-grid span, .relatorio-ajustes-grid span { display: block; color: var(--text-secondary); font-size: .58rem; }
-.relatorio-taxas-grid strong, .relatorio-ajustes-grid strong { display: block; margin-top: 2px; color: var(--text); font-size: .72rem; }
-.relatorio-taxas-card > small { display: block; margin-top: 8px; color: var(--text-secondary); font-size: .58rem; }
-
-.relatorio-equipe-lista { display: flex; flex-direction: column; gap: 7px; }
-.relatorio-equipe-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 9px; background: var(--bg-card); border-radius: 10px; }
-.relatorio-equipe-item div { min-width: 0; }
-.relatorio-equipe-item strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: .67rem; }
-.relatorio-equipe-item span { color: var(--text-secondary); font-size: .57rem; }
-.relatorio-equipe-item > b { color: var(--text); font-size: .68rem; white-space: nowrap; }
-
-.relatorio-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
-.relatorio-actions button { min-height: 43px; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; font: inherit; font-size: .67rem; font-weight: 600; cursor: pointer; }
-.relatorio-whatsapp { border: 1px solid rgba(22, 163, 74, .22); background: rgba(22, 163, 74, .1); color: var(--success); }
-.relatorio-pdf { border: 1px solid rgba(220, 38, 38, .18); background: rgba(220, 38, 38, .07); color: var(--danger); }
-.relatorio-actions button:disabled { opacity: .45; cursor: default; }
-.relatorio-status { min-height: 20px; padding-top: 6px; text-align: center; color: var(--text-secondary); font-size: .6rem; }
-
-@media (max-width: 360px) {
-    .filtros-periodo { gap: 4px; }
-    .btn-filtro { font-size: .61rem; padding-inline: 2px; }
-    .relatorio-hero strong { font-size: 1.5rem; }
+    background: transparent;
+    box-shadow: none;
 }
 
-/* v2.0 - ranking detalhado */
-.relatorio-ranking-item {
-    grid-template-columns: 22px minmax(0, 1fr) auto;
-    gap: 6px 8px;
+/* PERÍODO — mesmo padrão visual do Painel/Histórico */
+/* A barra de data ocupa somente a linha de navegação, exatamente como no Histórico. */
+.relatorio-toolbar {
+    margin: 0;
+    padding: 0;
 }
-.relatorio-ranking-pos {
-    width: 22px;
-    height: 22px;
+
+/* Herda o margin-top da .painel-data-nav e replica apenas o bottom do Histórico. */
+.relatorio-data-nav {
+    margin-bottom: 10px;
+}
+
+.relatorio-data-center {
+    min-width: 0;
+}
+
+.relatorio-data-center .painel-data-label {
+    flex: 0 1 auto;
+}
+
+.relatorio-periodo-custom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    margin-bottom: 10px;
+    padding: 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    background: var(--bg);
+}
+
+.relatorio-periodo-custom[hidden],
+.relatorio-loading[hidden],
+.relatorio-info-tooltip[hidden],
+#relatorioEquipeCard[hidden],
+.relatorio-profissional-field[hidden],
+#relatorioResultadoDetalhe[hidden] {
+    display: none !important;
+}
+
+.relatorio-date-field,
+.relatorio-profissional-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.65rem;
+}
+
+.relatorio-date-control {
+    position: relative;
+
+    min-height: 42px;
+
+    display: flex;
+    align-items: center;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+
+    background: var(--bg-card);
+
+    cursor: pointer;
+    overflow: hidden;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+.relatorio-date-control input {
+    width: 100%;
+    min-height: 40px;
+
+    padding: 8px 34px 8px 10px;
+
+    border: 0;
+    outline: 0;
+
+    background: transparent;
+    color: var(--text);
+
+    font: inherit;
+    font-size: 0.72rem;
+
+    cursor: pointer;
+}
+
+.relatorio-date-control input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.relatorio-date-control i {
+    position: absolute;
+    right: 10px;
+
+    pointer-events: none;
+
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+}
+
+.relatorio-periodo-custom > button {
+    grid-column: 1 / -1;
+
+    min-height: 40px;
+
+    border: 0;
+    border-radius: 11px;
+
+    background: var(--primary);
+    color: #fff;
+
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.relatorio-profissional-field {
+    padding: 0 1px;
+    margin-bottom: 12px;
+}
+
+.relatorio-profissional-field select {
+    width: 100%;
+    min-height: 42px;
+
+    padding: 8px 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    outline: none;
+
+    background: var(--bg);
+    color: var(--text);
+
+    font: inherit;
+    font-size: 0.72rem;
+}
+
+/* Loading fica no fim da tela, sem interromper o topo do relatório. */
+.relatorio-loading {
+    min-height: 42px;
+    margin-top: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.7rem;
+}
+
+/* HERO — recupera o visual mais destacado do Repasse/Resultado */
+.relatorio-hero {
+    position: relative;
+    overflow: hidden;
+
+    padding: 5px 10px 10px;
+
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 99, 235, 0.14),
+            rgba(37, 99, 235, 0.035)
+        );
+
+    margin-bottom: 9px;
+}
+
+.relatorio-hero::after {
+    content: "";
+
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    right: -40px;
+    top: -45px;
+
+    border-radius: 50%;
+
+    background: rgba(37, 99, 235, 0.08);
+
+    pointer-events: none;
+}
+
+.relatorio-hero-label-row {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.relatorio-hero span,
+.relatorio-hero small {
+    position: relative;
+    z-index: 1;
+
+    display: block;
+
+    color: var(--text-secondary);
+
+    font-size: 0.68rem;
+}
+
+.relatorio-hero strong {
+    position: relative;
+    z-index: 1;
+
+    display: block;
+
+    margin: 3px 0 4px;
+
+    color: var(--text);
+
+    font-size: 1.72rem;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+}
+
+.relatorio-info-btn {
+    width: 25px;
+    height: 25px;
+
     display: grid;
     place-items: center;
-    border-radius: 7px;
-    background: rgba(37, 99, 235, .09);
-    color: var(--primary) !important;
-    font-size: .58rem !important;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: transparent;
+    color: var(--text-secondary);
+
+    cursor: pointer;
 }
-.relatorio-ranking-copy { min-width: 0; }
-.relatorio-ranking-copy strong { display: block; }
-.relatorio-ranking-copy small { display: block; margin-top: 1px; }
-.relatorio-ranking-value { text-align: right; white-space: nowrap !important; }
-.relatorio-ranking-vazio { padding: 13px; text-align: center; color: var(--text-secondary); font-size: .64rem; }
-.relatorio-equipe-item > div:last-child { text-align: right; }
-.relatorio-status.error { color: var(--danger); }
+
+.relatorio-info-tooltip {
+    position: fixed;
+    left: 0;
+    top: 0;
+
+    transform: translate(-50%, -100%);
+
+    z-index: 12000;
+
+    width: max-content;
+    max-width: min(280px, calc(100vw - 32px));
+
+    padding: 9px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+
+    color: var(--text);
+
+    font-size: 0.69rem;
+    line-height: 1.45;
+    text-align: center;
+
+    pointer-events: none;
+}
+
+.relatorio-info-tooltip::after {
+    content: "";
+    position: absolute;
+
+    left: 50%;
+    bottom: -5px;
+
+    width: 9px;
+    height: 9px;
+
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+
+    transform: translateX(-50%) rotate(45deg);
+}
+
+/* KPIs */
+.relatorio-kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+
+    margin-bottom: 9px;
+}
+
+.relatorio-kpis article {
+    padding: 11px;
+
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    background: var(--bg);
+}
+
+.relatorio-kpis span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    margin-bottom: 3px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.62rem;
+}
+
+.relatorio-kpis span i {
+    color: var(--primary);
+
+    font-size: 0.62rem;
+}
+
+.relatorio-kpis strong {
+    color: var(--text);
+
+    font-size: 0.86rem;
+}
+
+/* CARDS */
+.relatorio-card {
+    margin-top: 10px;
+    padding: 14px 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 15px;
+
+    background: var(--bg);
+}
+
+.relatorio-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 13px;
+}
+
+.relatorio-card-head h3 {
+    margin: 0;
+
+    color: var(--text);
+
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.relatorio-card-head p {
+    margin: 3px 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: 0.59rem;
+    line-height: 1.4;
+}
+
+.relatorio-card-head > i {
+    width: 31px;
+    height: 31px;
+
+    flex: 0 0 31px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 9px;
+
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+
+    font-size: 0.72rem;
+}
+
+/* GRÁFICOS */
+.relatorio-chart {
+    position: relative;
+
+    width: 100%;
+}
+
+.relatorio-chart-line {
+    height: 190px;
+
+    margin: 4px 0 3px;
+}
+
+.relatorio-chart-donut {
+    height: 238px;
+    max-width: 310px;
+
+    margin: 16px auto 20px;
+    padding: 8px;
+}
+
+.relatorio-chart canvas {
+    max-width: 100% !important;
+}
+
+/* RANKING sincronizado visualmente com as cores da rosca */
+.relatorio-ranking {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    margin-top: 9px;
+}
+
+.relatorio-ranking-item {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 6px 8px;
+    align-items: center;
+
+    padding: 8px 9px;
+
+    border-radius: 10px;
+
+    background: var(--bg-card);
+}
+
+.relatorio-ranking-pos {
+    width: 24px;
+    height: 24px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--rank-color) 38%,
+            transparent
+        );
+
+    border-radius: 7px;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--rank-color) 14%,
+            transparent
+        );
+
+    color: var(--rank-color) !important;
+
+    font-size: 0.58rem !important;
+    font-weight: 700;
+}
+
+.relatorio-ranking-copy {
+    min-width: 0;
+}
+
+.relatorio-ranking-copy strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: 0.67rem;
+    font-weight: 600;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.relatorio-ranking-copy small {
+    display: block;
+
+    margin-top: 1px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.57rem;
+}
+
+.relatorio-ranking-value {
+    color: var(--text);
+
+    font-size: 0.67rem;
+    font-weight: 600;
+
+    text-align: right;
+    white-space: nowrap !important;
+}
+
+.relatorio-ranking-vazio {
+    padding: 13px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.64rem;
+    text-align: center;
+}
+
+/* AJUSTES */
+.relatorio-ajustes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+}
+
+.relatorio-ajustes-grid div {
+    padding: 10px;
+
+    border-radius: 10px;
+
+    background: var(--bg-card);
+}
+
+.relatorio-ajustes-grid span {
+    display: block;
+
+    color: var(--text-secondary);
+
+    font-size: 0.58rem;
+}
+
+.relatorio-ajustes-grid strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--text);
+
+    font-size: 0.74rem;
+}
+
+/* EQUIPE */
+.relatorio-equipe-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.relatorio-equipe-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 10px;
+
+    border-radius: 10px;
+
+    background: var(--bg-card);
+}
+
+.relatorio-equipe-item div {
+    min-width: 0;
+}
+
+.relatorio-equipe-item strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: 0.68rem;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.relatorio-equipe-item span {
+    color: var(--text-secondary);
+
+    font-size: 0.58rem;
+}
+
+.relatorio-equipe-item > div:last-child {
+    text-align: right;
+}
+
+/* COMPARTILHAMENTO */
+.relatorio-actions {
+    display: block;
+
+    margin-top: 12px;
+}
+
+.relatorio-actions button {
+    width: 100%;
+    min-height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    border-radius: 12px;
+
+    font: inherit;
+    font-size: 0.69rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.relatorio-whatsapp {
+    border: 1px solid rgba(22, 163, 74, 0.22);
+
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--success);
+}
+
+.relatorio-actions button:disabled {
+    opacity: 0.45;
+
+    cursor: default;
+}
+
+.relatorio-status {
+    min-height: 20px;
+
+    padding-top: 6px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.6rem;
+    text-align: center;
+}
+
+.relatorio-status.error {
+    color: var(--danger);
+}
+
+@media (max-width: 360px) {
+    .relatorio-hero strong {
+        font-size: 1.5rem;
+    }
+
+    .relatorio-chart-donut {
+        height: 220px;
+    }
+}

@@ -1,6 +1,6 @@
 import {
     firebaseConfig
-} from "../../firebase-init.js?v=6.1";
+} from "../../firebase-init.js?v=7.4";
 
 import {
     initializeApp,
@@ -17,7 +17,7 @@ import {
 
 import {
     criarAcessoBarbeiroNoBanco
-} from "../data/equipe-repository.js?v=6.1";
+} from "../data/equipe-repository.js?v=7.4";
 
 export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria }) {
     const nomeLimpo = String(nome || "").trim().slice(0, 60);

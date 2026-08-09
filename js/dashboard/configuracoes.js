@@ -1,8 +1,8 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=6.1";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=6.1";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=6.1";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=6.1";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=6.1";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=7.4";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=7.4";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=7.4";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
 
 let inicializado = false;
 let taxasAlteradas = {};
@@ -159,7 +159,10 @@ function renderizarServicos() {
             row.appendChild(editor);
             inputNome.focus();
 
-            cancelar.addEventListener("click", () => editor.remove());
+            cancelar.addEventListener("click", (event) => {
+                event.stopPropagation();
+                editor.remove();
+            });
             salvar.addEventListener("click", async () => {
                 const novoNome = inputNome.value.trim().slice(0, 60);
                 const novoPreco = converterParaNumero(inputPreco.value) || 0;
@@ -354,7 +357,8 @@ export function initConfiguracoes() {
     });
 
     document.addEventListener("click", (event) => {
-        if (!event.target.closest?.(".config-group")) fecharOutrosGruposConfig();
+        const dentroDeGrupo = event.composedPath?.().some((node) => node?.classList?.contains?.("config-group"));
+        if (!dentroDeGrupo) fecharOutrosGruposConfig();
     });
 
     document.querySelectorAll(".update-version-toggle").forEach((botao) => {

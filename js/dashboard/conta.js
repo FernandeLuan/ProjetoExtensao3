@@ -1,5 +1,5 @@
-import { auth } from "../firebase-init.js?v=6.1";
-import { state } from "./state.js?v=6.1";
+import { auth } from "../firebase-init.js?v=7.4";
+import { state } from "./state.js?v=7.4";
 
 import {
     EmailAuthProvider,
@@ -12,15 +12,17 @@ import {
     obterDadosConta,
     salvarNomeConta,
     salvarFotoConta
-} from "./data/conta-repository.js?v=6.1";
+} from "./data/conta-repository.js?v=7.4";
 
 import {
     mostrarErro,
     mostrarSucesso
-} from "./services/feedback-service.js?v=6.1";
+} from "./services/feedback-service.js?v=7.4";
 
 
 let inicializado = false;
+let contaCarregada = false;
+let contaCarregando = null;
 
 
 /* =============================
@@ -77,6 +79,12 @@ const btnToggleSeguranca =
 
 const contaSecurityContent =
     document.getElementById("contaSecurityContent");
+
+const btnToggleAparencia =
+    document.getElementById("btnToggleAparencia");
+
+const contaThemeContent =
+    document.getElementById("contaThemeContent");
 
 const btnSairConta =
     document.getElementById("btnSairConta");
@@ -538,30 +546,39 @@ atualizarAvatar(
    SEGURANÇA
 ============================= */
 
-function alternarSeguranca() {
+function alternarCardRecolhivel(botao, conteudo) {
 
-    if (
-        !contaSecurityContent ||
-        !btnToggleSeguranca
-    ) return;
+    if (!botao || !conteudo) return;
 
-    const abrir =
-        contaSecurityContent.hidden;
+    const abrir = conteudo.hidden;
 
-    contaSecurityContent.hidden =
-        !abrir;
+    conteudo.hidden = !abrir;
 
-    btnToggleSeguranca.setAttribute(
+    botao.setAttribute(
         "aria-expanded",
         String(abrir)
     );
 
-    btnToggleSeguranca
-        .classList
-        .toggle(
-            "aberto",
-            abrir
-        );
+    botao.classList.toggle(
+        "aberto",
+        abrir
+    );
+}
+
+
+function alternarSeguranca() {
+    alternarCardRecolhivel(
+        btnToggleSeguranca,
+        contaSecurityContent
+    );
+}
+
+
+function alternarAparencia() {
+    alternarCardRecolhivel(
+        btnToggleAparencia,
+        contaThemeContent
+    );
 }
 
 
@@ -776,6 +793,13 @@ export function initConta() {
         );
 
 
+    btnToggleAparencia
+        ?.addEventListener(
+            "click",
+            alternarAparencia
+        );
+
+
     document
         .getElementById(
             "formAlterarSenha"
@@ -807,6 +831,20 @@ export function initConta() {
         }
     );
 
+}
 
-    carregarConta();
+export async function abrirConta() {
+    if (contaCarregada) return;
+    if (contaCarregando) return contaCarregando;
+
+    contaCarregando = (async () => {
+        await carregarConta();
+        contaCarregada = true;
+    })();
+
+    try {
+        await contaCarregando;
+    } finally {
+        contaCarregando = null;
+    }
 }

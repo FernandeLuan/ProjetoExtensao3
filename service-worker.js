@@ -1,4 +1,4 @@
-const CACHE_NAME = "marlon-barber-v2.0.1";
+const CACHE_NAME = "sr-nk-v2.1.4-leituras-seguras";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,12 +7,12 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./css/dashboard.css?v=6.1",
+  "./css/dashboard.css?v=7.3",
   "./css/login.css",
   "./css/style.css",
   "./js/firebase-init.js",
   "./js/login.js",
-  "./js/dashboard/index.js?v=6.1"
+  "./js/dashboard/index.js?v=7.4"
 ];
 
 self.addEventListener("install", (event) => {
