@@ -14,15 +14,41 @@ import { state, definirEquipe, definirMembroAtual } from "../state.js?v=7.4";
 import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=7.4";
 import { obterUidAtual, obterWorkspaceId } from "./context.js?v=7.4";
 import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
+import {
+    lerCacheLocal,
+    salvarCacheLocal,
+    removerCacheLocal
+} from "./cache-local.js?v=7.4";
 
 const CACHE_EQUIPE_MS = 5 * 60 * 1000;
 let cacheEquipe = null;
 let cacheEquipeEm = 0;
 let consultaEquipeEmAndamento = null;
 
+function chaveCacheEquipe() {
+    return `equipe:${obterWorkspaceId()}`;
+}
+
+function aplicarEquipeNoEstado(membros, { atualizarMembroAtual = false } = {}) {
+    definirEquipe(membros);
+
+    if (!atualizarMembroAtual && state.membroAtual) return;
+
+    const atual = membros.find(
+        (membro) => (membro.uid || membro.id) === state.user?.uid
+    );
+    if (atual) definirMembroAtual(atual);
+}
+
 export function invalidarCacheEquipe() {
     cacheEquipe = null;
     cacheEquipeEm = 0;
+
+    try {
+        removerCacheLocal(chaveCacheEquipe());
+    } catch (_) {
+        // Contexto ainda pode não estar inicializado durante algum teardown.
+    }
 }
 
 export async function obterMembroAtual() {
@@ -38,6 +64,12 @@ export async function obterMembroAtual() {
 
 export async function obterMembroPorUid(uid) {
     if (!uid) return null;
+
+    const emEstado = (state.equipe || []).find(
+        (membro) => (membro.uid || membro.id) === uid
+    );
+    if (emEstado) return emEstado;
+
     const snap = await getDoc(doc(db, "barbearias", obterWorkspaceId(), "membros", uid));
     registrarConsultaFirestore("equipe/membro", 1);
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
@@ -50,6 +82,26 @@ export async function listarMembrosEquipe({ forcar = false } = {}) {
         (Date.now() - cacheEquipeEm) < CACHE_EQUIPE_MS;
 
     if (cacheValido) return cacheEquipe;
+
+    if (!forcar) {
+        const persistido = lerCacheLocal(
+            chaveCacheEquipe(),
+            CACHE_EQUIPE_MS,
+            "equipe"
+        );
+
+        if (Array.isArray(persistido)) {
+            cacheEquipe = persistido;
+            cacheEquipeEm = Date.now();
+
+            // Não substitui state.membroAtual por uma versão persistida. O membro
+            // atual foi confirmado ao vivo na inicialização para preservar repasse,
+            // preços, papel e status corretos.
+            aplicarEquipeNoEstado(persistido, { atualizarMembroAtual: false });
+            return persistido;
+        }
+    }
+
     if (consultaEquipeEmAndamento) return consultaEquipeEmAndamento;
 
     consultaEquipeEmAndamento = (async () => {
@@ -63,16 +115,13 @@ export async function listarMembrosEquipe({ forcar = false } = {}) {
             ...documento.data()
         }));
 
-        // Preenche o cache ANTES de emitir o estado. Assim um listener de "equipe"
+        // Preenche os caches ANTES de emitir o estado. Assim um listener de "equipe"
         // nunca dispara outra consulta recursiva ao Firestore.
         cacheEquipe = membros;
         cacheEquipeEm = Date.now();
+        salvarCacheLocal(chaveCacheEquipe(), membros);
 
-        definirEquipe(membros);
-        const atual = membros.find(
-            (membro) => (membro.uid || membro.id) === state.user?.uid
-        );
-        if (atual) definirMembroAtual(atual);
+        aplicarEquipeNoEstado(membros, { atualizarMembroAtual: true });
         return membros;
     })();
 

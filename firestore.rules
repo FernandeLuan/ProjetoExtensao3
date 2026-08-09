@@ -26,8 +26,10 @@ service cloud.firestore {
     }
 
     function isAdmin(barbeariaId) {
-      // owner é aceito apenas para compatibilidade com a base anterior.
-      return isTechnicalOwner(barbeariaId) || hasAdminRole(barbeariaId);
+      // Primeiro resolve admin/owner pelo documento de membro. O ownerUid técnico
+      // continua como fallback para compatibilidade, mas deixa de ser a primeira
+      // consulta auxiliar feita para administradores normais.
+      return hasAdminRole(barbeariaId) || isTechnicalOwner(barbeariaId);
     }
 
     match /usuarios/{uid} {
@@ -160,7 +162,6 @@ service cloud.firestore {
           && resource.data.profissionalUid == request.auth.uid
         );
       }
-
 
       // Resumos derivados por profissional. São cache financeiro diário e podem ser
       // reconstruídos a partir de atendimentos/despesas se necessário.

@@ -2,6 +2,13 @@ const metricas = {
     consultas: 0,
     documentosRetornados: 0,
     porOrigem: {},
+    cacheLocal: {
+        acertos: 0,
+        misses: 0,
+        expirados: 0,
+        outros: 0,
+        porOrigem: {}
+    },
     janela60s: {
         consultas: 0,
         documentosRetornados: 0,
@@ -87,13 +94,50 @@ export function registrarConsultaFirestore(origem, quantidade = 0, detalhe = "")
     );
 }
 
+export function registrarCacheLocal(origem, status) {
+    const chave = String(origem || "cache");
+    const tipo = String(status || "outro");
+
+    if (!metricas.cacheLocal.porOrigem[chave]) {
+        metricas.cacheLocal.porOrigem[chave] = {
+            acertos: 0,
+            misses: 0,
+            expirados: 0,
+            outros: 0
+        };
+    }
+
+    const item = metricas.cacheLocal.porOrigem[chave];
+
+    if (tipo === "hit") {
+        metricas.cacheLocal.acertos += 1;
+        item.acertos += 1;
+        return;
+    }
+
+    if (tipo === "miss") {
+        metricas.cacheLocal.misses += 1;
+        item.misses += 1;
+        return;
+    }
+
+    if (tipo === "expirado") {
+        metricas.cacheLocal.expirados += 1;
+        item.expirados += 1;
+        return;
+    }
+
+    metricas.cacheLocal.outros += 1;
+    item.outros += 1;
+}
+
 export function obterDiagnosticoLeituras() {
     atualizarJanela();
     return JSON.parse(JSON.stringify(metricas));
 }
 
 if (typeof window !== "undefined") {
-    // Mantém compatibilidade com o comando que você já usa no Console.
+    // Mantém compatibilidade com os comandos já usados no Console.
     window.__SRNK_LEITURAS__ = metricas;
     window.__SRNK_DIAGNOSTICO__ = obterDiagnosticoLeituras;
 }
