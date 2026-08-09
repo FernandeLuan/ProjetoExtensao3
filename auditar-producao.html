@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Sr NK • Auditoria de produção</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #0d0f13;
+            color: #f5f7fb;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 24px 16px 48px; background: #0d0f13; }
+        main { width: min(100%, 720px); margin: 0 auto; }
+        h1 { margin: 0 0 8px; font-size: 1.35rem; }
+        p { color: #aab2c2; line-height: 1.55; }
+        .card { margin-top: 16px; padding: 18px; border: 1px solid #262b35; border-radius: 16px; background: #14171d; }
+        .ambiente { margin-top: 5px; font-weight: 700; word-break: break-all; }
+        .badge { display: inline-flex; margin-top: 8px; padding: 5px 9px; border: 1px solid rgba(22,163,74,.35); border-radius: 999px; color: #86efac; background: rgba(22,163,74,.10); font-size: .75rem; font-weight: 700; }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin: 16px 0; }
+        .metric { min-width: 0; padding: 12px; border: 1px solid #292f3a; border-radius: 12px; background: #101319; }
+        .metric span { display: block; margin-bottom: 5px; color: #919bad; font-size: .76rem; line-height: 1.35; }
+        .metric strong { display: block; overflow: hidden; font-size: 1.1rem; text-overflow: ellipsis; white-space: nowrap; }
+        button { width: 100%; min-height: 46px; margin-top: 10px; border: 0; border-radius: 12px; background: #2563eb; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+        button:disabled { opacity: .45; cursor: not-allowed; }
+        pre { min-height: 180px; margin: 16px 0 0; padding: 14px; overflow: auto; border: 1px solid #292f3a; border-radius: 12px; background: #0b0d11; color: #d7deea; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+        .alerta { margin-top: 14px; padding: 12px; border: 1px solid rgba(251,191,36,.35); border-radius: 12px; color: #f8d879; background: rgba(251,191,36,.08); line-height: 1.5; }
+        .seguro { margin-top: 14px; padding: 12px; border: 1px solid rgba(34,197,94,.28); border-radius: 12px; color: #a7f3d0; background: rgba(34,197,94,.07); line-height: 1.5; }
+        @media (min-width: 640px) { .grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Auditoria da produção</h1>
+    <p>Leitura única para mapear os dados atuais antes de migrar a produção do Sr NK para os resumos.</p>
+
+    <div class="card">
+        <div>Ambiente autenticado:</div>
+        <div id="ambiente" class="ambiente">Carregando...</div>
+        <div id="badge" class="badge" hidden>PRODUÇÃO CONFIRMADA</div>
+
+        <div class="seguro">
+            Esta ferramenta é <strong>somente leitura</strong>. Ela não possui código de criação, edição ou exclusão de documentos.
+        </div>
+
+        <div class="grid">
+            <div class="metric"><span>Atendimentos</span><strong id="qtdAtendimentos">—</strong></div>
+            <div class="metric"><span>Despesas</span><strong id="qtdDespesas">—</strong></div>
+            <div class="metric"><span>Sem profissionalUid</span><strong id="qtdLegados">—</strong></div>
+            <div class="metric"><span>Possíveis duplicados</span><strong id="qtdDuplicados">—</strong></div>
+            <div class="metric"><span>Resumos profissionais</span><strong id="qtdResumosProf">—</strong></div>
+            <div class="metric"><span>Resumos barbearia</span><strong id="qtdResumosBarb">—</strong></div>
+            <div class="metric"><span>Primeiro registro</span><strong id="dataInicial">—</strong></div>
+            <div class="metric"><span>Último registro</span><strong id="dataFinal">—</strong></div>
+        </div>
+
+        <div class="alerta">
+            A ferramenta é travada para o ID de produção esperado e recusa ambientes cujo ID começa com <strong>teste-</strong>.
+        </div>
+
+        <button id="btnAnalisar" type="button" disabled>Analisar produção</button>
+        <button id="btnCopiar" type="button" disabled>Copiar resultado</button>
+        <pre id="status">Aguardando autenticação...</pre>
+    </div>
+</main>
+<script type="module" src="./js/auditar-producao.js?v=1"></script>
+</body>
+</html>
