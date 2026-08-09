@@ -3,6 +3,11 @@ import { state } from "./state.js?v=7.4";
 import { obterAtendimentosPeriodo } from "./data/sync.js?v=7.4";
 import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
 import { listarMembrosEquipe } from "./data/equipe-repository.js?v=7.4";
+import { obterWorkspaceId } from "./data/context.js?v=7.4";
+import {
+    listarResumosBarbeariaPorPeriodo,
+    listarResumosProfissionalPorPeriodo
+} from "./data/resumos-repository.js?v=7.4";
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
 import {
     obterBrutoAtendimento,
@@ -743,6 +748,349 @@ function renderizar(relatorio) {
     relatorio.ajustes = ajustes;
 }
 
+function usarResumosNoRelatorio() {
+    // Homologação controlada: o ambiente de teste já começou limpo.
+    // Produção continua lendo os registros antigos até a migração ser validada.
+    return String(obterWorkspaceId() || "").startsWith("teste-");
+}
+
+function centavosParaReais(valor) {
+    return Number(valor || 0) / 100;
+}
+
+function somarMapaPorNome(destino, resumo, campoValores, campoNomes) {
+    const valores = resumo?.[campoValores] || {};
+    const nomes = resumo?.[campoNomes] || {};
+
+    Object.entries(valores).forEach(([chave, valor]) => {
+        const numero = Number(valor || 0);
+        if (!numero) return;
+
+        const nome = String(nomes[chave] || chave || "Outros").trim() || "Outros";
+        destino.set(nome, (destino.get(nome) || 0) + numero);
+    });
+}
+
+function nomeProfissionalResumo(resumo) {
+    const uid = resumo?.profissionalUid;
+    const membro = (state.equipe || [])
+        .find((item) => (item.uid || item.id) === uid);
+
+    if (membro) return nomeMembro(membro);
+
+    const snapshot = String(resumo?.profissionalNome || "").trim();
+    return snapshot || "Profissional";
+}
+
+function consolidarResumos(resumos, resumosBarbearia, visaoBarbearia) {
+    const dados = {
+        faturamento: 0,
+        taxas: 0,
+        repasse: 0,
+        liquidoBarbeiro: 0,
+        totalDespesas: 0,
+        totalAtendimentos: 0,
+        ticket: 0,
+        resultado: 0,
+        ajustesQuantidade: 0,
+        ajustesDiferenca: 0,
+        servicosQtd: new Map(),
+        servicosFaturamento: new Map(),
+        pagamentos: new Map(),
+        porDia: new Map(),
+        equipe: new Map()
+    };
+
+    (resumos || []).forEach((resumo) => {
+        const qtd = Math.max(0, Number(resumo?.atendimentos || 0));
+        const bruto = centavosParaReais(resumo?.faturamentoBrutoCentavos);
+        const taxas = centavosParaReais(resumo?.taxasCartaoCentavos);
+        const repasse = centavosParaReais(resumo?.repasseCentavos);
+        const liquido = centavosParaReais(resumo?.liquidoBarbeiroCentavos);
+
+        dados.totalAtendimentos += qtd;
+        dados.faturamento += bruto;
+        dados.taxas += taxas;
+        dados.repasse += repasse;
+        dados.liquidoBarbeiro += liquido;
+        dados.ajustesQuantidade += Math.max(0, Number(resumo?.ajustesQuantidade || 0));
+        dados.ajustesDiferenca += centavosParaReais(resumo?.ajustesDiferencaCentavos);
+
+        if (!visaoBarbearia) {
+            dados.totalDespesas += centavosParaReais(resumo?.despesasProfissionaisCentavos);
+        }
+
+        const dia = String(resumo?.dataChave || resumo?.id || "").trim();
+        if (dia) dados.porDia.set(dia, (dados.porDia.get(dia) || 0) + bruto);
+
+        somarMapaPorNome(dados.servicosQtd, resumo, "servicosQtd", "servicosNomes");
+        somarMapaPorNome(
+            dados.servicosFaturamento,
+            resumo,
+            "servicosFaturamentoCentavos",
+            "servicosNomes"
+        );
+        somarMapaPorNome(
+            dados.pagamentos,
+            resumo,
+            "pagamentosValorCentavos",
+            "pagamentosNomes"
+        );
+
+        if (visaoBarbearia && resumo?.profissionalUid) {
+            const uid = resumo.profissionalUid;
+            if (!dados.equipe.has(uid)) {
+                dados.equipe.set(uid, {
+                    nome: nomeProfissionalResumo(resumo),
+                    qtd: 0,
+                    faturamento: 0,
+                    repasse: 0
+                });
+            }
+
+            const item = dados.equipe.get(uid);
+            item.qtd += qtd;
+            item.faturamento += bruto;
+            item.repasse += repasse;
+        }
+    });
+
+    if (visaoBarbearia) {
+        dados.totalDespesas = (resumosBarbearia || []).reduce(
+            (soma, resumo) => soma + centavosParaReais(resumo?.despesasBarbeariaCentavos),
+            0
+        );
+    }
+
+    dados.ticket = dados.totalAtendimentos
+        ? dados.faturamento / dados.totalAtendimentos
+        : 0;
+
+    dados.resultado = visaoBarbearia
+        ? dados.repasse
+        : dados.liquidoBarbeiro - dados.totalDespesas;
+
+    dados.servicosQtd = [...dados.servicosQtd.entries()]
+        .filter(([, valor]) => Number(valor) > 0)
+        .sort((a, b) => b[1] - a[1]);
+
+    dados.servicosFaturamento = new Map(
+        [...dados.servicosFaturamento.entries()]
+            .map(([nome, valorCentavos]) => [nome, Number(valorCentavos || 0) / 100])
+    );
+
+    dados.pagamentos = [...dados.pagamentos.entries()]
+        .map(([nome, valorCentavos]) => [nome, Number(valorCentavos || 0) / 100])
+        .filter(([, valor]) => Number(valor) > 0)
+        .sort((a, b) => b[1] - a[1]);
+
+    dados.equipe = [...dados.equipe.values()]
+        .filter((item) => item.qtd > 0 || item.faturamento !== 0 || item.repasse !== 0)
+        .sort((a, b) => b.faturamento - a.faturamento);
+
+    return dados;
+}
+
+function graficoLinhaDiariaResumos(resumo, inicio, fim) {
+    destruirGrafico("faturamento");
+    const canvas = el("graficoRelatorioFaturamento");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const labels = [];
+    const dados = [];
+    let cursor = inicioDoDia(inicio);
+
+    while (cursor <= fim) {
+        const chave = chaveData(cursor);
+        labels.push(cursor.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }));
+        dados.push(Number((resumo.porDia.get(chave) || 0).toFixed(2)));
+        cursor = somarDias(cursor, 1);
+    }
+
+    const c = coresGrafico();
+
+    charts.faturamento = new Chart(canvas, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Faturamento bruto",
+                data: dados,
+                borderColor: c.principal,
+                backgroundColor: `${c.principal}22`,
+                fill: true,
+                tension: 0.32,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => moeda(ctx.raw) } }
+            },
+            scales: {
+                x: {
+                    ticks: { color: c.texto, maxTicksLimit: 7 },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: c.texto,
+                        callback: (v) => `R$ ${Number(v).toLocaleString("pt-BR")}`
+                    },
+                    grid: { color: c.borda }
+                }
+            }
+        }
+    });
+}
+
+function renderEquipeResumos(itens) {
+    const card = el("relatorioEquipeCard");
+    const lista = el("relatorioEquipeLista");
+    if (!card || !lista) return;
+
+    const exibir = usuarioEhAdmin() && profissionalSelect?.value === "barbearia";
+    card.hidden = !exibir;
+    if (!exibir) return;
+
+    lista.innerHTML = "";
+
+    if (!itens.length) {
+        lista.innerHTML = '<div class="relatorio-ranking-vazio">Sem produção no período.</div>';
+        return;
+    }
+
+    itens.forEach((item) => {
+        const linha = document.createElement("div");
+        linha.className = "relatorio-equipe-item";
+        linha.innerHTML = `
+            <div>
+                <strong>${escaparHtml(item.nome)}</strong>
+                <span>${item.qtd} atendimento${item.qtd === 1 ? "" : "s"}</span>
+            </div>
+            <div>
+                <strong>${moeda(item.faturamento)}</strong>
+                <span>Repasse ${moeda(item.repasse)}</span>
+            </div>
+        `;
+        lista.appendChild(linha);
+    });
+}
+
+function renderizarResumos(relatorio) {
+    const resumo = consolidarResumos(
+        relatorio.resumos,
+        relatorio.resumosBarbearia,
+        relatorio.visaoBarbearia
+    );
+
+    const ajustes = {
+        quantidade: resumo.ajustesQuantidade,
+        diferenca: resumo.ajustesDiferenca
+    };
+
+    setTexto(
+        "relatorioResultadoLabel",
+        relatorio.visaoBarbearia ? "Repasse previsto" : "Resultado profissional"
+    );
+    setTexto("relatorioResultado", moeda(resumo.resultado));
+
+    const detalheResultado = el("relatorioResultadoDetalhe");
+    if (detalheResultado) {
+        detalheResultado.hidden = true;
+        detalheResultado.textContent = "";
+    }
+
+    setTexto("relatorioPeriodoLabel", formatarPeriodo(relatorio.inicio, relatorio.fim));
+    setTexto("relatorioFaturamento", moeda(resumo.faturamento));
+    setTexto("relatorioAtendimentos", String(resumo.totalAtendimentos));
+    setTexto("relatorioTicket", moeda(resumo.ticket));
+    setTexto("relatorioDespesas", moeda(resumo.totalDespesas));
+    setTexto("relatorioAjustesQtd", String(ajustes.quantidade));
+    setTexto("relatorioAjustesValor", moedaSinal(ajustes.diferenca));
+
+    renderEquipeResumos(resumo.equipe);
+    graficoLinhaDiariaResumos(resumo, relatorio.inicio, relatorio.fim);
+
+    graficoRosca(
+        "servicos",
+        "graficoRelatorioServicos",
+        resumo.servicosQtd,
+        (ctx) => `${ctx.raw} atendimento${ctx.raw === 1 ? "" : "s"}`
+    );
+
+    graficoRosca(
+        "pagamentos",
+        "graficoRelatorioPagamentos",
+        resumo.pagamentos,
+        (ctx) => moeda(ctx.raw)
+    );
+
+    renderRanking(
+        "relatorioServicosLista",
+        resumo.servicosQtd,
+        {
+            totalBase: resumo.totalAtendimentos,
+            subtituloFn: (nome, qtd) => {
+                const percentual = resumo.totalAtendimentos
+                    ? (qtd / resumo.totalAtendimentos) * 100
+                    : 0;
+
+                return `${percentual.toFixed(1).replace(".", ",")}% • bruto ${moeda(resumo.servicosFaturamento.get(nome) || 0)}`;
+            }
+        }
+    );
+
+    renderRanking(
+        "relatorioPagamentosLista",
+        resumo.pagamentos,
+        { totalBase: resumo.faturamento, valorMonetario: true }
+    );
+
+    relatorio.resumo = resumo;
+    relatorio.ajustes = ajustes;
+}
+
+async function carregarDadosPorResumos(inicio, fim, visaoBarbearia, profissionalUid) {
+    if (!visaoBarbearia) {
+        const resumos = await listarResumosProfissionalPorPeriodo(
+            profissionalUid,
+            inicio,
+            fim
+        );
+        return { resumos, resumosBarbearia: [] };
+    }
+
+    const membros = (state.equipe || []).length
+        ? state.equipe
+        : await listarMembrosEquipe();
+
+    const uids = [...new Set(
+        membros
+            .map((membro) => String(membro?.uid || membro?.id || "").trim())
+            .filter(Boolean)
+    )];
+
+    const [porProfissional, resumosBarbearia] = await Promise.all([
+        Promise.all(
+            uids.map((uid) =>
+                listarResumosProfissionalPorPeriodo(uid, inicio, fim)
+            )
+        ),
+        listarResumosBarbeariaPorPeriodo(inicio, fim)
+    ]);
+
+    return {
+        resumos: porProfissional.flat(),
+        resumosBarbearia
+    };
+}
+
 function obterNomeVisao(uid, visaoBarbearia) {
     if (visaoBarbearia) return "Barbearia";
 
@@ -785,6 +1133,29 @@ export async function carregarRelatorio() {
     setStatus();
 
     try {
+        if (usarResumosNoRelatorio()) {
+            const { resumos, resumosBarbearia } = await carregarDadosPorResumos(
+                inicio,
+                fim,
+                visaoBarbearia,
+                profissionalUid
+            );
+
+            relatorioAtual = {
+                inicio,
+                fim,
+                resumos,
+                resumosBarbearia,
+                visaoBarbearia,
+                profissionalUid,
+                modoResumos: true,
+                nomeVisao: obterNomeVisao(profissionalUid, visaoBarbearia)
+            };
+
+            renderizarResumos(relatorioAtual);
+            return;
+        }
+
         const [atendimentos, despesas] =
             await Promise.all([
                 obterAtendimentosPeriodo(
@@ -840,8 +1211,76 @@ export async function carregarRelatorio() {
     }
 }
 
+function montarResumoWhatsAppResumos() {
+    if (!relatorioAtual?.resumo) return "";
+
+    const r = relatorioAtual;
+    const s = r.resumo;
+
+    const linhas = [
+        `*${APP_NAME.toUpperCase()}*`,
+        r.visaoBarbearia
+            ? "*FECHAMENTO DA BARBEARIA*"
+            : `*RESUMO PROFISSIONAL - ${r.nomeVisao}*`,
+        formatarPeriodo(r.inicio, r.fim),
+        "",
+        `Atendimentos: ${s.totalAtendimentos}`,
+        `Faturamento bruto: ${moeda(s.faturamento)}`,
+        `Ticket médio bruto: ${moeda(s.ticket)}`
+    ];
+
+    if (r.visaoBarbearia) {
+        linhas.push(
+            `Repasse previsto: ${moeda(s.repasse)}`,
+            `Despesas da barbearia: ${moeda(s.totalDespesas)}`
+        );
+    } else {
+        linhas.push(
+            `Taxas de cartão: ${moeda(s.taxas)}`,
+            `Repasse ao proprietário: ${moeda(s.repasse)}`,
+            `Despesas profissionais: ${moeda(s.totalDespesas)}`,
+            `*Resultado profissional: ${moeda(s.resultado)}*`
+        );
+    }
+
+    if (s.pagamentos.length) {
+        linhas.push("", "*FORMAS DE PAGAMENTO*");
+        s.pagamentos.forEach(([nome, valor]) => linhas.push(`${nome}: ${moeda(valor)}`));
+    }
+
+    if (r.visaoBarbearia && s.equipe.length) {
+        linhas.push("", "*EQUIPE*");
+        s.equipe.forEach((item) => {
+            linhas.push(
+                `${item.nome}: ${item.qtd} atend. | bruto ${moeda(item.faturamento)} | repasse ${moeda(item.repasse)}`
+            );
+        });
+    }
+
+    if (s.servicosQtd.length) {
+        linhas.push("", "*SERVIÇOS*");
+        s.servicosQtd.slice(0, 5).forEach(([nome, qtd]) => {
+            const pct = s.totalAtendimentos
+                ? (qtd / s.totalAtendimentos) * 100
+                : 0;
+            linhas.push(`${nome}: ${qtd} (${pct.toFixed(1).replace(".", ",")}%)`);
+        });
+    }
+
+    if (r.ajustes?.quantidade) {
+        linhas.push(
+            "",
+            "*AJUSTES DE PREÇO*",
+            `${r.ajustes.quantidade} atendimento(s) | diferença ${moedaSinal(r.ajustes.diferenca)}`
+        );
+    }
+
+    return linhas.join("\n");
+}
+
 function montarResumoWhatsApp() {
     if (!relatorioAtual?.resumo) return "";
+    if (relatorioAtual.modoResumos) return montarResumoWhatsAppResumos();
 
     const r = relatorioAtual;
     const s = r.resumo;

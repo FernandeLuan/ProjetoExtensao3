@@ -1,11 +1,17 @@
 import { db } from "../../firebase-init.js?v=7.4";
 import {
+    collection,
     doc,
+    getDocs,
     increment,
-    serverTimestamp
+    orderBy,
+    query,
+    serverTimestamp,
+    where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { obterWorkspaceId } from "./context.js?v=7.4";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
 import {
     obterBrutoAtendimento,
     obterLiquidoBarbeiro,
@@ -240,6 +246,7 @@ function patchResumoProfissional(delta) {
  * Cada entrada: { atendimento, sinal }, onde sinal é +1 ou -1.
  */
 export function anexarDeltasAtendimentosAoBatch(batch, entradas = []) {
+    invalidarCacheResumos();
     const deltas = new Map();
 
     entradas.forEach(({ atendimento, sinal = 1 }) => {
@@ -277,6 +284,7 @@ function obterDataDespesa(despesa) {
  * Despesas da barbearia atualizam um resumo diário separado, gravável só por admin.
  */
 export function anexarDeltasDespesasAoBatch(batch, entradas = []) {
+    invalidarCacheResumos();
     const profissionais = new Map();
     const barbearia = new Map();
 
@@ -329,4 +337,132 @@ export function anexarDeltasDespesasAoBatch(batch, entradas = []) {
             { merge: true }
         );
     });
+}
+
+
+// =============================
+// LEITURA DOS RESUMOS
+// =============================
+const CACHE_RESUMOS_MS = 2 * 60 * 1000;
+const cacheResumos = new Map();
+const resumosEmAndamento = new Map();
+
+function inicioChave(data) {
+    return chaveData(data instanceof Date ? data : new Date(data));
+}
+
+function chaveCache(tipo, uid, inicio, fim) {
+    return [
+        obterWorkspaceId(),
+        tipo,
+        uid || "barbearia",
+        inicioChave(inicio),
+        inicioChave(fim)
+    ].join(":");
+}
+
+function cacheValido(item) {
+    return item && (Date.now() - item.salvoEm) < CACHE_RESUMOS_MS;
+}
+
+function salvarCache(chave, itens) {
+    cacheResumos.set(chave, { itens, salvoEm: Date.now() });
+
+    while (cacheResumos.size > 40) {
+        cacheResumos.delete(cacheResumos.keys().next().value);
+    }
+}
+
+async function executarConsultaResumo({ chave, origem, referencia, inicio, fim, forcar }) {
+    if (!forcar) {
+        const cache = cacheResumos.get(chave);
+        if (cacheValido(cache)) return cache.itens;
+    }
+
+    if (resumosEmAndamento.has(chave)) {
+        return resumosEmAndamento.get(chave);
+    }
+
+    const promessa = (async () => {
+        const snapshot = await getDocs(query(
+            referencia,
+            where("dataChave", ">=", inicioChave(inicio)),
+            where("dataChave", "<=", inicioChave(fim)),
+            orderBy("dataChave", "asc")
+        ));
+
+        registrarConsultaFirestore(origem, snapshot.size);
+
+        const itens = snapshot.docs.map((item) => ({
+            id: item.id,
+            ...item.data()
+        }));
+
+        salvarCache(chave, itens);
+        return itens;
+    })();
+
+    resumosEmAndamento.set(chave, promessa);
+
+    try {
+        return await promessa;
+    } finally {
+        resumosEmAndamento.delete(chave);
+    }
+}
+
+export async function listarResumosProfissionalPorPeriodo(
+    uid,
+    inicio,
+    fim,
+    { forcar = false } = {}
+) {
+    const profissionalUid = String(uid || "").trim();
+    if (!profissionalUid) return [];
+
+    const workspaceId = obterWorkspaceId();
+    const referencia = collection(
+        db,
+        "barbearias",
+        workspaceId,
+        "resumosProfissionais",
+        profissionalUid,
+        "dias"
+    );
+
+    return executarConsultaResumo({
+        chave: chaveCache("profissional", profissionalUid, inicio, fim),
+        origem: "resumos/profissional",
+        referencia,
+        inicio,
+        fim,
+        forcar
+    });
+}
+
+export async function listarResumosBarbeariaPorPeriodo(
+    inicio,
+    fim,
+    { forcar = false } = {}
+) {
+    const workspaceId = obterWorkspaceId();
+    const referencia = collection(
+        db,
+        "barbearias",
+        workspaceId,
+        "resumosBarbearia"
+    );
+
+    return executarConsultaResumo({
+        chave: chaveCache("barbearia", null, inicio, fim),
+        origem: "resumos/barbearia",
+        referencia,
+        inicio,
+        fim,
+        forcar
+    });
+}
+
+export function invalidarCacheResumos() {
+    cacheResumos.clear();
 }

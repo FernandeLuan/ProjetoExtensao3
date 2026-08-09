@@ -4,14 +4,101 @@ import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDe
 import { abrirSeletorData, setTexto } from "./utils/dom.js?v=7.4";
 import { obterResumoDoDia } from "./services/financeiro-service.js?v=7.4";
 import { garantirAtendimentosPeriodo } from "./data/sync.js?v=7.4";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=7.4";
+import { obterWorkspaceId } from "./data/context.js?v=7.4";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
 let graficoTicketInstance = null;
 let graficoAtendimentosInstance = null;
+let resumosPainel = [];
 
 const btnCalendarioPainel = document.getElementById("btnCalendarioPainel");
 const inputDataPainel = document.getElementById("inputDataPainel");
+
+function usarResumosNoPainel() {
+    // Durante a homologação, somente o workspace de teste usa a nova leitura.
+    // Produção continua no fluxo legado até migrarmos os dados históricos.
+    return String(obterWorkspaceId() || "").startsWith("teste-");
+}
+
+function centavosParaReais(valor) {
+    return Number(valor || 0) / 100;
+}
+
+function resumoVazio() {
+    return {
+        faturamentoBruto: 0,
+        totalRepasse: 0,
+        lucroBarbeiro: 0,
+        totalTaxas: 0,
+        totalAtendimentos: 0,
+        ticketMedio: 0,
+        servicoMaisVendido: "—",
+        quantidadeMaisVendida: 0,
+        percentualMaisVendido: 0
+    };
+}
+
+function converterResumoDiario(documento) {
+    if (!documento) return resumoVazio();
+
+    const totalAtendimentos = Math.max(0, Number(documento.atendimentos || 0));
+    const faturamentoBruto = centavosParaReais(documento.faturamentoBrutoCentavos);
+    const servicos = documento.servicosQtd || {};
+    const nomes = documento.servicosNomes || {};
+
+    let servicoMaisVendido = "—";
+    let quantidadeMaisVendida = 0;
+
+    Object.entries(servicos).forEach(([chave, quantidade]) => {
+        const qtd = Math.max(0, Number(quantidade || 0));
+        if (qtd > quantidadeMaisVendida) {
+            quantidadeMaisVendida = qtd;
+            servicoMaisVendido = String(nomes[chave] || "Serviço");
+        }
+    });
+
+    return {
+        faturamentoBruto,
+        totalRepasse: centavosParaReais(documento.repasseCentavos),
+        lucroBarbeiro: centavosParaReais(documento.liquidoBarbeiroCentavos),
+        totalTaxas: centavosParaReais(documento.taxasCartaoCentavos),
+        totalAtendimentos,
+        ticketMedio: totalAtendimentos ? faturamentoBruto / totalAtendimentos : 0,
+        servicoMaisVendido,
+        quantidadeMaisVendida,
+        percentualMaisVendido: totalAtendimentos
+            ? Math.round((quantidadeMaisVendida / totalAtendimentos) * 100)
+            : 0
+    };
+}
+
+function obterResumoPainel(data) {
+    if (!usarResumosNoPainel()) {
+        return obterResumoDoDia(state.atendimentos, data);
+    }
+
+    const chave = chaveData(data);
+    const documento = resumosPainel.find((item) => item.dataChave === chave || item.id === chave);
+    return converterResumoDiario(documento);
+}
+
+async function carregarResumosPainel(inicio, fim) {
+    if (!usarResumosNoPainel()) {
+        await garantirAtendimentosPeriodo(inicio, fim);
+        return;
+    }
+
+    const uid = state.user?.uid;
+    if (!uid) {
+        resumosPainel = [];
+        return;
+    }
+
+    resumosPainel = await listarResumosProfissionalPorPeriodo(uid, inicio, fim);
+}
+
 
 // =============================
 // NAVEGAÇÃO DE DATA
@@ -44,7 +131,7 @@ async function selecionarData(novaData) {
     // O painel nunca permite navegar para o futuro.
     dataSelecionada = normalizada > hoje ? hoje : normalizada;
     try {
-        await garantirAtendimentosPeriodo(somarDias(dataSelecionada, -6), dataSelecionada);
+        await carregarResumosPainel(somarDias(dataSelecionada, -6), dataSelecionada);
     } catch (error) {
         console.error("Erro ao carregar período do painel:", error);
     }
@@ -54,7 +141,7 @@ async function selecionarData(novaData) {
 export async function abrirPainelHoje() {
     dataSelecionada = inicioDoDia(new Date());
     try {
-        await garantirAtendimentosPeriodo(somarDias(dataSelecionada, -6), dataSelecionada);
+        await carregarResumosPainel(somarDias(dataSelecionada, -6), dataSelecionada);
     } catch (error) {
         console.error("Erro ao carregar painel de hoje:", error);
     }
@@ -145,8 +232,8 @@ if (variacao > 0) {
 export function atualizarCards() {
     atualizarNavegadorData();
 
-    const resumoAtual = obterResumoDoDia(state.atendimentos, dataSelecionada);
-    const resumoAnterior = obterResumoDoDia(state.atendimentos, somarDias(dataSelecionada, -1));
+    const resumoAtual = obterResumoPainel(dataSelecionada);
+    const resumoAnterior = obterResumoPainel(somarDias(dataSelecionada, -1));
 
     setTexto("lucroLiquidoPainel", `R$ ${formatarMoeda(resumoAtual.lucroBarbeiro)}`);
     setTexto("faturamentoBrutoPainel", `R$ ${formatarMoeda(resumoAtual.faturamentoBruto)}`);
@@ -181,7 +268,7 @@ function obterSerieSeteDias() {
 
     for (let deslocamento = 6; deslocamento >= 0; deslocamento--) {
         const data = somarDias(dataSelecionada, -deslocamento);
-        const resumo = obterResumoDoDia(state.atendimentos, data);
+        const resumo = obterResumoPainel(data);
 
         serie.push({
             label: `${String(data.getDate()).padStart(2, "0")}/${String(data.getMonth() + 1).padStart(2, "0")}`,
@@ -595,5 +682,7 @@ function painelEstaVisivel(){
     return Boolean(painel && getComputedStyle(painel).display !== "none");
 }
 
-onStateChange("atendimentos", () => { if (painelEstaVisivel()) atualizarCards(); });
+onStateChange("atendimentos", () => {
+    if (!usarResumosNoPainel() && painelEstaVisivel()) atualizarCards();
+});
 onStateChange("configSistema", () => { if (painelEstaVisivel()) atualizarCards(); });
