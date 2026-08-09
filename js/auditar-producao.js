@@ -42,19 +42,64 @@ function numero(valor) {
 }
 
 function centavosRegistro(item) {
-    const candidatos = [
-        item?.valorBrutoCentavos,
-        item?.valorFinalCentavos,
-        item?.valorCentavos,
-        Number.isFinite(Number(item?.valorFinal)) ? Number(item.valorFinal) * 100 : null,
-        Number.isFinite(Number(item?.valor)) ? Number(item.valor) * 100 : null
+    // O app já teve mais de um schema financeiro. Primeiro tentamos os campos
+    // atuais, depois snapshots financeiros e por último os nomes realmente antigos.
+    const valoresEmReais = [
+        item?.valorBrutoTotal,
+        item?.valorBruto,
+        item?.valorServicoBruto,
+        item?.financeiro?.valorBruto,
+        item?.valorFinal,
+        item?.valor
     ];
 
-    for (const candidato of candidatos) {
+    const valoresEmCentavos = [
+        item?.valorBrutoCentavos,
+        item?.valorFinalCentavos,
+        item?.valorCentavos
+    ];
+
+    for (const candidato of valoresEmCentavos) {
+        if (candidato === null || candidato === undefined || candidato === "") continue;
         const n = Number(candidato);
         if (Number.isFinite(n)) return Math.round(n);
     }
+
+    for (const candidato of valoresEmReais) {
+        if (candidato === null || candidato === undefined || candidato === "") continue;
+        const n = Number(candidato);
+        if (Number.isFinite(n)) return Math.round(n * 100);
+    }
+
     return 0;
+}
+
+function origemValorRegistro(item) {
+    const candidatos = [
+        ["valorBrutoTotal", item?.valorBrutoTotal],
+        ["valorBruto", item?.valorBruto],
+        ["valorServicoBruto", item?.valorServicoBruto],
+        ["financeiro.valorBruto", item?.financeiro?.valorBruto],
+        ["valorBrutoCentavos", item?.valorBrutoCentavos],
+        ["valorFinalCentavos", item?.valorFinalCentavos],
+        ["valorCentavos", item?.valorCentavos],
+        ["valorFinal", item?.valorFinal],
+        ["valor", item?.valor]
+    ];
+
+    for (const [nome, valor] of candidatos) {
+        if (valor === null || valor === undefined || valor === "") continue;
+        if (Number.isFinite(Number(valor))) return nome;
+    }
+    return "sem campo de valor reconhecido";
+}
+
+function horarioConfiavel(item) {
+    // dataAtendimento pode ter sido preenchida artificialmente em migrações antigas.
+    // Para sugerir duplicidade exigimos uma indicação explícita de horário real.
+    if (item?.horaInformada === true) return true;
+    if (item?.criadoEm && !item?.migradoV2) return true;
+    return false;
 }
 
 function paraDate(valor) {
@@ -129,10 +174,10 @@ function chavePossivelDuplicado(item) {
     const data = dataAtendimento(item);
     if (!data) return null;
 
-    // Só considera candidato quando há horário real. Se a informação original é apenas
-    // uma data, dois atendimentos iguais no mesmo dia podem ser perfeitamente legítimos.
-    const possuiHorario = Boolean(item?.dataAtendimento || item?.dataHora || item?.criadoEm);
-    if (!possuiHorario) return null;
+    // Só considera candidato quando temos evidência explícita de horário real.
+    // Muitos legados foram normalizados para 08:00, então dataAtendimento sozinho
+    // não é suficiente para declarar possível duplicidade.
+    if (!horarioConfiavel(item)) return null;
 
     return [
         data.getTime(),
@@ -260,6 +305,13 @@ async function analisar() {
         const semData = atendimentos.filter((item) => !dataAtendimento(item));
         const marcadosResumo = atendimentos.filter((item) => numero(item?.resumoVersion) > 0);
         const duplicados = agruparPossiveisDuplicados(atendimentos);
+        const valorTotalCentavos = atendimentos.reduce((total, item) => total + centavosRegistro(item), 0);
+        const origemValor = new Map();
+        atendimentos.forEach((item) => {
+            const origem = origemValorRegistro(item);
+            origemValor.set(origem, (origemValor.get(origem) || 0) + 1);
+        });
+        const horariosConfiaveis = atendimentos.filter(horarioConfiavel).length;
 
         const datasAtendimentos = atendimentos.map(dataAtendimento).filter(Boolean).sort(compararDatas);
         const datasDespesas = despesas.map(dataDespesa).filter(Boolean).sort(compararDatas);
@@ -299,8 +351,29 @@ async function analisar() {
             `- Atendimentos já marcados com resumoVersion: ${marcadosResumo.length}`,
             `- Primeiro registro reconhecido: ${formatarData(primeiraData)}`,
             `- Último registro reconhecido: ${formatarData(ultimaData)}`,
+            `- Faturamento bruto reconhecido nos ${atendimentos.length} registros: R$ ${(valorTotalCentavos / 100).toFixed(2).replace(".", ",")}`,
+            `- Registros com horário explicitamente confiável: ${horariosConfiaveis}`,
             "",
-            "RESUMOS EXISTENTES",
+            "MEMBROS DA PRODUÇÃO"
+        ];
+
+        if (!membros.length) {
+            linhas.push("- nenhum membro encontrado");
+        } else {
+            membros.forEach((m) => {
+                linhas.push(
+                    `- ${limparTexto(m.nome) || limparTexto(m.email) || m.id} | ` +
+                    `uid: ${m.id} | papel: ${limparTexto(m.papel) || "—"} | ativo: ${m.ativo === true ? "sim" : "não"}`
+                );
+            });
+        }
+
+        linhas.push("", "CAMPOS DE VALOR DETECTADOS");
+        [...origemValor.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([origem, quantidade]) => linhas.push(`- ${origem}: ${quantidade}`));
+
+        linhas.push("", "RESUMOS EXISTENTES",
             `- Dias em resumos profissionais: ${resumosPorProfissional.reduce((t, x) => t + x.quantidade, 0)}`,
             `- Dias em resumos da barbearia: ${resumoBarbSnap.size}`
         ];
