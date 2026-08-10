@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v823";
+const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v824";
 const APP_SHELL = [
   "./",
   "./index.html",

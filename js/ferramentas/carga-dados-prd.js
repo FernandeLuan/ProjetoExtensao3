@@ -83,6 +83,18 @@ function configDoProfissional(membro) {
     };
 }
 
+function resumoTaxasProfissional(membro) {
+    const config = configDoProfissional(membro);
+    const debito = Number(config?.taxaDebito);
+    const credito = Number(config?.taxaCredito);
+    const fmt = (valor) => Number.isFinite(valor) ? `${valor.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%` : "não configurada";
+    return {
+        debito,
+        credito,
+        texto: `Débito ${fmt(debito)} • Crédito ${fmt(credito)}`
+    };
+}
+
 function servicoPorNome(nome) {
     const alvo = normalizar(nome);
     return obterServicos({ somenteAtivos: true })
@@ -291,11 +303,12 @@ function gerarCargaJose(jose) {
 
     const rand = mulberry32(20260710);
     const servicosPeso = pesosServicos(servicos);
+    // Distribuição de teste mais próxima de um cenário real de operação e,
+    // principalmente, útil para validar as taxas de cartão no retroativo.
     const pagamentos = [
-        { valor: "Pix", peso: 65 },
-        { valor: "Débito", peso: 15 },
-        { valor: "Crédito", peso: 12 },
-        { valor: "Dinheiro", peso: 8 }
+        { valor: "Pix", peso: 55 },
+        { valor: "Débito", peso: 25 },
+        { valor: "Crédito", peso: 20 }
     ].filter((item) => pagamentoEstaAtivo(item.valor));
 
     if (!pagamentos.length) throw new Error("Nenhuma forma de pagamento está ativa.");
@@ -416,19 +429,28 @@ async function atualizarEstadoBotoes() {
         const itensExistentes = new Set(joseExistente.map((item) => Number(item.cargaItem)));
         const hojePresentes = planejadosHoje.filter((item) => itensExistentes.has(Number(item.cargaItem))).length;
         const faltamHoje = Math.max(0, planejadosHoje.length - hojePresentes);
+        const taxas = resumoTaxasProfissional(jose);
+
+        btnJose.textContent = "Recriar carga completa do José com taxas atuais";
+        btnJose.disabled = false;
+        btnRemoverJose.disabled = false;
 
         if (faltamHoje > 0) {
-            texto(statusJose, `Carga encontrada com ${joseExistente.length} atendimento(s), mas faltam ${faltamHoje} dos ${planejadosHoje.length} atendimentos previstos para hoje (10/08). Use “Completar hoje”.`, "carga-alerta");
+            texto(statusJose, `Carga encontrada com ${joseExistente.length} atendimento(s). Faltam ${faltamHoje} dos ${planejadosHoje.length} previstos para hoje. Taxas atuais: ${taxas.texto}. Para atualizar também todo o retroativo, use “Recriar carga completa”.`, "carga-alerta");
             btnCompletarJoseHoje.disabled = false;
         } else {
-            texto(statusJose, `Carga inserida: ${joseExistente.length} atendimentos. Hoje (10/08) estão presentes os ${planejadosHoje.length} atendimentos previstos.`, "carga-ok");
+            const classe = (taxas.debito > 0 && taxas.credito > 0) ? "carga-ok" : "carga-alerta";
+            const aviso = (taxas.debito > 0 && taxas.credito > 0)
+                ? "A recriação recalculará todos os snapshots financeiros com essas taxas."
+                : "Configure Débito e Crédito no José antes de recriar se quiser validar descontos de cartão.";
+            texto(statusJose, `Carga atual: ${joseExistente.length} atendimentos. Hoje (10/08): ${planejadosHoje.length} previstos. Taxas atuais: ${taxas.texto}. ${aviso}`, classe);
         }
-        btnJose.disabled = true;
-        btnRemoverJose.disabled = false;
     } else {
         const previstos = gerarCargaJose(jose);
         const hoje = registrosJoseHojePlanejados(jose);
-        texto(statusJose, `Pronto para inserir ${previstos.length} atendimentos entre 10/07 e 10/08, sem domingos. A carga inclui ${hoje.length} atendimentos hoje (10/08).`, "carga-ok");
+        const taxas = resumoTaxasProfissional(jose);
+        btnJose.textContent = "Inserir carga completa do José Henrique";
+        texto(statusJose, `Pronto para inserir ${previstos.length} atendimentos entre 10/07 e 10/08, sem domingos. Inclui ${hoje.length} atendimentos hoje. Pagamentos: Pix, Débito e Crédito. Taxas atuais: ${taxas.texto}.`, (taxas.debito > 0 && taxas.credito > 0) ? "carga-ok" : "carga-alerta");
         btnJose.disabled = false;
         btnRemoverJose.disabled = true;
     }
@@ -457,13 +479,40 @@ btnJose?.addEventListener("click", async () => {
     if (!pronto) return;
     btnJose.disabled = true;
     try {
+        // Recarrega o membro imediatamente antes da geração. Assim as taxas recém-salvas
+        // em Equipe > Dados entram nos snapshots de TODO o período retroativo.
         membros = await listarMembrosEquipe({ forcar: true });
         const jose = membroPorEmail(EMAIL_JOSE);
         if (!jose || jose.ativo !== true || jose.removido === true) throw new Error("José Henrique precisa estar ativo.");
+
+        const taxas = resumoTaxasProfissional(jose);
+        const existentes = await buscarCarga(CARGA_JOSE);
         const registros = gerarCargaJose(jose);
-        texto(statusJose, `Inserindo ${registros.length} atendimentos...`);
-        await gravarCarga(registros, CARGA_JOSE);
-        texto(statusJose, `${registros.length} atendimentos de teste inseridos com sucesso ✓`, "carga-ok");
+
+        if (existentes.length) {
+            const confirmar = confirm(
+                `Recriar TODOS os ${existentes.length} atendimentos de teste do José entre 10/07 e 10/08?\n\n` +
+                `Taxas que serão usadas nos novos snapshots:\n${taxas.texto}\n\n` +
+                `A carga antiga será removida, os resumos serão revertidos e os atendimentos serão gerados novamente. Nenhum atendimento manual será apagado.`
+            );
+            if (!confirmar) return;
+
+            texto(statusJose, `Removendo a carga anterior (${existentes.length}) e revertendo resumos...`);
+            await removerCarga(CARGA_JOSE);
+            texto(statusJose, `Recriando ${registros.length} atendimentos retroativos com as taxas atuais...`);
+            await gravarCarga(registros, CARGA_JOSE);
+            texto(statusJose, `${registros.length} atendimentos do José recriados com snapshots financeiros atualizados ✓`, "carga-ok");
+        } else {
+            const confirmar = confirm(
+                `Inserir ${registros.length} atendimentos de teste do José entre 10/07 e 10/08?\n\n` +
+                `Taxas atuais: ${taxas.texto}\nPagamentos: Pix, Débito e Crédito.`
+            );
+            if (!confirmar) return;
+
+            texto(statusJose, `Inserindo ${registros.length} atendimentos...`);
+            await gravarCarga(registros, CARGA_JOSE);
+            texto(statusJose, `${registros.length} atendimentos de teste inseridos com sucesso ✓`, "carga-ok");
+        }
     } catch (error) {
         console.error(error);
         texto(statusJose, error.message || "Falha na carga do José.", "carga-alerta");
