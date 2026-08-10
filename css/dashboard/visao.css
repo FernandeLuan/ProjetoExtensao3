@@ -371,7 +371,7 @@
 }
 
 .barbearia-faturamento-row .finance-summary-item strong {
-    color: var(--primary);
+    color: var(--text);
 }
 
 .barbearia-mini-card {
@@ -405,7 +405,7 @@
 .barbearia-expense-content strong {
     display: block;
     margin-top: 5px;
-    color: var(--danger);
+    color: var(--text);
     font-size: 1rem;
     font-weight: 600;
     line-height: 1.2;
@@ -459,7 +459,7 @@
 .barbearia-home .finance-label > i,
 .barbearia-home .finance-summary-label > span > i {
     margin-right: 5px;
-    color: var(--text-secondary);
+    color: var(--primary);
     font-size: .68rem;
 }
 
