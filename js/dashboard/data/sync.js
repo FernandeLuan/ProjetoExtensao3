@@ -1,8 +1,8 @@
-import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=8.25";
-import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=8.25";
-import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=8.25";
-import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=8.25";
-import { usuarioEhAdmin } from "../permissoes.js?v=8.25";
+import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=8.26";
+import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=8.26";
+import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=8.26";
+import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=8.26";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.26";
 
 const CACHE_TTL_MS = 2 * 60 * 1000;
 const CACHE_MAX_ITENS = 24;
@@ -11,7 +11,7 @@ const consultasEmAndamento = new Map();
 
 function escopoConsulta(profissionalUid) {
     if (profissionalUid) return profissionalUid;
-    return usuarioEhAdmin() ? "__todos__" : (state.user?.uid || "__usuario__");
+    return podeAdministrarNaVisaoAtual() ? "__todos__" : (state.user?.uid || "__usuario__");
 }
 
 function normalizarPeriodo(inicio, fim) {

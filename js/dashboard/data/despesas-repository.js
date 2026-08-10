@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.25";
+import { db } from "../../firebase-init.js?v=8.26";
 import {
     collection,
     doc,
@@ -12,15 +12,15 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=8.25";
-import { state } from "../state.js?v=8.25";
-import { usuarioEhAdmin } from "../permissoes.js?v=8.25";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.25";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.25";
+import { SCHEMA_VERSION } from "../constants.js?v=8.26";
+import { state } from "../state.js?v=8.26";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.26";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.26";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.26";
 import {
     anexarDeltasDespesasAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=8.25";
+} from "./resumos-repository.js?v=8.26";
 
 const CACHE_DESPESAS_MS = 2 * 60 * 1000;
 const cacheDespesas = new Map();
@@ -71,7 +71,7 @@ export async function listarDespesasPorPeriodo(
     fimExclusivo.setDate(fimExclusivo.getDate() + 1);
     fimExclusivo.setHours(0, 0, 0, 0);
 
-    const uidFiltro = profissionalUid || (!usuarioEhAdmin() ? obterUidAtual() : null);
+    const uidFiltro = profissionalUid || (!podeAdministrarNaVisaoAtual() ? obterUidAtual() : null);
     const chave = chaveDespesas(dataInicio, dataFim, uidFiltro, incluirBarbearia);
     const cache = cacheDespesas.get(chave);
 
@@ -119,7 +119,7 @@ export async function listarDespesasPorPeriodo(
 
 export async function criarDespesa({ data, categoria, descricao, valor, tipo = "profissional" }) {
     const uid = obterUidAtual();
-    const tipoFinal = usuarioEhAdmin() && tipo === "barbearia" ? "barbearia" : "profissional";
+    const tipoFinal = podeAdministrarNaVisaoAtual() && tipo === "barbearia" ? "barbearia" : "profissional";
     const dataDespesa = data instanceof Date ? data : new Date(data);
     const dados = {
         profissionalUid: tipoFinal === "profissional" ? uid : null,

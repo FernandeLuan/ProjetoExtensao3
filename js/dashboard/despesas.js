@@ -1,11 +1,11 @@
 import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { criarDespesa, editarDespesa, excluirDespesa, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.25";
-import { usuarioEhAdmin } from "./permissoes.js?v=8.25";
-import { state } from "./state.js?v=8.25";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.25";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.25";
-import { abrirSeletorData } from "./utils/dom.js?v=8.25";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.25";
+import { criarDespesa, editarDespesa, excluirDespesa, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.26";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.26";
+import { state } from "./state.js?v=8.26";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.26";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.26";
+import { abrirSeletorData } from "./utils/dom.js?v=8.26";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.26";
 
 let inicializado=false;
 let mesSelecionado=new Date(new Date().getFullYear(),new Date().getMonth(),1);
@@ -37,7 +37,7 @@ function dataHoraExibicao(despesa){
 
 function criarCardDespesa(d){
  const card=document.createElement("article");card.className="despesa-item";
- const badge=d.tipo==="barbearia"&&usuarioEhAdmin()?'<span class="despesa-tipo-badge">Barbearia</span>':"";
+ const badge=d.tipo==="barbearia"&&podeAdministrarNaVisaoAtual()?'<span class="despesa-tipo-badge">Barbearia</span>':"";
  card.innerHTML=`<div class="despesa-item-main"><div class="despesa-item-copy"><div class="despesa-item-title-row"><strong>${String(d.descricao||d.categoria||"Despesa").replaceAll("<","&lt;")}</strong>${badge}</div><span>${dataHoraExibicao(d)} • ${String(d.categoria||"Outros")}</span></div><strong class="despesa-item-valor">${moeda(d.valor)}</strong></div><div class="despesa-item-acoes"><button type="button" class="despesa-editar"><i class="fas fa-pen"></i><span>Editar</span></button><button type="button" class="despesa-item-excluir"><i class="fas fa-trash"></i><span>Excluir</span></button></div>`;
  card.querySelector(".despesa-editar")?.addEventListener("click",()=>abrirModalDespesa(d));
  card.querySelector(".despesa-item-excluir")?.addEventListener("click",()=>abrirExclusaoDespesa(d));
@@ -52,7 +52,7 @@ function renderizarDespesas(){
 
 export async function carregarDespesasMes(){
  atualizarNavegacaoMes();listaEl?.classList.add("carregando");
- try{const {inicio,fim}=obterPeriodoMes();despesasMes=await listarDespesasPorPeriodo(inicio,fim,{incluirBarbearia:usuarioEhAdmin()});if(usuarioEhAdmin())despesasMes=despesasMes.filter(i=>i.tipo==="barbearia"||i.profissionalUid===state.user?.uid);renderizarDespesas();return despesasMes;}
+ try{const {inicio,fim}=obterPeriodoMes();despesasMes=await listarDespesasPorPeriodo(inicio,fim,{incluirBarbearia:podeAdministrarNaVisaoAtual()});if(podeAdministrarNaVisaoAtual())despesasMes=despesasMes.filter(i=>i.tipo==="barbearia"||i.profissionalUid===state.user?.uid);renderizarDespesas();return despesasMes;}
  catch(error){console.error(error);despesasMes=[];renderizarDespesas();mostrarErro("Não foi possível carregar as despesas.");return [];}
  finally{listaEl?.classList.remove("carregando");}
 }
@@ -65,7 +65,7 @@ function dataPadraoNovoLancamento(){const {inicio,fim}=limitesMesParaModal();con
 function combinarDataComHora(data, horaReferencia=new Date()){const r=new Date(data);r.setHours(horaReferencia.getHours(),horaReferencia.getMinutes(),horaReferencia.getSeconds(),0);return r;}
 
 function abrirModalDespesa(despesa=null){
- despesaEmEdicao=despesa;form?.reset();setStatus();const admin=usuarioEhAdmin();if(tipoField)tipoField.hidden=!admin;if(inputTipo)inputTipo.disabled=!admin;
+ despesaEmEdicao=despesa;form?.reset();setStatus();const admin=podeAdministrarNaVisaoAtual();if(tipoField)tipoField.hidden=!admin;if(inputTipo)inputTipo.disabled=!admin;
  const limites=limitesMesParaModal();if(inputData){inputData.min=limites.min;inputData.max=limites.max;}
  if(despesa){
    if(tituloModal)tituloModal.textContent="Editar despesa";const data=paraDate(despesa.dataDespesa)||paraDate(despesa.data)||dataPadraoNovoLancamento();if(inputData)inputData.value=chaveData(data);if(inputCategoria)inputCategoria.value=despesa.categoria||"Outros";if(inputDescricao)inputDescricao.value=despesa.descricao||"";if(inputValor)inputValor.value=formatarMoeda(Number(despesa.valor||0));if(inputTipo)inputTipo.value=admin&&despesa.tipo==="barbearia"?"barbearia":"profissional";if(btnSalvar)btnSalvar.textContent="Salvar alterações";
@@ -77,7 +77,7 @@ function abrirModalDespesa(despesa=null){
 function fecharModalDespesa({forcar=false}={}){if(btnSalvar?.disabled&&!forcar)return;if(modal)modal.hidden=true;document.body.classList.remove("modal-equipe-aberto");despesaEmEdicao=null;setStatus();}
 
 async function salvarDespesa(event){
- event.preventDefault();setStatus();const dataBase=dataDeInput(inputData?.value),valor=converterParaNumero(inputValor?.value),descricao=String(inputDescricao?.value||"").trim(),categoria=String(inputCategoria?.value||""),tipo=usuarioEhAdmin()?(inputTipo?.value||"profissional"):"profissional";let erro=false;
+ event.preventDefault();setStatus();const dataBase=dataDeInput(inputData?.value),valor=converterParaNumero(inputValor?.value),descricao=String(inputDescricao?.value||"").trim(),categoria=String(inputCategoria?.value||""),tipo=podeAdministrarNaVisaoAtual()?(inputTipo?.value||"profissional"):"profissional";let erro=false;
  const limites=limitesMesParaModal();
  if(!dataBase||dataBase<inicioDoDia(limites.inicio)||dataBase>inicioDoDia(limites.fim)){erroLabel(labels.data);erroInput(inputData);erro=true;}
  if(!categoria){erroLabel(labels.categoria);erroInput(inputCategoria);erro=true;}
@@ -89,8 +89,8 @@ async function salvarDespesa(event){
  btnSalvar.disabled=true;btnSalvar.textContent=despesaEmEdicao?"Salvando...":"Registrando...";
  try{
    if(despesaEmEdicao){
-     const tipoFinal=usuarioEhAdmin()?tipo:"profissional";const alt={data:data.toISOString(),dataDespesa:Timestamp.fromDate(data),categoria,descricao:descricao.slice(0,120),valor:Number(valor.toFixed(2)),tipo:tipoFinal};
-     if(usuarioEhAdmin()&&tipoFinal==="barbearia"){alt.profissionalUid=null;alt.profissionalNome="Barbearia";}else if(tipoFinal==="profissional"&&!despesaEmEdicao.profissionalUid){alt.profissionalUid=state.user?.uid||null;alt.profissionalNome=String(state.perfilUsuario?.nome||state.membroAtual?.nome||state.user?.email||"Administrador");}
+     const tipoFinal=podeAdministrarNaVisaoAtual()?tipo:"profissional";const alt={data:data.toISOString(),dataDespesa:Timestamp.fromDate(data),categoria,descricao:descricao.slice(0,120),valor:Number(valor.toFixed(2)),tipo:tipoFinal};
+     if(podeAdministrarNaVisaoAtual()&&tipoFinal==="barbearia"){alt.profissionalUid=null;alt.profissionalNome="Barbearia";}else if(tipoFinal==="profissional"&&!despesaEmEdicao.profissionalUid){alt.profissionalUid=state.user?.uid||null;alt.profissionalNome=String(state.perfilUsuario?.nome||state.membroAtual?.nome||state.user?.email||"Administrador");}
      await editarDespesa(despesaEmEdicao.id,alt,despesaEmEdicao);mostrarSucesso("Despesa atualizada.");
    }else{await criarDespesa({data,categoria,descricao,valor,tipo});mostrarSucesso("Despesa registrada.");}
    fecharModalDespesa({forcar:true});await carregarDespesasMes();

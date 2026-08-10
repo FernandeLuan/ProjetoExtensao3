@@ -1,16 +1,16 @@
-import { state } from "./state.js?v=8.25";
+import { state } from "./state.js?v=8.26";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.25";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.25";
-import { obterServicos } from "./services/catalogo-service.js?v=8.25";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.25";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.25";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.25";
+} from "./data/equipe-repository.js?v=8.26";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.26";
+import { obterServicos } from "./services/catalogo-service.js?v=8.26";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.26";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.26";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.26";
 
 let inicializado = false;
 let carregando = false;

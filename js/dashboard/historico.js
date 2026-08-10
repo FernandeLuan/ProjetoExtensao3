@@ -1,15 +1,15 @@
-import { state, onStateChange } from "./state.js?v=8.25";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=8.25";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=8.25";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.25";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.25";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.25";
-import { usuarioEhAdmin } from "./permissoes.js?v=8.25";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=8.25";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.25";
-import { escaparHtml } from "./utils/dom.js?v=8.25";
-import { mostrarErro } from "./services/feedback-service.js?v=8.25";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.25";
+import { state, onStateChange } from "./state.js?v=8.26";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=8.26";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=8.26";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.26";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.26";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.26";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.26";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=8.26";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.26";
+import { escaparHtml } from "./utils/dom.js?v=8.26";
+import { mostrarErro } from "./services/feedback-service.js?v=8.26";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.26";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -155,7 +155,13 @@ async function selecionarDataHistorico(data) {
     dataHistoricoSelecionada = nova > hoje ? hoje : nova;
     fecharDetalheHistorico(true);
     try {
-        await garantirAtendimentosPeriodo(dataHistoricoSelecionada, dataHistoricoSelecionada);
+        await garantirAtendimentosPeriodo(
+            dataHistoricoSelecionada,
+            dataHistoricoSelecionada,
+            podeAdministrarNaVisaoAtual()
+                ? {}
+                : { profissionalUid: state.user?.uid || null }
+        );
     } catch (error) {
         console.error(error);
         mostrarErro("Não foi possível carregar este dia.");
@@ -166,18 +172,29 @@ async function selecionarDataHistorico(data) {
 export async function abrirHistoricoHoje() {
     dataHistoricoSelecionada = inicioDoDia(new Date());
     definirFiltroPadraoProfissional();
+    if (historicoBusca) {
+        historicoBusca.placeholder = podeAdministrarNaVisaoAtual()
+            ? "Buscar barbeiro, serviço ou pagamento"
+            : "Buscar serviço ou pagamento";
+    }
     try {
-        if (usuarioEhAdmin() && !(state.equipe || []).length) {
+        if (podeAdministrarNaVisaoAtual() && !(state.equipe || []).length) {
             await listarMembrosEquipe();
         }
-        await garantirAtendimentosPeriodo(dataHistoricoSelecionada, dataHistoricoSelecionada);
+        await garantirAtendimentosPeriodo(
+            dataHistoricoSelecionada,
+            dataHistoricoSelecionada,
+            podeAdministrarNaVisaoAtual()
+                ? {}
+                : { profissionalUid: state.user?.uid || null }
+        );
     } catch (error) { console.error(error); }
     prepararFiltrosDinamicos();
     atualizarHistorico();
 }
 
 function definirFiltroPadraoProfissional() {
-    filtroProfissional = usuarioEhAdmin() ? "todos" : (state.user?.uid || "todos");
+    filtroProfissional = podeAdministrarNaVisaoAtual() ? "todos" : (state.user?.uid || "todos");
     profissionalEscolhidoExplicitamente = false;
 }
 
@@ -194,9 +211,9 @@ function prepararFiltrosDinamicos() {
         filtroServicoSelect.value = [...filtroServicoSelect.options].some(o => o.value === atual) ? atual : "todos";
     }
 
-    if (filtroProfissionalField) filtroProfissionalField.hidden = !usuarioEhAdmin();
-    if (filtroProfissionalSelect && usuarioEhAdmin()) {
-        const atual = filtroProfissionalSelect.value || filtroProfissional || "todos";
+    if (filtroProfissionalField) filtroProfissionalField.hidden = !podeAdministrarNaVisaoAtual();
+    if (filtroProfissionalSelect && podeAdministrarNaVisaoAtual()) {
+        const atual = filtroProfissional || filtroProfissionalSelect.value || "todos";
         filtroProfissionalSelect.innerHTML = '<option value="todos">Todos os profissionais</option>';
         const vistos = new Set();
         const membros = [
@@ -229,7 +246,7 @@ function filtrosAtivosCount() {
     let n = 0;
     if (filtroServico !== "todos") n++;
     if (filtroPagamento !== "todos") n++;
-    if (usuarioEhAdmin() && filtroProfissional !== "todos") n++;
+    if (podeAdministrarNaVisaoAtual() && filtroProfissional !== "todos") n++;
     if (filtroEditados) n++;
     if (filtroAjustados) n++;
     return n;
@@ -249,7 +266,7 @@ function abrirFiltrosHistorico() {
     rascunho = { servico: filtroServico, pagamento: filtroPagamento, profissional: filtroProfissional, editados: filtroEditados, ajustados: filtroAjustados };
     if (filtroServicoSelect) filtroServicoSelect.value = rascunho.servico;
     if (filtroPagamentoSelect) filtroPagamentoSelect.value = rascunho.pagamento;
-    if (filtroProfissionalSelect && usuarioEhAdmin()) filtroProfissionalSelect.value = rascunho.profissional || "todos";
+    if (filtroProfissionalSelect && podeAdministrarNaVisaoAtual()) filtroProfissionalSelect.value = rascunho.profissional || "todos";
     if (filtroHistoricoEditados) filtroHistoricoEditados.checked = rascunho.editados;
     if (filtroHistoricoAjustados) filtroHistoricoAjustados.checked = rascunho.ajustados;
     modalFiltrosHistorico?.classList.add("active");
@@ -268,7 +285,7 @@ function atendimentoPassaFiltros(a) {
     if (busca && !textoBusca.includes(busca)) return false;
 
     // A busca sempre respeita o profissional selecionado.
-    // Admin abre por padrão em "Todos os profissionais"; barbeiro permanece no próprio histórico.
+    // Na visão Barbearia o admin abre em "Todos os profissionais"; na visão Profissional permanece no próprio histórico.
     if (filtroProfissional && filtroProfissional !== "todos") {
         if (filtroProfissional === "__sem_profissional__") {
             if (a.profissionalUid) return false;
@@ -324,7 +341,7 @@ export function atualizarHistorico() {
         const pagamento = a.pagamento || "—";
         const bruto = obterBruto(a);
         const liquido = Number(a.valorLiquido ?? bruto);
-        const podeExcluir = usuarioEhAdmin();
+        const podeExcluir = podeAdministrarNaVisaoAtual();
         const card = document.createElement("article");
 
         card.className = "historico-card";
@@ -410,7 +427,7 @@ function abrirDetalheHistorico(a) {
     const outroRegistrador = Boolean(a.registradoPorUid && a.profissionalUid && a.registradoPorUid !== a.profissionalUid);
     const outroProfissional = Boolean(a.profissionalUid && a.profissionalUid !== state.user?.uid);
     const legado = registroLegadoSemProfissional(a);
-    const mostrarProfissional = usuarioEhAdmin() && (outroProfissional || filtroProfissional === "todos" || legado);
+    const mostrarProfissional = podeAdministrarNaVisaoAtual() && (outroProfissional || filtroProfissional === "todos" || legado);
     const registradorConhecido = Boolean(a.registradoPorUid || a.registradoPorNome);
 
     historicoDetalheConteudo.innerHTML = `
@@ -581,7 +598,7 @@ btnFecharFiltrosHistorico?.addEventListener("click",fecharFiltrosHistorico);
 modalFiltrosHistorico?.addEventListener("click",e=>{if(e.target===modalFiltrosHistorico)fecharFiltrosHistorico();});
 btnAplicarFiltrosHistorico?.addEventListener("click",()=>{
     filtroServico=filtroServicoSelect?.value||"todos"; filtroPagamento=filtroPagamentoSelect?.value||"todos";
-    if(usuarioEhAdmin()){filtroProfissional=filtroProfissionalSelect?.value||"todos";profissionalEscolhidoExplicitamente=true;} else filtroProfissional=state.user?.uid||"todos";
+    if(podeAdministrarNaVisaoAtual()){filtroProfissional=filtroProfissionalSelect?.value||"todos";profissionalEscolhidoExplicitamente=true;} else filtroProfissional=state.user?.uid||"todos";
     filtroEditados=Boolean(filtroHistoricoEditados?.checked);filtroAjustados=Boolean(filtroHistoricoAjustados?.checked);fecharFiltrosHistorico();atualizarHistorico();
 });
 btnLimparFiltrosHistorico?.addEventListener("click",()=>{filtroServico="todos";filtroPagamento="todos";filtroEditados=false;filtroAjustados=false;definirFiltroPadraoProfissional();if(historicoBusca)historicoBusca.value="";fecharFiltrosHistorico();atualizarHistorico();});

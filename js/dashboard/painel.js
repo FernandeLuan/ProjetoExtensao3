@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=8.25";
-import { formatarMoeda } from "./utils/money.js?v=8.25";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.25";
-import { setTexto } from "./utils/dom.js?v=8.25";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.25";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.25";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.25";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.25";
-import { obterWorkspaceId } from "./data/context.js?v=8.25";
+import { state, onStateChange } from "./state.js?v=8.26";
+import { formatarMoeda } from "./utils/money.js?v=8.26";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.26";
+import { setTexto } from "./utils/dom.js?v=8.26";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.26";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.26";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.26";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.26";
+import { obterWorkspaceId } from "./data/context.js?v=8.26";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -75,9 +75,15 @@ function converterResumoDiario(documento) {
     };
 }
 
+function atendimentosDoProfissionalAtual() {
+    const uid = state.user?.uid;
+    if (!uid) return [];
+    return (state.atendimentos || []).filter((item) => item?.profissionalUid === uid);
+}
+
 function obterResumoPainel(data) {
     if (!usarResumosNoPainel()) {
-        return obterResumoDoDia(state.atendimentos, data);
+        return obterResumoDoDia(atendimentosDoProfissionalAtual(), data);
     }
 
     const chave = chaveData(data);
@@ -87,7 +93,9 @@ function obterResumoPainel(data) {
 
 async function carregarResumosPainel(inicio, fim) {
     if (!usarResumosNoPainel()) {
-        await garantirAtendimentosPeriodo(inicio, fim);
+        await garantirAtendimentosPeriodo(inicio, fim, {
+            profissionalUid: state.user?.uid || null
+        });
         return;
     }
 

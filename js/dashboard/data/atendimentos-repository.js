@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.25";
+import { db } from "../../firebase-init.js?v=8.26";
 import {
     collection,
     doc,
@@ -12,14 +12,14 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=8.25";
-import { usuarioEhAdmin } from "../permissoes.js?v=8.25";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.25";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.25";
+import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=8.26";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.26";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.26";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.26";
 import {
     anexarDeltasAtendimentosAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=8.25";
+} from "./resumos-repository.js?v=8.26";
 
 function colecaoAtendimentos() {
     return collection(db, "barbearias", obterWorkspaceId(), "atendimentos");
@@ -65,7 +65,7 @@ export async function listarAtendimentosPorPeriodo(inicio, fim, { profissionalUi
         where("dataAtendimento", "<", Timestamp.fromDate(fimExclusivo))
     ];
 
-    const uidFiltro = profissionalUid || (!usuarioEhAdmin() ? obterUidAtual() : null);
+    const uidFiltro = profissionalUid || (!podeAdministrarNaVisaoAtual() ? obterUidAtual() : null);
     if (uidFiltro) filtros.unshift(where("profissionalUid", "==", uidFiltro));
 
     const referencia = query(

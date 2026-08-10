@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=8.25";
+import { state } from "./state.js?v=8.26";
 
 const SECOES_APENAS_BARBEARIA = new Set([
     "barbeariaHome",
@@ -84,6 +84,8 @@ export function aplicarPermissoesInterface() {
 
     document.body.classList.toggle("usuario-admin", usuarioEhAdmin());
     document.body.classList.toggle("usuario-barbeiro", !usuarioEhAdmin());
+    document.body.classList.toggle("contexto-administrativo", adminNaVisao);
+    document.body.classList.toggle("contexto-profissional", profissional);
     document.body.classList.toggle("visao-profissional", profissional);
     document.body.classList.toggle("visao-barbearia", adminNaVisao);
 }

@@ -1,20 +1,20 @@
-import { APP_NAME } from "./constants.js?v=8.25";
-import { state } from "./state.js?v=8.25";
-import { obterAtendimentosPeriodo } from "./data/sync.js?v=8.25";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.25";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.25";
-import { obterWorkspaceId } from "./data/context.js?v=8.25";
+import { APP_NAME } from "./constants.js?v=8.26";
+import { state } from "./state.js?v=8.26";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=8.26";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.26";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.26";
+import { obterWorkspaceId } from "./data/context.js?v=8.26";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=8.25";
-import { usuarioEhAdmin } from "./permissoes.js?v=8.25";
+} from "./data/resumos-repository.js?v=8.26";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.26";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./services/financeiro-service.js?v=8.25";
+} from "./services/financeiro-service.js?v=8.26";
 import {
     chaveData,
     dataDeInput,
@@ -22,10 +22,10 @@ import {
     somarDias,
     obterDataAtendimento,
     formatarTituloData
-} from "./utils/date.js?v=8.25";
-import { formatarMoeda } from "./utils/money.js?v=8.25";
-import { escaparHtml } from "./utils/dom.js?v=8.25";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.25";
+} from "./utils/date.js?v=8.26";
+import { formatarMoeda } from "./utils/money.js?v=8.26";
+import { escaparHtml } from "./utils/dom.js?v=8.26";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.26";
 
 let inicializado = false;
 let relatorioAtual = null;
@@ -240,7 +240,7 @@ function nomeMembro(membro) {
 async function prepararSeletorProfissional() {
     if (!profissionalSelect || !profissionalField) return;
 
-    if (!usuarioEhAdmin()) {
+    if (!podeAdministrarNaVisaoAtual()) {
         profissionalField.hidden = true;
         profissionalSelect.innerHTML = "";
         return;
@@ -576,7 +576,7 @@ function renderEquipe(atendimentos) {
     if (!card || !lista) return;
 
     const exibir =
-        usuarioEhAdmin() &&
+        podeAdministrarNaVisaoAtual() &&
         profissionalSelect?.value === "barbearia";
 
     card.hidden = !exibir;
@@ -955,7 +955,7 @@ function renderEquipeResumos(itens) {
     const lista = el("relatorioEquipeLista");
     if (!card || !lista) return;
 
-    const exibir = usuarioEhAdmin() && profissionalSelect?.value === "barbearia";
+    const exibir = podeAdministrarNaVisaoAtual() && profissionalSelect?.value === "barbearia";
     card.hidden = !exibir;
     if (!exibir) return;
 
@@ -1115,7 +1115,7 @@ export async function carregarRelatorio() {
     const inicio = inicioDoDia(periodoInicio);
     const fim = inicioDoDia(periodoFim);
 
-    const admin = usuarioEhAdmin();
+    const admin = podeAdministrarNaVisaoAtual();
     const selecao =
         admin
             ? (profissionalSelect?.value || "barbearia")
@@ -1542,9 +1542,7 @@ export async function prepararRelatoriosHoje() {
 
     if (!inicializado) return;
 
-    if (usuarioEhAdmin()) {
-        await prepararSeletorProfissional();
-    }
+    await prepararSeletorProfissional();
     await carregarRelatorio();
 }
 
