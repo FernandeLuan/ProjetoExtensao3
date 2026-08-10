@@ -1,6 +1,6 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.16";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.18";
 import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
 import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.4";
 import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.16";

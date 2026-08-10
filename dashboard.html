@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.16" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.18" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -593,7 +593,7 @@
 <!-- EQUIPE -->
 <section id="equipe" class="registrar equipe-page">
 <h2 class="titulo-sessao">Equipe</h2>
-<p class="equipe-desc">Gerencie acessos, repasse e preços de cada profissional.</p>
+<p class="equipe-desc">Gerencie dados, acessos, repasse e preços de cada profissional.</p>
 <div class="equipe-resumo"><span id="equipeResumo">Carregando equipe...</span></div>
 <button type="button" id="btnAdicionarBarbeiro" class="equipe-add-btn"><i class="fas fa-user-plus"></i><span>Adicionar barbeiro</span></button>
 <div class="equipe-grupo"><h3 class="equipe-grupo-titulo">Membros ativos</h3><div id="equipeListaAtivos" class="equipe-lista"></div></div>
@@ -676,21 +676,7 @@
         <div id="contaAccountContent" class="conta-security-content" hidden>
             <div class="conta-info-item">
                 <span class="conta-info-label">Nome</span>
-
-                <div class="conta-nome-visual" id="contaNomeVisual">
-                    <span class="conta-info-valor" id="contaNome">—</span>
-                    <button type="button" id="btnEditarNome" class="conta-editar-btn" aria-label="Editar nome">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                </div>
-
-                <div class="conta-nome-editor" id="contaNomeEditor" hidden>
-                    <input type="text" id="inputNomeConta" maxlength="60" autocomplete="name" placeholder="Digite seu nome">
-                    <div class="conta-nome-actions">
-                        <button type="button" id="btnCancelarNome" class="conta-btn-secundario">Cancelar</button>
-                        <button type="button" id="btnSalvarNome" class="conta-btn-salvar">Salvar</button>
-                    </div>
-                </div>
+                <span class="conta-info-valor" id="contaNome">—</span>
             </div>
 
             <div class="conta-info-item">
@@ -905,11 +891,18 @@ Aparência
     </button>
 
 </section>
-<!-- MODAL: FINANCEIRO DO PROFISSIONAL -->
+<!-- MODAL: DADOS DO PROFISSIONAL -->
 <div id="modalFinanceiroMembro" class="equipe-modal" hidden>
 <div class="equipe-modal-card equipe-financeiro-card" role="dialog" aria-modal="true" aria-labelledby="tituloFinanceiroMembro">
-<div class="equipe-modal-header"><div><h3 id="tituloFinanceiroMembro">Configurar profissional</h3><p>Taxas, repasse e preços específicos.</p></div><button type="button" id="btnFecharFinanceiroMembro" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
+<div class="equipe-modal-header"><div><h3 id="tituloFinanceiroMembro">Dados do profissional</h3><p>Dados, taxas, repasse e preços específicos.</p></div><button type="button" id="btnFecharFinanceiroMembro" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
 <div class="equipe-financeiro-scroll">
+<article class="equipe-financeiro-section">
+<button class="equipe-financeiro-toggle" id="btnToggleDadosProfissional" type="button" aria-expanded="false" aria-controls="conteudoDadosProfissional"><span><strong>Dados do profissional</strong><small>Nome e e-mail de acesso</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+<div class="equipe-financeiro-body" id="conteudoDadosProfissional" hidden><div class="config-list equipe-config-list">
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-user"></i></div><div class="config-info"><span class="config-nome">Nome</span><span class="config-atual" id="lblMembroNome">Atual: —</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarNomeMembro" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroNome" type="text" maxlength="60" autocomplete="off" placeholder="Nome do profissional"></div></div>
+<div class="config-item equipe-config-item equipe-dado-readonly"><div class="config-item-left"><div class="config-icon"><i class="fas fa-envelope"></i></div><div class="config-info"><span class="config-nome">E-mail de acesso</span><span class="config-atual equipe-email-dado" id="lblMembroEmail">—</span><small class="equipe-dado-ajuda">Vinculado ao login. Não é alterado pelo painel.</small></div></div></div>
+</div></div>
+</article>
 <article class="equipe-financeiro-section">
 <button class="equipe-financeiro-toggle" id="btnToggleTaxasProfissional" type="button" aria-expanded="false" aria-controls="conteudoTaxasProfissional"><span><strong>Taxas %</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
 <div class="equipe-financeiro-body" id="conteudoTaxasProfissional" hidden><div class="config-list equipe-config-list">
@@ -1211,7 +1204,7 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/dashboard/index.js?v=8.16" type="module"></script>
+<script src="js/dashboard/index.js?v=8.18" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

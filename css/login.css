@@ -311,3 +311,13 @@ font-size:32px;
 }
 
 }
+/* v8.17 - evita zoom por toque duplo e por foco em campos no mobile */
+html, body, button, a, input, select, textarea, label { touch-action: manipulation; }
+@media (hover: none) and (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+
+/* v8.18 - mesma política de zoom do dashboard */
+html, body, button, a, input, select, textarea, label { touch-action: manipulation; }
+@media (hover: none) and (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }

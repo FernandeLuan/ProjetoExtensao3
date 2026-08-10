@@ -272,13 +272,39 @@ export async function atualizarTaxasProprias({ taxaDebitoPct, taxaCreditoPct }) 
     return { taxaDebitoPct: debito, taxaCreditoPct: credito };
 }
 
+function normalizarNomeEquipe(valor) {
+    return String(valor || "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase("pt-BR")
+        .replace(/\s+/g, " ");
+}
+
+async function validarNomeUnicoEquipe(uid, nome) {
+    const nomeNormalizado = normalizarNomeEquipe(nome);
+    const membros = await listarMembrosEquipe({ forcar: true });
+    const duplicado = membros.find((membro) =>
+        (membro.uid || membro.id) !== uid
+        && normalizarNomeEquipe(membro?.nome) === nomeNormalizado
+    );
+
+    if (duplicado) {
+        const error = new Error("Já existe um profissional com este nome.");
+        error.code = "equipe/nome-duplicado";
+        error.campo = "nome";
+        throw error;
+    }
+}
+
 export async function atualizarFinanceiroMembro(uid, {
+    nome = null,
     repassePct,
     precosPersonalizados,
     taxaDebitoPct = null,
     taxaCreditoPct = null
 }) {
-    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar repasses e preços.");
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar os dados do profissional.");
     if (!uid) throw new Error("Membro inválido.");
 
     const repasse = Number(repassePct);
@@ -289,6 +315,28 @@ export async function atualizarFinanceiroMembro(uid, {
     const debito = validarTaxaProfissionalOpcional(taxaDebitoPct, "débito");
     const credito = validarTaxaProfissionalOpcional(taxaCreditoPct, "crédito");
 
+    const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
+    const membroSnap = await getDoc(membroRef);
+    registrarConsultaFirestore("equipe/atualizar-dados-membro", 1);
+    if (!membroSnap.exists()) throw new Error("Membro não encontrado.");
+
+    const membroAtual = membroSnap.data();
+    const nomeAtual = String(membroAtual?.nome || "").trim();
+    const nomeLimpo = nome === null ? nomeAtual : String(nome || "").trim().replace(/\s+/g, " ").slice(0, 60);
+    const nomeMudou = nome !== null && nomeLimpo !== nomeAtual;
+
+    if (nomeMudou) {
+        if (membroAtual?.papel !== "barber") {
+            throw new Error("O nome do administrador não é alterado por esta tela.");
+        }
+        if (nomeLimpo.length < 2) {
+            const error = new Error("Informe o nome do profissional.");
+            error.campo = "nome";
+            throw error;
+        }
+        await validarNomeUnicoEquipe(uid, nomeLimpo);
+    }
+
     const precos = {};
     Object.entries(precosPersonalizados || {}).forEach(([servicoId, valor]) => {
         const numero = Number(valor);
@@ -297,20 +345,32 @@ export async function atualizarFinanceiroMembro(uid, {
         }
     });
 
-    const atualizacao = {
+    const atualizacaoMembro = {
         repassePct: Number(repasse.toFixed(2)),
         precosPersonalizados: precos,
         atualizadoEm: serverTimestamp()
     };
 
-    // Taxas são opcionais no admin. Campo vazio significa "não alterar/não cadastrar".
-    if (debito !== null) atualizacao.taxaDebitoPct = debito;
-    if (credito !== null) atualizacao.taxaCreditoPct = credito;
+    if (nomeMudou) atualizacaoMembro.nome = nomeLimpo;
 
-    await updateDoc(
-        doc(db, "barbearias", obterWorkspaceId(), "membros", uid),
-        atualizacao
-    );
+    // Taxas são opcionais no admin. Campo vazio significa "não alterar/não cadastrar".
+    if (debito !== null) atualizacaoMembro.taxaDebitoPct = debito;
+    if (credito !== null) atualizacaoMembro.taxaCreditoPct = credito;
+
+    if (nomeMudou) {
+        const usuarioRef = doc(db, "usuarios", uid);
+        const batch = writeBatch(db);
+        batch.update(membroRef, atualizacaoMembro);
+        batch.update(usuarioRef, {
+            nome: nomeLimpo,
+            atualizadoEm: serverTimestamp()
+        });
+        await batch.commit();
+    } else {
+        await updateDoc(membroRef, atualizacaoMembro);
+    }
+
     invalidarCacheEquipe();
+    return { nome: nomeMudou ? nomeLimpo : nomeAtual };
 }
 

@@ -1,12 +1,12 @@
 import { abrirPainelHoje } from "./painel.js?v=7.4";
 import { abrirRegistrar } from "./registrar.js?v=8.16";
-import { abrirHistoricoHoje } from "./historico.js?v=8.16";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.16";
+import { abrirHistoricoHoje } from "./historico.js?v=8.18";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.18";
 import { abrirDespesasAtual } from "./despesas.js?v=8.10";
-import { abrirEquipe } from "./equipe.js?v=8.16";
-import { abrirConta } from "./conta.js?v=8.16";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.16";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.16";
+import { abrirEquipe } from "./equipe.js?v=8.18";
+import { abrirConta } from "./conta.js?v=8.18";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.18";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.18";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,

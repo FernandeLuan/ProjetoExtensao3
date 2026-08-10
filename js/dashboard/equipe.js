@@ -5,8 +5,8 @@ import {
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.16";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.16";
+} from "./data/equipe-repository.js?v=8.18";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.18";
 import { obterServicos } from "./services/catalogo-service.js?v=8.16";
 import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.12";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
@@ -55,6 +55,12 @@ const modalFinanceiro = document.getElementById("modalFinanceiroMembro");
 const tituloFinanceiro = document.getElementById("tituloFinanceiroMembro");
 const btnFecharFinanceiro = document.getElementById("btnFecharFinanceiroMembro");
 const btnCancelarFinanceiro = document.getElementById("btnCancelarFinanceiroMembro");
+const btnToggleDados = document.getElementById("btnToggleDadosProfissional");
+const conteudoDados = document.getElementById("conteudoDadosProfissional");
+const inputNomeMembro = document.getElementById("membroNome");
+const lblNomeMembro = document.getElementById("lblMembroNome");
+const lblEmailMembro = document.getElementById("lblMembroEmail");
+const btnEditarNomeMembro = document.getElementById("btnEditarNomeMembro");
 const btnToggleTaxas = document.getElementById("btnToggleTaxasProfissional");
 const btnTogglePrecos = document.getElementById("btnTogglePrecosProfissional");
 const conteudoTaxas = document.getElementById("conteudoTaxasProfissional");
@@ -414,6 +420,14 @@ function aplicarMascaraPercentual(elemento, maxDigitosInteiros) {
 }
 
 function mostrarEditorFinanceiro(botao,input,valorAtual){if(!botao||!input)return;botao.classList.add("hidden");input.classList.remove("hidden");input.value=formatarPercentualInput(valorAtual);input.focus();input.select?.();}
+function mostrarEditorTexto(botao, input, valorAtual = "") {
+    if (!botao || !input) return;
+    botao.classList.add("hidden");
+    input.classList.remove("hidden");
+    input.value = String(valorAtual || "");
+    input.focus();
+    input.select?.();
+}
 
 function definirSecaoFinanceiro(botao, conteudo, aberta) {
     if (!botao || !conteudo) return;
@@ -432,6 +446,7 @@ function abrirFinanceiroMembro(membro) {
 
     membroFinanceiroAtual = membro;
     setFinanceiroStatus();
+    definirSecaoFinanceiro(btnToggleDados, conteudoDados, false);
     definirSecaoFinanceiro(btnToggleTaxas, conteudoTaxas, false);
     definirSecaoFinanceiro(btnTogglePrecos, conteudoPrecos, false);
 
@@ -444,6 +459,17 @@ function abrirFinanceiroMembro(membro) {
     const repasse = dono ? 0 : (Number.isFinite(repasseSalvo) ? repasseSalvo : null);
 
     if (tituloFinanceiro) tituloFinanceiro.textContent = obterNomeMembro(membro);
+
+    if (lblNomeMembro) lblNomeMembro.textContent = `Atual: ${obterNomeMembro(membro)}`;
+    if (lblEmailMembro) lblEmailMembro.textContent = membro?.email || "—";
+    if (inputNomeMembro) {
+        inputNomeMembro.value = String(membro?.nome || obterNomeMembro(membro));
+        inputNomeMembro.classList.add("hidden");
+        limparErroCampo(inputNomeMembro);
+    }
+    if (btnEditarNomeMembro) {
+        btnEditarNomeMembro.classList.toggle("hidden", membro?.papel !== "barber");
+    }
 
     if (inputTaxaDebito) {
         inputTaxaDebito.value = formatarPercentualInput(debito);
@@ -580,6 +606,20 @@ async function salvarFinanceiroMembro() {
     if (!membroFinanceiroAtual) return;
 
     const dono = membroEhDono(membroFinanceiroAtual);
+    const nomeAtual = String(membroFinanceiroAtual?.nome || obterNomeMembro(membroFinanceiroAtual)).trim();
+    const nomeEditado = membroFinanceiroAtual?.papel === "barber"
+        ? String(inputNomeMembro?.value || nomeAtual).trim().replace(/\s+/g, " ")
+        : nomeAtual;
+
+    if (membroFinanceiroAtual?.papel === "barber" && nomeEditado.length < 2) {
+        definirSecaoFinanceiro(btnToggleDados, conteudoDados, true);
+        if (inputNomeMembro?.classList.contains("hidden")) {
+            mostrarEditorTexto(btnEditarNomeMembro, inputNomeMembro, nomeAtual);
+        }
+        erroCampo(inputNomeMembro, "Informe o nome do profissional.");
+        return;
+    }
+
     const repasse = dono ? 0 : converterParaNumero(inputRepasse?.value);
     const taxaDebitoPct = converterParaNumero(inputTaxaDebito?.value);
     const taxaCreditoPct = converterParaNumero(inputTaxaCredito?.value);
@@ -635,6 +675,7 @@ async function salvarFinanceiroMembro() {
         await atualizarFinanceiroMembro(
             membroFinanceiroAtual.uid || membroFinanceiroAtual.id,
             {
+                nome: membroFinanceiroAtual?.papel === "barber" ? nomeEditado : null,
                 repassePct: repasse,
                 taxaDebitoPct,
                 taxaCreditoPct,
@@ -644,11 +685,23 @@ async function salvarFinanceiroMembro() {
 
         membroFinanceiroAtual = {
             ...membroFinanceiroAtual,
+            nome: membroFinanceiroAtual?.papel === "barber" ? nomeEditado : membroFinanceiroAtual?.nome,
             repassePct: repasse,
             precosPersonalizados: { ...precosPersonalizados },
             ...(taxaDebitoPct !== null ? { taxaDebitoPct } : {}),
             ...(taxaCreditoPct !== null ? { taxaCreditoPct } : {})
         };
+
+        if (membroFinanceiroAtual?.papel === "barber") {
+            if (lblNomeMembro) lblNomeMembro.textContent = `Atual: ${nomeEditado}`;
+            if (tituloFinanceiro) tituloFinanceiro.textContent = nomeEditado;
+            if (inputNomeMembro) {
+                inputNomeMembro.value = nomeEditado;
+                inputNomeMembro.classList.add("hidden");
+                limparErroCampo(inputNomeMembro);
+            }
+            btnEditarNomeMembro?.classList.remove("hidden");
+        }
 
         if (lblTaxaDebito) {
             const valor = taxaDebitoPct !== null
@@ -705,11 +758,19 @@ async function salvarFinanceiroMembro() {
             row?.querySelector(".btn-alterar")?.classList.remove("hidden");
         });
 
-        mostrarSucesso("Configurações do profissional salvas.");
+        mostrarSucesso("Dados do profissional salvos.");
         await carregarEquipe();
     } catch (error) {
-        console.error("Erro ao salvar financeiro do profissional:", error);
-        mostrarErro(error?.message || "Não foi possível salvar.");
+        console.error("Erro ao salvar dados do profissional:", error);
+        if (error?.campo === "nome" || error?.code === "equipe/nome-duplicado") {
+            definirSecaoFinanceiro(btnToggleDados, conteudoDados, true);
+            if (inputNomeMembro?.classList.contains("hidden")) {
+                mostrarEditorTexto(btnEditarNomeMembro, inputNomeMembro, nomeAtual);
+            }
+            erroCampo(inputNomeMembro, error?.message || "Não foi possível alterar o nome.");
+        } else {
+            mostrarErro(error?.message || "Não foi possível salvar.");
+        }
     } finally {
         if (btnSalvarFinanceiro) {
             btnSalvarFinanceiro.disabled = false;
@@ -939,7 +1000,7 @@ function criarCardMembro(membro) {
         const configurar = document.createElement("button");
         configurar.type = "button";
         configurar.className = "equipe-action-btn configurar";
-        configurar.innerHTML = '<i class="fas fa-sliders" aria-hidden="true"></i><span>Financeiro</span>';
+        configurar.innerHTML = '<i class="fas fa-sliders" aria-hidden="true"></i><span>Dados</span>';
         configurar.addEventListener("click", (event) => {
             event.stopPropagation();
             abrirFinanceiroMembro(membro);
@@ -1079,6 +1140,10 @@ export function initEquipe() {
         if (event.target === modalAcessoCriado) fecharModalAcessoCriado();
     });
 
+    inputNomeMembro?.addEventListener("input", () => limparErroCampo(inputNomeMembro));
+    btnEditarNomeMembro?.addEventListener("click", () =>
+        mostrarEditorTexto(btnEditarNomeMembro, inputNomeMembro, membroFinanceiroAtual?.nome || obterNomeMembro(membroFinanceiroAtual))
+    );
     inputRepasse?.addEventListener("input", () => { limparErroCampo(inputRepasse); aplicarMascaraPercentual(inputRepasse, 2); });
     inputTaxaDebito?.addEventListener("input", () => { limparErroCampo(inputTaxaDebito); aplicarMascaraPercentual(inputTaxaDebito, 1); });
     inputTaxaCredito?.addEventListener("input", () => { limparErroCampo(inputTaxaCredito); aplicarMascaraPercentual(inputTaxaCredito, 1); });
@@ -1090,6 +1155,10 @@ export function initEquipe() {
     btnEditarRepasse?.addEventListener("click",()=>mostrarEditorFinanceiro(btnEditarRepasse,inputRepasse,converterParaNumero(inputRepasse?.value)));
     btnFecharFinanceiro?.addEventListener("click", fecharFinanceiroMembro);
     btnCancelarFinanceiro?.addEventListener("click", fecharFinanceiroMembro);
+
+    btnToggleDados?.addEventListener("click", () => {
+        alternarSecaoFinanceiro(btnToggleDados, conteudoDados);
+    });
 
     btnToggleTaxas?.addEventListener("click", () => {
         alternarSecaoFinanceiro(btnToggleTaxas, conteudoTaxas);

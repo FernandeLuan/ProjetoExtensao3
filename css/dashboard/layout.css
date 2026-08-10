@@ -39,3 +39,49 @@
     display: none;
 }
 
+
+
+/* v8.17 - comportamento mobile sem zoom acidental
+   - manipulation desativa zoom por toque duplo sem bloquear pinch-zoom;
+   - 16px nos campos em dispositivos touch evita o auto-zoom ao focar inputs. */
+html,
+body,
+button,
+a,
+input,
+select,
+textarea,
+label {
+    touch-action: manipulation;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+
+/* v8.18 - interação mobile:
+   toque simples e rolagem normais; pinch-zoom preservado;
+   zoom por toque duplo desativado; campos >=16px evitam auto-zoom no foco. */
+html,
+body,
+button,
+a,
+input,
+select,
+textarea,
+label {
+    touch-action: manipulation;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}

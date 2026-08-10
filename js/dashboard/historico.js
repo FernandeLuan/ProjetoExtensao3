@@ -1,7 +1,7 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=7.4";
 import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.16";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.18";
 import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=7.4";
 import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.16";
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";

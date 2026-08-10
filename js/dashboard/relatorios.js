@@ -2,7 +2,7 @@ import { APP_NAME } from "./constants.js?v=7.4";
 import { state } from "./state.js?v=7.4";
 import { obterAtendimentosPeriodo } from "./data/sync.js?v=7.4";
 import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.16";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.18";
 import { obterWorkspaceId } from "./data/context.js?v=7.4";
 import {
     listarResumosBarbeariaPorPeriodo,

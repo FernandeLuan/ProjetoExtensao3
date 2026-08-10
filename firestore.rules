@@ -72,7 +72,18 @@ service cloud.firestore {
         )
       );
 
-      allow update: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && (
+        request.auth.uid == uid
+        || (
+          resource.data.barbeariaId is string
+          && isAdmin(resource.data.barbeariaId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "nome",
+            "atualizadoEm"
+          ])
+          && request.resource.data.nome is string
+        )
+      );
       allow delete: if false;
     }
 
@@ -121,12 +132,13 @@ service cloud.firestore {
         );
 
         // Admin: financeiro de qualquer membro e ativar/desativar barbeiro.
-        // Profissional: próprio nome, taxas e conclusão do primeiro acesso.
+        // Profissional: próprias taxas e conclusão do primeiro acesso. Nome é administrado pela barbearia.
         allow update: if (
           isAdmin(barbeariaId)
           && (
             (
               request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "nome",
                 "repassePct",
                 "taxaDebitoPct",
                 "taxaCreditoPct",
@@ -137,6 +149,14 @@ service cloud.firestore {
               && validCardRate(request.resource.data.get("taxaDebitoPct", 0))
               && validCardRate(request.resource.data.get("taxaCreditoPct", 0))
               && request.resource.data.get("precosPersonalizados", {}) is map
+              && (
+                !request.resource.data.diff(resource.data).affectedKeys().hasAny(["nome"])
+                || (
+                  uid != request.auth.uid
+                  && resource.data.papel == "barber"
+                  && request.resource.data.nome is string
+                )
+              )
               && (
                 resource.data.get("dono", false) != true
                 || request.resource.data.get("repassePct", 0) == 0
@@ -169,11 +189,7 @@ service cloud.firestore {
           && uid == request.auth.uid
           && resource.data.ativo == true
           && (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              "nome",
-              "atualizadoEm"
-            ])
-            || (
+            (
               request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                 "taxaDebitoPct",
                 "taxaCreditoPct",

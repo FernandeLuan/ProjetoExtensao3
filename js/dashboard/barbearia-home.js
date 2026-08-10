@@ -1,5 +1,5 @@
 import { state } from "./state.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.16";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.18";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo

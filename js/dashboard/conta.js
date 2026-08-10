@@ -10,10 +10,9 @@ import {
 
 import {
     obterDadosConta,
-    salvarNomeConta,
     salvarFotoConta
 } from "./data/conta-repository.js?v=7.4";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.16";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.18";
 
 import {
     mostrarErro,
@@ -56,24 +55,6 @@ const btnFotoPerfil =
 
 const btnSelecionarFoto =
     document.getElementById("btnSelecionarFoto");
-
-const contaNomeVisual =
-    document.getElementById("contaNomeVisual");
-
-const contaNomeEditor =
-    document.getElementById("contaNomeEditor");
-
-const inputNomeConta =
-    document.getElementById("inputNomeConta");
-
-const btnEditarNome =
-    document.getElementById("btnEditarNome");
-
-const btnSalvarNome =
-    document.getElementById("btnSalvarNome");
-
-const btnCancelarNome =
-    document.getElementById("btnCancelarNome");
 
 const btnToggleConta =
     document.getElementById("btnToggleConta");
@@ -368,13 +349,6 @@ async function carregarConta() {
                 membro.papel
             );
 
-        const podeEditarNome = membro?.papel !== "barber";
-        if (btnEditarNome) btnEditarNome.hidden = !podeEditarNome;
-        if (!podeEditarNome) {
-            if (contaNomeEditor) contaNomeEditor.hidden = true;
-            if (contaNomeVisual) contaNomeVisual.hidden = false;
-        }
-
         if (contaNome) {
             contaNome.textContent =
                 nome || "Definir nome";
@@ -418,119 +392,6 @@ atualizarAvatar(
         mostrarErro(
             "Não foi possível carregar os dados da conta."
         );
-    }
-}
-
-
-/* =============================
-   NOME
-============================= */
-
-function abrirEdicaoNome() {
-
-    if (state.membroAtual?.papel === "barber") return;
-
-    if (
-        !contaNomeEditor ||
-        !contaNomeVisual
-    ) return;
-
-    inputNomeConta.value =
-        contaNome?.textContent === "Definir nome"
-            ? ""
-            : contaNome?.textContent || "";
-
-    contaNomeVisual.hidden = true;
-    contaNomeEditor.hidden = false;
-
-    inputNomeConta?.focus();
-}
-
-
-function fecharEdicaoNome() {
-
-    if (
-        !contaNomeEditor ||
-        !contaNomeVisual
-    ) return;
-
-    contaNomeEditor.hidden = true;
-    contaNomeVisual.hidden = false;
-}
-
-
-async function salvarNome() {
-
-    if (state.membroAtual?.papel === "barber") return;
-
-    const nome =
-        String(
-            inputNomeConta?.value || ""
-        ).trim();
-
-    if (nome.length < 2) {
-
-        mostrarErro(
-            "Informe um nome válido."
-        );
-
-        return;
-    }
-
-    if (btnSalvarNome) {
-        btnSalvarNome.disabled = true;
-        btnSalvarNome.textContent =
-            "Salvando...";
-    }
-
-    try {
-
-        const nomeSalvo =
-            await salvarNomeConta(nome);
-
-        if (contaNome) {
-            contaNome.textContent =
-                nomeSalvo;
-        }
-
-        if (state.perfilUsuario) {
-            state.perfilUsuario.nome = nomeSalvo;
-        }
-
-        if (state.membroAtual) {
-            state.membroAtual.nome = nomeSalvo;
-        }
-
-        fecharEdicaoNome();
-
-        atualizarAvatar(
-            fotoPerfil?.src || "",
-            nomeSalvo,
-            auth.currentUser?.email || ""
-        );
-
-        mostrarSucesso(
-            "Nome atualizado."
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Erro ao salvar nome:",
-            error
-        );
-
-        mostrarErro(
-            "Não foi possível atualizar o nome."
-        );
-
-    } finally {
-
-        if (btnSalvarNome) {
-            btnSalvarNome.disabled = false;
-            btnSalvarNome.textContent =
-                "Salvar";
-        }
     }
 }
 
@@ -908,44 +769,6 @@ export function initConta() {
     if (inicializado) return;
 
     inicializado = true;
-
-
-    btnEditarNome?.addEventListener(
-        "click",
-        abrirEdicaoNome
-    );
-
-
-    btnCancelarNome?.addEventListener(
-        "click",
-        fecharEdicaoNome
-    );
-
-
-    btnSalvarNome?.addEventListener(
-        "click",
-        salvarNome
-    );
-
-
-    inputNomeConta?.addEventListener(
-        "keydown",
-        (event) => {
-
-            if (
-                event.key === "Enter"
-            ) {
-                event.preventDefault();
-                salvarNome();
-            }
-
-            if (
-                event.key === "Escape"
-            ) {
-                fecharEdicaoNome();
-            }
-        }
-    );
 
 
     btnFotoPerfil?.addEventListener(
