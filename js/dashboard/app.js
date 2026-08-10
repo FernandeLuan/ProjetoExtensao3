@@ -18,8 +18,8 @@ import { initConta } from "./conta.js?v=8.11";
 import { initRelatorios } from "./relatorios.js?v=8.11";
 import { mostrarErro } from "./services/feedback-service.js?v=7.4";
 import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=7.4";
-import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=7.5";
-import { initVisao } from "./visao.js?v=8.11";
+import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=8.12";
+import { initVisao } from "./visao.js?v=8.12";
 
 let appInicializado = false;
 

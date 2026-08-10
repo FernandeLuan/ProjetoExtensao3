@@ -5,7 +5,7 @@ import {
     podeUsarVisaoProfissional,
     usuarioEhAdmin,
     visaoEhBarbearia
-} from "./permissoes.js?v=7.5";
+} from "./permissoes.js?v=8.12";
 import {
     abrirInicioDaVisaoAtual,
     configurarNavegacaoParaVisao

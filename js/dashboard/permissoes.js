@@ -34,7 +34,7 @@ export function usuarioAtuaComoProfissional() {
 
 export function podeUsarVisaoBarbearia() {
     if (state.membroAtual?.ativo !== true) return false;
-    return state.membroAtual?.papel === "admin"
+    return papelEhAdmin(state.membroAtual?.papel)
         || state.membroAtual?.acessoBarbearia === true;
 }
 
