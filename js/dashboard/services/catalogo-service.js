@@ -23,7 +23,7 @@ export function resolverPrecoServico(servico, membro) {
 
     const precoBase = Number(servico.preco || 0);
     const override = Number(membro?.precosPersonalizados?.[servico.id]);
-    const temOverride = Number.isFinite(override) && override > 0;
+    const temOverride = Number.isFinite(override) && override > 0 && Math.abs(override - precoBase) >= 0.005;
 
     return {
         preco: temOverride ? override : precoBase,

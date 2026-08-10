@@ -16,7 +16,7 @@
 /* ========== CARD PRINCIPAL (Registrar etc) ========== */
 .registrar {
     background: var(--bg-card);
-    padding: 1px 14px 16px;
+    padding: 5px 14px 16px;
     border-radius: 18px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);

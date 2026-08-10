@@ -1,10 +1,10 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=7.4";
 import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.4";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.4";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=7.4";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=7.5";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=7.4";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=7.4";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.15";
+import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
 import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=7.4";
 import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
 import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=7.4";
@@ -58,16 +58,6 @@ let rascunho = {};
 let idParaExcluir = null;
 let atendimentoEmEdicao = null;
 let atendimentoDetalheAtual = null;
-
-function adminNaVisaoBarbearia() {
-    return podeAdministrarNaVisaoAtual();
-}
-
-function filtroProfissionalPadrao() {
-    return adminNaVisaoBarbearia()
-        ? "todos"
-        : (state.user?.uid || "todos");
-}
 
 function normalizarTexto(valor) {
     return String(valor || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -160,11 +150,7 @@ async function selecionarDataHistorico(data) {
     dataHistoricoSelecionada = nova > hoje ? hoje : nova;
     fecharDetalheHistorico(true);
     try {
-        await garantirAtendimentosPeriodo(
-            dataHistoricoSelecionada,
-            dataHistoricoSelecionada,
-            { profissionalUid: adminNaVisaoBarbearia() ? null : state.user?.uid }
-        );
+        await garantirAtendimentosPeriodo(dataHistoricoSelecionada, dataHistoricoSelecionada);
     } catch (error) {
         console.error(error);
         mostrarErro("Não foi possível carregar este dia.");
@@ -175,32 +161,18 @@ async function selecionarDataHistorico(data) {
 export async function abrirHistoricoHoje() {
     dataHistoricoSelecionada = inicioDoDia(new Date());
     definirFiltroPadraoProfissional();
-
     try {
-        const contextoBarbearia = adminNaVisaoBarbearia();
-
-        // Só precisamos da equipe quando o Admin está realmente na visão da barbearia.
-        if (contextoBarbearia && !(state.equipe || []).length) {
+        if (usuarioEhAdmin() && !(state.equipe || []).length) {
             await listarMembrosEquipe();
         }
-
-        // Na visão profissional, inclusive para Admin, consulta apenas o próprio UID.
-        // Isso evita ler atendimentos da equipe só para escondê-los depois na interface.
-        await garantirAtendimentosPeriodo(
-            dataHistoricoSelecionada,
-            dataHistoricoSelecionada,
-            { profissionalUid: contextoBarbearia ? null : state.user?.uid }
-        );
-    } catch (error) {
-        console.error(error);
-    }
-
+        await garantirAtendimentosPeriodo(dataHistoricoSelecionada, dataHistoricoSelecionada);
+    } catch (error) { console.error(error); }
     prepararFiltrosDinamicos();
     atualizarHistorico();
 }
 
 function definirFiltroPadraoProfissional() {
-    filtroProfissional = filtroProfissionalPadrao();
+    filtroProfissional = state.user?.uid || "todos";
     profissionalEscolhidoExplicitamente = false;
 }
 
@@ -217,9 +189,9 @@ function prepararFiltrosDinamicos() {
         filtroServicoSelect.value = [...filtroServicoSelect.options].some(o => o.value === atual) ? atual : "todos";
     }
 
-    if (filtroProfissionalField) filtroProfissionalField.hidden = !adminNaVisaoBarbearia();
-    if (filtroProfissionalSelect && adminNaVisaoBarbearia()) {
-        const atual = filtroProfissionalSelect.value || filtroProfissional || "todos";
+    if (filtroProfissionalField) filtroProfissionalField.hidden = !usuarioEhAdmin();
+    if (filtroProfissionalSelect && usuarioEhAdmin()) {
+        const atual = filtroProfissionalSelect.value || filtroProfissional || state.user?.uid;
         filtroProfissionalSelect.innerHTML = '<option value="todos">Todos os profissionais</option>';
         const vistos = new Set();
         const membros = [
@@ -244,7 +216,7 @@ function prepararFiltrosDinamicos() {
             filtroProfissionalSelect.appendChild(optLegado);
         }
 
-        filtroProfissionalSelect.value = [...filtroProfissionalSelect.options].some(o => o.value === atual) ? atual : "todos";
+        filtroProfissionalSelect.value = [...filtroProfissionalSelect.options].some(o => o.value === atual) ? atual : (state.user?.uid || "todos");
     }
 }
 
@@ -252,7 +224,7 @@ function filtrosAtivosCount() {
     let n = 0;
     if (filtroServico !== "todos") n++;
     if (filtroPagamento !== "todos") n++;
-    if (adminNaVisaoBarbearia() && (filtroProfissional !== "todos" || profissionalEscolhidoExplicitamente)) n++;
+    if (usuarioEhAdmin() && (filtroProfissional !== state.user?.uid || profissionalEscolhidoExplicitamente)) n++;
     if (filtroEditados) n++;
     if (filtroAjustados) n++;
     return n;
@@ -272,7 +244,7 @@ function abrirFiltrosHistorico() {
     rascunho = { servico: filtroServico, pagamento: filtroPagamento, profissional: filtroProfissional, editados: filtroEditados, ajustados: filtroAjustados };
     if (filtroServicoSelect) filtroServicoSelect.value = rascunho.servico;
     if (filtroPagamentoSelect) filtroPagamentoSelect.value = rascunho.pagamento;
-    if (filtroProfissionalSelect && adminNaVisaoBarbearia()) filtroProfissionalSelect.value = rascunho.profissional || "todos";
+    if (filtroProfissionalSelect && usuarioEhAdmin()) filtroProfissionalSelect.value = rascunho.profissional || state.user?.uid || "todos";
     if (filtroHistoricoEditados) filtroHistoricoEditados.checked = rascunho.editados;
     if (filtroHistoricoAjustados) filtroHistoricoAjustados.checked = rascunho.ajustados;
     modalFiltrosHistorico?.classList.add("active");
@@ -348,7 +320,7 @@ export function atualizarHistorico() {
         const pagamento = a.pagamento || "—";
         const bruto = obterBruto(a);
         const liquido = Number(a.valorLiquido ?? bruto);
-        const podeExcluir = adminNaVisaoBarbearia();
+        const podeExcluir = usuarioEhAdmin();
         const card = document.createElement("article");
 
         card.className = "historico-card";
@@ -434,7 +406,7 @@ function abrirDetalheHistorico(a) {
     const outroRegistrador = Boolean(a.registradoPorUid && a.profissionalUid && a.registradoPorUid !== a.profissionalUid);
     const outroProfissional = Boolean(a.profissionalUid && a.profissionalUid !== state.user?.uid);
     const legado = registroLegadoSemProfissional(a);
-    const mostrarProfissional = adminNaVisaoBarbearia() && (outroProfissional || filtroProfissional === "todos" || legado);
+    const mostrarProfissional = usuarioEhAdmin() && (outroProfissional || filtroProfissional === "todos" || legado);
     const registradorConhecido = Boolean(a.registradoPorUid || a.registradoPorNome);
 
     historicoDetalheConteudo.innerHTML = `
@@ -461,24 +433,9 @@ function fecharDetalheHistorico(forcar = false) {
 }
 
 function membroDoAtendimento(a) {
-    const uid = a?.profissionalUid || state.user?.uid;
-    const membro = (!uid || uid === state.user?.uid)
-        ? state.membroAtual
-        : ((state.equipe || []).find(item => (item.uid || item.id) === uid) || null);
-    if (!membro) return null;
-
-    const ambienteTeste = String(state.workspaceId || "").startsWith("teste-");
-    const dono = membro?.dono === true
-        || (ambienteTeste && uid === state.user?.uid && state.membroAtual?.papel === "admin");
-
-    return {
-        ...membro,
-        uid: membro.uid || membro.id || uid,
-        dono,
-        repassePct: dono
-            ? 0
-            : Number(membro?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35)
-    };
+    const uid = a?.profissionalUid;
+    if (!uid || uid === state.user?.uid) return state.membroAtual;
+    return (state.equipe || []).find(item => (item.uid || item.id) === uid) || null;
 }
 
 function preencherSelectsEdicao(a) {
@@ -553,9 +510,7 @@ btnSalvarEdicaoHistorico?.addEventListener("click",async()=>{
       const servico=servicoSelecionadoEdicao();
       const preco=servico?resolverPrecoServico(servico,membroDoAtendimento(original)):{preco:Number(original.precoProfissional??original.precoBase??valorBruto),precoBase:Number(original.precoBase??valorBruto),precoProfissional:original.precoProfissional??null,origem:original.origemPreco||"padrao"};
       const esperado=Number(preco.preco||0), valorDiferenciado=esperado>0?Math.abs(valorBruto-esperado)>.009:true;
-      const membroFinanceiro=membroDoAtendimento(original);
-      const originalFinanceiro={...original,profissionalDono:original.profissionalDono===true||membroFinanceiro?.dono===true};
-      atualizacao=criarAtualizacaoFinanceiraAtendimento({servico:servicoNome,servicoId:servico?.id||original.servicoId||null,precoBase:preco.precoBase,precoProfissional:preco.precoProfissional,origemPreco:preco.origem,pagamento,valorBruto,observacao,valorDiferenciado},state.configSistema,originalFinanceiro);
+      atualizacao=criarAtualizacaoFinanceiraAtendimento({servico:servicoNome,servicoId:servico?.id||original.servicoId||null,precoBase:preco.precoBase,precoProfissional:preco.precoProfissional,origemPreco:preco.origem,pagamento,valorBruto,observacao,valorDiferenciado},state.configSistema,original);
     }
     const texto=btnSalvarEdicaoHistorico.textContent; btnSalvarEdicaoHistorico.textContent="Salvando...";btnSalvarEdicaoHistorico.disabled=true;
     try{await editarAtendimento(original.id,atualizacao);fecharModalEdicao();fecharDetalheHistorico(true);invalidarCacheAtendimentos();atualizarHistorico();}
@@ -614,7 +569,7 @@ btnFecharFiltrosHistorico?.addEventListener("click",fecharFiltrosHistorico);
 modalFiltrosHistorico?.addEventListener("click",e=>{if(e.target===modalFiltrosHistorico)fecharFiltrosHistorico();});
 btnAplicarFiltrosHistorico?.addEventListener("click",()=>{
     filtroServico=filtroServicoSelect?.value||"todos"; filtroPagamento=filtroPagamentoSelect?.value||"todos";
-    if(adminNaVisaoBarbearia()){filtroProfissional=filtroProfissionalSelect?.value||"todos";profissionalEscolhidoExplicitamente=true;} else filtroProfissional=state.user?.uid||"todos";
+    if(usuarioEhAdmin()){filtroProfissional=filtroProfissionalSelect?.value||state.user?.uid||"todos";profissionalEscolhidoExplicitamente=true;} else filtroProfissional=state.user?.uid||"todos";
     filtroEditados=Boolean(filtroHistoricoEditados?.checked);filtroAjustados=Boolean(filtroHistoricoAjustados?.checked);fecharFiltrosHistorico();atualizarHistorico();
 });
 btnLimparFiltrosHistorico?.addEventListener("click",()=>{filtroServico="todos";filtroPagamento="todos";filtroEditados=false;filtroAjustados=false;definirFiltroPadraoProfissional();if(historicoBusca)historicoBusca.value="";fecharFiltrosHistorico();atualizarHistorico();});

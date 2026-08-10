@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.14" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.15" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -13,7 +13,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="dashboard-booting">
 <div aria-live="polite" class="connection-status" hidden="" id="connectionStatus" role="status">
 <i aria-hidden="true" class="fas fa-wifi"></i>
 <span></span>
@@ -1087,7 +1087,7 @@ Aparência
 
             <div class="equipe-field">
                 <span>Senha temporária</span>
-                <div class="equipe-temp-password"><input id="novoBarbeiroSenha" type="text" readonly aria-label="Senha temporária"><button type="button" id="btnGerarSenhaTemporaria"><i class="fas fa-rotate"></i><span>Atualizar</span></button></div>
+                <div class="equipe-temp-password"><input id="novoBarbeiroSenha" type="text" readonly aria-label="Senha temporária"></div>
                 <small>O barbeiro deverá trocá-la no primeiro acesso.</small>
             </div>
             <article class="equipe-financeiro-section equipe-cadastro-financeiro">
@@ -1145,7 +1145,7 @@ Aparência
             </button>
         </div>
 
-        <button type="button" id="btnFecharAcessoCriado" class="equipe-done-btn">Concluir</button>
+        <button type="button" id="btnFecharAcessoCriado" class="equipe-done-btn"><i class="fas fa-check" aria-hidden="true"></i><span>Concluir</span></button>
     </div>
 </div>
 
@@ -1211,7 +1211,7 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/dashboard/index.js?v=8.14" type="module"></script>
+<script src="js/dashboard/index.js?v=8.15" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

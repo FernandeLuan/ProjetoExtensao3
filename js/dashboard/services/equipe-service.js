@@ -18,7 +18,7 @@ import {
 import {
     criarAcessoBarbeiroNoBanco,
     listarMembrosEquipe
-} from "../data/equipe-repository.js?v=8.14";
+} from "../data/equipe-repository.js?v=8.15";
 
 function normalizarComparacao(valor) {
     return String(valor || "")
@@ -40,9 +40,11 @@ async function validarDuplicidadeEquipe(nome, email) {
 
     if (nomeDuplicado) {
         const error = new Error(
-            nomeDuplicado.ativo === false
-                ? "Já existe um membro com este nome. Ative o cadastro existente em Membros inativos."
-                : "Já existe um usuário com este nome."
+            nomeDuplicado?.removido === true
+                ? "Já existe um usuário com este nome."
+                : nomeDuplicado.ativo === false
+                    ? "Já existe um membro com este nome. Ative o cadastro existente em Membros inativos."
+                    : "Já existe um usuário com este nome."
         );
         error.code = "equipe/nome-duplicado";
         error.campo = "nome";
@@ -55,9 +57,11 @@ async function validarDuplicidadeEquipe(nome, email) {
 
     if (emailDuplicado) {
         const error = new Error(
-            emailDuplicado.ativo === false
-                ? "Já existe um membro com este e-mail. Ative o cadastro existente em Membros inativos."
-                : "Já existe um usuário com este e-mail."
+            emailDuplicado?.removido === true
+                ? "Já existe um usuário com este e-mail."
+                : emailDuplicado.ativo === false
+                    ? "Já existe um membro com este e-mail. Ative o cadastro existente em Membros inativos."
+                    : "Já existe um usuário com este e-mail."
         );
         error.code = "equipe/email-duplicado";
         error.campo = "email";

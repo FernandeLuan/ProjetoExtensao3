@@ -110,3 +110,16 @@
 body.primeiro-acesso-bloqueado {
     overflow: hidden;
 }
+
+
+/* v8.15 - evita flash do Registrar antes da validação / troca de senha */
+body.dashboard-booting .dashboard-main,
+body.dashboard-booting .bottom-nav,
+body.dashboard-booting .menu-sheet,
+body.dashboard-booting .sidebar-overlay {
+    visibility: hidden !important;
+}
+
+body.dashboard-booting .primeiro-acesso-modal:not([hidden]) {
+    visibility: visible !important;
+}

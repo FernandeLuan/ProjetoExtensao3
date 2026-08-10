@@ -425,8 +425,8 @@
 
 .equipe-temp-password {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 7px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
 }
 
 .equipe-temp-password input {
@@ -560,11 +560,18 @@
 }
 
 .equipe-done-btn {
-    width: 100%;
-    margin-top: 8px;
-    border: 0;
-    background: transparent;
-    color: var(--text-secondary);
+    width: fit-content;
+    min-height: 34px;
+    margin: 12px auto 0;
+    padding: 7px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid rgba(22, 163, 74, .22);
+    border-radius: 999px;
+    background: rgba(22, 163, 74, .10);
+    color: var(--success);
 }
 
 body.modal-equipe-aberto {
@@ -1031,4 +1038,12 @@ body.modal-equipe-aberto {
     .equipe-card-conteudo .equipe-card-acoes {
         grid-template-columns: 1fr;
     }
+}
+
+
+/* v8.15 - exclusão lógica de membro inativo */
+.equipe-action-btn.excluir {
+    border: 1px solid rgba(239, 68, 68, .24);
+    color: var(--danger);
+    background: rgba(239, 68, 68, .06);
 }

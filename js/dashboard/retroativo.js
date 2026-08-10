@@ -3,7 +3,7 @@ import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-reposi
 import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.4";
 import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
 import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.4";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=7.4";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.15";
 import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=7.4";
 import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=7.4";
 import { abrirSeletorData } from "./utils/dom.js?v=7.4";
@@ -77,10 +77,7 @@ async function prepararProfissionais({ carregarSeVazio = false } = {}){
      vistos.add(uid);
      const o=document.createElement("option");
      o.value=uid;
-     const nomeExibicao = uid === uidAtual
-       ? (state.perfilUsuario?.nome || m.nome || state.user?.displayName || m.email)
-       : (m.nome || m.email);
-     o.textContent=String(nomeExibicao||"Profissional").trim();
+     o.textContent=String(m.nome||m.email||"Profissional").trim();
      selectProfissional.appendChild(o);
    });
 
@@ -122,7 +119,8 @@ async function salvar(event){
 
 export async function initRetroativo(){
  if(inicializado)return;inicializado=true;atualizarLimiteData();await prepararProfissionais({ carregarSeVazio: true });renderizarOpcoes();aplicarPagamentoPadrao();
- btnCalendario?.addEventListener("click",(event)=>{event.preventDefault();event.stopPropagation();abrirSeletorData(inputData);});
+ btnCalendario?.addEventListener("click",()=>abrirSeletorData(inputData));
+ inputData?.parentElement?.addEventListener("click",e=>{if(!e.target.closest("button"))abrirSeletorData(inputData);});
  checkValor?.addEventListener("change",()=>{if(campoValor)campoValor.hidden=!checkValor.checked;if(!checkValor.checked&&inputValor)inputValor.value="";if(checkValor.checked)setTimeout(()=>inputValor?.focus(),0);});
  checkObservacao?.addEventListener("change",()=>{if(campoObservacao)campoObservacao.hidden=!checkObservacao.checked;if(!checkObservacao.checked&&inputObservacao)inputObservacao.value="";if(checkObservacao.checked)setTimeout(()=>inputObservacao?.focus(),0);});
  inputValor?.addEventListener("input",()=>{aplicarMascaraMoedaInput(inputValor);limparErro(inputValor,labels.valor);});

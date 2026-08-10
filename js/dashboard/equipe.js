@@ -3,10 +3,11 @@ import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
+    excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.14";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.14";
-import { obterServicos } from "./services/catalogo-service.js?v=7.4";
+} from "./data/equipe-repository.js?v=8.15";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.15";
+import { obterServicos } from "./services/catalogo-service.js?v=8.15";
 import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.12";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
 import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
@@ -17,6 +18,7 @@ let ultimoAcessoCriado = null;
 let membroFinanceiroAtual = null;
 let membroStatusPendente = null;
 let botaoStatusOrigem = null;
+let acaoMembroPendente = "status";
 
 const menuEquipeItem = document.getElementById("menuEquipeItem");
 const equipeResumo = document.getElementById("equipeResumo");
@@ -37,7 +39,6 @@ const conteudoFinanceiroNovo = document.getElementById("conteudoFinanceiroNovoBa
 const inputNovoTaxaDebito = document.getElementById("novoBarbeiroTaxaDebitoPct");
 const inputNovoTaxaCredito = document.getElementById("novoBarbeiroTaxaCreditoPct");
 const inputNovoRepasse = document.getElementById("novoBarbeiroRepassePct");
-const btnGerarSenha = document.getElementById("btnGerarSenhaTemporaria");
 const btnCriarAcesso = document.getElementById("btnCriarAcessoBarbeiro");
 const btnCancelarAdicionar = document.getElementById("btnCancelarAdicionarBarbeiro");
 const cadastroStatus = document.getElementById("cadastroBarbeiroStatus");
@@ -103,6 +104,23 @@ function obterNomeMembro(membro) {
     }
 
     return membro?.email || "Membro da equipe";
+}
+
+function precosPersonalizadosEfetivos(precos = {}) {
+    const padroes = new Map(
+        obterServicos().map((servico) => [String(servico.id), Number(servico.preco || 0)])
+    );
+    const resultado = {};
+
+    Object.entries(precos || {}).forEach(([servicoId, valor]) => {
+        const numero = Number(valor);
+        const padrao = padroes.get(String(servicoId));
+        if (!Number.isFinite(numero) || numero <= 0) return;
+        if (Number.isFinite(padrao) && Math.abs(numero - padrao) < 0.005) return;
+        resultado[servicoId] = numero;
+    });
+
+    return resultado;
 }
 
 function obterStatusMembro(membro) {
@@ -494,9 +512,12 @@ function abrirFinanceiroMembro(membro) {
             const atualLabel = document.createElement("span");
             atualLabel.className = "config-atual";
 
+            const precoPadrao = Number(servico.preco || 0);
             const personalizado = Number(membro.precosPersonalizados?.[servico.id]);
-            const tem = Number.isFinite(personalizado) && personalizado > 0;
-            const valor = tem ? personalizado : Number(servico.preco || 0);
+            const tem = Number.isFinite(personalizado)
+                && personalizado > 0
+                && Math.abs(personalizado - precoPadrao) >= 0.005;
+            const valor = tem ? personalizado : precoPadrao;
             atualLabel.textContent = `Atual: R$ ${formatarMoeda(valor)}`;
 
             info.append(nome, atualLabel);
@@ -584,17 +605,20 @@ async function salvarFinanceiroMembro() {
         return;
     }
 
-    const precosPersonalizados = {};
-    Object.entries(membroFinanceiroAtual.precosPersonalizados || {}).forEach(([servicoId, valor]) => {
-        const numero = Number(valor);
-        if (Number.isFinite(numero) && numero > 0) precosPersonalizados[servicoId] = numero;
-    });
+    const precosPersonalizados = precosPersonalizadosEfetivos(
+        membroFinanceiroAtual.precosPersonalizados || {}
+    );
 
     precosLista?.querySelectorAll("input[data-servico-id]").forEach((input) => {
         if (input.dataset.touched !== "true") return;
         const numero = converterParaNumero(input.value);
 
-        if (Number.isFinite(numero) && numero > 0) {
+        const precoPadrao = Number(input.dataset.precoPadrao || 0);
+        if (
+            Number.isFinite(numero)
+            && numero > 0
+            && (!Number.isFinite(precoPadrao) || Math.abs(numero - precoPadrao) >= 0.005)
+        ) {
             precosPersonalizados[input.dataset.servicoId] = numero;
         } else {
             delete precosPersonalizados[input.dataset.servicoId];
@@ -696,8 +720,9 @@ async function salvarFinanceiroMembro() {
 }
 
 function abrirConfirmacaoStatus(membro, botao) {
-    if (!modalStatusMembro || papelEhAdmin(membro?.papel)) return;
+    if (!modalStatusMembro || papelEhAdmin(membro?.papel) || membro?.removido === true) return;
 
+    acaoMembroPendente = "status";
     membroStatusPendente = membro;
     botaoStatusOrigem = botao || null;
 
@@ -727,6 +752,29 @@ function abrirConfirmacaoStatus(membro, botao) {
     document.body.classList.add("modal-equipe-aberto");
 }
 
+function abrirConfirmacaoExclusao(membro, botao) {
+    if (!modalStatusMembro || papelEhAdmin(membro?.papel) || membro?.ativo === true) return;
+
+    acaoMembroPendente = "excluir";
+    membroStatusPendente = membro;
+    botaoStatusOrigem = botao || null;
+    const nome = obterNomeMembro(membro);
+
+    if (tituloStatusMembro) tituloStatusMembro.textContent = "Confirmar exclusão";
+    if (descricaoStatusMembro) {
+        descricaoStatusMembro.innerHTML = `Excluir <strong>${escapeHtml(nome)}</strong> da equipe? O acesso continuará bloqueado e o cadastro sairá da lista de membros.`;
+    }
+    if (btnConfirmarStatusMembro) {
+        btnConfirmarStatusMembro.textContent = "Excluir";
+        btnConfirmarStatusMembro.classList.remove("ativar");
+        btnConfirmarStatusMembro.disabled = false;
+    }
+
+    modalStatusMembro.classList.add("active");
+    modalStatusMembro.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-equipe-aberto");
+}
+
 function fecharConfirmacaoStatus({ forcar = false } = {}) {
     if (!modalStatusMembro) return;
     if (btnConfirmarStatusMembro?.disabled && !forcar) return;
@@ -736,6 +784,7 @@ function fecharConfirmacaoStatus({ forcar = false } = {}) {
     document.body.classList.remove("modal-equipe-aberto");
     membroStatusPendente = null;
     botaoStatusOrigem = null;
+    acaoMembroPendente = "status";
 }
 
 async function confirmarAlteracaoStatus() {
@@ -743,22 +792,31 @@ async function confirmarAlteracaoStatus() {
 
     const membro = membroStatusPendente;
     const novoStatus = membro.ativo !== true;
+    const excluindo = acaoMembroPendente === "excluir";
 
     if (btnConfirmarStatusMembro) {
         btnConfirmarStatusMembro.disabled = true;
-        btnConfirmarStatusMembro.textContent = novoStatus ? "Ativando..." : "Desativando...";
+        btnConfirmarStatusMembro.textContent = excluindo
+            ? "Excluindo..."
+            : (novoStatus ? "Ativando..." : "Desativando...");
     }
     if (btnCancelarStatusMembro) btnCancelarStatusMembro.disabled = true;
     if (botaoStatusOrigem) botaoStatusOrigem.disabled = true;
 
     try {
-        await alterarStatusMembro(membro.uid || membro.id, novoStatus);
-        fecharConfirmacaoStatus({ forcar: true });
-        mostrarSucesso(novoStatus ? "Acesso ativado." : "Acesso desativado.");
+        if (excluindo) {
+            await excluirMembroInativo(membro.uid || membro.id);
+            fecharConfirmacaoStatus({ forcar: true });
+            mostrarSucesso("Membro excluído da equipe.");
+        } else {
+            await alterarStatusMembro(membro.uid || membro.id, novoStatus);
+            fecharConfirmacaoStatus({ forcar: true });
+            mostrarSucesso(novoStatus ? "Acesso ativado." : "Acesso desativado.");
+        }
         await carregarEquipe();
     } catch (error) {
-        console.error("Erro ao alterar status do membro:", error);
-        mostrarErro(error?.message || "Não foi possível alterar o acesso.");
+        console.error("Erro ao alterar membro:", error);
+        mostrarErro(error?.message || "Não foi possível concluir a ação.");
     } finally {
         if (btnConfirmarStatusMembro) btnConfirmarStatusMembro.disabled = false;
         if (btnCancelarStatusMembro) btnCancelarStatusMembro.disabled = false;
@@ -854,7 +912,7 @@ function criarCardMembro(membro) {
     const repasse = dono ? 0 : (Number.isFinite(repasseSalvo) ? repasseSalvo : null);
     const debito = taxaAtualOpcional(membro, "taxaDebitoPct");
     const credito = taxaAtualOpcional(membro, "taxaCreditoPct");
-    const overrides = Object.keys(membro.precosPersonalizados || {}).length;
+    const overrides = Object.keys(precosPersonalizadosEfetivos(membro.precosPersonalizados || {})).length;
 
     const itensFinanceiros = [
         ["Repasse %", dono ? "Sem repasse" : formatarPercentualResumo(repasse)],
@@ -877,30 +935,50 @@ function criarCardMembro(membro) {
     const acoes = document.createElement("div");
     acoes.className = "equipe-card-acoes";
 
-    const configurar = document.createElement("button");
-    configurar.type = "button";
-    configurar.className = "equipe-action-btn configurar";
-    configurar.innerHTML = '<i class="fas fa-sliders" aria-hidden="true"></i><span>Financeiro</span>';
-    configurar.addEventListener("click", (event) => {
-        event.stopPropagation();
-        abrirFinanceiroMembro(membro);
-    });
-    acoes.appendChild(configurar);
+    if (ativo || admin) {
+        const configurar = document.createElement("button");
+        configurar.type = "button";
+        configurar.className = "equipe-action-btn configurar";
+        configurar.innerHTML = '<i class="fas fa-sliders" aria-hidden="true"></i><span>Financeiro</span>';
+        configurar.addEventListener("click", (event) => {
+            event.stopPropagation();
+            abrirFinanceiroMembro(membro);
+        });
+        acoes.appendChild(configurar);
+    }
 
     if (!admin) {
-        const botao = document.createElement("button");
-        botao.type = "button";
-        botao.className = ativo
-            ? "equipe-action-btn desativar"
-            : "equipe-action-btn reativar";
-        botao.innerHTML = ativo
-            ? '<i class="fas fa-user-slash" aria-hidden="true"></i><span>Desativar</span>'
-            : '<i class="fas fa-user-check" aria-hidden="true"></i><span>Ativar</span>';
-        botao.addEventListener("click", (event) => {
-            event.stopPropagation();
-            abrirConfirmacaoStatus(membro, botao);
-        });
-        acoes.appendChild(botao);
+        if (ativo) {
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = "equipe-action-btn desativar";
+            botao.innerHTML = '<i class="fas fa-user-slash" aria-hidden="true"></i><span>Desativar</span>';
+            botao.addEventListener("click", (event) => {
+                event.stopPropagation();
+                abrirConfirmacaoStatus(membro, botao);
+            });
+            acoes.appendChild(botao);
+        } else {
+            const excluir = document.createElement("button");
+            excluir.type = "button";
+            excluir.className = "equipe-action-btn excluir";
+            excluir.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i><span>Excluir</span>';
+            excluir.addEventListener("click", (event) => {
+                event.stopPropagation();
+                abrirConfirmacaoExclusao(membro, excluir);
+            });
+
+            const ativar = document.createElement("button");
+            ativar.type = "button";
+            ativar.className = "equipe-action-btn reativar";
+            ativar.innerHTML = '<i class="fas fa-user-check" aria-hidden="true"></i><span>Ativar</span>';
+            ativar.addEventListener("click", (event) => {
+                event.stopPropagation();
+                abrirConfirmacaoStatus(membro, ativar);
+            });
+
+            acoes.append(excluir, ativar);
+        }
     }
 
     conteudo.appendChild(acoes);
@@ -931,8 +1009,9 @@ export async function carregarEquipe() {
 
     try {
         const membros = await listarMembrosEquipe();
-        const ativos = ordenarMembros(membros.filter((membro) => membro.ativo === true));
-        const inativos = ordenarMembros(membros.filter((membro) => membro.ativo !== true));
+        const visiveis = membros.filter((membro) => membro?.removido !== true);
+        const ativos = ordenarMembros(visiveis.filter((membro) => membro.ativo === true));
+        const inativos = ordenarMembros(visiveis.filter((membro) => membro.ativo !== true));
 
         if (equipeListaAtivos) {
             equipeListaAtivos.innerHTML = "";
@@ -982,7 +1061,6 @@ export function initEquipe() {
     btnAdicionarBarbeiro?.addEventListener("click", abrirModalAdicionar);
     btnFecharModalAdicionar?.addEventListener("click", fecharModalAdicionar);
     btnCancelarAdicionar?.addEventListener("click", fecharModalAdicionar);
-    btnGerarSenha?.addEventListener("click", preencherNovaSenha);
     inputNomeBarbeiro?.addEventListener("input", () => {
         limparErroCampo(inputNomeBarbeiro);
         preencherNovaSenha();

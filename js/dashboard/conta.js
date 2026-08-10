@@ -353,6 +353,7 @@ async function carregarConta() {
         } = await obterDadosConta();
 
         const nome =
+            membro.nome ||
             usuario.nome ||
             user.displayName ||
             "";
@@ -366,6 +367,13 @@ async function carregarConta() {
             traduzirPerfil(
                 membro.papel
             );
+
+        const podeEditarNome = membro?.papel !== "barber";
+        if (btnEditarNome) btnEditarNome.hidden = !podeEditarNome;
+        if (!podeEditarNome) {
+            if (contaNomeEditor) contaNomeEditor.hidden = true;
+            if (contaNomeVisual) contaNomeVisual.hidden = false;
+        }
 
         if (contaNome) {
             contaNome.textContent =
@@ -420,6 +428,8 @@ atualizarAvatar(
 
 function abrirEdicaoNome() {
 
+    if (state.membroAtual?.papel === "barber") return;
+
     if (
         !contaNomeEditor ||
         !contaNomeVisual
@@ -450,6 +460,8 @@ function fecharEdicaoNome() {
 
 
 async function salvarNome() {
+
+    if (state.membroAtual?.papel === "barber") return;
 
     const nome =
         String(

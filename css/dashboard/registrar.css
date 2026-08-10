@@ -125,7 +125,7 @@
 }
 
 #registrar .grupo-botoes-servicos {
-    gap: 7px;
+    gap: 10px;
     margin-bottom: 10px;
 }
 
@@ -145,7 +145,7 @@
 }
 
 #registrar .grupo-chips-pagamento {
-    gap: 7px;
+    gap: 10px;
 }
 
 #registrar .chip-pagamento {
@@ -165,7 +165,12 @@
 }
 
 #registrar .toggle-container {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+#registrar .toggle-container:not(.toggle-container-compact) {
+    margin-bottom: 14px;
 }
 
 #registrar .toggle-container-compact {

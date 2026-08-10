@@ -213,6 +213,28 @@ export async function alterarStatusMembro(uid, ativo) {
     invalidarCacheEquipe();
 }
 
+export async function excluirMembroInativo(uid) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode excluir membros da equipe.");
+    if (!uid) throw new Error("Membro inválido.");
+    if (uid === obterUidAtual()) throw new Error("Você não pode excluir o próprio acesso.");
+
+    const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
+    const snap = await getDoc(membroRef);
+    registrarConsultaFirestore("equipe/excluir-membro", 1);
+    if (!snap.exists()) throw new Error("Membro não encontrado.");
+
+    const membro = snap.data();
+    if (papelEhAdmin(membro.papel)) throw new Error("Um administrador não pode ser excluído por esta ação.");
+    if (membro.ativo === true) throw new Error("Desative o membro antes de excluí-lo.");
+
+    await updateDoc(membroRef, {
+        ativo: false,
+        removido: true,
+        atualizadoEm: serverTimestamp()
+    });
+    invalidarCacheEquipe();
+}
+
 function validarTaxaProfissional(valor, rotulo) {
     const numero = Number(valor);
     if (!Number.isFinite(numero) || numero < 0 || numero >= 10) {
