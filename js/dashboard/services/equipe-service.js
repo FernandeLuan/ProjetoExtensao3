@@ -16,8 +16,54 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
-    criarAcessoBarbeiroNoBanco
-} from "../data/equipe-repository.js?v=8.4";
+    criarAcessoBarbeiroNoBanco,
+    listarMembrosEquipe
+} from "../data/equipe-repository.js?v=8.14";
+
+function normalizarComparacao(valor) {
+    return String(valor || "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase("pt-BR")
+        .replace(/\s+/g, " ");
+}
+
+async function validarDuplicidadeEquipe(nome, email) {
+    const membros = await listarMembrosEquipe({ forcar: true });
+    const nomeNormalizado = normalizarComparacao(nome);
+    const emailNormalizado = String(email || "").trim().toLowerCase();
+
+    const nomeDuplicado = membros.find(
+        (membro) => normalizarComparacao(membro?.nome) === nomeNormalizado
+    );
+
+    if (nomeDuplicado) {
+        const error = new Error(
+            nomeDuplicado.ativo === false
+                ? "Já existe um membro com este nome. Ative o cadastro existente em Membros inativos."
+                : "Já existe um usuário com este nome."
+        );
+        error.code = "equipe/nome-duplicado";
+        error.campo = "nome";
+        throw error;
+    }
+
+    const emailDuplicado = membros.find(
+        (membro) => String(membro?.email || "").trim().toLowerCase() === emailNormalizado
+    );
+
+    if (emailDuplicado) {
+        const error = new Error(
+            emailDuplicado.ativo === false
+                ? "Já existe um membro com este e-mail. Ative o cadastro existente em Membros inativos."
+                : "Já existe um usuário com este e-mail."
+        );
+        error.code = "equipe/email-duplicado";
+        error.campo = "email";
+        throw error;
+    }
+}
 
 export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDebitoPct, taxaCreditoPct, repassePct }) {
     const nomeLimpo = String(nome || "").trim().slice(0, 60);
@@ -34,6 +80,8 @@ export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDe
     if (String(senhaTemporaria || "").length < 6) {
         throw new Error("A senha temporária precisa ter pelo menos 6 caracteres.");
     }
+
+    await validarDuplicidadeEquipe(nomeLimpo, emailLimpo);
 
     const appSecundario = initializeApp(
         firebaseConfig,

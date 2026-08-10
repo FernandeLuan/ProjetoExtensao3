@@ -4,10 +4,10 @@ import {
     listarMembrosEquipe,
     alterarStatusMembro,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.4";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.4";
+} from "./data/equipe-repository.js?v=8.14";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.14";
 import { obterServicos } from "./services/catalogo-service.js?v=7.4";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=7.4";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.12";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
 import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
 
@@ -15,6 +15,8 @@ let inicializado = false;
 let carregando = false;
 let ultimoAcessoCriado = null;
 let membroFinanceiroAtual = null;
+let membroStatusPendente = null;
+let botaoStatusOrigem = null;
 
 const menuEquipeItem = document.getElementById("menuEquipeItem");
 const equipeResumo = document.getElementById("equipeResumo");
@@ -37,6 +39,7 @@ const inputNovoTaxaCredito = document.getElementById("novoBarbeiroTaxaCreditoPct
 const inputNovoRepasse = document.getElementById("novoBarbeiroRepassePct");
 const btnGerarSenha = document.getElementById("btnGerarSenhaTemporaria");
 const btnCriarAcesso = document.getElementById("btnCriarAcessoBarbeiro");
+const btnCancelarAdicionar = document.getElementById("btnCancelarAdicionarBarbeiro");
 const cadastroStatus = document.getElementById("cadastroBarbeiroStatus");
 
 const modalAcessoCriado = document.getElementById("modalAcessoCriado");
@@ -68,18 +71,21 @@ const precosLista = document.getElementById("membroPrecosLista");
 const financeiroStatus = document.getElementById("financeiroMembroStatus");
 const btnSalvarFinanceiro = document.getElementById("btnSalvarFinanceiroMembro");
 
+const modalStatusMembro = document.getElementById("modalConfirmStatusMembro");
+const tituloStatusMembro = document.getElementById("tituloConfirmStatusMembro");
+const descricaoStatusMembro = document.getElementById("descricaoConfirmStatusMembro");
+const btnCancelarStatusMembro = document.getElementById("btnCancelarStatusMembro");
+const btnConfirmarStatusMembro = document.getElementById("btnConfirmarStatusMembro");
+
 function membroEhDono(membro) {
-    if (membro?.dono === true) return true;
-
-    const uid = String(membro?.uid || membro?.id || "").trim();
-    const ambienteTeste = String(state.workspaceId || "").startsWith("teste-");
-
-    return ambienteTeste
-        && uid === state.user?.uid
-        && state.membroAtual?.papel === "admin";
+    return membro?.dono === true;
 }
 
-function taxaAtual(membro, campo) { const numero = Number(membro?.[campo]); return Number.isFinite(numero) ? numero : 0; }
+function taxaAtualOpcional(membro, campo) {
+    if (!membro || !Object.prototype.hasOwnProperty.call(membro, campo)) return null;
+    const numero = Number(membro[campo]);
+    return Number.isFinite(numero) ? numero : null;
+}
 
 function traduzirPapel(papel) {
     if (papelEhAdmin(papel)) return "Administrador";
@@ -97,10 +103,6 @@ function obterNomeMembro(membro) {
     }
 
     return membro?.email || "Membro da equipe";
-}
-
-function obterInicial(membro) {
-    return obterNomeMembro(membro).trim().charAt(0).toUpperCase() || "U";
 }
 
 function obterStatusMembro(membro) {
@@ -138,36 +140,36 @@ function setFinanceiroStatus(texto = "", erro = false) {
     financeiroStatus.hidden = !texto;
 }
 
-function gerarSenhaTemporaria() {
-    const maiusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    const minusculas = "abcdefghijkmnopqrstuvwxyz";
-    const numeros = "23456789";
-    const simbolos = "!@#$%";
-    const todos = maiusculas + minusculas + numeros + simbolos;
+function limparErroCampo(input) {
+    input?.classList.remove("input-erro", "shake");
+}
 
-    const escolher = (conjunto) => {
-        const array = new Uint32Array(1);
-        crypto.getRandomValues(array);
-        return conjunto[array[0] % conjunto.length];
-    };
-
-    const caracteres = [
-        escolher(maiusculas),
-        escolher(minusculas),
-        escolher(numeros),
-        escolher(simbolos)
-    ];
-
-    while (caracteres.length < 12) caracteres.push(escolher(todos));
-
-    for (let i = caracteres.length - 1; i > 0; i -= 1) {
-        const array = new Uint32Array(1);
-        crypto.getRandomValues(array);
-        const j = array[0] % (i + 1);
-        [caracteres[i], caracteres[j]] = [caracteres[j], caracteres[i]];
+function erroCampo(input, mensagem) {
+    if (input) {
+        input.classList.remove("shake");
+        void input.offsetWidth;
+        input.classList.add("input-erro", "shake");
+        setTimeout(() => input.classList.remove("shake"), 500);
+        setTimeout(() => input.classList.remove("input-erro"), 3000);
+        input.focus();
     }
+    mostrarErro(mensagem);
+}
 
-    return caracteres.join("");
+function normalizarNomeSenha(nome) {
+    const primeiroNome = String(nome || "")
+        .trim()
+        .split(/\s+/)[0]
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toLowerCase();
+
+    return primeiroNome || "barbeiro";
+}
+
+function gerarSenhaTemporaria() {
+    return `${normalizarNomeSenha(inputNomeBarbeiro?.value)}123`;
 }
 
 function preencherNovaSenha() {
@@ -269,12 +271,20 @@ async function compartilharAcessoCriado() {
 
 function traduzirErroCadastro(error) {
     switch (error?.code) {
-        case "auth/email-already-in-use": return "Este e-mail já possui uma conta cadastrada.";
-        case "auth/invalid-email": return "Informe um e-mail válido.";
-        case "auth/weak-password": return "A senha temporária não atende aos requisitos mínimos.";
+        case "equipe/nome-duplicado":
+        case "equipe/email-duplicado":
+            return error?.message || "Já existe um usuário com estes dados.";
+        case "auth/email-already-in-use":
+            return "Este e-mail já possui uma conta cadastrada.";
+        case "auth/invalid-email":
+            return "Informe um e-mail válido.";
+        case "auth/weak-password":
+            return "A senha temporária não atende aos requisitos mínimos.";
         case "permission-denied":
-        case "firestore/permission-denied": return "As regras do Firestore ainda não permitem criar este acesso.";
-        default: return error?.message || "Não foi possível criar o acesso.";
+        case "firestore/permission-denied":
+            return "As regras do Firestore não permitem criar este acesso.";
+        default:
+            return error?.message || "Não foi possível criar o acesso.";
     }
 }
 
@@ -284,52 +294,92 @@ async function criarNovoBarbeiro(event) {
 
     const nome = String(inputNomeBarbeiro?.value || "").trim();
     const email = String(inputEmailBarbeiro?.value || "").trim().toLowerCase();
+    preencherNovaSenha();
     const senhaTemporaria = String(inputSenhaTemporaria?.value || "");
-    const taxaDebitoPct=converterParaNumero(inputNovoTaxaDebito?.value);
-    const taxaCreditoPct=converterParaNumero(inputNovoTaxaCredito?.value);
-    const repassePct=converterParaNumero(inputNovoRepasse?.value);
+    const taxaDebitoPct = converterParaNumero(inputNovoTaxaDebito?.value);
+    const taxaCreditoPct = converterParaNumero(inputNovoTaxaCredito?.value);
+    const repassePct = converterParaNumero(inputNovoRepasse?.value);
 
     if (nome.length < 2) {
-        setCadastroStatus("Informe o nome do barbeiro.", true);
-        inputNomeBarbeiro?.focus();
+        erroCampo(inputNomeBarbeiro, "Informe o nome do barbeiro.");
         return;
     }
+
     if (!email || !email.includes("@")) {
-        setCadastroStatus("Informe um e-mail válido.", true);
-        inputEmailBarbeiro?.focus();
+        erroCampo(inputEmailBarbeiro, "Informe um e-mail válido.");
         return;
     }
+
     if (senhaTemporaria.length < 6) {
-        setCadastroStatus("Gere uma senha temporária válida.", true);
+        erroCampo(inputSenhaTemporaria, "Não foi possível gerar uma senha temporária válida.");
         return;
     }
-    if(!Number.isFinite(taxaDebitoPct)||taxaDebitoPct<0||taxaDebitoPct>=10){definirSecaoFinanceiro(btnToggleFinanceiroNovo,conteudoFinanceiroNovo,true);setCadastroStatus("Informe a taxa de débito entre 0,00% e 9,99%.",true);inputNovoTaxaDebito?.focus();return;}
-    if(!Number.isFinite(taxaCreditoPct)||taxaCreditoPct<0||taxaCreditoPct>=10){definirSecaoFinanceiro(btnToggleFinanceiroNovo,conteudoFinanceiroNovo,true);setCadastroStatus("Informe a taxa de crédito entre 0,00% e 9,99%.",true);inputNovoTaxaCredito?.focus();return;}
-    if(!Number.isFinite(repassePct)||repassePct<0||repassePct>99.99){definirSecaoFinanceiro(btnToggleFinanceiroNovo,conteudoFinanceiroNovo,true);setCadastroStatus("Informe o repasse entre 0,00% e 99,99%.",true);inputNovoRepasse?.focus();return;}
+
+    if (taxaDebitoPct !== null && (!Number.isFinite(taxaDebitoPct) || taxaDebitoPct < 0 || taxaDebitoPct >= 10)) {
+        definirSecaoFinanceiro(btnToggleFinanceiroNovo, conteudoFinanceiroNovo, true);
+        erroCampo(inputNovoTaxaDebito, "Informe a taxa de débito entre 0,00% e 9,99% ou deixe em branco.");
+        return;
+    }
+
+    if (taxaCreditoPct !== null && (!Number.isFinite(taxaCreditoPct) || taxaCreditoPct < 0 || taxaCreditoPct >= 10)) {
+        definirSecaoFinanceiro(btnToggleFinanceiroNovo, conteudoFinanceiroNovo, true);
+        erroCampo(inputNovoTaxaCredito, "Informe a taxa de crédito entre 0,00% e 9,99% ou deixe em branco.");
+        return;
+    }
+
+    if (repassePct === null || !Number.isFinite(repassePct) || repassePct < 0 || repassePct > 99.99) {
+        definirSecaoFinanceiro(btnToggleFinanceiroNovo, conteudoFinanceiroNovo, true);
+        erroCampo(inputNovoRepasse, "Informe o repasse entre 0,00% e 99,99%.");
+        return;
+    }
 
     if (btnCriarAcesso) {
         btnCriarAcesso.disabled = true;
-        btnCriarAcesso.textContent = "Criando acesso...";
+        btnCriarAcesso.textContent = "Salvando...";
     }
+    if (btnCancelarAdicionar) btnCancelarAdicionar.disabled = true;
 
     try {
-        const acesso = await criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDebitoPct, taxaCreditoPct, repassePct });
+        const acesso = await criarAcessoBarbeiro({
+            nome,
+            email,
+            senhaTemporaria,
+            taxaDebitoPct,
+            taxaCreditoPct,
+            repassePct
+        });
+
         modalAdicionar.hidden = true;
         document.body.classList.remove("modal-equipe-aberto");
         await carregarEquipe();
         abrirModalAcessoCriado(acesso);
     } catch (error) {
         console.error("Erro ao criar barbeiro:", error);
-        setCadastroStatus(traduzirErroCadastro(error), true);
+        const mensagem = traduzirErroCadastro(error);
+
+        if (error?.campo === "nome" || error?.code === "equipe/nome-duplicado") {
+            erroCampo(inputNomeBarbeiro, mensagem);
+        } else if (
+            error?.campo === "email"
+            || error?.code === "equipe/email-duplicado"
+            || error?.code === "auth/email-already-in-use"
+            || error?.code === "auth/invalid-email"
+        ) {
+            erroCampo(inputEmailBarbeiro, mensagem);
+        } else {
+            mostrarErro(mensagem);
+        }
     } finally {
         if (btnCriarAcesso) {
             btnCriarAcesso.disabled = false;
-            btnCriarAcesso.textContent = "Criar acesso";
+            btnCriarAcesso.textContent = "Salvar";
         }
+        if (btnCancelarAdicionar) btnCancelarAdicionar.disabled = false;
     }
 }
 
 function formatarPercentualInput(valor) {
+    if (valor === null || valor === undefined || String(valor).trim() === "") return "";
     const numero = Number(valor);
     if (!Number.isFinite(numero)) return "";
     return numero.toFixed(2).replace(".", ",");
@@ -359,19 +409,142 @@ function alternarSecaoFinanceiro(botao, conteudo) {
     definirSecaoFinanceiro(botao, conteudo, !aberta);
 }
 
-function abrirFinanceiroMembro(membro){
- if(!modalFinanceiro||!usuarioEhAdmin())return;membroFinanceiroAtual=membro;setFinanceiroStatus();definirSecaoFinanceiro(btnToggleTaxas,conteudoTaxas,false);definirSecaoFinanceiro(btnTogglePrecos,conteudoPrecos,false);
- const dono=membroEhDono(membro),debito=taxaAtual(membro,"taxaDebitoPct"),credito=taxaAtual(membro,"taxaCreditoPct"),repasse=dono?0:Number(membro.repassePct??0);
- if(tituloFinanceiro)tituloFinanceiro.textContent=obterNomeMembro(membro);
- if(inputTaxaDebito){inputTaxaDebito.value=formatarPercentualInput(debito);inputTaxaDebito.classList.add("hidden");}
- if(inputTaxaCredito){inputTaxaCredito.value=formatarPercentualInput(credito);inputTaxaCredito.classList.add("hidden");}
- if(inputRepasse){inputRepasse.value=formatarPercentualInput(repasse);inputRepasse.classList.add("hidden");}
- if(lblTaxaDebito)lblTaxaDebito.textContent=`Atual: ${formatarPercentualInput(debito)}%`;
- if(lblTaxaCredito)lblTaxaCredito.textContent=`Atual: ${formatarPercentualInput(credito)}%`;
- if(lblRepasse)lblRepasse.textContent=dono?"Atual: Sem repasse":`Atual: ${formatarPercentualInput(repasse)}%`;
- btnEditarTaxaDebito?.classList.remove("hidden");btnEditarTaxaCredito?.classList.remove("hidden");if(btnEditarRepasse)btnEditarRepasse.classList.toggle("hidden",dono);
- if(precosLista){precosLista.innerHTML="";obterServicos().forEach(servico=>{const row=document.createElement("div");row.className="config-item equipe-config-item equipe-preco-item";if(servico.ativo===false)row.classList.add("desativado");const left=document.createElement("div");left.className="config-item-left";const icon=document.createElement("div");icon.className="config-icon";icon.innerHTML='<i class="fas fa-scissors"></i>';const info=document.createElement("div");info.className="config-info";const nome=document.createElement("span");nome.className="config-nome";nome.textContent=servico.nome;const atualLabel=document.createElement("span");atualLabel.className="config-atual";const personalizado=Number(membro.precosPersonalizados?.[servico.id]);const tem=Number.isFinite(personalizado)&&personalizado>0;const valor=tem?personalizado:Number(servico.preco||0);atualLabel.textContent=`Atual: R$ ${formatarMoeda(valor)}`;info.append(nome,atualLabel);left.append(icon,info);const action=document.createElement("div");action.className="config-action";const alterar=document.createElement("button");alterar.type="button";alterar.className="btn-alterar";alterar.innerHTML='<i class="fas fa-pen"></i> Alterar';const editor=document.createElement("div");editor.className="equipe-price-editor hidden";const input=document.createElement("input");input.className="input-config";input.type="tel";input.inputMode="numeric";input.placeholder="0,00";input.dataset.servicoId=servico.id;input.dataset.precoPadrao=String(Number(servico.preco||0));input.dataset.touched="false";input.value="";input.addEventListener("input",()=>{input.dataset.touched="true";aplicarMascaraMoedaInput(input,7);});alterar.addEventListener("click",()=>{alterar.classList.add("hidden");editor.classList.remove("hidden");input.value="";input.dataset.touched="false";input.focus();});editor.append(input);action.append(alterar,editor);row.append(left,action);precosLista.appendChild(row);});}
- modalFinanceiro.hidden=false;document.body.classList.add("modal-equipe-aberto");
+function abrirFinanceiroMembro(membro) {
+    if (!modalFinanceiro || !usuarioEhAdmin()) return;
+
+    membroFinanceiroAtual = membro;
+    setFinanceiroStatus();
+    definirSecaoFinanceiro(btnToggleTaxas, conteudoTaxas, false);
+    definirSecaoFinanceiro(btnTogglePrecos, conteudoPrecos, false);
+
+    const dono = membroEhDono(membro);
+    const debito = taxaAtualOpcional(membro, "taxaDebitoPct");
+    const credito = taxaAtualOpcional(membro, "taxaCreditoPct");
+    const repasseSalvo = Object.prototype.hasOwnProperty.call(membro || {}, "repassePct")
+        ? Number(membro.repassePct)
+        : null;
+    const repasse = dono ? 0 : (Number.isFinite(repasseSalvo) ? repasseSalvo : null);
+
+    if (tituloFinanceiro) tituloFinanceiro.textContent = obterNomeMembro(membro);
+
+    if (inputTaxaDebito) {
+        inputTaxaDebito.value = formatarPercentualInput(debito);
+        inputTaxaDebito.classList.add("hidden");
+        limparErroCampo(inputTaxaDebito);
+    }
+
+    if (inputTaxaCredito) {
+        inputTaxaCredito.value = formatarPercentualInput(credito);
+        inputTaxaCredito.classList.add("hidden");
+        limparErroCampo(inputTaxaCredito);
+    }
+
+    if (inputRepasse) {
+        inputRepasse.value = formatarPercentualInput(repasse);
+        inputRepasse.classList.add("hidden");
+        limparErroCampo(inputRepasse);
+    }
+
+    if (lblTaxaDebito) {
+        lblTaxaDebito.textContent = debito === null
+            ? "Atual: Não informada"
+            : `Atual: ${formatarPercentualInput(debito)}%`;
+    }
+
+    if (lblTaxaCredito) {
+        lblTaxaCredito.textContent = credito === null
+            ? "Atual: Não informada"
+            : `Atual: ${formatarPercentualInput(credito)}%`;
+    }
+
+    if (lblRepasse) {
+        lblRepasse.textContent = dono
+            ? "Atual: Sem repasse"
+            : repasse === null
+                ? "Atual: Não informado"
+                : `Atual: ${formatarPercentualInput(repasse)}%`;
+    }
+
+    btnEditarTaxaDebito?.classList.remove("hidden");
+    btnEditarTaxaCredito?.classList.remove("hidden");
+    if (btnEditarRepasse) btnEditarRepasse.classList.toggle("hidden", dono);
+
+    if (precosLista) {
+        precosLista.innerHTML = "";
+
+        obterServicos().forEach((servico) => {
+            const row = document.createElement("div");
+            row.className = "config-item equipe-config-item equipe-preco-item";
+            if (servico.ativo === false) row.classList.add("desativado");
+
+            const left = document.createElement("div");
+            left.className = "config-item-left";
+
+            const icon = document.createElement("div");
+            icon.className = "config-icon";
+            icon.innerHTML = '<i class="fas fa-scissors"></i>';
+
+            const info = document.createElement("div");
+            info.className = "config-info";
+
+            const nome = document.createElement("span");
+            nome.className = "config-nome";
+            nome.textContent = servico.nome;
+
+            const atualLabel = document.createElement("span");
+            atualLabel.className = "config-atual";
+
+            const personalizado = Number(membro.precosPersonalizados?.[servico.id]);
+            const tem = Number.isFinite(personalizado) && personalizado > 0;
+            const valor = tem ? personalizado : Number(servico.preco || 0);
+            atualLabel.textContent = `Atual: R$ ${formatarMoeda(valor)}`;
+
+            info.append(nome, atualLabel);
+            left.append(icon, info);
+
+            const action = document.createElement("div");
+            action.className = "config-action";
+
+            const alterar = document.createElement("button");
+            alterar.type = "button";
+            alterar.className = "btn-alterar";
+            alterar.innerHTML = '<i class="fas fa-pen"></i> Alterar';
+
+            const editor = document.createElement("div");
+            editor.className = "equipe-price-editor hidden";
+
+            const input = document.createElement("input");
+            input.className = "input-config";
+            input.type = "tel";
+            input.inputMode = "numeric";
+            input.placeholder = "0,00";
+            input.dataset.servicoId = servico.id;
+            input.dataset.precoPadrao = String(Number(servico.preco || 0));
+            input.dataset.touched = "false";
+            input.value = "";
+
+            input.addEventListener("input", () => {
+                input.dataset.touched = "true";
+                aplicarMascaraMoedaInput(input, 7);
+            });
+
+            alterar.addEventListener("click", () => {
+                alterar.classList.add("hidden");
+                editor.classList.remove("hidden");
+                input.value = "";
+                input.dataset.touched = "false";
+                input.focus();
+            });
+
+            editor.append(input);
+            action.append(alterar, editor);
+            row.append(left, action);
+            precosLista.appendChild(row);
+        });
+    }
+
+    modalFinanceiro.hidden = false;
+    document.body.classList.add("modal-equipe-aberto");
 }
 
 function fecharFinanceiroMembro({ forcar = false } = {}) {
@@ -390,18 +563,24 @@ async function salvarFinanceiroMembro() {
     const taxaDebitoPct = converterParaNumero(inputTaxaDebito?.value);
     const taxaCreditoPct = converterParaNumero(inputTaxaCredito?.value);
 
-    if (!Number.isFinite(taxaDebitoPct) || taxaDebitoPct < 0 || taxaDebitoPct >= 10) {
-        setFinanceiroStatus("Informe a taxa de débito entre 0,00% e 9,99%.", true);
+    if (!dono && (repasse === null || !Number.isFinite(repasse) || repasse < 0 || repasse > 99.99)) {
+        definirSecaoFinanceiro(btnToggleTaxas, conteudoTaxas, true);
+        if (inputRepasse?.classList.contains("hidden")) {
+            mostrarEditorFinanceiro(btnEditarRepasse, inputRepasse, null);
+        }
+        erroCampo(inputRepasse, "Informe um repasse entre 0,00% e 99,99%.");
         return;
     }
 
-    if (!Number.isFinite(taxaCreditoPct) || taxaCreditoPct < 0 || taxaCreditoPct >= 10) {
-        setFinanceiroStatus("Informe a taxa de crédito entre 0,00% e 9,99%.", true);
+    if (taxaDebitoPct !== null && (!Number.isFinite(taxaDebitoPct) || taxaDebitoPct < 0 || taxaDebitoPct >= 10)) {
+        definirSecaoFinanceiro(btnToggleTaxas, conteudoTaxas, true);
+        erroCampo(inputTaxaDebito, "Informe a taxa de débito entre 0,00% e 9,99% ou deixe em branco.");
         return;
     }
 
-    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) {
-        setFinanceiroStatus("Informe um repasse entre 0,00% e 99,99%.", true);
+    if (taxaCreditoPct !== null && (!Number.isFinite(taxaCreditoPct) || taxaCreditoPct < 0 || taxaCreditoPct >= 10)) {
+        definirSecaoFinanceiro(btnToggleTaxas, conteudoTaxas, true);
+        erroCampo(inputTaxaCredito, "Informe a taxa de crédito entre 0,00% e 9,99% ou deixe em branco.");
         return;
     }
 
@@ -414,6 +593,7 @@ async function salvarFinanceiroMembro() {
     precosLista?.querySelectorAll("input[data-servico-id]").forEach((input) => {
         if (input.dataset.touched !== "true") return;
         const numero = converterParaNumero(input.value);
+
         if (Number.isFinite(numero) && numero > 0) {
             precosPersonalizados[input.dataset.servicoId] = numero;
         } else {
@@ -425,6 +605,7 @@ async function salvarFinanceiroMembro() {
         btnSalvarFinanceiro.disabled = true;
         btnSalvarFinanceiro.textContent = "Salvando...";
     }
+    if (btnCancelarFinanceiro) btnCancelarFinanceiro.disabled = true;
 
     try {
         await atualizarFinanceiroMembro(
@@ -436,18 +617,38 @@ async function salvarFinanceiroMembro() {
                 precosPersonalizados
             }
         );
-        // Mantém o usuário na mesma tela após salvar e atualiza os valores exibidos.
+
         membroFinanceiroAtual = {
             ...membroFinanceiroAtual,
             repassePct: repasse,
-            taxaDebitoPct,
-            taxaCreditoPct,
-            precosPersonalizados: { ...precosPersonalizados }
+            precosPersonalizados: { ...precosPersonalizados },
+            ...(taxaDebitoPct !== null ? { taxaDebitoPct } : {}),
+            ...(taxaCreditoPct !== null ? { taxaCreditoPct } : {})
         };
 
-        if (lblTaxaDebito) lblTaxaDebito.textContent = `Atual: ${formatarPercentualInput(taxaDebitoPct)}%`;
-        if (lblTaxaCredito) lblTaxaCredito.textContent = `Atual: ${formatarPercentualInput(taxaCreditoPct)}%`;
-        if (lblRepasse) lblRepasse.textContent = dono ? "Atual: Sem repasse" : `Atual: ${formatarPercentualInput(repasse)}%`;
+        if (lblTaxaDebito) {
+            const valor = taxaDebitoPct !== null
+                ? taxaDebitoPct
+                : taxaAtualOpcional(membroFinanceiroAtual, "taxaDebitoPct");
+            lblTaxaDebito.textContent = valor === null
+                ? "Atual: Não informada"
+                : `Atual: ${formatarPercentualInput(valor)}%`;
+        }
+
+        if (lblTaxaCredito) {
+            const valor = taxaCreditoPct !== null
+                ? taxaCreditoPct
+                : taxaAtualOpcional(membroFinanceiroAtual, "taxaCreditoPct");
+            lblTaxaCredito.textContent = valor === null
+                ? "Atual: Não informada"
+                : `Atual: ${formatarPercentualInput(valor)}%`;
+        }
+
+        if (lblRepasse) {
+            lblRepasse.textContent = dono
+                ? "Atual: Sem repasse"
+                : `Atual: ${formatarPercentualInput(repasse)}%`;
+        }
 
         [
             [btnEditarTaxaDebito, inputTaxaDebito],
@@ -455,10 +656,14 @@ async function salvarFinanceiroMembro() {
             [btnEditarRepasse, inputRepasse]
         ].forEach(([botao, input]) => {
             input?.classList.add("hidden");
+            limparErroCampo(input);
             if (botao && !(botao === btnEditarRepasse && dono)) botao.classList.remove("hidden");
         });
 
-        const servicosPorId = new Map(obterServicos().map((servico) => [String(servico.id), servico]));
+        const servicosPorId = new Map(
+            obterServicos().map((servico) => [String(servico.id), servico])
+        );
+
         precosLista?.querySelectorAll("input[data-servico-id]").forEach((input) => {
             const id = String(input.dataset.servicoId || "");
             const row = input.closest(".equipe-preco-item");
@@ -477,46 +682,103 @@ async function salvarFinanceiroMembro() {
         });
 
         mostrarSucesso("Configurações do profissional salvas.");
-        // Atualiza os cards ao fundo, mas não fecha o modal nem muda de tela.
         await carregarEquipe();
     } catch (error) {
         console.error("Erro ao salvar financeiro do profissional:", error);
-        setFinanceiroStatus(error?.message || "Não foi possível salvar.", true);
+        mostrarErro(error?.message || "Não foi possível salvar.");
     } finally {
         if (btnSalvarFinanceiro) {
             btnSalvarFinanceiro.disabled = false;
             btnSalvarFinanceiro.textContent = "Salvar";
         }
+        if (btnCancelarFinanceiro) btnCancelarFinanceiro.disabled = false;
     }
 }
 
-async function executarAlteracaoStatus(membro, botao) {
-    const estaAtivo = membro.ativo === true;
-    const novoStatus = !estaAtivo;
+function abrirConfirmacaoStatus(membro, botao) {
+    if (!modalStatusMembro || papelEhAdmin(membro?.papel)) return;
+
+    membroStatusPendente = membro;
+    botaoStatusOrigem = botao || null;
+
+    const ativar = membro?.ativo !== true;
     const nome = obterNomeMembro(membro);
 
-    const confirmar = window.confirm(
-        novoStatus
-            ? `Reativar o acesso de ${nome}?`
-            : `Desativar o acesso de ${nome}? Essa pessoa deixará de acessar os dados da barbearia.`
-    );
-    if (!confirmar) return;
-
-    if (botao) {
-        botao.disabled = true;
-        botao.textContent = novoStatus ? "Reativando..." : "Desativando...";
+    if (tituloStatusMembro) {
+        tituloStatusMembro.textContent = ativar
+            ? "Confirmar ativação"
+            : "Confirmar desativação";
     }
+
+    if (descricaoStatusMembro) {
+        descricaoStatusMembro.innerHTML = ativar
+            ? `Ativar novamente o acesso de <strong>${escapeHtml(nome)}</strong>?`
+            : `Desativar o acesso de <strong>${escapeHtml(nome)}</strong>? Essa pessoa deixará de acessar os dados da barbearia.`;
+    }
+
+    if (btnConfirmarStatusMembro) {
+        btnConfirmarStatusMembro.textContent = ativar ? "Ativar" : "Desativar";
+        btnConfirmarStatusMembro.classList.toggle("ativar", ativar);
+        btnConfirmarStatusMembro.disabled = false;
+    }
+
+    modalStatusMembro.classList.add("active");
+    modalStatusMembro.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-equipe-aberto");
+}
+
+function fecharConfirmacaoStatus({ forcar = false } = {}) {
+    if (!modalStatusMembro) return;
+    if (btnConfirmarStatusMembro?.disabled && !forcar) return;
+
+    modalStatusMembro.classList.remove("active");
+    modalStatusMembro.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-equipe-aberto");
+    membroStatusPendente = null;
+    botaoStatusOrigem = null;
+}
+
+async function confirmarAlteracaoStatus() {
+    if (!membroStatusPendente) return;
+
+    const membro = membroStatusPendente;
+    const novoStatus = membro.ativo !== true;
+
+    if (btnConfirmarStatusMembro) {
+        btnConfirmarStatusMembro.disabled = true;
+        btnConfirmarStatusMembro.textContent = novoStatus ? "Ativando..." : "Desativando...";
+    }
+    if (btnCancelarStatusMembro) btnCancelarStatusMembro.disabled = true;
+    if (botaoStatusOrigem) botaoStatusOrigem.disabled = true;
 
     try {
         await alterarStatusMembro(membro.uid || membro.id, novoStatus);
-        mostrarSucesso(novoStatus ? "Acesso reativado." : "Acesso desativado.");
+        fecharConfirmacaoStatus({ forcar: true });
+        mostrarSucesso(novoStatus ? "Acesso ativado." : "Acesso desativado.");
         await carregarEquipe();
     } catch (error) {
         console.error("Erro ao alterar status do membro:", error);
-        mostrarErro(error.message || "Não foi possível alterar o acesso.");
+        mostrarErro(error?.message || "Não foi possível alterar o acesso.");
     } finally {
-        if (botao) botao.disabled = false;
+        if (btnConfirmarStatusMembro) btnConfirmarStatusMembro.disabled = false;
+        if (btnCancelarStatusMembro) btnCancelarStatusMembro.disabled = false;
+        if (botaoStatusOrigem) botaoStatusOrigem.disabled = false;
     }
+}
+
+function escapeHtml(valor) {
+    return String(valor ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function formatarPercentualResumo(valor) {
+    return valor === null
+        ? "Não informada"
+        : `${Number(valor).toFixed(2).replace(".", ",")}%`;
 }
 
 function criarCardMembro(membro) {
@@ -527,24 +789,41 @@ function criarCardMembro(membro) {
     card.className = "equipe-card";
     if (!ativo) card.classList.add("desativado");
 
-    const topo = document.createElement("div");
-    topo.className = "equipe-card-topo";
-    const avatar = document.createElement("div");
+    const cabecalho = document.createElement("button");
+    cabecalho.type = "button";
+    cabecalho.className = "equipe-card-toggle";
+    cabecalho.setAttribute("aria-expanded", "false");
+
+    const avatar = document.createElement("span");
     avatar.className = "equipe-avatar";
-    avatar.textContent = obterInicial(membro);
-    const dados = document.createElement("div");
-    dados.className = "equipe-dados";
+    avatar.innerHTML = '<i class="fas fa-user" aria-hidden="true"></i>';
+
     const nome = document.createElement("strong");
     nome.className = "equipe-nome";
     nome.textContent = obterNomeMembro(membro);
-    const email = document.createElement("span");
-    email.className = "equipe-email";
-    email.textContent = membro.email || "—";
-    dados.append(nome, email);
-    topo.append(avatar, dados);
+
+    const chevron = document.createElement("i");
+    chevron.className = "fas fa-chevron-down equipe-card-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+
+    cabecalho.append(avatar, nome, chevron);
+
+    const conteudo = document.createElement("div");
+    conteudo.className = "equipe-card-conteudo";
+    conteudo.hidden = true;
 
     const meta = document.createElement("div");
     meta.className = "equipe-meta";
+
+    const email = document.createElement("div");
+    email.className = "equipe-meta-item equipe-meta-wide";
+    const emailLabel = document.createElement("span");
+    emailLabel.className = "equipe-meta-label";
+    emailLabel.textContent = "E-mail";
+    const emailValor = document.createElement("strong");
+    emailValor.className = "equipe-email-valor";
+    emailValor.textContent = membro.email || "—";
+    email.append(emailLabel, emailValor);
 
     const perfil = document.createElement("div");
     perfil.className = "equipe-meta-item";
@@ -561,24 +840,39 @@ function criarCardMembro(membro) {
     statusLabel.className = "equipe-meta-label";
     statusLabel.textContent = "Status";
     status.append(statusLabel, criarBadgeStatus(membro));
-    meta.append(perfil, status);
 
-    card.append(topo, meta);
+    meta.append(email, perfil, status);
+    conteudo.appendChild(meta);
 
     const resumoFinanceiro = document.createElement("div");
     resumoFinanceiro.className = "equipe-financeiro-resumo";
+
     const dono = membroEhDono(membro);
-    const repasse = dono ? 0 : Number(membro.repassePct ?? 0);
-    const debito = taxaAtual(membro, "taxaDebitoPct");
-    const credito = taxaAtual(membro, "taxaCreditoPct");
+    const repasseSalvo = Object.prototype.hasOwnProperty.call(membro || {}, "repassePct")
+        ? Number(membro.repassePct)
+        : null;
+    const repasse = dono ? 0 : (Number.isFinite(repasseSalvo) ? repasseSalvo : null);
+    const debito = taxaAtualOpcional(membro, "taxaDebitoPct");
+    const credito = taxaAtualOpcional(membro, "taxaCreditoPct");
     const overrides = Object.keys(membro.precosPersonalizados || {}).length;
-    resumoFinanceiro.innerHTML = [
-        `<span>Repasse <strong>${dono ? "Sem repasse" : `${repasse.toFixed(2).replace(".", ",")}%`}</strong></span>`,
-        `<span>Débito <strong>${debito.toFixed(2).replace(".", ",")}%</strong></span>`,
-        `<span>Crédito <strong>${credito.toFixed(2).replace(".", ",")}%</strong></span>`,
-        `<span>Preços próprios <strong>${overrides || "Nenhum"}</strong></span>`
-    ].join("");
-    card.appendChild(resumoFinanceiro);
+
+    const itensFinanceiros = [
+        ["Repasse %", dono ? "Sem repasse" : formatarPercentualResumo(repasse)],
+        ["Débito %", formatarPercentualResumo(debito)],
+        ["Crédito %", formatarPercentualResumo(credito)],
+        ["Preços próprios", overrides || "Nenhum"]
+    ];
+
+    itensFinanceiros.forEach(([rotulo, valor]) => {
+        const item = document.createElement("span");
+        item.textContent = rotulo;
+        const strong = document.createElement("strong");
+        strong.textContent = String(valor);
+        item.appendChild(strong);
+        resumoFinanceiro.appendChild(item);
+    });
+
+    conteudo.appendChild(resumoFinanceiro);
 
     const acoes = document.createElement("div");
     acoes.className = "equipe-card-acoes";
@@ -586,22 +880,39 @@ function criarCardMembro(membro) {
     const configurar = document.createElement("button");
     configurar.type = "button";
     configurar.className = "equipe-action-btn configurar";
-    configurar.innerHTML = '<i class="fas fa-sliders"></i><span>Financeiro</span>';
-    configurar.addEventListener("click", () => abrirFinanceiroMembro(membro));
+    configurar.innerHTML = '<i class="fas fa-sliders" aria-hidden="true"></i><span>Financeiro</span>';
+    configurar.addEventListener("click", (event) => {
+        event.stopPropagation();
+        abrirFinanceiroMembro(membro);
+    });
     acoes.appendChild(configurar);
 
     if (!admin) {
         const botao = document.createElement("button");
         botao.type = "button";
-        botao.className = ativo ? "equipe-action-btn desativar" : "equipe-action-btn reativar";
+        botao.className = ativo
+            ? "equipe-action-btn desativar"
+            : "equipe-action-btn reativar";
         botao.innerHTML = ativo
-            ? '<i class="fas fa-user-slash"></i><span>Desativar</span>'
-            : '<i class="fas fa-user-check"></i><span>Reativar</span>';
-        botao.addEventListener("click", () => executarAlteracaoStatus(membro, botao));
+            ? '<i class="fas fa-user-slash" aria-hidden="true"></i><span>Desativar</span>'
+            : '<i class="fas fa-user-check" aria-hidden="true"></i><span>Ativar</span>';
+        botao.addEventListener("click", (event) => {
+            event.stopPropagation();
+            abrirConfirmacaoStatus(membro, botao);
+        });
         acoes.appendChild(botao);
     }
 
-    card.appendChild(acoes);
+    conteudo.appendChild(acoes);
+
+    cabecalho.addEventListener("click", () => {
+        const abrir = conteudo.hidden;
+        conteudo.hidden = !abrir;
+        cabecalho.setAttribute("aria-expanded", abrir ? "true" : "false");
+        card.classList.toggle("expandido", abrir);
+    });
+
+    card.append(cabecalho, conteudo);
     return card;
 }
 
@@ -670,7 +981,14 @@ export function initEquipe() {
 
     btnAdicionarBarbeiro?.addEventListener("click", abrirModalAdicionar);
     btnFecharModalAdicionar?.addEventListener("click", fecharModalAdicionar);
+    btnCancelarAdicionar?.addEventListener("click", fecharModalAdicionar);
     btnGerarSenha?.addEventListener("click", preencherNovaSenha);
+    inputNomeBarbeiro?.addEventListener("input", () => {
+        limparErroCampo(inputNomeBarbeiro);
+        preencherNovaSenha();
+    });
+    inputEmailBarbeiro?.addEventListener("input", () => limparErroCampo(inputEmailBarbeiro));
+    inputSenhaTemporaria?.addEventListener("input", () => limparErroCampo(inputSenhaTemporaria));
     formAdicionarBarbeiro?.addEventListener("submit", criarNovoBarbeiro);
     modalAdicionar?.addEventListener("click", (event) => {
         if (event.target === modalAdicionar) fecharModalAdicionar();
@@ -683,12 +1001,12 @@ export function initEquipe() {
         if (event.target === modalAcessoCriado) fecharModalAcessoCriado();
     });
 
-    inputRepasse?.addEventListener("input", () => aplicarMascaraPercentual(inputRepasse, 2));
-    inputTaxaDebito?.addEventListener("input", () => aplicarMascaraPercentual(inputTaxaDebito, 1));
-    inputTaxaCredito?.addEventListener("input", () => aplicarMascaraPercentual(inputTaxaCredito, 1));
-    inputNovoTaxaDebito?.addEventListener("input",()=>aplicarMascaraPercentual(inputNovoTaxaDebito,1));
-    inputNovoTaxaCredito?.addEventListener("input",()=>aplicarMascaraPercentual(inputNovoTaxaCredito,1));
-    inputNovoRepasse?.addEventListener("input",()=>aplicarMascaraPercentual(inputNovoRepasse,2));
+    inputRepasse?.addEventListener("input", () => { limparErroCampo(inputRepasse); aplicarMascaraPercentual(inputRepasse, 2); });
+    inputTaxaDebito?.addEventListener("input", () => { limparErroCampo(inputTaxaDebito); aplicarMascaraPercentual(inputTaxaDebito, 1); });
+    inputTaxaCredito?.addEventListener("input", () => { limparErroCampo(inputTaxaCredito); aplicarMascaraPercentual(inputTaxaCredito, 1); });
+    inputNovoTaxaDebito?.addEventListener("input", () => { limparErroCampo(inputNovoTaxaDebito); aplicarMascaraPercentual(inputNovoTaxaDebito, 1); });
+    inputNovoTaxaCredito?.addEventListener("input", () => { limparErroCampo(inputNovoTaxaCredito); aplicarMascaraPercentual(inputNovoTaxaCredito, 1); });
+    inputNovoRepasse?.addEventListener("input", () => { limparErroCampo(inputNovoRepasse); aplicarMascaraPercentual(inputNovoRepasse, 2); });
     btnEditarTaxaDebito?.addEventListener("click",()=>mostrarEditorFinanceiro(btnEditarTaxaDebito,inputTaxaDebito,converterParaNumero(inputTaxaDebito?.value)));
     btnEditarTaxaCredito?.addEventListener("click",()=>mostrarEditorFinanceiro(btnEditarTaxaCredito,inputTaxaCredito,converterParaNumero(inputTaxaCredito?.value)));
     btnEditarRepasse?.addEventListener("click",()=>mostrarEditorFinanceiro(btnEditarRepasse,inputRepasse,converterParaNumero(inputRepasse?.value)));
@@ -707,6 +1025,17 @@ export function initEquipe() {
     btnSalvarFinanceiro?.addEventListener("click", salvarFinanceiroMembro);
     modalFinanceiro?.addEventListener("click", (event) => {
         if (event.target === modalFinanceiro) fecharFinanceiroMembro();
+    });
+
+    btnCancelarStatusMembro?.addEventListener("click", () => fecharConfirmacaoStatus());
+    btnConfirmarStatusMembro?.addEventListener("click", confirmarAlteracaoStatus);
+    modalStatusMembro?.addEventListener("click", (event) => {
+        if (event.target === modalStatusMembro) fecharConfirmacaoStatus();
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        if (modalStatusMembro?.classList.contains("active")) fecharConfirmacaoStatus();
     });
 
 }

@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.11" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.14" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -597,7 +597,7 @@
 <div class="equipe-resumo"><span id="equipeResumo">Carregando equipe...</span></div>
 <button type="button" id="btnAdicionarBarbeiro" class="equipe-add-btn"><i class="fas fa-user-plus"></i><span>Adicionar barbeiro</span></button>
 <div class="equipe-grupo"><h3 class="equipe-grupo-titulo">Membros ativos</h3><div id="equipeListaAtivos" class="equipe-lista"></div></div>
-<div id="equipeBlocoInativos" class="equipe-grupo" hidden><h3 class="equipe-grupo-titulo">Acessos desativados</h3><div id="equipeListaInativos" class="equipe-lista"></div></div>
+<div id="equipeBlocoInativos" class="equipe-grupo equipe-grupo-inativos" hidden><h3 class="equipe-grupo-titulo">Membros inativos</h3><div id="equipeListaInativos" class="equipe-lista"></div></div>
 </section>
 
 <!-- DESPESAS -->
@@ -913,9 +913,9 @@ Aparência
 <article class="equipe-financeiro-section">
 <button class="equipe-financeiro-toggle" id="btnToggleTaxasProfissional" type="button" aria-expanded="false" aria-controls="conteudoTaxasProfissional"><span><strong>Taxas %</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
 <div class="equipe-financeiro-body" id="conteudoTaxasProfissional" hidden><div class="config-list equipe-config-list">
-<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Débito</span><span class="config-atual" id="lblMembroTaxaDebito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaDebito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
-<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Crédito</span><span class="config-atual" id="lblMembroTaxaCredito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaCredito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
-<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-percent"></i></div><div class="config-info"><span class="config-nome">Repasse</span><span class="config-atual" id="lblMembroRepasse">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarRepasse" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroRepassePct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Débito %</span><span class="config-atual" id="lblMembroTaxaDebito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaDebito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Crédito %</span><span class="config-atual" id="lblMembroTaxaCredito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaCredito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-percent"></i></div><div class="config-info"><span class="config-nome">Repasse %</span><span class="config-atual" id="lblMembroRepasse">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarRepasse" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroRepassePct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
 </div></div></article>
 <article class="equipe-financeiro-section"><button class="equipe-financeiro-toggle" id="btnTogglePrecosProfissional" type="button" aria-expanded="false" aria-controls="conteudoPrecosProfissional"><span><strong>Preços personalizados</strong><small>Preço específico por serviço</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button><div class="equipe-financeiro-body" id="conteudoPrecosProfissional" hidden><div id="membroPrecosLista" class="config-list equipe-precos-lista"></div></div></article>
 <div id="financeiroMembroStatus" class="equipe-form-status" hidden aria-live="polite"></div>
@@ -960,6 +960,18 @@ Aparência
 <div class="modal-actions">
 <button id="btnCancelarServico" type="button">Cancelar</button>
 <button id="btnConfirmarServico" type="button">Excluir</button>
+</div>
+</div>
+</div>
+
+<!-- Modal ativar/desativar membro -->
+<div class="modal-confirm" id="modalConfirmStatusMembro" aria-hidden="true">
+<div class="modal-box equipe-status-confirm-box">
+<h3 id="tituloConfirmStatusMembro">Confirmar desativação</h3>
+<p id="descricaoConfirmStatusMembro">Você tem certeza?</p>
+<div class="modal-actions">
+<button id="btnCancelarStatusMembro" type="button">Cancelar</button>
+<button id="btnConfirmarStatusMembro" type="button">Desativar</button>
 </div>
 </div>
 </div>
@@ -1062,7 +1074,7 @@ Aparência
             </button>
         </div>
 
-        <form id="formAdicionarBarbeiro" class="equipe-form">
+        <form id="formAdicionarBarbeiro" class="equipe-form" novalidate>
             <label class="equipe-field">
                 <span>Nome</span>
                 <input id="novoBarbeiroNome" type="text" maxlength="60" autocomplete="name" placeholder="Nome do barbeiro" required>
@@ -1075,21 +1087,22 @@ Aparência
 
             <div class="equipe-field">
                 <span>Senha temporária</span>
-                <div class="equipe-temp-password"><input id="novoBarbeiroSenha" type="text" readonly aria-label="Senha temporária"><button type="button" id="btnGerarSenhaTemporaria"><i class="fas fa-rotate"></i><span>Gerar outra</span></button></div>
+                <div class="equipe-temp-password"><input id="novoBarbeiroSenha" type="text" readonly aria-label="Senha temporária"><button type="button" id="btnGerarSenhaTemporaria"><i class="fas fa-rotate"></i><span>Atualizar</span></button></div>
                 <small>O barbeiro deverá trocá-la no primeiro acesso.</small>
             </div>
             <article class="equipe-financeiro-section equipe-cadastro-financeiro">
                 <button class="equipe-financeiro-toggle" id="btnToggleFinanceiroNovoBarbeiro" type="button" aria-expanded="false" aria-controls="conteudoFinanceiroNovoBarbeiro"><span><strong>Financeiro</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
                 <div class="equipe-financeiro-body" id="conteudoFinanceiroNovoBarbeiro" hidden>
-                    <div class="equipe-taxas-grid equipe-cadastro-taxas-grid"><label class="equipe-field"><span>Débito %</span><input id="novoBarbeiroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00" required></label><label class="equipe-field"><span>Crédito %</span><input id="novoBarbeiroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00" required></label></div>
-                    <label class="equipe-field equipe-repasse-field"><span>Repasse</span><input id="novoBarbeiroRepassePct" type="tel" inputmode="numeric" placeholder="0,00" required></label>
+                    <div class="equipe-taxas-grid equipe-cadastro-taxas-grid"><label class="equipe-field"><span>Débito % <small>(opcional)</small></span><input id="novoBarbeiroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00"></label><label class="equipe-field"><span>Crédito % <small>(opcional)</small></span><input id="novoBarbeiroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00"></label></div>
+                    <label class="equipe-field equipe-repasse-field"><span>Repasse % <small>(obrigatório)</small></span><input id="novoBarbeiroRepassePct" type="tel" inputmode="numeric" placeholder="0,00" required></label>
                 </div>
             </article>
             <div id="cadastroBarbeiroStatus" class="equipe-form-status" hidden aria-live="polite"></div>
 
-            <button type="submit" id="btnCriarAcessoBarbeiro" class="btn equipe-create-btn">
-                Criar acesso
-            </button>
+            <div class="equipe-financeiro-actions equipe-cadastro-actions">
+                <button type="button" id="btnCancelarAdicionarBarbeiro">Cancelar</button>
+                <button type="submit" id="btnCriarAcessoBarbeiro">Salvar</button>
+            </div>
         </form>
     </div>
 </div>
@@ -1198,7 +1211,7 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/dashboard/index.js?v=8.13" type="module"></script>
+<script src="js/dashboard/index.js?v=8.14" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

@@ -11,7 +11,7 @@ import {
 
 import { SCHEMA_VERSION } from "../constants.js?v=7.4";
 import { state, definirEquipe, definirMembroAtual } from "../state.js?v=7.4";
-import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=7.4";
+import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=8.12";
 import { obterUidAtual, obterWorkspaceId } from "./context.js?v=7.4";
 import { registrarConsultaFirestore } from "./read-monitor.js?v=7.4";
 import {
@@ -132,7 +132,14 @@ export async function listarMembrosEquipe({ forcar = false } = {}) {
     }
 }
 
-export async function criarAcessoBarbeiroNoBanco({ uid, nome, email, taxaDebitoPct, taxaCreditoPct, repassePct }) {
+export async function criarAcessoBarbeiroNoBanco({
+    uid,
+    nome,
+    email,
+    taxaDebitoPct = null,
+    taxaCreditoPct = null,
+    repassePct
+}) {
     if (!usuarioEhAdmin()) {
         throw new Error("Somente o administrador pode adicionar barbeiros.");
     }
@@ -140,10 +147,13 @@ export async function criarAcessoBarbeiroNoBanco({ uid, nome, email, taxaDebitoP
     const workspaceId = obterWorkspaceId();
     const uidAtual = obterUidAtual();
     const agora = serverTimestamp();
-    const debito = validarTaxaProfissional(taxaDebitoPct, "débito");
-    const credito = validarTaxaProfissional(taxaCreditoPct, "crédito");
+    const debito = validarTaxaProfissionalOpcional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissionalOpcional(taxaCreditoPct, "crédito");
     const repasse = Number(repassePct);
-    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
+
+    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) {
+        throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
+    }
 
     const batch = writeBatch(db);
 
@@ -157,23 +167,26 @@ export async function criarAcessoBarbeiroNoBanco({ uid, nome, email, taxaDebitoP
         atualizadoEm: agora
     });
 
-    batch.set(doc(db, "barbearias", workspaceId, "membros", uid), {
+    const membro = {
         uid,
         nome,
         email,
         papel: "barber",
         ativo: true,
-        repassePct: Number(repasse.toFixed(2)),
-        taxaDebitoPct: debito,
-        taxaCreditoPct: credito,
         dono: false,
         atuaComoProfissional: true,
+        repassePct: Number(repasse.toFixed(2)),
         precosPersonalizados: {},
         primeiroAcessoPendente: true,
         criadoPorUid: uidAtual,
         criadoEm: agora,
         atualizadoEm: agora
-    });
+    };
+
+    if (debito !== null) membro.taxaDebitoPct = debito;
+    if (credito !== null) membro.taxaCreditoPct = credito;
+
+    batch.set(doc(db, "barbearias", workspaceId, "membros", uid), membro);
 
     await batch.commit();
     invalidarCacheEquipe();
@@ -208,6 +221,11 @@ function validarTaxaProfissional(valor, rotulo) {
     return Number(numero.toFixed(2));
 }
 
+function validarTaxaProfissionalOpcional(valor, rotulo) {
+    if (valor === null || valor === undefined || String(valor).trim() === "") return null;
+    return validarTaxaProfissional(valor, rotulo);
+}
+
 export async function atualizarTaxasProprias({ taxaDebitoPct, taxaCreditoPct }) {
     const uid = obterUidAtual();
     if (!uid) throw new Error("Usuário inválido.");
@@ -235,8 +253,8 @@ export async function atualizarTaxasProprias({ taxaDebitoPct, taxaCreditoPct }) 
 export async function atualizarFinanceiroMembro(uid, {
     repassePct,
     precosPersonalizados,
-    taxaDebitoPct,
-    taxaCreditoPct
+    taxaDebitoPct = null,
+    taxaCreditoPct = null
 }) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar repasses e preços.");
     if (!uid) throw new Error("Membro inválido.");
@@ -246,21 +264,31 @@ export async function atualizarFinanceiroMembro(uid, {
         throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
     }
 
-    const debito = validarTaxaProfissional(taxaDebitoPct, "débito");
-    const credito = validarTaxaProfissional(taxaCreditoPct, "crédito");
+    const debito = validarTaxaProfissionalOpcional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissionalOpcional(taxaCreditoPct, "crédito");
 
     const precos = {};
     Object.entries(precosPersonalizados || {}).forEach(([servicoId, valor]) => {
         const numero = Number(valor);
-        if (Number.isFinite(numero) && numero > 0) precos[servicoId] = Number(numero.toFixed(2));
+        if (Number.isFinite(numero) && numero > 0) {
+            precos[servicoId] = Number(numero.toFixed(2));
+        }
     });
 
-    await updateDoc(doc(db, "barbearias", obterWorkspaceId(), "membros", uid), {
+    const atualizacao = {
         repassePct: Number(repasse.toFixed(2)),
-        taxaDebitoPct: debito,
-        taxaCreditoPct: credito,
         precosPersonalizados: precos,
         atualizadoEm: serverTimestamp()
-    });
+    };
+
+    // Taxas são opcionais no admin. Campo vazio significa "não alterar/não cadastrar".
+    if (debito !== null) atualizacao.taxaDebitoPct = debito;
+    if (credito !== null) atualizacao.taxaCreditoPct = credito;
+
+    await updateDoc(
+        doc(db, "barbearias", obterWorkspaceId(), "membros", uid),
+        atualizacao
+    );
     invalidarCacheEquipe();
 }
+

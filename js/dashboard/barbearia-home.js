@@ -1,10 +1,9 @@
 import { state } from "./state.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.14";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
 } from "./data/resumos-repository.js?v=7.4";
-import { obterWorkspaceId } from "./data/context.js?v=7.4";
 import {
     chaveData,
     dataDeInput,
@@ -52,16 +51,7 @@ function nomeMembro(membro, resumos = []) {
 }
 
 function membroEhDono(membro) {
-    if (membro?.dono === true) return true;
-
-    const uid = String(membro?.uid || membro?.id || "").trim();
-    const ambienteTeste = String(state.workspaceId || "").startsWith("teste-");
-
-    // Compatibilidade temporária do DEV atual: o cadastro antigo do Luan ainda não
-    // possui dono:true. Em produção esta exceção NÃO é usada.
-    return ambienteTeste
-        && uid === state.user?.uid
-        && state.membroAtual?.papel === "admin";
+    return membro?.dono === true;
 }
 
 function membrosAtivos(membros) {
@@ -270,21 +260,7 @@ function atualizarNavegadorData() {
     }
 }
 
-function ambientePodeUsarResumos() {
-    // Mantém esta etapa restrita ao DEV até a produção estar limpa/migrada.
-    return String(obterWorkspaceId() || "").startsWith("teste-");
-}
-
 async function carregarDados({ forcar = false } = {}) {
-    if (!ambientePodeUsarResumos()) {
-        renderResumo(consolidarBarbearia([], []), []);
-        setStatus(
-            "A Visão Geral por resumos está ativa somente no DEV nesta etapa. A produção continua protegida.",
-            "aviso"
-        );
-        return;
-    }
-
     const membros = membrosAtivos(
         (state.equipe || []).length
             ? state.equipe

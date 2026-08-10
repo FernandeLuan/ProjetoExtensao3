@@ -838,3 +838,197 @@ body.modal-equipe-aberto {
 .equipe-cadastro-financeiro{margin-top:0}
 .equipe-cadastro-financeiro .equipe-financeiro-body{padding-top:10px}
 .equipe-cadastro-taxas-grid{padding-top:0}
+
+
+/* v8.14 - Equipe expansível, cadastro e confirmações padronizadas */
+.equipe-grupo-titulo {
+    margin-bottom: 9px;
+    color: var(--text);
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.equipe-grupo-inativos {
+    margin-top: 20px;
+    padding-top: 2px;
+}
+
+.equipe-card {
+    padding: 0;
+    overflow: hidden;
+    opacity: 1;
+    border-radius: 14px;
+    background: var(--bg-card);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.equipe-card.desativado {
+    opacity: 1;
+}
+
+.equipe-card.expandido {
+    border-color: rgba(37, 99, 235, .28);
+}
+
+.equipe-card-toggle {
+    width: 100%;
+    min-height: 58px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 16px;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.equipe-card-toggle .equipe-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(37, 99, 235, .10);
+    color: var(--primary);
+    font-size: .78rem;
+}
+
+.equipe-card.desativado .equipe-card-toggle .equipe-avatar {
+    background: var(--bg);
+    color: var(--text-secondary);
+}
+
+.equipe-card-toggle .equipe-nome {
+    min-width: 0;
+    color: var(--text);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.equipe-card-chevron {
+    color: var(--text-secondary);
+    font-size: .66rem;
+    transition: transform .2s ease;
+}
+
+.equipe-card-toggle[aria-expanded="true"] .equipe-card-chevron {
+    transform: rotate(180deg);
+}
+
+.equipe-card-conteudo {
+    padding: 0 13px 13px;
+    border-top: 1px solid var(--border);
+}
+
+.equipe-card-conteudo[hidden] {
+    display: none !important;
+}
+
+.equipe-card-conteudo .equipe-meta {
+    margin-top: 0;
+    padding-top: 12px;
+    border-top: 0;
+}
+
+.equipe-meta-wide {
+    grid-column: 1 / -1;
+}
+
+.equipe-email-valor {
+    overflow-wrap: anywhere;
+}
+
+.equipe-card-conteudo .equipe-financeiro-resumo {
+    margin-top: 11px;
+}
+
+.equipe-card-conteudo .equipe-card-acoes {
+    margin-top: 10px;
+}
+
+.equipe-card-conteudo .equipe-action-btn {
+    min-height: 40px;
+    border-radius: 10px;
+}
+
+.equipe-field > span small {
+    color: var(--text-secondary);
+    font-size: .58rem;
+    font-weight: 400;
+}
+
+.equipe-field input.input-erro,
+.equipe-config-item .input-config.input-erro {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, .08);
+}
+
+.equipe-cadastro-actions {
+    margin-top: 2px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-card);
+}
+
+#btnCancelarAdicionarBarbeiro,
+#btnCriarAcessoBarbeiro {
+    min-height: 42px;
+    border-radius: 11px;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#btnCancelarAdicionarBarbeiro {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+}
+
+#btnCriarAcessoBarbeiro {
+    border: 0;
+    background: var(--primary);
+    color: #fff;
+}
+
+#btnCancelarAdicionarBarbeiro:disabled,
+#btnCriarAcessoBarbeiro:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+#btnCancelarStatusMembro {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+}
+
+#btnConfirmarStatusMembro {
+    border: 0;
+    background: var(--danger);
+    color: #fff;
+}
+
+#btnConfirmarStatusMembro.ativar {
+    background: var(--primary);
+}
+
+#btnCancelarStatusMembro:disabled,
+#btnConfirmarStatusMembro:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.equipe-status-confirm-box strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+@media (max-width: 380px) {
+    .equipe-card-conteudo .equipe-card-acoes {
+        grid-template-columns: 1fr;
+    }
+}
