@@ -588,7 +588,7 @@ body.modal-equipe-aberto {
 .equipe-precos-lista { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow: auto; }
 .equipe-preco-item { display: grid; grid-template-columns: minmax(0,1fr) 105px; gap: 7px; align-items: center; padding: 8px; border-radius: 10px; background: var(--bg); }
 .equipe-preco-item strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: .62rem; }
-.equipe-preco-item span { display: block; color: var(--text-secondary); font-size: .53rem; }
+.equipe-preco-item span { display: block; font-size: .53rem; }
 .equipe-preco-item input { width: 100%; min-height: 35px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text); padding: 7px; font: inherit; font-size: .62rem; text-align: right; }
 .equipe-financeiro-card { max-height: 88dvh; overflow: auto; }
 
@@ -1073,3 +1073,6 @@ body.modal-equipe-aberto {
 .equipe-preco-item .config-info { flex: 1 1 auto; min-width: 0; }
 .equipe-preco-item .config-nome { white-space: normal; overflow-wrap: anywhere; }
 .equipe-preco-item .config-action { flex: 0 0 82px; }
+
+/* v8.20 - preços personalizados seguem exatamente o espaçamento das Taxas. */
+.equipe-precos-lista.equipe-config-list{padding-top:10px}

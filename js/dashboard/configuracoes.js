@@ -24,6 +24,18 @@ const btnCancelarServico = document.getElementById("btnCancelarServico");
 const btnConfirmarServico = document.getElementById("btnConfirmarServico");
 let servicoParaExcluir = null;
 
+const ordemCardsLista = document.getElementById("configOrdemCardsLista");
+const btnRestaurarOrdemCards = document.getElementById("btnRestaurarOrdemCards");
+const ordemCardsStatus = document.getElementById("ordemCardsStatus");
+const ORDEM_CARDS_PADRAO = ["resumo", "indicadores", "despesas", "servico"];
+const CARDS_VISAO = {
+    resumo: { nome: "Resumo financeiro", detalhe: "Lucro líquido + faturamento", icone: "fa-wallet" },
+    indicadores: { nome: "Indicadores", detalhe: "Ticket médio + atendimentos", icone: "fa-chart-simple" },
+    despesas: { nome: "Despesa da barbearia", detalhe: "Gastos administrativos do dia", icone: "fa-receipt" },
+    servico: { nome: "Serviço mais vendido", detalhe: "Destaque de vendas do dia", icone: "fa-star" }
+};
+
+
 function gerarIdServico(nome) {
     const slug = String(nome || "servico")
         .normalize("NFD")
@@ -280,9 +292,68 @@ function renderizarPagamentos() {
     });
 }
 
+function normalizarOrdemCards(ordem = state.configSistema?.ordemCardsVisaoGeral) {
+    const validos = Array.isArray(ordem)
+        ? ordem.filter((chave, indice, lista) => ORDEM_CARDS_PADRAO.includes(chave) && lista.indexOf(chave) === indice)
+        : [];
+    ORDEM_CARDS_PADRAO.forEach((chave) => {
+        if (!validos.includes(chave)) validos.push(chave);
+    });
+    return validos;
+}
+
+async function salvarOrdemCards(ordem, mensagem = "Ordem da Visão Geral atualizada.") {
+    const novaOrdem = normalizarOrdemCards(ordem);
+    if (ordemCardsStatus) setStatus(ordemCardsStatus, "Salvando...");
+    try {
+        await persistirConfig({ ...state.configSistema, ordemCardsVisaoGeral: novaOrdem }, mensagem);
+        if (ordemCardsStatus) {
+            setStatus(ordemCardsStatus, "Ordem salva ✓");
+            setTimeout(() => setStatus(ordemCardsStatus, ""), 1800);
+        }
+    } catch (error) {
+        console.error(error);
+        if (ordemCardsStatus) setStatus(ordemCardsStatus, "Não foi possível salvar.", true);
+    }
+}
+
+function renderizarOrdemCards() {
+    if (!ordemCardsLista) return;
+    const ordem = normalizarOrdemCards();
+    ordemCardsLista.innerHTML = "";
+
+    ordem.forEach((chave, indice) => {
+        const meta = CARDS_VISAO[chave];
+        const item = document.createElement("div");
+        item.className = "config-order-item";
+        item.innerHTML = `
+            <span class="config-order-icon"><i class="fas ${meta.icone}"></i></span>
+            <span class="config-order-copy"><strong>${meta.nome}</strong><span>${meta.detalhe}</span></span>
+            <span class="config-order-actions">
+                <button type="button" data-order-up aria-label="Mover ${meta.nome} para cima" ${indice === 0 ? "disabled" : ""}><i class="fas fa-chevron-up"></i></button>
+                <button type="button" data-order-down aria-label="Mover ${meta.nome} para baixo" ${indice === ordem.length - 1 ? "disabled" : ""}><i class="fas fa-chevron-down"></i></button>
+            </span>`;
+
+        item.querySelector("[data-order-up]")?.addEventListener("click", async () => {
+            if (indice <= 0) return;
+            const nova = [...ordem];
+            [nova[indice - 1], nova[indice]] = [nova[indice], nova[indice - 1]];
+            await salvarOrdemCards(nova);
+        });
+        item.querySelector("[data-order-down]")?.addEventListener("click", async () => {
+            if (indice >= ordem.length - 1) return;
+            const nova = [...ordem];
+            [nova[indice + 1], nova[indice]] = [nova[indice], nova[indice + 1]];
+            await salvarOrdemCards(nova);
+        });
+        ordemCardsLista.appendChild(item);
+    });
+}
+
 function renderizarTudo() {
     renderizarServicos();
     renderizarPagamentos();
+    renderizarOrdemCards();
     const versao = document.getElementById("appVersion");
     if (versao) versao.textContent = `v${APP_VERSION}`;
 }
@@ -404,6 +475,15 @@ export function initConfiguracoes() {
         aplicarMascaraMoedaInput(novoServicoPreco);
     });
     btnSalvarNovoServico?.addEventListener("click", adicionarServico);
+
+    btnRestaurarOrdemCards?.addEventListener("click", async () => {
+        btnRestaurarOrdemCards.disabled = true;
+        try {
+            await salvarOrdemCards(ORDEM_CARDS_PADRAO, "Ordem padrão restaurada.");
+        } finally {
+            btnRestaurarOrdemCards.disabled = false;
+        }
+    });
 
     btnCancelarServico?.addEventListener("click", fecharModalExclusaoServico);
     btnConfirmarServico?.addEventListener("click", confirmarExclusaoServico);

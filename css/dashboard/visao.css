@@ -438,3 +438,19 @@
 .barbearia-home .finance-info-btn {
     flex: 0 0 auto;
 }
+
+
+/* v8.20 - blocos da Visão Geral podem ser reordenados pelo administrador. */
+.barbearia-home-cards-order {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.barbearia-home-cards-order > .barbearia-finance-overview,
+.barbearia-home-cards-order > .barbearia-expense-card,
+.barbearia-home-cards-order > .barbearia-service-card {
+    margin-bottom: 0;
+}
+.barbearia-home-cards-order > .barbearia-mini-grid {
+    margin-bottom: 0;
+}

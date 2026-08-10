@@ -899,23 +899,36 @@
 }
 
 
-/* v8.19 - o input date fica sobre o ícone para o toque ser nativo também no iOS. */
-.historico-data-nav .painel-data-center { position: relative; }
-.historico-data-nav .painel-date-picker {
-    position: absolute;
-    left: auto;
-    right: 4px;
-    top: 50%;
-    bottom: auto;
+/* v8.20 - o input date cobre exatamente o botão visível.
+   Evita deslocamento/vazamento do alvo no Safari/iOS. */
+.historico-calendar-control {
+    position: relative;
     width: 32px;
     height: 32px;
-    transform: translateY(-50%);
+    flex: 0 0 32px;
+}
+.historico-calendar-control .painel-calendar-btn {
+    position: absolute;
+    inset: 0;
+    width: 32px;
+    height: 32px;
+    pointer-events: none;
+}
+.historico-calendar-control .painel-date-picker {
+    position: absolute;
+    inset: 0;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border: 0;
     opacity: 0;
     pointer-events: auto;
-    z-index: 4;
+    z-index: 5;
     cursor: pointer;
+    transform: none;
 }
-.historico-data-nav .painel-date-picker::-webkit-calendar-picker-indicator {
+.historico-calendar-control .painel-date-picker::-webkit-calendar-picker-indicator {
     position: absolute;
     inset: 0;
     width: 100%;

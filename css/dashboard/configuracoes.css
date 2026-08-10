@@ -486,7 +486,7 @@
 .config-group { border-radius:12px; box-shadow:none; }
 .config-group-toggle { min-height:54px; grid-template-columns:32px minmax(0,1fr) 20px; gap:8px; padding:8px 10px; }
 .config-group-icon { width:31px; height:31px; border-radius:9px; font-size:.74rem; }
-.config-group-copy strong { font-size:0.86rem; }
+.config-group-copy strong { font-size:.76rem; }
 .config-group-copy small { font-size:.58rem; }
 .config-group-content { padding:10px; }
 .config-list { gap:7px; }
@@ -513,3 +513,85 @@
     display: none;
     -webkit-appearance: none;
 }
+
+
+/* v8.20 - ordem dos cards da Visão Geral */
+.config-order-help {
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+    font-size: .64rem;
+    line-height: 1.45;
+}
+.config-order-list {
+    display: grid;
+    gap: 7px;
+}
+.config-order-item {
+    min-height: 50px;
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+}
+.config-order-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: rgba(37, 99, 235, .09);
+    color: var(--primary);
+    font-size: .72rem;
+}
+.config-order-copy { min-width: 0; }
+.config-order-copy strong,
+.config-order-copy span { display: block; }
+.config-order-copy strong {
+    color: var(--text);
+    font-size: .72rem;
+    font-weight: 600;
+}
+.config-order-copy span {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: .58rem;
+}
+.config-order-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.config-order-actions button {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg-card);
+    color: var(--primary);
+    cursor: pointer;
+}
+.config-order-actions button:disabled {
+    opacity: .28;
+    color: var(--text-secondary);
+    cursor: default;
+}
+.config-order-reset {
+    width: 100%;
+    min-height: 39px;
+    margin-top: 9px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: .66rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.config-order-reset i { margin-right: 5px; color: var(--primary); }

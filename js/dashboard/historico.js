@@ -7,7 +7,7 @@ import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoSer
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
 import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=7.4";
 import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
-import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=7.4";
+import { escaparHtml } from "./utils/dom.js?v=7.4";
 import { mostrarErro } from "./services/feedback-service.js?v=7.4";
 
 const historicoContainer = document.getElementById("historicoContainer");
@@ -560,7 +560,6 @@ btnConfirmar?.addEventListener("click", async () => {
 
 btnHistoricoAnterior?.addEventListener("click",()=>selecionarDataHistorico(somarDias(dataHistoricoSelecionada,-1)));
 btnHistoricoProxima?.addEventListener("click",()=>{if(!mesmoDia(dataHistoricoSelecionada,inicioDoDia(new Date())))selecionarDataHistorico(somarDias(dataHistoricoSelecionada,1));});
-btnCalendarioHistorico?.addEventListener("click",()=>abrirSeletorData(inputDataHistorico));
 inputDataHistorico?.addEventListener("change",()=>{const d=dataDeInput(inputDataHistorico?.value);if(d)selecionarDataHistorico(d);});
 historicoBusca?.addEventListener("input",atualizarHistorico);
 btnAbrirFiltrosHistorico?.addEventListener("click",abrirFiltrosHistorico);

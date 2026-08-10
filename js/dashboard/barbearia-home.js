@@ -17,6 +17,29 @@ let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
 let eventosConfigurados = false;
 
+const ORDEM_CARDS_PADRAO = ["resumo", "indicadores", "despesas", "servico"];
+
+function normalizarOrdemCards(ordem = state.configSistema?.ordemCardsVisaoGeral) {
+    const validos = Array.isArray(ordem)
+        ? ordem.filter((chave, indice, lista) => ORDEM_CARDS_PADRAO.includes(chave) && lista.indexOf(chave) === indice)
+        : [];
+    ORDEM_CARDS_PADRAO.forEach((chave) => { if (!validos.includes(chave)) validos.push(chave); });
+    return validos;
+}
+
+function aplicarOrdemCardsVisaoGeral() {
+    const container = document.getElementById("barbeariaHomeCardsOrdenaveis");
+    if (!container) return;
+    const elementos = new Map(
+        [...container.querySelectorAll(":scope > [data-visao-card]")].map((item) => [item.dataset.visaoCard, item])
+    );
+    normalizarOrdemCards().forEach((chave) => {
+        const item = elementos.get(chave);
+        if (item) container.appendChild(item);
+    });
+}
+
+
 function el(id) {
     return document.getElementById(id);
 }
@@ -201,6 +224,7 @@ function escapeHtml(valor) {
 }
 
 function renderResumo(total, profissionais) {
+    aplicarOrdemCardsVisaoGeral();
     if (el("barbeariaHomeLucro")) {
         el("barbeariaHomeLucro").textContent = moeda(total.lucroLiquido);
     }
