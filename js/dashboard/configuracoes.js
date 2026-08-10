@@ -35,6 +35,17 @@ const CARDS_VISAO = {
     servico: { nome: "Serviço mais vendido", detalhe: "Destaque de vendas do dia", icone: "fa-star" }
 };
 
+const ordemNavLista = document.getElementById("configOrdemNavLista");
+const btnRestaurarOrdemNav = document.getElementById("btnRestaurarOrdemNav");
+const ordemNavStatus = document.getElementById("ordemNavStatus");
+const ORDEM_NAV_PADRAO = ["barbeariaHome", "historico", "equipe", "relatorios"];
+const NAV_BARBEARIA = {
+    barbeariaHome: { nome: "Visão geral", detalhe: "Resumo da barbearia", icone: "fa-store" },
+    historico: { nome: "Histórico", detalhe: "Atendimentos registrados", icone: "fa-clock-rotate-left" },
+    equipe: { nome: "Equipe", detalhe: "Profissionais e acessos", icone: "fa-users" },
+    relatorios: { nome: "Relatório", detalhe: "Indicadores e períodos", icone: "fa-file-lines" }
+};
+
 
 function gerarIdServico(nome) {
     const slug = String(nome || "servico")
@@ -350,10 +361,70 @@ function renderizarOrdemCards() {
     });
 }
 
+function normalizarOrdemNav(ordem = state.configSistema?.ordemNavBarbearia) {
+    const validos = Array.isArray(ordem)
+        ? ordem.filter((chave, indice, lista) => ORDEM_NAV_PADRAO.includes(chave) && lista.indexOf(chave) === indice)
+        : [];
+    ORDEM_NAV_PADRAO.forEach((chave) => {
+        if (!validos.includes(chave)) validos.push(chave);
+    });
+    return validos.slice(0, ORDEM_NAV_PADRAO.length);
+}
+
+async function salvarOrdemNav(ordem, mensagem = "Ordem da navegação atualizada.") {
+    const novaOrdem = normalizarOrdemNav(ordem);
+    if (ordemNavStatus) setStatus(ordemNavStatus, "Salvando...");
+    try {
+        await persistirConfig({ ...state.configSistema, ordemNavBarbearia: novaOrdem }, mensagem);
+        if (ordemNavStatus) {
+            setStatus(ordemNavStatus, "Ordem salva ✓");
+            setTimeout(() => setStatus(ordemNavStatus, ""), 1800);
+        }
+    } catch (error) {
+        console.error(error);
+        if (ordemNavStatus) setStatus(ordemNavStatus, "Não foi possível salvar.", true);
+    }
+}
+
+function renderizarOrdemNav() {
+    if (!ordemNavLista) return;
+    const ordem = normalizarOrdemNav();
+    ordemNavLista.innerHTML = "";
+
+    ordem.forEach((chave, indice) => {
+        const meta = NAV_BARBEARIA[chave];
+        const item = document.createElement("div");
+        item.className = "config-order-item";
+        item.innerHTML = `
+            <span class="config-order-icon"><i class="fas ${meta.icone}"></i></span>
+            <span class="config-order-copy"><strong>${meta.nome}</strong><span>${meta.detalhe}</span></span>
+            <span class="config-order-actions">
+                <button type="button" data-nav-up aria-label="Mover ${meta.nome} para cima" ${indice === 0 ? "disabled" : ""}><i class="fas fa-chevron-up"></i></button>
+                <button type="button" data-nav-down aria-label="Mover ${meta.nome} para baixo" ${indice === ordem.length - 1 ? "disabled" : ""}><i class="fas fa-chevron-down"></i></button>
+            </span>`;
+
+        item.querySelector("[data-nav-up]")?.addEventListener("click", async () => {
+            if (indice <= 0) return;
+            const nova = [...ordem];
+            [nova[indice - 1], nova[indice]] = [nova[indice], nova[indice - 1]];
+            await salvarOrdemNav(nova);
+        });
+        item.querySelector("[data-nav-down]")?.addEventListener("click", async () => {
+            if (indice >= ordem.length - 1) return;
+            const nova = [...ordem];
+            [nova[indice + 1], nova[indice]] = [nova[indice], nova[indice + 1]];
+            await salvarOrdemNav(nova);
+        });
+
+        ordemNavLista.appendChild(item);
+    });
+}
+
 function renderizarTudo() {
     renderizarServicos();
     renderizarPagamentos();
     renderizarOrdemCards();
+    renderizarOrdemNav();
     const versao = document.getElementById("appVersion");
     if (versao) versao.textContent = `v${APP_VERSION}`;
 }
@@ -482,6 +553,15 @@ export function initConfiguracoes() {
             await salvarOrdemCards(ORDEM_CARDS_PADRAO, "Ordem padrão restaurada.");
         } finally {
             btnRestaurarOrdemCards.disabled = false;
+        }
+    });
+
+    btnRestaurarOrdemNav?.addEventListener("click", async () => {
+        btnRestaurarOrdemNav.disabled = true;
+        try {
+            await salvarOrdemNav(ORDEM_NAV_PADRAO, "Navegação padrão restaurada.");
+        } finally {
+            btnRestaurarOrdemNav.disabled = false;
         }
     });
 

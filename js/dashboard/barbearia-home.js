@@ -1,5 +1,5 @@
 import { state } from "./state.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.18";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.21";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
@@ -12,6 +12,7 @@ import {
     mesmoDia,
     somarDias
 } from "./utils/date.js?v=7.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.21";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -201,14 +202,14 @@ function renderEquipe(profissionais) {
     }
 
     lista.innerHTML = comMovimento.map((item) => `
-        <div class="barbearia-home-equipe-item">
-            <div class="barbearia-home-equipe-nome">
+        <div class="relatorio-equipe-item barbearia-home-equipe-item">
+            <div>
                 <strong>${escapeHtml(item.nome)}</strong>
-                <small>${item.atendimentos} atendimento${item.atendimentos === 1 ? "" : "s"}</small>
+                <span>${item.atendimentos} atendimento${item.atendimentos === 1 ? "" : "s"}</span>
             </div>
-            <div class="barbearia-home-equipe-valor">
+            <div>
                 <strong>${moeda(item.faturamento)}</strong>
-                <small>bruto</small>
+                <span>Bruto</span>
             </div>
         </div>
     `).join("");
@@ -378,11 +379,16 @@ function configurarEventos() {
     const calendario = el("btnCalendarioBarbeariaHome");
 
     calendario?.addEventListener("click", () => {
-        if (!input) return;
-        if (typeof input.showPicker === "function") input.showPicker();
-        else input.click();
+        abrirCalendarioPopover({
+            ancora: calendario,
+            data: dataSelecionada,
+            max: new Date(),
+            titulo: "Visão Geral",
+            onSelect: (data) => void selecionarData(data)
+        });
     });
 
+    // Mantido como fallback sem depender do seletor nativo.
     input?.addEventListener("change", () => {
         const escolhida = dataDeInput(input.value);
         if (escolhida) void selecionarData(escolhida);

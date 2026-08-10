@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.20" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.21" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -90,7 +90,7 @@
 <div class="finance-summary-row barbearia-faturamento-row">
 <div class="finance-summary-item">
 <div class="finance-summary-label">
-<span>Faturamento</span>
+<span><i class="fas fa-sack-dollar" aria-hidden="true"></i> Faturamento</span>
 <button aria-label="O que é faturamento da barbearia?" class="finance-info-btn" data-info="Soma bruta dos atendimentos de toda a equipe antes de taxas e repasses." type="button">
 <i class="fas fa-circle-info"></i>
 </button>
@@ -103,7 +103,7 @@
 <div class="finance-mini-grid barbearia-mini-grid" data-visao-card="indicadores">
 <article class="finance-card finance-mini-card barbearia-mini-card">
 <div class="finance-label-row">
-<span class="finance-label">Ticket médio</span>
+<span class="finance-label"><i class="fas fa-chart-simple" aria-hidden="true"></i> Ticket médio</span>
 <button aria-label="O que é ticket médio da barbearia?" class="finance-info-btn" data-info="Valor médio bruto faturado por atendimento da equipe no dia selecionado." type="button">
 <i class="fas fa-circle-info"></i>
 </button>
@@ -113,7 +113,7 @@
 
 <article class="finance-card finance-mini-card barbearia-mini-card">
 <div class="finance-label-row">
-<span class="finance-label">Atendimentos</span>
+<span class="finance-label"><i class="fas fa-scissors" aria-hidden="true"></i> Atendimentos</span>
 <button aria-label="O que são os atendimentos da barbearia?" class="finance-info-btn" data-info="Quantidade total de atendimentos realizados pela equipe no dia selecionado." type="button">
 <i class="fas fa-circle-info"></i>
 </button>
@@ -125,15 +125,12 @@
 <article class="finance-card barbearia-expense-card" data-visao-card="despesas">
 <div class="barbearia-expense-content">
 <div class="finance-label-row">
-<span class="finance-label">Despesa da barbearia</span>
+<span class="finance-label"><i class="fas fa-receipt" aria-hidden="true"></i> Despesa da barbearia</span>
 <button aria-label="O que é despesa da barbearia?" class="finance-info-btn" data-info="Total dos gastos lançados como despesa da barbearia no dia selecionado. Despesas pessoais dos profissionais não entram aqui." type="button">
 <i class="fas fa-circle-info"></i>
 </button>
 </div>
 <strong id="barbeariaHomeDespesas">R$ 0,00</strong>
-</div>
-<div aria-hidden="true" class="barbearia-expense-icon">
-<i class="fas fa-receipt"></i>
 </div>
 </article>
 
@@ -155,12 +152,12 @@
 </div>
 
 <article class="barbearia-home-equipe-card">
-<div class="barbearia-home-section-head">
+<div class="relatorio-card-head barbearia-home-equipe-head">
 <div>
-<span class="barbearia-home-kicker">Equipe</span>
-<strong>Produção do dia</strong>
+<h3>Equipe</h3>
+<p>Produção do dia • <span id="barbeariaHomeEquipeTotal">0 profissionais</span></p>
 </div>
-<span class="barbearia-home-equipe-total" id="barbeariaHomeEquipeTotal">0 profissionais</span>
+<i class="fas fa-users" aria-hidden="true"></i>
 </div>
 <div class="barbearia-home-equipe-lista" id="barbeariaHomeEquipeLista">
 <div class="barbearia-home-vazio">Nenhum atendimento registrado neste dia.</div>
@@ -486,10 +483,10 @@
         Hoje
     </span>
 <div class="painel-calendar-control historico-calendar-control">
-<button aria-hidden="true" class="painel-calendar-btn" id="btnCalendarioHistorico" tabindex="-1" type="button">
+<button aria-label="Escolher uma data no calendário" class="painel-calendar-btn" id="btnCalendarioHistorico" type="button">
 <i aria-hidden="true" class="fas fa-calendar-days"></i>
 </button>
-<input aria-label="Escolher uma data no calendário" class="painel-date-picker" id="inputDataHistorico" type="date"/>
+<input aria-hidden="true" class="painel-date-picker" id="inputDataHistorico" tabindex="-1" type="date"/>
 </div>
 </div>
 <button aria-label="Ver próximo dia" class="painel-data-btn" id="btnHistoricoProxima" type="button">
@@ -557,6 +554,20 @@
 <div class="config-order-list" id="configOrdemCardsLista"></div>
 <button class="config-order-reset" id="btnRestaurarOrdemCards" type="button"><i class="fas fa-rotate-left"></i> Restaurar ordem padrão</button>
 <div aria-live="polite" class="config-save-status" id="ordemCardsStatus"></div>
+</div>
+</div>
+
+<div class="config-group">
+<button aria-controls="configGroupOrdemNav" aria-expanded="false" class="config-group-toggle" data-config-group="ordem-nav" type="button">
+<span class="config-group-icon"><i class="fas fa-grip"></i></span>
+<span class="config-group-copy"><strong>Ordem da navegação</strong><small>Organize os atalhos da visão Barbearia</small></span>
+<i class="fas fa-chevron-down config-group-chevron"></i>
+</button>
+<div class="config-group-content" hidden id="configGroupOrdemNav">
+<p class="config-order-help">Os quatro atalhos são obrigatórios. O botão Menu permanece fixo na última posição.</p>
+<div class="config-order-list" id="configOrdemNavLista"></div>
+<button class="config-order-reset" id="btnRestaurarOrdemNav" type="button"><i class="fas fa-rotate-left"></i> Restaurar ordem padrão</button>
+<div aria-live="polite" class="config-save-status" id="ordemNavStatus"></div>
 </div>
 </div>
 
@@ -1122,7 +1133,7 @@ Aparência
 
         <div class="equipe-modal-success-copy">
             <h3 id="tituloAcessoCriado">Acesso criado</h3>
-            <p>Envie estes dados ao novo barbeiro. A senha precisará ser alterada no primeiro acesso.</p>
+            <p id="acessoCriadoDescricao">Envie estes dados ao novo barbeiro. A senha precisará ser alterada no primeiro acesso.</p>
         </div>
 
         <div class="equipe-credentials">
@@ -1134,7 +1145,7 @@ Aparência
                 <span>E-mail</span>
                 <strong id="acessoCriadoEmail">—</strong>
             </div>
-            <div>
+            <div id="acessoCriadoSenhaLinha">
                 <span>Senha temporária</span>
                 <strong id="acessoCriadoSenha" class="equipe-password-value">—</strong>
             </div>
@@ -1217,8 +1228,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.20" defer></script>
-<script src="js/dashboard/index.js?v=8.20" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.21" defer></script>
+<script src="js/dashboard/index.js?v=8.21" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

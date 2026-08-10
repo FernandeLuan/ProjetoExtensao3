@@ -454,3 +454,57 @@
 .barbearia-home-cards-order > .barbearia-mini-grid {
     margin-bottom: 0;
 }
+
+/* v8.21 - detalhes da Visão Geral alinhados ao Relatório. */
+.barbearia-home .finance-label > i,
+.barbearia-home .finance-summary-label > span > i {
+    margin-right: 5px;
+    color: var(--text-secondary);
+    font-size: .68rem;
+}
+
+.barbearia-expense-card {
+    display: block;
+}
+
+.barbearia-home-equipe-card {
+    padding: 14px;
+}
+
+.barbearia-home-equipe-head {
+    margin-bottom: 10px;
+}
+
+.barbearia-home-equipe-head p span {
+    color: inherit;
+}
+
+.barbearia-home-equipe-lista {
+    gap: 7px;
+}
+
+/* Reusa o mesmo desenho das linhas de equipe do Relatório, sem padding extra. */
+.barbearia-home-equipe-lista .relatorio-equipe-item {
+    padding: 0;
+}
+
+.barbearia-home-equipe-item {
+    border-top: 1px solid var(--border);
+    padding-top: 8px !important;
+}
+
+.barbearia-home-equipe-item:first-child {
+    border-top: 0;
+    padding-top: 0 !important;
+}
+
+.barbearia-home-data-nav .painel-date-picker {
+    display: none !important;
+}
+
+/* v8.21.1 - na Visão Geral a linha usa exatamente a composição do Relatório, sem padding extra. */
+.barbearia-home-equipe-lista .barbearia-home-equipe-item,
+.barbearia-home-equipe-lista .barbearia-home-equipe-item:first-child {
+    padding: 0 !important;
+    border-top: 0;
+}

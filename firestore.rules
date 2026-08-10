@@ -183,6 +183,29 @@ service cloud.firestore {
               && request.resource.data.ativo == false
               && request.resource.data.removido == true
             )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "nome",
+                "ativo",
+                "removido",
+                "repassePct",
+                "taxaDebitoPct",
+                "taxaCreditoPct",
+                "precosPersonalizados",
+                "atualizadoEm"
+              ])
+              && uid != request.auth.uid
+              && resource.data.papel == "barber"
+              && resource.data.get("removido", false) == true
+              && resource.data.ativo == false
+              && request.resource.data.ativo == true
+              && request.resource.data.removido == false
+              && request.resource.data.nome is string
+              && validRepasse(request.resource.data.get("repassePct", 0))
+              && validCardRate(request.resource.data.get("taxaDebitoPct", 0))
+              && validCardRate(request.resource.data.get("taxaCreditoPct", 0))
+              && request.resource.data.get("precosPersonalizados", {}) is map
+            )
           )
         ) || (
           signedIn()

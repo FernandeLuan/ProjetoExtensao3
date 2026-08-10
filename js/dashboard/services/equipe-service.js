@@ -17,8 +17,9 @@ import {
 
 import {
     criarAcessoBarbeiroNoBanco,
-    listarMembrosEquipe
-} from "../data/equipe-repository.js?v=8.18";
+    listarMembrosEquipe,
+    restaurarMembroRemovido
+} from "../data/equipe-repository.js?v=8.21";
 
 function normalizarComparacao(valor) {
     return String(valor || "")
@@ -29,22 +30,23 @@ function normalizarComparacao(valor) {
         .replace(/\s+/g, " ");
 }
 
-async function validarDuplicidadeEquipe(nome, email) {
+async function analisarDuplicidadeEquipe(nome, email) {
     const membros = await listarMembrosEquipe({ forcar: true });
     const nomeNormalizado = normalizarComparacao(nome);
     const emailNormalizado = String(email || "").trim().toLowerCase();
 
+    // Cadastros realmente removidos não reservam o nome.
     const nomeDuplicado = membros.find(
-        (membro) => normalizarComparacao(membro?.nome) === nomeNormalizado
+        (membro) =>
+            membro?.removido !== true
+            && normalizarComparacao(membro?.nome) === nomeNormalizado
     );
 
     if (nomeDuplicado) {
         const error = new Error(
-            nomeDuplicado?.removido === true
-                ? "Já existe um usuário com este nome."
-                : nomeDuplicado.ativo === false
-                    ? "Já existe um membro com este nome. Ative o cadastro existente em Membros inativos."
-                    : "Já existe um usuário com este nome."
+            nomeDuplicado.ativo === false
+                ? "Já existe um membro com este nome. Ative o cadastro existente em Membros inativos."
+                : "Já existe um usuário com este nome."
         );
         error.code = "equipe/nome-duplicado";
         error.campo = "nome";
@@ -52,21 +54,32 @@ async function validarDuplicidadeEquipe(nome, email) {
     }
 
     const emailDuplicado = membros.find(
-        (membro) => String(membro?.email || "").trim().toLowerCase() === emailNormalizado
+        (membro) =>
+            membro?.removido !== true
+            && String(membro?.email || "").trim().toLowerCase() === emailNormalizado
     );
 
     if (emailDuplicado) {
         const error = new Error(
-            emailDuplicado?.removido === true
-                ? "Já existe um usuário com este e-mail."
-                : emailDuplicado.ativo === false
-                    ? "Já existe um membro com este e-mail. Ative o cadastro existente em Membros inativos."
-                    : "Já existe um usuário com este e-mail."
+            emailDuplicado.ativo === false
+                ? "Já existe um membro com este e-mail. Ative o cadastro existente em Membros inativos."
+                : "Já existe um usuário com este e-mail."
         );
         error.code = "equipe/email-duplicado";
         error.campo = "email";
         throw error;
     }
+
+    // A conta do Firebase Authentication não é apagada pelo navegador quando o
+    // administrador remove um membro. Se o mesmo e-mail voltar a ser cadastrado,
+    // restauramos o mesmo UID em vez de tentar criar uma segunda conta no Auth.
+    const removidoComMesmoEmail = membros.find(
+        (membro) =>
+            membro?.removido === true
+            && String(membro?.email || "").trim().toLowerCase() === emailNormalizado
+    );
+
+    return { removidoComMesmoEmail };
 }
 
 export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDebitoPct, taxaCreditoPct, repassePct }) {
@@ -85,7 +98,26 @@ export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDe
         throw new Error("A senha temporária precisa ter pelo menos 6 caracteres.");
     }
 
-    await validarDuplicidadeEquipe(nomeLimpo, emailLimpo);
+    const { removidoComMesmoEmail } = await analisarDuplicidadeEquipe(nomeLimpo, emailLimpo);
+
+    if (removidoComMesmoEmail) {
+        const restaurado = await restaurarMembroRemovido({
+            uid: removidoComMesmoEmail.uid || removidoComMesmoEmail.id,
+            nome: nomeLimpo,
+            taxaDebitoPct,
+            taxaCreditoPct,
+            repassePct
+        });
+
+        return {
+            uid: restaurado.uid,
+            nome: nomeLimpo,
+            email: emailLimpo,
+            senhaTemporaria: null,
+            restaurado: true,
+            primeiroAcessoPendente: restaurado.primeiroAcessoPendente
+        };
+    }
 
     const appSecundario = initializeApp(
         firebaseConfig,

@@ -5,8 +5,8 @@ import {
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.18";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.18";
+} from "./data/equipe-repository.js?v=8.21";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.21";
 import { obterServicos } from "./services/catalogo-service.js?v=8.16";
 import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.12";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
@@ -47,6 +47,9 @@ const modalAcessoCriado = document.getElementById("modalAcessoCriado");
 const acessoCriadoNome = document.getElementById("acessoCriadoNome");
 const acessoCriadoEmail = document.getElementById("acessoCriadoEmail");
 const acessoCriadoSenha = document.getElementById("acessoCriadoSenha");
+const acessoCriadoSenhaLinha = document.getElementById("acessoCriadoSenhaLinha");
+const tituloAcessoCriado = document.getElementById("tituloAcessoCriado");
+const acessoCriadoDescricao = document.getElementById("acessoCriadoDescricao");
 const btnCopiarAcesso = document.getElementById("btnCopiarAcesso");
 const btnCompartilharAcesso = document.getElementById("btnCompartilharAcesso");
 const btnFecharAcessoCriado = document.getElementById("btnFecharAcessoCriado");
@@ -222,9 +225,21 @@ function fecharModalAdicionar() {
 
 function abrirModalAcessoCriado(acesso) {
     ultimoAcessoCriado = acesso;
+    const restaurado = acesso?.restaurado === true;
+
     if (acessoCriadoNome) acessoCriadoNome.textContent = acesso.nome;
     if (acessoCriadoEmail) acessoCriadoEmail.textContent = acesso.email;
-    if (acessoCriadoSenha) acessoCriadoSenha.textContent = acesso.senhaTemporaria;
+    if (acessoCriadoSenha) acessoCriadoSenha.textContent = acesso.senhaTemporaria || "—";
+    if (acessoCriadoSenhaLinha) acessoCriadoSenhaLinha.hidden = restaurado;
+
+    if (tituloAcessoCriado) {
+        tituloAcessoCriado.textContent = restaurado ? "Acesso restaurado" : "Acesso criado";
+    }
+    if (acessoCriadoDescricao) {
+        acessoCriadoDescricao.textContent = restaurado
+            ? "Este e-mail já possuía uma conta. O mesmo acesso foi restaurado para preservar o histórico e o UID do profissional."
+            : "Envie estes dados ao novo barbeiro. A senha precisará ser alterada no primeiro acesso.";
+    }
 
     if (modalAcessoCriado) {
         modalAcessoCriado.hidden = false;
@@ -239,6 +254,17 @@ function fecharModalAcessoCriado() {
 }
 
 function montarTextoAcesso(acesso) {
+    if (acesso?.restaurado === true) {
+        return [
+            "Seu acesso ao Sr NK foi restaurado.",
+            "",
+            `Nome: ${acesso.nome}`,
+            `E-mail: ${acesso.email}`,
+            "",
+            "Use a senha que já utilizava. Se não lembrar, escolha “Esqueci minha senha” na tela de login."
+        ].join("\n");
+    }
+
     return [
         "Seu acesso ao Sr NK foi criado.",
         "",

@@ -6,7 +6,8 @@ import {
     getDocs,
     updateDoc,
     writeBatch,
-    serverTimestamp
+    serverTimestamp,
+    deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { SCHEMA_VERSION } from "../constants.js?v=7.4";
@@ -235,6 +236,72 @@ export async function excluirMembroInativo(uid) {
     invalidarCacheEquipe();
 }
 
+export async function restaurarMembroRemovido({
+    uid,
+    nome,
+    taxaDebitoPct = null,
+    taxaCreditoPct = null,
+    repassePct
+}) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode restaurar membros da equipe.");
+    if (!uid) throw new Error("Membro inválido.");
+
+    const workspaceId = obterWorkspaceId();
+    const membroRef = doc(db, "barbearias", workspaceId, "membros", uid);
+    const membroSnap = await getDoc(membroRef);
+    registrarConsultaFirestore("equipe/restaurar-membro", 1);
+
+    if (!membroSnap.exists()) throw new Error("Cadastro removido não encontrado.");
+
+    const membro = membroSnap.data();
+    if (papelEhAdmin(membro.papel)) throw new Error("Um administrador não pode ser restaurado por esta ação.");
+    if (membro.removido !== true) throw new Error("Este cadastro não está removido.");
+
+    const repasse = Number(repassePct);
+    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) {
+        throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
+    }
+
+    const debito = validarTaxaProfissionalOpcional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissionalOpcional(taxaCreditoPct, "crédito");
+    const nomeLimpo = String(nome || "").trim().replace(/\s+/g, " ").slice(0, 60);
+
+    if (nomeLimpo.length < 2) {
+        const error = new Error("Informe o nome do profissional.");
+        error.campo = "nome";
+        throw error;
+    }
+
+    const atualizacaoMembro = {
+        nome: nomeLimpo,
+        ativo: true,
+        removido: false,
+        repassePct: Number(repasse.toFixed(2)),
+        precosPersonalizados: {},
+        atualizadoEm: serverTimestamp(),
+        taxaDebitoPct: debito === null ? deleteField() : debito,
+        taxaCreditoPct: credito === null ? deleteField() : credito
+    };
+
+    const batch = writeBatch(db);
+    batch.update(membroRef, atualizacaoMembro);
+
+    // O documento em usuarios continua existindo enquanto a conta permanece no Auth.
+    // Atualizamos apenas o nome, permitido pelas regras administrativas atuais.
+    batch.update(doc(db, "usuarios", uid), {
+        nome: nomeLimpo,
+        atualizadoEm: serverTimestamp()
+    });
+
+    await batch.commit();
+    invalidarCacheEquipe();
+
+    return {
+        uid,
+        primeiroAcessoPendente: membro.primeiroAcessoPendente === true
+    };
+}
+
 function validarTaxaProfissional(valor, rotulo) {
     const numero = Number(valor);
     if (!Number.isFinite(numero) || numero < 0 || numero >= 10) {
@@ -286,6 +353,7 @@ async function validarNomeUnicoEquipe(uid, nome) {
     const membros = await listarMembrosEquipe({ forcar: true });
     const duplicado = membros.find((membro) =>
         (membro.uid || membro.id) !== uid
+        && membro?.removido !== true
         && normalizarNomeEquipe(membro?.nome) === nomeNormalizado
     );
 

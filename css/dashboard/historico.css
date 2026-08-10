@@ -938,3 +938,22 @@
     opacity: 0;
     cursor: pointer;
 }
+
+/* v8.21 - calendário próprio: o botão volta a ser o alvo real do toque. */
+.historico-calendar-control {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+}
+
+.historico-calendar-control .painel-calendar-btn {
+    position: static;
+    width: 32px;
+    height: 32px;
+    pointer-events: auto;
+}
+
+.historico-calendar-control .painel-date-picker {
+    display: none !important;
+}

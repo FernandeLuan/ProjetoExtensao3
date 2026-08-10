@@ -1,12 +1,13 @@
 import { abrirPainelHoje } from "./painel.js?v=7.4";
+import { state, onStateChange } from "./state.js?v=7.4";
 import { abrirRegistrar } from "./registrar.js?v=8.16";
-import { abrirHistoricoHoje } from "./historico.js?v=8.20";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.18";
+import { abrirHistoricoHoje } from "./historico.js?v=8.21";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.21";
 import { abrirDespesasAtual } from "./despesas.js?v=8.10";
-import { abrirEquipe } from "./equipe.js?v=8.18";
-import { abrirConta } from "./conta.js?v=8.18";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.18";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.20";
+import { abrirEquipe } from "./equipe.js?v=8.21";
+import { abrirConta } from "./conta.js?v=8.21";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.21";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.21";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
@@ -52,12 +53,32 @@ function definirItemNav(slot, { target, icone, label }) {
     if (labelEl) labelEl.textContent = label;
 }
 
+const ORDEM_NAV_PADRAO = ["barbeariaHome", "historico", "equipe", "relatorios"];
+const NAV_BARBEARIA = {
+    barbeariaHome: { target: "barbeariaHome", icone: "fas fa-store", label: "Visão geral" },
+    historico: { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" },
+    equipe: { target: "equipe", icone: "fas fa-users", label: "Equipe" },
+    relatorios: { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" }
+};
+
+function ordemNavBarbearia() {
+    const salva = Array.isArray(state.configSistema?.ordemNavBarbearia)
+        ? state.configSistema.ordemNavBarbearia
+        : [];
+    const ordem = salva.filter((chave, indice, lista) =>
+        ORDEM_NAV_PADRAO.includes(chave) && lista.indexOf(chave) === indice
+    );
+    ORDEM_NAV_PADRAO.forEach((chave) => {
+        if (!ordem.includes(chave)) ordem.push(chave);
+    });
+    return ordem.slice(0, 4);
+}
+
 export function configurarNavegacaoParaVisao() {
     if (visaoEhBarbearia()) {
-        definirItemNav("1", { target: "barbeariaHome", icone: "fas fa-store", label: "Visão geral" });
-        definirItemNav("2", { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" });
-        definirItemNav("3", { target: "equipe", icone: "fas fa-users", label: "Equipe" });
-        definirItemNav("4", { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" });
+        ordemNavBarbearia().forEach((chave, indice) => {
+            definirItemNav(String(indice + 1), NAV_BARBEARIA[chave]);
+        });
     } else {
         definirItemNav("1", { target: "registrar", icone: "fas fa-house", label: "Início" });
         definirItemNav("2", { target: "painelFinanceiro", icone: "fas fa-chart-line", label: "Painel" });
@@ -155,4 +176,7 @@ export function initNavigation() {
             fecharMenu();
         });
     });
+
+    // A ordem salva pelo administrador é aplicada assim que a configuração chega do Firestore.
+    onStateChange("configSistema", configurarNavegacaoParaVisao);
 }

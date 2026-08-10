@@ -1,7 +1,7 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=7.4";
 import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.18";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.21";
 import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=7.4";
 import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.16";
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
@@ -9,6 +9,7 @@ import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDe
 import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
 import { escaparHtml } from "./utils/dom.js?v=7.4";
 import { mostrarErro } from "./services/feedback-service.js?v=7.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.21";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -68,20 +69,24 @@ function nomeAtual() {
 }
 
 function nomeProfissional(atendimento) {
-    if (atendimento?.profissionalNome) return String(atendimento.profissionalNome);
     const uid = atendimento?.profissionalUid;
     const membro = (state.equipe || []).find((item) => (item.uid || item.id) === uid);
-    if (membro?.nome) return membro.nome;
+
+    // UID é a identidade estável. Se o administrador corrigir o nome do profissional,
+    // o Histórico passa a exibir o nome atual sem alterar snapshots financeiros antigos.
+    if (membro?.nome) return String(membro.nome);
     if (uid === state.user?.uid) return nomeAtual();
+    if (atendimento?.profissionalNome) return String(atendimento.profissionalNome);
     return "Profissional não identificado";
 }
 
 function nomeRegistrador(atendimento) {
-    if (atendimento?.registradoPorNome) return String(atendimento.registradoPorNome);
     const uid = atendimento?.registradoPorUid;
     const membro = (state.equipe || []).find((item) => (item.uid || item.id) === uid);
-    if (membro?.nome) return membro.nome;
+
+    if (membro?.nome) return String(membro.nome);
     if (uid === state.user?.uid) return nomeAtual();
+    if (atendimento?.registradoPorNome) return String(atendimento.registradoPorNome);
     return "Não identificado";
 }
 
@@ -560,6 +565,15 @@ btnConfirmar?.addEventListener("click", async () => {
 
 btnHistoricoAnterior?.addEventListener("click",()=>selecionarDataHistorico(somarDias(dataHistoricoSelecionada,-1)));
 btnHistoricoProxima?.addEventListener("click",()=>{if(!mesmoDia(dataHistoricoSelecionada,inicioDoDia(new Date())))selecionarDataHistorico(somarDias(dataHistoricoSelecionada,1));});
+btnCalendarioHistorico?.addEventListener("click", () => {
+    abrirCalendarioPopover({
+        ancora: btnCalendarioHistorico,
+        data: dataHistoricoSelecionada,
+        max: new Date(),
+        titulo: "Histórico",
+        onSelect: (data) => void selecionarDataHistorico(data)
+    });
+});
 inputDataHistorico?.addEventListener("change",()=>{const d=dataDeInput(inputDataHistorico?.value);if(d)selecionarDataHistorico(d);});
 historicoBusca?.addEventListener("input",atualizarHistorico);
 btnAbrirFiltrosHistorico?.addEventListener("click",abrirFiltrosHistorico);
