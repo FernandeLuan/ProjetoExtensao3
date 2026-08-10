@@ -1,7 +1,8 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { formatarMoeda } from "./utils/money.js?v=7.4";
 import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=7.4";
-import { abrirSeletorData, setTexto } from "./utils/dom.js?v=7.4";
+import { setTexto } from "./utils/dom.js?v=7.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.22";
 import { obterResumoDoDia } from "./services/financeiro-service.js?v=7.4";
 import { garantirAtendimentosPeriodo } from "./data/sync.js?v=7.4";
 import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=7.4";
@@ -159,15 +160,21 @@ document.getElementById("btnDataProxima")?.addEventListener("click", () => {
 });
 
 btnCalendarioPainel?.addEventListener("click", () => {
-    abrirSeletorData(inputDataPainel);
+    abrirCalendarioPopover({
+        ancora: btnCalendarioPainel,
+        data: dataSelecionada,
+        max: new Date(),
+        titulo: "Escolher data do painel",
+        onSelect: (data) => {
+            void selecionarData(data);
+        }
+    });
 });
 
-inputDataPainel?.addEventListener("change", () => {
-    if (!inputDataPainel.value) return;
-
-    const data = dataDeInput(inputDataPainel.value);
-    if (data) selecionarData(data);
-});
+// O input nativo fica apenas como espelho de valor para compatibilidade.
+// No mobile o calendário do Sr NK é usado para evitar o picker inconsistente do iOS.
+inputDataPainel?.setAttribute("readonly", "");
+inputDataPainel?.setAttribute("aria-hidden", "true");
 
 // =============================
 // PAINEL FINANCEIRO
@@ -622,7 +629,6 @@ function esconderFinanceInfo() {
     if (!financeInfoTooltip) return;
 
     financeInfoTooltip.hidden = true;
-    financeInfoTooltip.classList.remove("is-below");
 
     if (financeInfoTimer) {
         clearTimeout(financeInfoTimer);
@@ -643,25 +649,27 @@ document.querySelectorAll(".finance-info-btn").forEach((btn) => {
 
         requestAnimationFrame(() => {
             const larguraTooltip = financeInfoTooltip.offsetWidth;
-            const alturaTooltip = financeInfoTooltip.offsetHeight;
             const metade = larguraTooltip / 2;
-            const margem = 16;
-            const espacamento = 9;
 
-            let centroX = rect.left + rect.width / 2;
+            const margem = 16;
+
+            let centroX =
+                rect.left +
+                rect.width / 2;
+
             centroX = Math.max(
                 margem + metade,
-                Math.min(window.innerWidth - margem - metade, centroX)
+                Math.min(
+                    window.innerWidth - margem - metade,
+                    centroX
+                )
             );
 
-            const cabeAcima = rect.top - espacamento - alturaTooltip >= margem;
-            const top = cabeAcima
-                ? rect.top - espacamento - alturaTooltip
-                : Math.min(window.innerHeight - margem - alturaTooltip, rect.bottom + espacamento);
+            financeInfoTooltip.style.left =
+                `${centroX}px`;
 
-            financeInfoTooltip.classList.toggle("is-below", !cabeAcima);
-            financeInfoTooltip.style.left = `${centroX}px`;
-            financeInfoTooltip.style.top = `${Math.max(margem, top)}px`;
+            financeInfoTooltip.style.top =
+                `${rect.top - 9}px`;
         });
 
         if (financeInfoTimer) {

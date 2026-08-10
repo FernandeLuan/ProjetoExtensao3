@@ -4,6 +4,8 @@ import {
     doc,
     getDoc,
     getDocs,
+    query,
+    where,
     updateDoc,
     writeBatch,
     serverTimestamp,
@@ -131,6 +133,78 @@ export async function listarMembrosEquipe({ forcar = false } = {}) {
     } finally {
         consultaEquipeEmAndamento = null;
     }
+}
+
+
+export async function localizarUsuarioDaBarbeariaPorEmail(email) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode consultar acessos da equipe.");
+
+    const workspaceId = obterWorkspaceId();
+    const emailLimpo = String(email || "").trim().toLowerCase();
+    if (!emailLimpo) return null;
+
+    const referencia = query(
+        collection(db, "usuarios"),
+        where("barbeariaId", "==", workspaceId)
+    );
+    const snapshot = await getDocs(referencia);
+    registrarConsultaFirestore("equipe/usuario-por-email", snapshot.size, emailLimpo);
+
+    const documento = snapshot.docs.find((item) =>
+        String(item.data()?.email || "").trim().toLowerCase() === emailLimpo
+    );
+    return documento ? { id: documento.id, uid: documento.id, ...documento.data() } : null;
+}
+
+export async function restaurarMembroOrfao({
+    usuario,
+    nome,
+    email,
+    taxaDebitoPct = null,
+    taxaCreditoPct = null,
+    repassePct
+}) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode restaurar acessos.");
+    if (!usuario?.uid && !usuario?.id) throw new Error("Usuário antigo não localizado.");
+
+    const uid = usuario.uid || usuario.id;
+    const workspaceId = obterWorkspaceId();
+    const repasse = Number(repassePct);
+    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) {
+        throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
+    }
+
+    const debito = validarTaxaProfissionalOpcional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissionalOpcional(taxaCreditoPct, "crédito");
+    const agora = serverTimestamp();
+
+    const membro = {
+        uid,
+        nome: String(nome || "").trim().slice(0, 60),
+        email: String(email || usuario.email || "").trim().toLowerCase(),
+        papel: "barber",
+        ativo: true,
+        dono: false,
+        atuaComoProfissional: true,
+        repassePct: Number(repasse.toFixed(2)),
+        precosPersonalizados: {},
+        primeiroAcessoPendente: usuario.trocarSenha === true,
+        restauradoDeCadastroAntigo: true,
+        atualizadoEm: agora
+    };
+    if (debito !== null) membro.taxaDebitoPct = debito;
+    if (credito !== null) membro.taxaCreditoPct = credito;
+
+    const batch = writeBatch(db);
+    batch.set(doc(db, "barbearias", workspaceId, "membros", uid), membro, { merge: true });
+    batch.update(doc(db, "usuarios", uid), {
+        nome: membro.nome,
+        atualizadoEm: agora
+    });
+    await batch.commit();
+
+    invalidarCacheEquipe();
+    return { uid, primeiroAcessoPendente: membro.primeiroAcessoPendente };
 }
 
 export async function criarAcessoBarbeiroNoBanco({

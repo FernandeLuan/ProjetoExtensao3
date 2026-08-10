@@ -2,7 +2,7 @@ import { APP_NAME } from "./constants.js?v=7.4";
 import { state } from "./state.js?v=7.4";
 import { obterAtendimentosPeriodo } from "./data/sync.js?v=7.4";
 import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.21";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.22";
 import { obterWorkspaceId } from "./data/context.js?v=7.4";
 import {
     listarResumosBarbeariaPorPeriodo,
@@ -24,7 +24,8 @@ import {
     formatarTituloData
 } from "./utils/date.js?v=7.4";
 import { formatarMoeda } from "./utils/money.js?v=7.4";
-import { escaparHtml, abrirSeletorData } from "./utils/dom.js?v=7.4";
+import { escaparHtml } from "./utils/dom.js?v=7.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.22";
 
 let inicializado = false;
 let relatorioAtual = null;
@@ -1472,104 +1473,65 @@ function mostrarInfoResultado(event) {
 }
 
 function registrarEventosData() {
-    btnAnterior?.addEventListener(
-        "click",
-        irPeriodoAnterior
-    );
-
-    btnProxima?.addEventListener(
-        "click",
-        irProximoPeriodo
-    );
-
-    btnCalendario?.addEventListener(
-        "click",
-        abrirPeriodoPersonalizado
-    );
+    btnAnterior?.addEventListener("click", irPeriodoAnterior);
+    btnProxima?.addEventListener("click", irProximoPeriodo);
+    btnCalendario?.addEventListener("click", abrirPeriodoPersonalizado);
 
     document
-        .querySelectorAll(
-            "#relatorioPeriodoCustom .relatorio-date-control"
-        )
+        .querySelectorAll("#relatorioPeriodoCustom .relatorio-date-control")
         .forEach((controle) => {
-            controle.addEventListener(
-                "click",
-                (event) => {
-                    const input =
-                        el(
-                            controle.dataset
-                                .dateTarget
-                        );
+            const input = el(controle.dataset.dateTarget);
+            if (!input) return;
 
-                    if (!input) return;
+            // O valor continua no formato ISO esperado pelo relatório, mas o picker
+            // passa a ser 100% do Sr NK em navegador, iOS e Android.
+            input.setAttribute("readonly", "");
+            input.setAttribute("inputmode", "none");
 
-                    if (event.target.closest("input")) {
-                        if (typeof input.showPicker === "function") {
-                            event.preventDefault();
-                            try {
-                                input.showPicker();
-                            } catch {
-                                // O clique nativo permanece como fallback.
+            const abrir = (event) => {
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+
+                const ehInicio = input === inicioInput;
+                const valorAtual = dataDeInput(input.value)
+                    || (ehInicio ? periodoInicio : periodoFim)
+                    || new Date();
+
+                abrirCalendarioPopover({
+                    ancora: controle,
+                    data: valorAtual,
+                    max: new Date(),
+                    titulo: ehInicio ? "Data inicial" : "Data final",
+                    onSelect: (data) => {
+                        input.value = chaveData(data);
+
+                        if (ehInicio) {
+                            if (fimInput && (!fimInput.value || dataDeInput(fimInput.value) < data)) {
+                                fimInput.value = chaveData(data);
                             }
+                        } else if (inicioInput && (!inicioInput.value || dataDeInput(inicioInput.value) > data)) {
+                            inicioInput.value = chaveData(data);
                         }
-                        return;
                     }
+                });
+            };
 
-                    abrirSeletorData(input);
-                }
-            );
-        });
-
-    [inicioInput, fimInput]
-        .filter(Boolean)
-        .forEach((input) => {
-            input.addEventListener("pointerdown", (event) => {
-                if (typeof input.showPicker !== "function") return;
-
-                event.preventDefault();
-
-                try {
-                    input.showPicker();
-                } catch {
-                    // Em navegadores sem suporte, o input date segue com o comportamento nativo.
-                }
+            controle.addEventListener("click", abrir);
+            input.addEventListener("focus", (event) => {
+                input.blur();
+                abrir(event);
             });
         });
 
-    inicioInput?.addEventListener(
-        "change",
-        () => {
-            if (fimInput) {
-                fimInput.min =
-                    inicioInput.value;
-            }
+    el("btnAplicarPeriodoRelatorio")?.addEventListener("click", () => {
+        try {
+            const { inicio, fim } = validarPeriodoDosInputs();
+            fecharPeriodoPersonalizado();
+            aplicarPeriodo(inicio, fim);
+        } catch (error) {
+            setStatus(error.message, true);
         }
-    );
-
-    el("btnAplicarPeriodoRelatorio")
-        ?.addEventListener(
-            "click",
-            () => {
-                try {
-                    const {
-                        inicio,
-                        fim
-                    } =
-                        validarPeriodoDosInputs();
-
-                    fecharPeriodoPersonalizado();
-                    aplicarPeriodo(
-                        inicio,
-                        fim
-                    );
-                } catch (error) {
-                    setStatus(
-                        error.message,
-                        true
-                    );
-                }
-            }
-        );
+    });
 }
 
 export async function prepararRelatoriosHoje() {

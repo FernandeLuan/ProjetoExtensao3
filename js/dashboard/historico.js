@@ -1,7 +1,7 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=7.4";
 import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.21";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.22";
 import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=7.4";
 import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.16";
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
@@ -9,7 +9,7 @@ import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDe
 import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
 import { escaparHtml } from "./utils/dom.js?v=7.4";
 import { mostrarErro } from "./services/feedback-service.js?v=7.4";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.21";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.22";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");

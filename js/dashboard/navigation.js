@@ -1,13 +1,15 @@
-import { abrirPainelHoje } from "./painel.js?v=7.4";
+import { abrirPainelHoje } from "./painel.js?v=8.22";
+import { auth } from "../firebase-init.js?v=7.4";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { state, onStateChange } from "./state.js?v=7.4";
 import { abrirRegistrar } from "./registrar.js?v=8.16";
-import { abrirHistoricoHoje } from "./historico.js?v=8.21";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.21";
+import { abrirHistoricoHoje } from "./historico.js?v=8.22";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.22";
 import { abrirDespesasAtual } from "./despesas.js?v=8.10";
-import { abrirEquipe } from "./equipe.js?v=8.21";
-import { abrirConta } from "./conta.js?v=8.21";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.21";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.21";
+import { abrirEquipe } from "./equipe.js?v=8.22";
+import { abrirConta } from "./conta.js?v=8.22";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.22";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.22";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
@@ -21,6 +23,14 @@ const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
 
+
+async function authLogout() {
+    try {
+        await signOut(auth);
+    } finally {
+        window.location.href = "login.html";
+    }
+}
 function itensBottomNav() {
     return [...document.querySelectorAll(".bottom-nav-item[data-nav-target]")];
 }
@@ -53,15 +63,26 @@ function definirItemNav(slot, { target, icone, label }) {
     if (labelEl) labelEl.textContent = label;
 }
 
-const ORDEM_NAV_PADRAO = ["barbeariaHome", "historico", "equipe", "relatorios"];
+const ORDEM_NAV_PADRAO = [
+    "barbeariaHome",
+    "historico",
+    "equipe",
+    "relatorios",
+    "despesas",
+    "configuracoes",
+    "conta"
+];
 const NAV_BARBEARIA = {
     barbeariaHome: { target: "barbeariaHome", icone: "fas fa-store", label: "Visão geral" },
     historico: { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" },
     equipe: { target: "equipe", icone: "fas fa-users", label: "Equipe" },
-    relatorios: { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" }
+    relatorios: { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" },
+    despesas: { target: "despesas", icone: "fas fa-receipt", label: "Despesas" },
+    configuracoes: { target: "configuracoes", icone: "fas fa-sliders-h", label: "Configurações" },
+    conta: { target: "conta", icone: "fas fa-user-lock", label: "Minha Conta" }
 };
 
-function ordemNavBarbearia() {
+function ordemCompletaBarbearia() {
     const salva = Array.isArray(state.configSistema?.ordemNavBarbearia)
         ? state.configSistema.ordemNavBarbearia
         : [];
@@ -71,35 +92,81 @@ function ordemNavBarbearia() {
     ORDEM_NAV_PADRAO.forEach((chave) => {
         if (!ordem.includes(chave)) ordem.push(chave);
     });
-    return ordem.slice(0, 4);
+    return ordem.slice(0, ORDEM_NAV_PADRAO.length);
+}
+
+function renderizarMenu(itens, { profissional = false } = {}) {
+    const lista = sidebarMenu?.querySelector("ul");
+    if (!lista) return;
+
+    const itensVisiveis = profissional
+        ? [
+            { target: "despesas", icone: "fas fa-receipt", label: "Despesas" },
+            { target: "conta", icone: "fas fa-user-lock", label: "Minha Conta" }
+        ]
+        : itens.map((chave) => NAV_BARBEARIA[chave]).filter(Boolean);
+
+    lista.innerHTML = `
+        ${itensVisiveis.map((meta) => `
+            <li>
+                <a href="#${meta.target}">
+                    <i class="${meta.icone}"></i>
+                    <span>${meta.label}</span>
+                </a>
+            </li>
+        `).join("")}
+        <li aria-hidden="true" class="menu-divider"></li>
+        <li>
+            <a class="menu-logout" href="#" id="logoutBtnSide">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair do Sistema</span>
+            </a>
+        </li>
+    `;
 }
 
 export function configurarNavegacaoParaVisao() {
     if (visaoEhBarbearia()) {
-        ordemNavBarbearia().forEach((chave, indice) => {
+        const ordem = ordemCompletaBarbearia();
+        ordem.slice(0, 4).forEach((chave, indice) => {
             definirItemNav(String(indice + 1), NAV_BARBEARIA[chave]);
         });
+        renderizarMenu(ordem.slice(4));
     } else {
         definirItemNav("1", { target: "registrar", icone: "fas fa-house", label: "Início" });
         definirItemNav("2", { target: "painelFinanceiro", icone: "fas fa-chart-line", label: "Painel" });
         definirItemNav("3", { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" });
         definirItemNav("4", { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" });
+        renderizarMenu([], { profissional: true });
     }
 
     aplicarPermissoesInterface();
 }
 
 function atualizarNavegacaoAtiva(targetId) {
+    let ativoNaBarra = false;
+
     itensBottomNav().forEach((item) => {
         const ativo = item.dataset.navTarget === targetId;
+        ativoNaBarra = ativoNaBarra || ativo;
         item.classList.toggle("active", ativo);
         if (ativo) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");
     });
 
+    const destinosAdministrativos = [
+        "barbeariaHome",
+        "historico",
+        "equipe",
+        "relatorios",
+        "despesas",
+        "configuracoes",
+        "conta"
+    ];
+
     menuToggle?.classList.toggle(
         "active",
-        ["configuracoes", "despesas", "conta"].includes(targetId)
+        !ativoNaBarra && destinosAdministrativos.includes(targetId)
     );
 }
 
@@ -168,13 +235,21 @@ export function initNavigation() {
         void exibirSecao(`#${item.dataset.navTarget}`);
     });
 
-    sidebarMenu?.querySelectorAll("a").forEach((link) => {
-        link.addEventListener("click", (event) => {
-            if (link.id === "logoutBtnSide") return;
+    sidebarMenu?.addEventListener("click", (event) => {
+        const link = event.target.closest("a");
+        if (!link) return;
+
+        if (link.id === "logoutBtnSide" || link.classList.contains("menu-logout")) {
             event.preventDefault();
-            void exibirSecao(link.getAttribute("href"));
-            fecharMenu();
-        });
+            authLogout();
+            return;
+        }
+
+        const href = link.getAttribute("href");
+        if (!href?.startsWith("#")) return;
+        event.preventDefault();
+        void exibirSecao(href);
+        fecharMenu();
     });
 
     // A ordem salva pelo administrador é aplicada assim que a configuração chega do Firestore.

@@ -90,21 +90,34 @@ function posicionar() {
     if (!root || root.hidden || !card || !ancoraAtual) return;
 
     const rect = ancoraAtual.getBoundingClientRect();
-    const largura = Math.min(292, Math.max(244, window.innerWidth - 24));
-    card.style.width = `${largura}px`;
-
-    const altura = card.offsetHeight || 322;
+    const viewport = window.visualViewport;
+    const larguraViewport = Math.max(240, viewport?.width || window.innerWidth);
+    const alturaViewport = Math.max(320, viewport?.height || window.innerHeight);
     const margem = 10;
-    const centro = rect.left + rect.width / 2;
-    const left = clamp(centro - largura / 2, 12, Math.max(12, window.innerWidth - largura - 12));
+    const largura = Math.min(292, Math.max(244, larguraViewport - 24));
 
-    let top = rect.bottom + 8;
-    if (top + altura > window.innerHeight - margem) {
-        const acima = rect.top - altura - 8;
-        top = acima >= margem
-            ? acima
-            : clamp(rect.bottom + 8, margem, Math.max(margem, window.innerHeight - altura - margem));
+    card.style.width = `${largura}px`;
+    card.style.maxHeight = `${Math.max(250, alturaViewport - 20)}px`;
+
+    const altura = Math.min(card.scrollHeight || card.offsetHeight || 322, alturaViewport - 20);
+    const centro = rect.left + rect.width / 2;
+    const left = clamp(
+        centro - largura / 2,
+        12,
+        Math.max(12, larguraViewport - largura - 12)
+    );
+
+    // Prioriza ficar logo abaixo do botão. Só sobe quando realmente não há
+    // espaço útil, evitando o salto exagerado que o Safari móvel fazia.
+    const abaixo = rect.bottom + 6;
+    const acima = rect.top - altura - 6;
+    let top = abaixo;
+
+    if (abaixo + altura > alturaViewport - margem && acima >= margem) {
+        top = acima;
     }
+
+    top = clamp(top, margem, Math.max(margem, alturaViewport - altura - margem));
 
     card.style.left = `${Math.round(left)}px`;
     card.style.top = `${Math.round(top)}px`;
@@ -195,6 +208,8 @@ export function fecharCalendarioPopover() {
     if (listenerResizeAtivo) {
         window.removeEventListener("resize", posicionar);
         window.removeEventListener("scroll", posicionar, true);
+        window.visualViewport?.removeEventListener("resize", posicionar);
+        window.visualViewport?.removeEventListener("scroll", posicionar);
         listenerResizeAtivo = false;
     }
 }
@@ -225,6 +240,8 @@ export function abrirCalendarioPopover({
     if (!listenerResizeAtivo) {
         window.addEventListener("resize", posicionar);
         window.addEventListener("scroll", posicionar, true);
+        window.visualViewport?.addEventListener("resize", posicionar);
+        window.visualViewport?.addEventListener("scroll", posicionar);
         listenerResizeAtivo = true;
     }
 

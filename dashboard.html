@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.21" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.22" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -369,7 +369,7 @@
 <label class="relatorio-date-field">
 <span>De</span>
 <div class="relatorio-date-control" data-date-target="dataInicioRelatorio">
-<input id="dataInicioRelatorio" type="date" required>
+<input id="dataInicioRelatorio" type="date" required readonly inputmode="none">
 <i class="fas fa-calendar-days" aria-hidden="true"></i>
 </div>
 </label>
@@ -377,7 +377,7 @@
 <label class="relatorio-date-field">
 <span>Até</span>
 <div class="relatorio-date-control" data-date-target="dataFimRelatorio">
-<input id="dataFimRelatorio" type="date" required>
+<input id="dataFimRelatorio" type="date" required readonly inputmode="none">
 <i class="fas fa-calendar-days" aria-hidden="true"></i>
 </div>
 </label>
@@ -560,7 +560,7 @@
 <div class="config-group">
 <button aria-controls="configGroupOrdemNav" aria-expanded="false" class="config-group-toggle" data-config-group="ordem-nav" type="button">
 <span class="config-group-icon"><i class="fas fa-grip"></i></span>
-<span class="config-group-copy"><strong>Ordem da navegação</strong><small>Organize os atalhos da visão Barbearia</small></span>
+<span class="config-group-copy"><strong>Ordem da navegação</strong><small>Os 4 primeiros ficam na barra; os demais ficam no Menu</small></span>
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden id="configGroupOrdemNav">
@@ -1229,7 +1229,7 @@ Aparência
 </button>
 </nav>
 <script src="js/mobile-interactions.js?v=8.21" defer></script>
-<script src="js/dashboard/index.js?v=8.21" type="module"></script>
+<script src="js/dashboard/index.js?v=8.22" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

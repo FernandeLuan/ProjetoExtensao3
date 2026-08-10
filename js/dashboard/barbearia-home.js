@@ -1,5 +1,5 @@
 import { state } from "./state.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.21";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.22";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
@@ -12,7 +12,7 @@ import {
     mesmoDia,
     somarDias
 } from "./utils/date.js?v=7.4";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.21";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.22";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;

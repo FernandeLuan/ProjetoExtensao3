@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Popular dados PRD | Sr NK</title>
+<style>
+:root{font-family:Poppins,system-ui,sans-serif;color:#172033;background:#f4f6f9}
+*{box-sizing:border-box} body{margin:0;padding:24px} main{max-width:760px;margin:auto}
+.card{background:#fff;border:1px solid #dfe4ec;border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(15,23,42,.06);margin-bottom:14px}
+h1{font-size:1.25rem;margin:0 0 6px} h2{font-size:.95rem;margin:0 0 8px} p{font-size:.78rem;line-height:1.55;color:#667085}
+.badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#e8f7ee;color:#159447;font-size:.68rem;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;border-radius:12px;background:#f7f8fb;border:1px solid #e8ebf1}.metric span{display:block;color:#7a8496;font-size:.62rem}.metric strong{font-size:.85rem}
+button{width:100%;min-height:44px;border:0;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;background:#2563eb;color:white;margin-top:8px}
+button.secondary{background:#f6f7f9;color:#172033;border:1px solid #dfe4ec}
+button:disabled{opacity:.45;cursor:not-allowed}
+pre{white-space:pre-wrap;background:#101623;color:#dce6ff;border-radius:14px;padding:14px;font-size:.68rem;line-height:1.55;max-height:360px;overflow:auto}
+.warn{color:#9a6700;background:#fff8df;border:1px solid #f6dda2;padding:10px 12px;border-radius:12px;font-size:.72rem}
+@media(max-width:560px){body{padding:14px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+  <span class="badge">PRD controlado</span>
+  <h1>Popular dados históricos</h1>
+  <p>Ferramenta temporária para inserir os atendimentos solicitados em produção. Ela só funciona com o proprietário Luan autenticado e somente na barbearia oficial.</p>
+  <div class="warn">José Henrique: dados simulados de 10/07/2026 a 08/08/2026, segunda a sábado, 5–10 atendimentos/dia. Marlon: dados reais informados para 03, 04 e 05/08/2026.</div>
+</div>
+
+<div class="card">
+  <h2>Contexto</h2>
+  <div class="grid">
+    <div class="metric"><span>Conta</span><strong id="conta">Validando...</strong></div>
+    <div class="metric"><span>Barbearia</span><strong id="barbearia">—</strong></div>
+    <div class="metric"><span>José Henrique</span><strong id="jose">—</strong></div>
+    <div class="metric"><span>Marlon</span><strong id="marlon">—</strong></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>1. José Henrique — histórico simulado</h2>
+  <p>O lote é determinístico e idempotente: se a importação for interrompida, uma nova execução cria apenas os registros que faltarem.</p>
+  <button id="btnJose" disabled>Importar José Henrique</button>
+</div>
+
+<div class="card">
+  <h2>2. Marlon — histórico real informado</h2>
+  <p>Antes de gravar, a ferramenta verifica se já existem atendimentos não importados do Marlon entre 03 e 05/08. Se existirem, ela bloqueia para não duplicar dados reais.</p>
+  <button id="btnMarlon" disabled>Importar Marlon</button>
+</div>
+
+<div class="card">
+  <h2>Log</h2>
+  <pre id="log">Aguardando autenticação...</pre>
+</div>
+</main>
+
+<script type="module">
+import { auth, db } from "./js/firebase-init.js?v=7.4";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  collection, getDocs, query, where
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+import { inicializarContexto, obterWorkspaceId } from "./js/dashboard/data/context.js?v=7.4";
+import { carregarConfiguracoesDoBanco } from "./js/dashboard/data/configuracoes-repository.js?v=7.4";
+import { definirConfiguracoes } from "./js/dashboard/state.js?v=7.4";
+import { criarPayloadAtendimento } from "./js/dashboard/services/atendimento-model.js?v=8.4";
+import { criarAtendimento } from "./js/dashboard/data/atendimentos-repository.js?v=7.4";
+import { resolverPrecoServico } from "./js/dashboard/services/catalogo-service.js?v=7.4";
+
+const PRD = "3TYly8cYfAWxI9LCdnAJgKL6t2s2";
+const OWNER_UID = "3TYly8cYfAWxI9LCdnAJgKL6t2s2";
+const MARLON_UID = "7FpqJn54DzXKE2bhire7NhYOoLL2";
+const LOTE_JOSE = "seed-jose-20260710-20260808-v1";
+const LOTE_MARLON = "seed-marlon-real-20260803-05-v1";
+
+let config = null;
+let jose = null;
+let marlon = null;
+let pronto = false;
+
+const el = id => document.getElementById(id);
+const logEl = el("log");
+function log(msg){ logEl.textContent += `\n${msg}`; logEl.scrollTop = logEl.scrollHeight; }
+function norm(v){ return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase().replace(/\s+/g," "); }
+function pad(n){ return String(n).padStart(2,"0"); }
+function chaveData(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function dataLocal(iso,h=9,m=0){ const [y,mo,d]=iso.split("-").map(Number); return new Date(y,mo-1,d,h,m,0,0); }
+
+function prng(str){
+  let x=2166136261>>>0;
+  for(const c of str){ x^=c.charCodeAt(0); x=Math.imul(x,16777619)>>>0; }
+  return ()=>{ x ^= x<<13; x ^= x>>>17; x ^= x<<5; return ((x>>>0)%100000)/100000; };
+}
+
+function servicoPorId(id){
+  const s=(config?.servicos||[]).find(x=>x.id===id && x.ativo!==false);
+  if(!s) throw new Error(`Serviço ativo não encontrado: ${id}`);
+  return s;
+}
+
+function payload({prof, servicoId, pagamento, data, lote, registroId}){
+  const servico=servicoPorId(servicoId);
+  const preco=resolverPrecoServico(servico, prof);
+  return {
+    ...criarPayloadAtendimento({
+      servico: servico.nome,
+      servicoId: servico.id,
+      servicoNome: servico.nome,
+      precoBase: preco.precoBase,
+      precoProfissional: preco.precoProfissional,
+      origemPreco: preco.origem,
+      pagamento,
+      valorBruto: preco.preco,
+      observacao: "",
+      valorDiferenciado: false,
+      dataAtendimento: data,
+      retroativo: true,
+      horaInformada: true,
+      profissional: prof
+    }, config),
+    importacaoId: lote,
+    importacaoRegistroId: registroId,
+    importacaoOrigem: "Sr NK v8.22"
+  };
+}
+
+async function idsExistentes(lote){
+  const snap=await getDocs(query(
+    collection(db,"barbearias",PRD,"atendimentos"),
+    where("importacaoId","==",lote)
+  ));
+  return new Set(snap.docs.map(d=>String(d.data()?.importacaoRegistroId||"")));
+}
+
+async function gravarRegistros(registros, lote){
+  const existentes=await idsExistentes(lote);
+  const faltantes=registros.filter(r=>!existentes.has(r.registroId));
+  log(`Lote ${lote}: ${existentes.size} existente(s), ${faltantes.length} faltante(s).`);
+  let feito=0;
+  for(const r of faltantes){
+    await criarAtendimento(payload({...r,lote}));
+    feito++;
+    if(feito===1 || feito%10===0 || feito===faltantes.length) log(`  ${feito}/${faltantes.length} gravados...`);
+  }
+  return {existentes:existentes.size, criados:feito};
+}
+
+function pagamentosJose(prof){
+  const ativos=config?.pagamentosAtivos||{};
+  const lista=[];
+  if(ativos.Pix!==false) lista.push("Pix","Pix","Pix","Pix","Pix");
+  if(ativos.Dinheiro!==false) lista.push("Dinheiro","Dinheiro");
+  if(ativos["Débito"]!==false && Number.isFinite(Number(prof?.taxaDebitoPct))) lista.push("Débito");
+  if(ativos["Crédito"]!==false && Number.isFinite(Number(prof?.taxaCreditoPct))) lista.push("Crédito");
+  return lista.length?lista:["Pix"];
+}
+
+function gerarJose(){
+  const registros=[];
+  const inicio=dataLocal("2026-07-10");
+  const fim=dataLocal("2026-08-08");
+  const servicosAtivos=(config?.servicos||[]).filter(s=>s.ativo!==false);
+  if(!servicosAtivos.length) throw new Error("Nenhum serviço ativo para gerar José.");
+
+  for(let d=new Date(inicio); d<=fim; d.setDate(d.getDate()+1)){
+    if(d.getDay()===0) continue;
+    const iso=chaveData(d);
+    const rnd=prng(`jose-${iso}`);
+    const qtd=5+Math.floor(rnd()*6);
+    const pagamentos=pagamentosJose(jose);
+
+    for(let i=0;i<qtd;i++){
+      // Mais peso para Cabelo, depois combos; cai no catálogo ativo se algum ID não existir.
+      const pesos=["cabelo","cabelo","cabelo","cabelo","cabelo-barba","cabelo-sobrancelha","barba","cabelo-barba-sobrancelha"];
+      const desejado=pesos[Math.floor(rnd()*pesos.length)];
+      const servico=(config.servicos||[]).find(s=>s.id===desejado && s.ativo!==false)
+        || servicosAtivos[Math.floor(rnd()*servicosAtivos.length)];
+
+      const pagamento=pagamentos[Math.floor(rnd()*pagamentos.length)];
+      const baseMin=9*60 + i*Math.floor(570/Math.max(1,qtd-1));
+      const minuto=baseMin + Math.floor(rnd()*18);
+      const hora=Math.min(19,Math.floor(minuto/60));
+      const min=Math.min(59,minuto%60);
+
+      registros.push({
+        prof:jose,
+        servicoId:servico.id,
+        pagamento,
+        data:dataLocal(iso,hora,min),
+        registroId:`jose-${iso}-${pad(i+1)}`
+      });
+    }
+  }
+  return registros;
+}
+
+function gerarMarlon(){
+  const rows=[];
+  const add=(iso, idx, servicoId, pagamento, h, m)=>rows.push({
+    prof:marlon, servicoId, pagamento, data:dataLocal(iso,h,m),
+    registroId:`marlon-${iso}-${pad(idx)}`
+  });
+
+  // 03/08: 6 Cabelo — 1 Crédito, 5 Pix
+  [["Crédito",9,10],["Pix",10,20],["Pix",11,30],["Pix",13,40],["Pix",15,10],["Pix",17,20]]
+    .forEach((x,i)=>add("2026-08-03",i+1,"cabelo",x[0],x[1],x[2]));
+
+  // 04/08: 2 Cabelo+Sobrancelha, 1 Cabelo+Barba, 5 Cabelo
+  const d4=[
+    ["cabelo-sobrancelha","Crédito",9,0],
+    ["cabelo-sobrancelha","Pix",10,10],
+    ["cabelo-barba","Débito",11,20],
+    ["cabelo","Crédito",13,10],
+    ["cabelo","Pix",14,10],
+    ["cabelo","Pix",15,10],
+    ["cabelo","Pix",16,20],
+    ["cabelo","Pix",17,30]
+  ];
+  d4.forEach((x,i)=>add("2026-08-04",i+1,x[0],x[1],x[2],x[3]));
+
+  // 05/08: 1 Cabelo+Barba, 6 Cabelo — 1 Crédito, 3 Débito, 3 Pix
+  const d5=[
+    ["cabelo-barba","Crédito",9,10],
+    ["cabelo","Débito",10,20],
+    ["cabelo","Débito",11,30],
+    ["cabelo","Débito",13,30],
+    ["cabelo","Pix",14,40],
+    ["cabelo","Pix",15,50],
+    ["cabelo","Pix",17,10]
+  ];
+  d5.forEach((x,i)=>add("2026-08-05",i+1,x[0],x[1],x[2],x[3]));
+  return rows;
+}
+
+async function validarMarlonSemDuplicar(){
+  const inicio=dataLocal("2026-08-03",0,0).getTime();
+  const fim=dataLocal("2026-08-06",0,0).getTime();
+  const snap=await getDocs(query(
+    collection(db,"barbearias",PRD,"atendimentos"),
+    where("profissionalUid","==",MARLON_UID)
+  ));
+  const naoSeed=snap.docs.filter(d=>{
+    const dados=d.data();
+    const bruto=dados?.dataAtendimento?.toDate?.() || new Date(dados?.dataAtendimento || dados?.data || 0);
+    const ts=bruto?.getTime?.() || 0;
+    return ts>=inicio && ts<fim && dados?.importacaoId!==LOTE_MARLON;
+  });
+  if(naoSeed.length){
+    throw new Error(`Já existem ${naoSeed.length} atendimento(s) do Marlon entre 03 e 05/08 sem a marca desta importação. Nada foi gravado para evitar duplicidade.`);
+  }
+}
+
+el("btnJose").addEventListener("click", async()=>{
+  if(!pronto) return;
+  const btn=el("btnJose"); btn.disabled=true;
+  try{
+    const regs=gerarJose();
+    log(`José: ${regs.length} atendimentos planejados em 26 dias úteis (seg–sáb).`);
+    const r=await gravarRegistros(regs,LOTE_JOSE);
+    log(`José concluído: ${r.criados} novo(s), ${r.existentes} já existente(s).`);
+  }catch(e){ console.error(e); log(`ERRO José: ${e.message}`); }
+  finally{btn.disabled=false;}
+});
+
+el("btnMarlon").addEventListener("click", async()=>{
+  if(!pronto) return;
+  const btn=el("btnMarlon"); btn.disabled=true;
+  try{
+    if(!Number.isFinite(Number(marlon?.taxaCreditoPct))) throw new Error("Marlon não possui taxa de crédito configurada.");
+    if(!Number.isFinite(Number(marlon?.taxaDebitoPct))) throw new Error("Marlon não possui taxa de débito configurada.");
+    await validarMarlonSemDuplicar();
+    const regs=gerarMarlon();
+    log("Marlon: 21 atendimentos planejados (6 + 8 + 7), conforme informado.");
+    const r=await gravarRegistros(regs,LOTE_MARLON);
+    log(`Marlon concluído: ${r.criados} novo(s), ${r.existentes} já existente(s).`);
+  }catch(e){ console.error(e); log(`ERRO Marlon: ${e.message}`); }
+  finally{btn.disabled=false;}
+});
+
+onAuthStateChanged(auth, async user=>{
+  try{
+    logEl.textContent="Validando contexto...";
+    if(!user) throw new Error("Entre no Sr NK com a conta do Luan antes de abrir esta página.");
+    el("conta").textContent=user.email||user.uid;
+    if(user.uid!==OWNER_UID) throw new Error("Ferramenta bloqueada: somente o proprietário Luan pode executar.");
+
+    const ctx=await inicializarContexto(user);
+    if(obterWorkspaceId()!==PRD) throw new Error(`Workspace recusado: ${obterWorkspaceId()}`);
+    el("barbearia").textContent=PRD;
+
+    config=await carregarConfiguracoesDoBanco({forcar:true});
+    definirConfiguracoes(config);
+
+    const membrosSnap=await getDocs(collection(db,"barbearias",PRD,"membros"));
+    const membros=membrosSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    marlon=membros.find(m=>(m.uid||m.id)===MARLON_UID);
+    jose=membros.find(m=>m.removido!==true && m.ativo===true && norm(m.nome)==="jose henrique");
+
+    if(!marlon || marlon.ativo!==true) throw new Error("Marlon ativo não encontrado.");
+    if(!jose) throw new Error("José Henrique ativo não encontrado. Restaure/crie o acesso antes da importação.");
+
+    el("marlon").textContent=`${marlon.nome} • ativo`;
+    el("jose").textContent=`${jose.nome} • ativo`;
+    pronto=true;
+    el("btnJose").disabled=false;
+    el("btnMarlon").disabled=false;
+    logEl.textContent="Contexto PRD validado. Escolha o lote que deseja importar.";
+  }catch(e){
+    console.error(e);
+    log(`BLOQUEADO: ${e.message}`);
+  }
+});
+</script>
+</body>
+</html>

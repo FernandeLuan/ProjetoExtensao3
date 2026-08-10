@@ -460,7 +460,7 @@
 .barbearia-home .finance-summary-label > span > i {
     margin-right: 5px;
     color: var(--primary);
-    font-size: .68rem;
+    font-size: .62rem;
 }
 
 .barbearia-expense-card {
@@ -507,4 +507,16 @@
 .barbearia-home-equipe-lista .barbearia-home-equipe-item:first-child {
     padding: 0 !important;
     border-top: 0;
+}
+
+
+/* v8.22 - Visão Geral usa a mesma escala visual dos KPIs e da Equipe do Relatório. */
+.barbearia-home .finance-label > i,
+.barbearia-home .finance-summary-label > span > i {
+    color: var(--primary);
+    font-size: .62rem;
+}
+
+.barbearia-home-equipe-lista .relatorio-equipe-item {
+    padding: 0;
 }

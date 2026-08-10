@@ -18,8 +18,10 @@ import {
 import {
     criarAcessoBarbeiroNoBanco,
     listarMembrosEquipe,
-    restaurarMembroRemovido
-} from "../data/equipe-repository.js?v=8.21";
+    restaurarMembroRemovido,
+    localizarUsuarioDaBarbeariaPorEmail,
+    restaurarMembroOrfao
+} from "../data/equipe-repository.js?v=8.22";
 
 function normalizarComparacao(valor) {
     return String(valor || "")
@@ -161,6 +163,33 @@ export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDe
                 await deleteUser(usuarioCriado);
             } catch (cleanupError) {
                 console.warn("Não foi possível remover a conta criada após falha no cadastro:", cleanupError);
+            }
+        }
+
+        // Compatibilidade com exclusões antigas: versões anteriores podiam remover
+        // o documento de membro e deixar apenas Authentication + usuarios/{uid}.
+        // Nesse caso recuperamos o UID antigo e recriamos o membro, preservando histórico.
+        if (error?.code === "auth/email-already-in-use") {
+            const usuarioAntigo = await localizarUsuarioDaBarbeariaPorEmail(emailLimpo);
+            if (usuarioAntigo) {
+                const restaurado = await restaurarMembroOrfao({
+                    usuario: usuarioAntigo,
+                    nome: nomeLimpo,
+                    email: emailLimpo,
+                    taxaDebitoPct,
+                    taxaCreditoPct,
+                    repassePct
+                });
+
+                return {
+                    uid: restaurado.uid,
+                    nome: nomeLimpo,
+                    email: emailLimpo,
+                    senhaTemporaria: null,
+                    restaurado: true,
+                    primeiroAcessoPendente: restaurado.primeiroAcessoPendente,
+                    senhaAnteriorNecessaria: true
+                };
             }
         }
 

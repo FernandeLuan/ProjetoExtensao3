@@ -1,2 +1,2 @@
 // Ponto de entrada único do dashboard.
-import "./app.js?v=8.21";
+import "./app.js?v=8.22";

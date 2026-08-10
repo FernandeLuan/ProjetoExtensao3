@@ -21,6 +21,8 @@
     box-shadow: 0 18px 52px rgba(0, 0, 0, .24);
     user-select: none;
     -webkit-user-select: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .srnk-calendar-head {

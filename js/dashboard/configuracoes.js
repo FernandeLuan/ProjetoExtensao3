@@ -38,12 +38,23 @@ const CARDS_VISAO = {
 const ordemNavLista = document.getElementById("configOrdemNavLista");
 const btnRestaurarOrdemNav = document.getElementById("btnRestaurarOrdemNav");
 const ordemNavStatus = document.getElementById("ordemNavStatus");
-const ORDEM_NAV_PADRAO = ["barbeariaHome", "historico", "equipe", "relatorios"];
+const ORDEM_NAV_PADRAO = [
+    "barbeariaHome",
+    "historico",
+    "equipe",
+    "relatorios",
+    "despesas",
+    "configuracoes",
+    "conta"
+];
 const NAV_BARBEARIA = {
     barbeariaHome: { nome: "Visão geral", detalhe: "Resumo da barbearia", icone: "fa-store" },
     historico: { nome: "Histórico", detalhe: "Atendimentos registrados", icone: "fa-clock-rotate-left" },
     equipe: { nome: "Equipe", detalhe: "Profissionais e acessos", icone: "fa-users" },
-    relatorios: { nome: "Relatório", detalhe: "Indicadores e períodos", icone: "fa-file-lines" }
+    relatorios: { nome: "Relatório", detalhe: "Indicadores e períodos", icone: "fa-file-lines" },
+    despesas: { nome: "Despesas", detalhe: "Gastos da barbearia", icone: "fa-receipt" },
+    configuracoes: { nome: "Configurações", detalhe: "Preferências administrativas", icone: "fa-sliders-h" },
+    conta: { nome: "Minha Conta", detalhe: "Acesso e segurança", icone: "fa-user-lock" }
 };
 
 
@@ -397,7 +408,7 @@ function renderizarOrdemNav() {
         item.className = "config-order-item";
         item.innerHTML = `
             <span class="config-order-icon"><i class="fas ${meta.icone}"></i></span>
-            <span class="config-order-copy"><strong>${meta.nome}</strong><span>${meta.detalhe}</span></span>
+            <span class="config-order-copy"><strong>${meta.nome}</strong><span>${indice < 4 ? "Barra inferior" : "Menu"} • ${meta.detalhe}</span></span>
             <span class="config-order-actions">
                 <button type="button" data-nav-up aria-label="Mover ${meta.nome} para cima" ${indice === 0 ? "disabled" : ""}><i class="fas fa-chevron-up"></i></button>
                 <button type="button" data-nav-down aria-label="Mover ${meta.nome} para baixo" ${indice === ordem.length - 1 ? "disabled" : ""}><i class="fas fa-chevron-down"></i></button>

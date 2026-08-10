@@ -62,7 +62,13 @@ service cloud.firestore {
     // próprio perfil; admin pode criar o perfil de um novo barbeiro.
     // =========================================================
     match /usuarios/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || (
+          resource.data.barbeariaId is string
+          && isAdmin(resource.data.barbeariaId)
+        )
+      );
 
       allow create: if signedIn() && (
         request.auth.uid == uid

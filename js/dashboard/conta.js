@@ -12,7 +12,7 @@ import {
     obterDadosConta,
     salvarFotoConta
 } from "./data/conta-repository.js?v=7.4";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.21";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.22";
 
 import {
     mostrarErro,

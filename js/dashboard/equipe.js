@@ -5,8 +5,8 @@ import {
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.21";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.21";
+} from "./data/equipe-repository.js?v=8.22";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.22";
 import { obterServicos } from "./services/catalogo-service.js?v=8.16";
 import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.12";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
