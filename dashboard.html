@@ -5,16 +5,21 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.29" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.30" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/@zxing/browser@0.2.1" defer></script>
 </head>
 <body class="dashboard-booting">
+<div class="app-boot-status" id="appBootStatus" role="status" aria-live="polite">
+    <span class="app-boot-spinner" aria-hidden="true"></span>
+    <span>Abrindo Sr NK...</span>
+</div>
 <div aria-live="polite" class="connection-status" hidden="" id="connectionStatus" role="status">
 <i aria-hidden="true" class="fas fa-wifi"></i>
 <span></span>
@@ -1475,8 +1480,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.29" defer></script>
-<script src="js/dashboard/index.js?v=8.29" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.30" defer></script>
+<script src="js/dashboard/index.js?v=8.30" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

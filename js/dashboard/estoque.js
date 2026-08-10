@@ -1,8 +1,9 @@
-import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.29";
-import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.29";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.29";
-import { paraDate, chaveData } from "./utils/date.js?v=8.29";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.29";
+import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.30";
+import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.30";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.30";
+import { paraDate, chaveData } from "./utils/date.js?v=8.30";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.30";
+import { garantirZXing } from "./services/external-assets.js?v=8.30";
 import {
     CATEGORIAS_ESTOQUE,
     UNIDADES_ESTOQUE,
@@ -11,7 +12,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=8.29";
+} from "./services/estoque-service.js?v=8.30";
 import {
     atualizarProdutoEstoque,
     criarProdutoEstoque,
@@ -24,9 +25,9 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=8.29";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.29";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.29";
+} from "./data/estoque-repository.js?v=8.30";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.30";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.30";
 
 let inicializado = false;
 let produtos = [];
@@ -544,6 +545,7 @@ async function iniciarScanner(destino) {
     if (status) status.textContent = "Solicitando acesso à câmera...";
 
     try {
+        await garantirZXing();
         if (!window.ZXingBrowser?.BrowserMultiFormatReader) {
             throw new Error("Leitor de código de barras indisponível. Digite ou busque o produto manualmente.");
         }

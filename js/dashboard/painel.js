@@ -1,12 +1,13 @@
-import { state, onStateChange } from "./state.js?v=8.29";
-import { formatarMoeda } from "./utils/money.js?v=8.29";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.29";
-import { setTexto } from "./utils/dom.js?v=8.29";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.29";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.29";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.29";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.29";
-import { obterWorkspaceId } from "./data/context.js?v=8.29";
+import { state, onStateChange } from "./state.js?v=8.30";
+import { formatarMoeda } from "./utils/money.js?v=8.30";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.30";
+import { setTexto } from "./utils/dom.js?v=8.30";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.30";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.30";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.30";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.30";
+import { obterWorkspaceId } from "./data/context.js?v=8.30";
+import { garantirChartJs } from "./services/external-assets.js?v=8.30";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -149,6 +150,12 @@ async function selecionarData(novaData) {
 
 export async function abrirPainelHoje() {
     dataSelecionada = inicioDoDia(new Date());
+    void garantirChartJs()
+        .then(() => {
+            const painel = document.getElementById("painelFinanceiro");
+            if (painel && getComputedStyle(painel).display !== "none") atualizarGrafico();
+        })
+        .catch((error) => console.warn("Chart.js indisponível no Painel:", error));
     try {
         await carregarResumosPainel(somarDias(dataSelecionada, -6), dataSelecionada);
     } catch (error) {

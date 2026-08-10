@@ -69,7 +69,6 @@
 .estoque-vazio span { font-size: .58rem; }
 
 .estoque-modal-card { width: min(440px, calc(100vw - 24px)); max-height: min(88dvh, 760px); overflow: auto; }
-.estoque-form { padding: 0 16px 16px; }
 .estoque-inline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .estoque-code-control { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 7px; }
 .estoque-code-control button { border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--primary); }

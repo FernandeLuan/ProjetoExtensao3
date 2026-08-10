@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.29";
+import { db } from "../../firebase-init.js?v=8.30";
 import {
     doc,
     getDoc,
@@ -6,15 +6,15 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=8.29";
-import { obterWorkspaceId } from "./context.js?v=8.29";
-import { usuarioEhAdmin } from "../permissoes.js?v=8.29";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.29";
+import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=8.30";
+import { obterWorkspaceId } from "./context.js?v=8.30";
+import { usuarioEhAdmin } from "../permissoes.js?v=8.30";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.30";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=8.29";
+} from "./cache-local.js?v=8.30";
 
 // Configuração contém preços/serviços. TTL curto para economizar reaberturas sem
 // manter preço antigo por muito tempo em outro aparelho.

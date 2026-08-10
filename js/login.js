@@ -7,7 +7,7 @@ import {
     doc,
     getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { auth, db } from "./firebase-init.js?v=8.29";
+import { auth, db } from "./firebase-init.js?v=8.30";
 
 const form = document.getElementById("loginForm");
 

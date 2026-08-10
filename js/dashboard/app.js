@@ -1,65 +1,54 @@
-import { auth } from "../firebase-init.js?v=8.29";
+import { auth } from "../firebase-init.js?v=8.30";
 import {
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { inicializarContexto } from "./data/context.js?v=8.29";
-import { recarregarConfiguracoes } from "./data/sync.js?v=8.29";
-import { initTheme } from "./theme.js?v=8.29";
-import { initConnectivity } from "./connectivity.js?v=8.29";
-import { initNavigation } from "./navigation.js?v=8.29";
-import { initRegistrar } from "./registrar.js?v=8.29";
-import { initConfiguracoes } from "./configuracoes.js?v=8.29";
-import { initRetroativo } from "./retroativo.js?v=8.29";
-import { initEquipe } from "./equipe.js?v=8.29";
-import { initDespesas } from "./despesas.js?v=8.29";
-import { initConta } from "./conta.js?v=8.29";
-import { initRelatorios } from "./relatorios.js?v=8.29";
-import { initEstoque } from "./estoque.js?v=8.29";
-import { mostrarErro } from "./services/feedback-service.js?v=8.29";
-import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.29";
-import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=8.29";
-import { initVisao } from "./visao.js?v=8.29";
+import { inicializarContexto } from "./data/context.js?v=8.30";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.30";
+import { definirConfiguracoes } from "./state.js?v=8.30";
+import { initTheme } from "./theme.js?v=8.30";
+import { initConnectivity } from "./connectivity.js?v=8.30";
+import { initNavigation } from "./navigation.js?v=8.30";
+import { mostrarErro } from "./services/feedback-service.js?v=8.30";
+import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.30";
+import { aplicarPermissoesInterface } from "./permissoes.js?v=8.30";
+import { initVisao } from "./visao.js?v=8.30";
 
 let appInicializado = false;
+const inicioBoot = performance.now();
 
 initTheme();
 initConnectivity();
 initNavigation();
 
+function finalizarBoot() {
+    document.body.classList.remove("dashboard-booting");
+    document.getElementById("appBootStatus")?.setAttribute("hidden", "");
+
+    const duracao = Math.round(performance.now() - inicioBoot);
+    if (duracao > 4000) {
+        console.info(`[SR NK • Boot] Aplicativo liberado em ${duracao} ms.`);
+    }
+}
+
 async function inicializarApp(user) {
     const contexto = await inicializarContexto(user);
 
-    // Primeiro acesso vem antes de qualquer tela operacional.
+    // Primeiro acesso continua bloqueando qualquer tela operacional por segurança.
     if (contexto.perfil?.trocarSenha === true) {
         await exigirTrocaSenhaPrimeiroAcesso(contexto);
     }
 
     aplicarPermissoesInterface();
+
+    // Mantemos preços, meios de pagamento e regras financeiras consistentes antes
+    // de liberar ações operacionais. O restante das telas passou a lazy-loading.
+    definirConfiguracoes(await carregarConfiguracoesDoBanco());
     await initVisao();
 
-    // Na entrada carregamos somente contexto + configurações.
-    // Painel, Histórico, Relatório, Equipe, Despesas e Conta leem dados só ao serem abertos.
-    await recarregarConfiguracoes();
-
-    if (!appInicializado) {
-        appInicializado = true;
-
-        await initRegistrar();
-        initConta();
-        initDespesas();
-        initRelatorios();
-        initEstoque();
-
-        if (usuarioEhAdmin()) {
-            initConfiguracoes();
-            await initRetroativo();
-            initEquipe();
-        }
-    }
-
-    document.body.classList.remove("dashboard-booting");
+    appInicializado = true;
+    finalizarBoot();
 }
 
 document.getElementById("logoutBtnSide")?.addEventListener("click", async (event) => {
@@ -73,6 +62,8 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "login.html";
         return;
     }
+
+    if (appInicializado) return;
 
     try {
         await inicializarApp(user);
@@ -91,7 +82,7 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
 
-        document.body.classList.remove("dashboard-booting");
-        mostrarErro("Não foi possível carregar seu ambiente. Confira as regras do Firestore.");
+        finalizarBoot();
+        mostrarErro("Não foi possível carregar seu ambiente. Confira sua conexão e tente novamente.");
     }
 });

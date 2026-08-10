@@ -1,6 +1,6 @@
 import {
     db
-} from "../../firebase-init.js?v=8.29";
+} from "../../firebase-init.js?v=8.30";
 
 import {
     doc,
@@ -13,9 +13,9 @@ import {
 import {
     obterUidAtual,
     obterWorkspaceId
-} from "./context.js?v=8.29";
+} from "./context.js?v=8.30";
 
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.29";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.30";
 
 
 export async function obterDadosConta() {

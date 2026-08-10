@@ -1,29 +1,22 @@
-import { abrirPainelHoje } from "./painel.js?v=8.29";
-import { auth } from "../firebase-init.js?v=8.29";
+import { auth } from "../firebase-init.js?v=8.30";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { state, onStateChange } from "./state.js?v=8.29";
-import { abrirRegistrar } from "./registrar.js?v=8.29";
-import { abrirHistoricoHoje } from "./historico.js?v=8.29";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.29";
-import { abrirDespesasAtual } from "./despesas.js?v=8.29";
-import { abrirEquipe } from "./equipe.js?v=8.29";
-import { abrirConta } from "./conta.js?v=8.29";
-import { abrirEstoque } from "./estoque.js?v=8.29";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.29";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.29";
+import { state, onStateChange } from "./state.js?v=8.30";
+import { mostrarErro } from "./services/feedback-service.js?v=8.30";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
     podeAcessarSecao,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.29";
+} from "./permissoes.js?v=8.30";
 
 let inicializado = false;
+const modulos = new Map();
+const carregamentos = new Map();
+const execucoesSecao = new Map();
 
 const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
-
 
 async function authLogout() {
     try {
@@ -32,6 +25,7 @@ async function authLogout() {
         window.location.href = "login.html";
     }
 }
+
 function itensBottomNav() {
     return [...document.querySelectorAll(".bottom-nav-item[data-nav-target]")];
 }
@@ -74,6 +68,7 @@ const ORDEM_NAV_PADRAO = [
     "configuracoes",
     "conta"
 ];
+
 const NAV_BARBEARIA = {
     barbeariaHome: { target: "barbeariaHome", icone: "fas fa-store", label: "Visão geral" },
     historico: { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" },
@@ -182,6 +177,113 @@ function animarEntradaSecao(section) {
     setTimeout(() => section.classList.remove("section-enter"), 220);
 }
 
+async function importarModulo(chave, caminho) {
+    if (modulos.has(chave)) return modulos.get(chave);
+    if (carregamentos.has(chave)) return carregamentos.get(chave);
+
+    const promessa = import(caminho)
+        .then((modulo) => {
+            modulos.set(chave, modulo);
+            carregamentos.delete(chave);
+            return modulo;
+        })
+        .catch((error) => {
+            carregamentos.delete(chave);
+            throw error;
+        });
+
+    carregamentos.set(chave, promessa);
+    return promessa;
+}
+
+async function carregarSecao(targetId) {
+    switch (targetId) {
+        case "registrar": {
+            const modulo = await importarModulo("registrar", "./registrar.js?v=8.30");
+            await modulo.initRegistrar?.();
+            await modulo.abrirRegistrar?.();
+            return;
+        }
+        case "barbeariaHome": {
+            const modulo = await importarModulo("barbeariaHome", "./barbearia-home.js?v=8.30");
+            await modulo.abrirVisaoGeralBarbearia?.();
+            return;
+        }
+        case "painelFinanceiro": {
+            const modulo = await importarModulo("painel", "./painel.js?v=8.30");
+            await modulo.abrirPainelHoje?.();
+            return;
+        }
+        case "historico": {
+            const modulo = await importarModulo("historico", "./historico.js?v=8.30");
+            await modulo.abrirHistoricoHoje?.();
+            return;
+        }
+        case "relatorios": {
+            const modulo = await importarModulo("relatorios", "./relatorios.js?v=8.30");
+            await modulo.initRelatorios?.();
+            await modulo.prepararRelatoriosHoje?.();
+            return;
+        }
+        case "estoque": {
+            const modulo = await importarModulo("estoque", "./estoque.js?v=8.30");
+            modulo.initEstoque?.();
+            await modulo.abrirEstoque?.();
+            return;
+        }
+        case "despesas": {
+            const modulo = await importarModulo("despesas", "./despesas.js?v=8.30");
+            modulo.initDespesas?.();
+            await modulo.abrirDespesasAtual?.();
+            return;
+        }
+        case "equipe": {
+            const modulo = await importarModulo("equipe", "./equipe.js?v=8.30");
+            modulo.initEquipe?.();
+            await modulo.abrirEquipe?.();
+            return;
+        }
+        case "conta": {
+            const modulo = await importarModulo("conta", "./conta.js?v=8.30");
+            modulo.initConta?.();
+            await modulo.abrirConta?.();
+            return;
+        }
+        case "configuracoes": {
+            const [configuracoes, retroativo] = await Promise.all([
+                importarModulo("configuracoes", "./configuracoes.js?v=8.30"),
+                importarModulo("retroativo", "./retroativo.js?v=8.30")
+            ]);
+            configuracoes.initConfiguracoes?.();
+            await retroativo.initRetroativo?.();
+            await retroativo.prepararRetroativoParaUso?.();
+            return;
+        }
+        default:
+            return;
+    }
+}
+
+function iniciarCarregamentoSecao(targetId, section) {
+    section?.setAttribute("aria-busy", "true");
+    section?.classList.add("section-module-loading");
+
+    if (execucoesSecao.has(targetId)) return;
+
+    const execucao = carregarSecao(targetId)
+        .catch((error) => {
+            console.error(`Erro ao carregar a seção ${targetId}:`, error);
+            mostrarErro("Não foi possível abrir esta seção. Tente novamente.");
+        })
+        .finally(() => {
+            execucoesSecao.delete(targetId);
+            section?.removeAttribute("aria-busy");
+            section?.classList.remove("section-module-loading");
+        });
+
+    execucoesSecao.set(targetId, execucao);
+}
+
 export async function exibirSecao(href) {
     if (!href?.startsWith("#")) return;
     let targetId = href.slice(1);
@@ -201,16 +303,9 @@ export async function exibirSecao(href) {
     animarEntradaSecao(target);
     atualizarNavegacaoAtiva(targetId);
 
-    if (href === "#registrar") await abrirRegistrar();
-    if (href === "#barbeariaHome") await abrirVisaoGeralBarbearia();
-    if (href === "#painelFinanceiro") void abrirPainelHoje();
-    if (href === "#historico") void abrirHistoricoHoje();
-    if (href === "#relatorios") void prepararRelatoriosHoje();
-    if (href === "#estoque") void abrirEstoque();
-    if (href === "#despesas") void abrirDespesasAtual();
-    if (href === "#equipe") void abrirEquipe();
-    if (href === "#conta") void abrirConta();
-    if (href === "#configuracoes") void prepararRetroativoParaUso();
+    // A navegação fica responsiva imediatamente. O módulo e os dados da seção
+    // são carregados em segundo plano e não bloqueiam a abertura do aplicativo.
+    iniciarCarregamentoSecao(targetId, target);
 }
 
 export async function abrirInicioDaVisaoAtual() {
@@ -258,6 +353,5 @@ export function initNavigation() {
         fecharMenu();
     });
 
-    // A ordem salva pelo administrador é aplicada assim que a configuração chega do Firestore.
     onStateChange("configSistema", configurarNavegacaoParaVisao);
 }
