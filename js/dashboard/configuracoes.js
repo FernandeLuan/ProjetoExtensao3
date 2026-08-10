@@ -1,8 +1,8 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=7.4";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=7.4";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=7.4";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.25";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.25";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.25";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.25";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.25";
 
 let inicializado = false;
 
@@ -54,7 +54,7 @@ const NAV_BARBEARIA = {
     relatorios: { nome: "Relatório", detalhe: "Indicadores e períodos", icone: "fa-file-lines" },
     despesas: { nome: "Despesas", detalhe: "Gastos da barbearia", icone: "fa-receipt" },
     configuracoes: { nome: "Configurações", detalhe: "Preferências administrativas", icone: "fa-sliders-h" },
-    conta: { nome: "Minha Conta", detalhe: "Acesso e segurança", icone: "fa-user-lock" }
+    conta: { nome: "Minha conta", detalhe: "Acesso e segurança", icone: "fa-user-lock" }
 };
 
 

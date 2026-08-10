@@ -314,3 +314,29 @@ font-size:32px;
 
 /* v8.19 - sem aumento global de fonte; zoom acidental tratado por JS. */
 html, body, button, a, input, select, textarea, label { touch-action: manipulation; }
+
+/* v8.25 • refinamento de consistência e acessibilidade */
+.toggle-senha {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+}
+.toggle-senha:focus-visible,
+.link-esqueci:focus-visible,
+.btn-login:focus-visible,
+.voltar-site:focus-visible,
+.login-card input:focus-visible {
+    outline: 2px solid #00f0ff;
+    outline-offset: 3px;
+}
+.btn-login:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .login-card, .btn-login, .toggle-senha, body.fade-out {
+        animation: none !important;
+        transition: none !important;
+    }
+}

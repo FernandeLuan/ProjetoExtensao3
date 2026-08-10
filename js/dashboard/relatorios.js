@@ -1,20 +1,20 @@
-import { APP_NAME } from "./constants.js?v=7.4";
-import { state } from "./state.js?v=7.4";
-import { obterAtendimentosPeriodo } from "./data/sync.js?v=7.4";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.22";
-import { obterWorkspaceId } from "./data/context.js?v=7.4";
+import { APP_NAME } from "./constants.js?v=8.25";
+import { state } from "./state.js?v=8.25";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=8.25";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.25";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.25";
+import { obterWorkspaceId } from "./data/context.js?v=8.25";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=7.4";
-import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
+} from "./data/resumos-repository.js?v=8.25";
+import { usuarioEhAdmin } from "./permissoes.js?v=8.25";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./services/financeiro-service.js?v=7.4";
+} from "./services/financeiro-service.js?v=8.25";
 import {
     chaveData,
     dataDeInput,
@@ -22,10 +22,10 @@ import {
     somarDias,
     obterDataAtendimento,
     formatarTituloData
-} from "./utils/date.js?v=7.4";
-import { formatarMoeda } from "./utils/money.js?v=7.4";
-import { escaparHtml } from "./utils/dom.js?v=7.4";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.22";
+} from "./utils/date.js?v=8.25";
+import { formatarMoeda } from "./utils/money.js?v=8.25";
+import { escaparHtml } from "./utils/dom.js?v=8.25";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.25";
 
 let inicializado = false;
 let relatorioAtual = null;

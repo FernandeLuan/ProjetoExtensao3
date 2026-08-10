@@ -1,11 +1,11 @@
 import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { criarDespesa, editarDespesa, excluirDespesa, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
-import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
-import { state } from "./state.js?v=7.4";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=7.4";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=7.4";
-import { abrirSeletorData } from "./utils/dom.js?v=7.4";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
+import { criarDespesa, editarDespesa, excluirDespesa, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.25";
+import { usuarioEhAdmin } from "./permissoes.js?v=8.25";
+import { state } from "./state.js?v=8.25";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.25";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.25";
+import { abrirSeletorData } from "./utils/dom.js?v=8.25";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.25";
 
 let inicializado=false;
 let mesSelecionado=new Date(new Date().getFullYear(),new Date().getMonth(),1);

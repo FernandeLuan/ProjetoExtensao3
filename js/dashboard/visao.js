@@ -1,15 +1,15 @@
-import { state } from "./state.js?v=7.4";
+import { state } from "./state.js?v=8.25";
 import {
     aplicarPermissoesInterface,
     podeUsarVisaoBarbearia,
     podeUsarVisaoProfissional,
     usuarioEhAdmin,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.12";
+} from "./permissoes.js?v=8.25";
 import {
     abrirInicioDaVisaoAtual,
     configurarNavegacaoParaVisao
-} from "./navigation.js?v=8.11";
+} from "./navigation.js?v=8.25";
 
 const VISAO_PROFISSIONAL = "profissional";
 const VISAO_BARBEARIA = "barbearia";

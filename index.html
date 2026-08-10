@@ -28,7 +28,7 @@
     </div>
     <nav class="nav-menu">
       <input type="checkbox" id="menu-toggle" class="menu-toggle">
-      <label for="menu-toggle" class="menu-icon">☰</label>
+      <label for="menu-toggle" class="menu-icon" aria-label="Abrir menu">☰</label>
 <ul class="nav-list">
   <li><a href="#sobre" onclick="closeMenu()">Sobre</a></li>
   <li><a href="#galeria" onclick="closeMenu()">Galeria</a></li>
@@ -38,11 +38,11 @@
   <a href="https://www.google.com/search?sca_esv=d93e5f3f55d68fd9&sxsrf=ANbL-n482oTzJcval-EaAzgLjiw4iF_zYw:1772711145533&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOTjo85oxXJ90Kr3qgpfk-LE1SPWVzx_PPAp0Kqf3eSLwxY8W8M1JzBS5tR9gLBCLYA_zPGpJaf91kLe46IB3ng__KK-t3DUVszbHIi7H4UCmymk2EQ%3D%3D&q=Sr.Nk+Barbearia+Coment%C3%A1rios&sa=X&ved=2ahUKEwirvfnQ14iTAxXJDLkGHZw6B9oQ0bkNegQIIRAF&biw=1920&bih=911&dpr=1"
      target="_blank"
      onclick="closeMenu()"
-  >
+   rel="noopener noreferrer">
     Avalie-nos
   </a>
 </li>
-  <li><a href="login.html" onclick="closeMenu()">Área do Barbeiro</a></li>
+  <li><a href="login.html" onclick="closeMenu()">Área da equipe</a></li>
 </ul>
     </nav>
   </div>
@@ -100,8 +100,8 @@
         <img src="Fotos/4.png" alt="Fade moderno realizado por Marlon" loading="lazy">
         <img src="Fotos/2.png" alt="Sr NK trabalhando" loading="lazy">
       </div>
-      <button class="carousel-btn prev" onclick="moveCarousel(-1)">‹</button>
-      <button class="carousel-btn next" onclick="moveCarousel(1)">›</button>
+      <button type="button" class="carousel-btn prev" aria-label="Trabalho anterior" onclick="moveCarousel(-1)">‹</button>
+      <button type="button" class="carousel-btn next" aria-label="Próximo trabalho" onclick="moveCarousel(1)">›</button>
     </div>
   </div>
 </section>
@@ -120,14 +120,14 @@
     </ol>
 
     <div class="btn-group">
-      <a href="https://play.google.com/store/apps/details?id=br.com.starapp.appbarbercli" target="_blank" class="btn-store">Baixar para Android</a>
-      <a href="https://apps.apple.com/br/app/appbarber-cliente/id6450795073" target="_blank" class="btn-store">Baixar para iPhone</a>
+      <a href="https://play.google.com/store/apps/details?id=br.com.starapp.appbarbercli" target="_blank" class="btn-store" rel="noopener noreferrer">Baixar para Android</a>
+      <a href="https://apps.apple.com/br/app/appbarber-cliente/id6450795073" target="_blank" class="btn-store" rel="noopener noreferrer">Baixar para iPhone</a>
     </div>
     <div class="agendamento-direto">
       <p>Ou agende direto:</p>
       <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" 
          target="_blank" 
-         class="btn-agendar">
+         class="btn-agendar" rel="noopener noreferrer">
          Clique aqui
       </a>
     </div>
@@ -150,10 +150,10 @@
       <i class="fas fa-map-marker-alt"></i> Sr.Nk Barbearia - Rua Dom Bosco, 430 - Centro - Rio do Sul/SC - 89160-135
     </p>
     <div class="footer-social">
-      <a href="https://www.instagram.com/_barber_marlon/" target="_blank" title="Instagram">
+      <a href="https://www.instagram.com/_barber_marlon/" target="_blank" title="Instagram" rel="noopener noreferrer">
         <i class="fab fa-instagram"></i>
       </a>
-      <a href="https://wa.me/5547988511749?text=Oi%20Marlon%2C%20vim%20pelo%20site%20e%20quero%20agendar%20um%20corte!" target="_blank" title="WhatsApp">
+      <a href="https://wa.me/5547988511749?text=Oi%20Marlon%2C%20vim%20pelo%20site%20e%20quero%20agendar%20um%20corte!" target="_blank" title="WhatsApp" rel="noopener noreferrer">
         <i class="fab fa-whatsapp"></i>
       </a>
     </div>

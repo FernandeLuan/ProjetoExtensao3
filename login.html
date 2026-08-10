@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Área do Barbeiro | Sr NK</title>
+<title>Área da equipe | Sr NK</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/login.css?v=8.19">
+<link rel="stylesheet" href="css/login.css?v=8.25">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,7 @@
 
 <div class="logo-container">
 <a href="index.html" class="logo-link">
-<img src="Fotos/teste1.jpeg" class="logo-foto">
+<img src="Fotos/teste1.jpeg" class="logo-foto" alt="Sr NK">
 </a>
 
 <a href="index.html" class="logo-link">
@@ -43,10 +43,10 @@
 
 <i class="fas fa-user-lock login-icon"></i>
 
-<h2>Área do Barbeiro</h2>
+<h2>Área da equipe</h2>
 
 <p class="login-sub">
-Acesse seu painel financeiro
+Acesse o sistema da barbearia
 </p>
 
 <form id="loginForm">
@@ -65,14 +65,13 @@ Acesse seu painel financeiro
         autocomplete="current-password" 
         required
     >
-    <span 
-        class="toggle-senha" 
-        tabindex="0" 
-        role="button" 
+    <button
+        type="button"
+        class="toggle-senha"
         aria-label="Mostrar ou ocultar senha"
     >
         <i class="fas fa-eye"></i>
-    </span>
+    </button>
 </div>
 <div class="esqueci-senha-container">
         <a href="#" id="btnEsqueciSenha" class="link-esqueci">Esqueci minha senha</a>
@@ -99,8 +98,8 @@ Voltar para o site
 
 </section>
 
-<script src="js/mobile-interactions.js?v=8.21" defer></script>
-<script type="module" src="js/login.js?v=8.16"></script>
+<script src="js/mobile-interactions.js?v=8.25" defer></script>
+<script type="module" src="js/login.js?v=8.25"></script>
 <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(console.warn));</script>
 </body>
 </html>

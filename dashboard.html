@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.22" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.25" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -38,14 +38,14 @@
 <li>
 <a href="#conta">
 <i class="fas fa-user-lock"></i>
-<span>Minha Conta</span>
+<span>Minha conta</span>
 </a>
 </li>
 <li aria-hidden="true" class="menu-divider"></li>
 <li>
 <a class="menu-logout" href="#" id="logoutBtnSide">
 <i class="fas fa-sign-out-alt"></i>
-<span>Sair do Sistema</span>
+<span>Sair do sistema</span>
 </a>
 </li>
 </ul>
@@ -166,10 +166,10 @@
 
 </section>
 <section class="registrar" id="registrar">
-<h2 class="titulo-sessao">Registrar Atendimento</h2>
+<h2 class="titulo-sessao">Registrar atendimento</h2>
 <form id="atendimentoForm">
 <div class="input-group grupo-servicos-container">
-<label class="label-servico" id="labelServicos">Serviços:</label>
+<label class="label-servico" id="labelServicos">Serviços</label>
 <div class="grupo-botoes-servicos">
 <button class="btn-servico full-width" data-nome="Cabelo + Barba + Sobrancelha" data-valor="110" type="button">
                         Cabelo + Barba + Sobrancelha<br/>
@@ -194,7 +194,7 @@
 </div>
 </div>
 <div class="input-group pagamento-group">
-<label class="label-servico" id="labelPagamento">Forma de Pagamento:</label>
+<label class="label-servico" id="labelPagamento">Forma de pagamento</label>
 <div class="grupo-chips-pagamento">
 <button class="chip-pagamento" data-valor="Crédito" type="button"><i aria-hidden="true" class="fas fa-credit-card"></i><span>Crédito</span></button>
 <button class="chip-pagamento" data-valor="Débito" type="button"><i aria-hidden="true" class="fas fa-credit-card"></i><span>Débito</span></button>
@@ -204,7 +204,7 @@
 <input id="pagamento" required="" type="hidden"/>
 </div>
 <div class="input-group toggle-container">
-<label class="toggle-label" for="temValorDiferenciado">Valor Diferenciado</label>
+<label class="toggle-label" for="temValorDiferenciado">Valor diferenciado</label>
 <label class="switch">
 <input id="temValorDiferenciado" type="checkbox"/>
 <span class="slider round"></span>
@@ -214,7 +214,7 @@
 <input id="valorPersonalizado" inputmode="numeric" placeholder="0,00" type="tel"/>
 </div>
 <div class="input-group toggle-container toggle-container-compact">
-<label class="toggle-label" id="labelObservacaoRegistrar" for="temObservacao">Registrar Observação</label>
+<label class="toggle-label" id="labelObservacaoRegistrar" for="temObservacao">Registrar observação</label>
 <label class="switch">
 <input id="temObservacao" type="checkbox"/>
 <span class="slider round"></span>
@@ -223,10 +223,10 @@
 <div class="input-group" id="campoObservacao">
 <input autocomplete="off" id="observacaoAtendimento" maxlength="160" placeholder="Ex.: desconto, cortesia, cliente antigo..." type="text"/>
 </div>
-<button class="btn" id="btnRegistrar" type="submit">Registrar Atendimento</button>
+<button class="btn" id="btnRegistrar" type="submit">Registrar atendimento</button>
 <div id="undoContainer">
 <button class="btn-desfazer-ghost" id="btnUndoInline" type="button">
-                    Desfazer Registro (10s)
+                    Desfazer registro (10s)
                 </button>
 </div>
 </form>
@@ -274,7 +274,7 @@
 <div class="finance-summary-row">
 <div class="finance-summary-item">
 <div class="finance-summary-label">
-<span>Faturamento bruto</span>
+<span><i class="fas fa-sack-dollar" aria-hidden="true"></i> Faturamento bruto</span>
 <button aria-label="O que é faturamento bruto?" class="finance-info-btn" data-info="Total recebido pelos atendimentos antes de taxas e repasses." type="button">
 <i class="fas fa-circle-info"></i>
 </button>
@@ -284,7 +284,7 @@
             </strong>
 </div>
 <div class="finance-summary-item">
-<span>Repasse</span>
+<span class="finance-summary-label"><i class="fas fa-hand-holding-dollar" aria-hidden="true"></i> Repasse</span>
 <strong id="repassePainel">
                 R$ 0,00
             </strong>
@@ -295,7 +295,7 @@
 <div class="finance-mini-grid">
 <article class="finance-card finance-mini-card">
 <div class="finance-label-row">
-<span class="finance-label">Ticket médio</span>
+<span class="finance-label"><i class="fas fa-chart-simple" aria-hidden="true"></i> Ticket médio</span>
 <button aria-label="O que é ticket médio?" class="finance-info-btn" data-info="Valor médio faturado por atendimento no dia selecionado." type="button">
 <i class="fas fa-circle-info"></i>
 </button>
@@ -308,9 +308,7 @@
 </div>
 </article>
 <article class="finance-card finance-mini-card">
-<span class="finance-label">
-                Atendimentos
-            </span>
+<span class="finance-label"><i class="fas fa-scissors" aria-hidden="true"></i> Atendimentos</span>
 <strong class="finance-mini-value" id="clientesAtendidosPainel">
                 0
             </strong>
@@ -386,7 +384,7 @@
 </div>
 
 <label class="relatorio-profissional-field" id="relatorioProfissionalField" hidden>
-<span>Selecione: </span>
+<span>Exibir</span>
 <select id="relatorioProfissionalSelect">
 <option value="barbearia">Barbearia</option>
 </select>
@@ -583,12 +581,12 @@
 <label class="retro-field"><span id="labelRetroData">Data</span><div class="retro-date-control"><input id="retroData" required type="date"><button type="button" id="btnCalendarioRetro" aria-label="Abrir calendário"><i class="fas fa-calendar-days"></i></button></div></label>
 <label class="retro-field"><span id="labelRetroServico">Serviço</span><select id="retroServico" required><option value="">Selecione</option></select></label>
 <label class="retro-field"><span id="labelRetroPagamento">Forma de pagamento</span><select id="retroPagamento" required><option value="">Selecione</option></select></label>
-<div class="retro-toggle-row"><label for="retroValorDiferenciado">Valor Diferenciado</label><label class="switch"><input id="retroValorDiferenciado" type="checkbox"><span class="slider round"></span></label></div>
+<div class="retro-toggle-row"><label for="retroValorDiferenciado">Valor diferenciado</label><label class="switch"><input id="retroValorDiferenciado" type="checkbox"><span class="slider round"></span></label></div>
 <div class="retro-conditional" hidden id="retroCampoValor"><label class="retro-field"><span id="labelRetroValor">Valor do atendimento</span><div class="retro-money-input"><span>R$</span><input autocomplete="off" id="retroValor" inputmode="numeric" placeholder="0,00" type="tel"></div></label></div>
-<div class="retro-toggle-row"><label for="retroTemObservacao">Registrar Observação</label><label class="switch"><input id="retroTemObservacao" type="checkbox"><span class="slider round"></span></label></div>
+<div class="retro-toggle-row"><label for="retroTemObservacao">Registrar observação</label><label class="switch"><input id="retroTemObservacao" type="checkbox"><span class="slider round"></span></label></div>
 <div class="retro-conditional" hidden id="retroCampoObservacao"><label class="retro-field"><span id="labelRetroObservacao">Observação</span><input autocomplete="off" id="retroObservacao" maxlength="160" placeholder="Ex.: desconto, cortesia, cliente antigo..." type="text"></label></div>
-<button class="btn retro-submit" id="btnSalvarRetroativo" type="submit">Salvar Atendimento</button>
-<div class="retro-undo-container" id="retroUndoContainer" hidden><button class="btn-desfazer-ghost" id="btnUndoRetroativo" type="button">Desfazer Registro (10s)</button></div>
+<button class="btn retro-submit" id="btnSalvarRetroativo" type="submit">Salvar atendimento</button>
+<div class="retro-undo-container" id="retroUndoContainer" hidden><button class="btn-desfazer-ghost" id="btnUndoRetroativo" type="button">Desfazer registro (10s)</button></div>
 <div aria-live="polite" class="config-save-status retro-status" id="retroStatus"></div>
 </form>
 </div>
@@ -641,7 +639,7 @@
 <section id="conta" class="registrar conta-page">
     
 
-    <h2 class="titulo-sessao">Minha Conta</h2>
+    <h2 class="titulo-sessao">Minha conta</h2>
 
     <!-- FOTO -->
     <div class="conta-avatar-area">
@@ -704,7 +702,7 @@
             </div>
 
             <div class="conta-info-item">
-                <span class="conta-info-label">Email</span>
+                <span class="conta-info-label">E-mail</span>
                 <span class="conta-info-valor conta-email" id="contaEmail">—</span>
             </div>
 
@@ -807,7 +805,7 @@
 
                 <div class="input-group">
                     <label class="label-servico">
-                        Senha Atual
+                        Senha atual
                     </label>
 
                     <input
@@ -822,7 +820,7 @@
 
                 <div class="input-group">
                     <label class="label-servico">
-                        Nova Senha
+                        Nova senha
                     </label>
 
                     <input
@@ -837,7 +835,7 @@
 
                 <div class="input-group">
                     <label class="label-servico">
-                        Confirmar Nova Senha
+                        Confirmar nova senha
                     </label>
 
                     <input
@@ -855,7 +853,7 @@
                     class="btn"
                     id="btnSalvarSenha"
                 >
-                    Atualizar Senha
+                    Atualizar senha
                 </button>
 
             </form>
@@ -928,7 +926,7 @@ Aparência
 </div></div>
 </article>
 <article class="equipe-financeiro-section">
-<button class="equipe-financeiro-toggle" id="btnToggleTaxasProfissional" type="button" aria-expanded="false" aria-controls="conteudoTaxasProfissional"><span><strong>Taxas %</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+<button class="equipe-financeiro-toggle" id="btnToggleTaxasProfissional" type="button" aria-expanded="false" aria-controls="conteudoTaxasProfissional"><span><strong>Taxas e repasse</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
 <div class="equipe-financeiro-body" id="conteudoTaxasProfissional" hidden><div class="config-list equipe-config-list">
 <div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Débito %</span><span class="config-atual" id="lblMembroTaxaDebito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaDebito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
 <div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Crédito %</span><span class="config-atual" id="lblMembroTaxaCredito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaCredito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
@@ -1108,7 +1106,7 @@ Aparência
                 <small>O barbeiro deverá trocá-la no primeiro acesso.</small>
             </div>
             <article class="equipe-financeiro-section equipe-cadastro-financeiro">
-                <button class="equipe-financeiro-toggle" id="btnToggleFinanceiroNovoBarbeiro" type="button" aria-expanded="false" aria-controls="conteudoFinanceiroNovoBarbeiro"><span><strong>Financeiro</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+                <button class="equipe-financeiro-toggle" id="btnToggleFinanceiroNovoBarbeiro" type="button" aria-expanded="false" aria-controls="conteudoFinanceiroNovoBarbeiro"><span><strong>Taxas e repasse</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
                 <div class="equipe-financeiro-body" id="conteudoFinanceiroNovoBarbeiro" hidden>
                     <div class="equipe-taxas-grid equipe-cadastro-taxas-grid"><label class="equipe-field"><span>Débito % <small>(opcional)</small></span><input id="novoBarbeiroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00"></label><label class="equipe-field"><span>Crédito % <small>(opcional)</small></span><input id="novoBarbeiroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00"></label></div>
                     <label class="equipe-field equipe-repasse-field"><span>Repasse % <small>(obrigatório)</small></span><input id="novoBarbeiroRepassePct" type="tel" inputmode="numeric" placeholder="0,00" required></label>
@@ -1228,8 +1226,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.21" defer></script>
-<script src="js/dashboard/index.js?v=8.22" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.25" defer></script>
+<script src="js/dashboard/index.js?v=8.25" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

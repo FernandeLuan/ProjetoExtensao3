@@ -1,11 +1,11 @@
-import { state, onStateChange } from "./state.js?v=7.4";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=7.4";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.16";
-import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=7.4";
-import { mostrarErro } from "./services/feedback-service.js?v=7.4";
+import { state, onStateChange } from "./state.js?v=8.25";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.25";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.25";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.25";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.25";
+import { usuarioEhAdmin } from "./permissoes.js?v=8.25";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.25";
+import { mostrarErro } from "./services/feedback-service.js?v=8.25";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -59,7 +59,7 @@ function atualizarTextoBotao() {
     const valorFinal = checkboxValorDif?.checked ? getValorCustomizado() : valorTotalAutomatico;
     btnRegistrar.textContent = servicoSelecionadoId && valorFinal > 0
         ? `Registrar • R$ ${Number(valorFinal).toFixed(2).replace(".", ",")}`
-        : "Registrar Atendimento";
+        : "Registrar atendimento";
 }
 
 function dispararErroVisual(elemento) {
@@ -218,13 +218,13 @@ function dispararUndoInline(idDoc) {
     ultimoIdRegistrado = idDoc;
     if (undoContainer) undoContainer.style.display = "block";
     let segundosRestantes = 10;
-    if (btnUndoInline) btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
+    if (btnUndoInline) btnUndoInline.textContent = `Desfazer registro (${segundosRestantes}s)`;
 
     clearInterval(undoInterval);
     clearTimeout(undoTimeout);
     undoInterval = setInterval(() => {
         segundosRestantes -= 1;
-        if (segundosRestantes > 0 && btnUndoInline) btnUndoInline.textContent = `Desfazer Registro (${segundosRestantes}s)`;
+        if (segundosRestantes > 0 && btnUndoInline) btnUndoInline.textContent = `Desfazer registro (${segundosRestantes}s)`;
         else clearInterval(undoInterval);
     }, 1000);
 

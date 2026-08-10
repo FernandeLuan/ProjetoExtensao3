@@ -13,6 +13,9 @@ function aplicarTemaVisual(modo) {
     document.documentElement.classList.toggle("dark", usarEscuro);
     document.documentElement.classList.toggle("light", !usarEscuro);
 
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) metaThemeColor.setAttribute("content", usarEscuro ? "#0F1115" : "#F8F9FB");
+
     document.querySelectorAll("[data-theme-mode]").forEach((botao) => {
         const ativo = botao.dataset.themeMode === normalizado;
         botao.classList.toggle("active", ativo);

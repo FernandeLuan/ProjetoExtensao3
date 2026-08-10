@@ -1,21 +1,21 @@
-import { abrirPainelHoje } from "./painel.js?v=8.22";
-import { auth } from "../firebase-init.js?v=7.4";
+import { abrirPainelHoje } from "./painel.js?v=8.25";
+import { auth } from "../firebase-init.js?v=8.25";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { state, onStateChange } from "./state.js?v=7.4";
-import { abrirRegistrar } from "./registrar.js?v=8.16";
-import { abrirHistoricoHoje } from "./historico.js?v=8.22";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.22";
-import { abrirDespesasAtual } from "./despesas.js?v=8.10";
-import { abrirEquipe } from "./equipe.js?v=8.22";
-import { abrirConta } from "./conta.js?v=8.22";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.22";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.22";
+import { state, onStateChange } from "./state.js?v=8.25";
+import { abrirRegistrar } from "./registrar.js?v=8.25";
+import { abrirHistoricoHoje } from "./historico.js?v=8.25";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.25";
+import { abrirDespesasAtual } from "./despesas.js?v=8.25";
+import { abrirEquipe } from "./equipe.js?v=8.25";
+import { abrirConta } from "./conta.js?v=8.25";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.25";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.25";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
     podeAcessarSecao,
     visaoEhBarbearia
-} from "./permissoes.js?v=7.5";
+} from "./permissoes.js?v=8.25";
 
 let inicializado = false;
 
@@ -79,7 +79,7 @@ const NAV_BARBEARIA = {
     relatorios: { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" },
     despesas: { target: "despesas", icone: "fas fa-receipt", label: "Despesas" },
     configuracoes: { target: "configuracoes", icone: "fas fa-sliders-h", label: "Configurações" },
-    conta: { target: "conta", icone: "fas fa-user-lock", label: "Minha Conta" }
+    conta: { target: "conta", icone: "fas fa-user-lock", label: "Minha conta" }
 };
 
 function ordemCompletaBarbearia() {
@@ -102,7 +102,7 @@ function renderizarMenu(itens, { profissional = false } = {}) {
     const itensVisiveis = profissional
         ? [
             { target: "despesas", icone: "fas fa-receipt", label: "Despesas" },
-            { target: "conta", icone: "fas fa-user-lock", label: "Minha Conta" }
+            { target: "conta", icone: "fas fa-user-lock", label: "Minha conta" }
         ]
         : itens.map((chave) => NAV_BARBEARIA[chave]).filter(Boolean);
 
@@ -119,7 +119,7 @@ function renderizarMenu(itens, { profissional = false } = {}) {
         <li>
             <a class="menu-logout" href="#" id="logoutBtnSide">
                 <i class="fas fa-sign-out-alt"></i>
-                <span>Sair do Sistema</span>
+                <span>Sair do sistema</span>
             </a>
         </li>
     `;

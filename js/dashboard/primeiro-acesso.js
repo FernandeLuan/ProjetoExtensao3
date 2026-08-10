@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=7.4";
+import { auth, db } from "../firebase-init.js?v=8.25";
 import {
     updatePassword,
     signOut
