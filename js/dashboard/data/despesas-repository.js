@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.26";
+import { db } from "../../firebase-init.js?v=8.27";
 import {
     collection,
     doc,
@@ -12,15 +12,15 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=8.26";
-import { state } from "../state.js?v=8.26";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.26";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.26";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.26";
+import { SCHEMA_VERSION } from "../constants.js?v=8.27";
+import { state } from "../state.js?v=8.27";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.27";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.27";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.27";
 import {
     anexarDeltasDespesasAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=8.26";
+} from "./resumos-repository.js?v=8.27";
 
 const CACHE_DESPESAS_MS = 2 * 60 * 1000;
 const cacheDespesas = new Map();
@@ -49,6 +49,39 @@ function documentoDespesa(id) {
 
 function nomeAtual() {
     return String(state.perfilUsuario?.nome || state.membroAtual?.nome || state.user?.email || "Profissional").trim();
+}
+
+function arredondar2(valor) {
+    return Number(Number(valor || 0).toFixed(2));
+}
+
+function construirDadosDespesa({
+    data,
+    categoria,
+    descricao,
+    valor,
+    tipo = "profissional",
+    extras = {}
+}) {
+    const uid = obterUidAtual();
+    const tipoFinal = podeAdministrarNaVisaoAtual() && tipo === "barbearia" ? "barbearia" : "profissional";
+    const dataDespesa = data instanceof Date ? data : new Date(data);
+
+    return {
+        profissionalUid: tipoFinal === "profissional" ? uid : null,
+        profissionalNome: tipoFinal === "profissional" ? nomeAtual() : "Barbearia",
+        registradoPorUid: uid,
+        registradoPorNome: nomeAtual(),
+        tipo: tipoFinal,
+        categoria: String(categoria || "Outros").slice(0, 40),
+        descricao: String(descricao || "").trim().slice(0, 120),
+        valor: arredondar2(valor),
+        data: dataDespesa.toISOString(),
+        dataDespesa,
+        schemaVersion: SCHEMA_VERSION,
+        resumoVersion: RESUMO_VERSION,
+        ...extras
+    };
 }
 
 async function obterDespesaOriginal(id, originalInformado = null) {
@@ -118,24 +151,7 @@ export async function listarDespesasPorPeriodo(
 }
 
 export async function criarDespesa({ data, categoria, descricao, valor, tipo = "profissional" }) {
-    const uid = obterUidAtual();
-    const tipoFinal = podeAdministrarNaVisaoAtual() && tipo === "barbearia" ? "barbearia" : "profissional";
-    const dataDespesa = data instanceof Date ? data : new Date(data);
-    const dados = {
-        profissionalUid: tipoFinal === "profissional" ? uid : null,
-        profissionalNome: tipoFinal === "profissional" ? nomeAtual() : "Barbearia",
-        registradoPorUid: uid,
-        registradoPorNome: nomeAtual(),
-        tipo: tipoFinal,
-        categoria: String(categoria || "Outros").slice(0, 40),
-        descricao: String(descricao || "").trim().slice(0, 120),
-        valor: Number(Number(valor || 0).toFixed(2)),
-        data: dataDespesa.toISOString(),
-        dataDespesa,
-        schemaVersion: SCHEMA_VERSION,
-        resumoVersion: RESUMO_VERSION
-    };
-
+    const dados = construirDadosDespesa({ data, categoria, descricao, valor, tipo, extras: { parcelada: false } });
     const ref = doc(colecaoDespesas());
     const batch = writeBatch(db);
 
@@ -152,6 +168,66 @@ export async function criarDespesa({ data, categoria, descricao, valor, tipo = "
     await batch.commit();
     invalidarCacheDespesas();
     return ref;
+}
+
+export async function criarDespesaParcelada({
+    parcelas = [],
+    categoria,
+    descricao,
+    valorTotal,
+    tipo = "profissional"
+}) {
+    if (!Array.isArray(parcelas) || parcelas.length < 2 || parcelas.length > 36) {
+        throw new Error("O parcelamento deve ter entre 2 e 36 parcelas.");
+    }
+
+    const totalCentavos = Math.round(Number(valorTotal || 0) * 100);
+    const somaCentavos = parcelas.reduce((soma, parcela) => soma + Math.round(Number(parcela?.valor || 0) * 100), 0);
+    if (totalCentavos <= 0 || somaCentavos !== totalCentavos) {
+        throw new Error("Os valores das parcelas não correspondem ao valor total.");
+    }
+
+    const parcelamentoId = doc(colecaoDespesas()).id;
+    const totalParcelas = parcelas.length;
+    const primeiraData = parcelas[0]?.data instanceof Date ? parcelas[0].data : new Date(parcelas[0]?.data);
+    const diaOriginal = primeiraData.getDate();
+    const batch = writeBatch(db);
+    const entradasResumo = [];
+    const refs = [];
+
+    parcelas.forEach((parcela, indice) => {
+        const numero = indice + 1;
+        const ref = documentoDespesa(`${parcelamentoId}_${String(numero).padStart(2, "0")}`);
+        const dados = construirDadosDespesa({
+            data: parcela.data,
+            categoria,
+            descricao,
+            valor: parcela.valor,
+            tipo,
+            extras: {
+                parcelada: true,
+                parcelamentoId,
+                parcelaNumero: numero,
+                parcelasTotal: totalParcelas,
+                valorTotalParcelamento: arredondar2(valorTotal),
+                diaVencimentoOriginal: diaOriginal
+            }
+        });
+
+        batch.set(ref, {
+            ...dados,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        entradasResumo.push({ despesa: dados, sinal: 1 });
+        refs.push(ref);
+    });
+
+    anexarDeltasDespesasAoBatch(batch, entradasResumo);
+    await batch.commit();
+    invalidarCacheDespesas();
+
+    return { parcelamentoId, refs, parcelas: totalParcelas };
 }
 
 export async function editarDespesa(id, alteracoes, originalInformado = null) {
@@ -193,4 +269,42 @@ export async function excluirDespesa(id, originalInformado = null) {
 
     await batch.commit();
     invalidarCacheDespesas();
+}
+
+export async function excluirDespesaParcelada(despesa, { incluirProximas = false } = {}) {
+    const parcelamentoId = String(despesa?.parcelamentoId || "").trim();
+    const parcelaAtual = Math.max(1, Number(despesa?.parcelaNumero || 1));
+    const total = Math.max(parcelaAtual, Number(despesa?.parcelasTotal || parcelaAtual));
+
+    if (!parcelamentoId || despesa?.parcelada !== true || !incluirProximas) {
+        await excluirDespesa(despesa.id, despesa);
+        return { quantidade: 1 };
+    }
+
+    const ids = [];
+    for (let numero = parcelaAtual; numero <= total; numero += 1) {
+        ids.push(`${parcelamentoId}_${String(numero).padStart(2, "0")}`);
+    }
+
+    const snapshots = await Promise.all(ids.map((id) => getDoc(documentoDespesa(id))));
+    const originais = snapshots
+        .filter((snap) => snap.exists())
+        .map((snap) => ({ id: snap.id, ...snap.data() }));
+
+    if (!originais.length) return { quantidade: 0 };
+
+    const batch = writeBatch(db);
+    const deltas = [];
+
+    originais.forEach((original) => {
+        batch.delete(documentoDespesa(original.id));
+        if (Number(original.resumoVersion || 0) >= RESUMO_VERSION) {
+            deltas.push({ despesa: original, sinal: -1 });
+        }
+    });
+
+    if (deltas.length) anexarDeltasDespesasAoBatch(batch, deltas);
+    await batch.commit();
+    invalidarCacheDespesas();
+    return { quantidade: originais.length };
 }

@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=8.26";
-import { formatarMoeda } from "./utils/money.js?v=8.26";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.26";
-import { setTexto } from "./utils/dom.js?v=8.26";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.26";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.26";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.26";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.26";
-import { obterWorkspaceId } from "./data/context.js?v=8.26";
+import { state, onStateChange } from "./state.js?v=8.27";
+import { formatarMoeda } from "./utils/money.js?v=8.27";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.27";
+import { setTexto } from "./utils/dom.js?v=8.27";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.27";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.27";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.27";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.27";
+import { obterWorkspaceId } from "./data/context.js?v=8.27";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;

@@ -1,8 +1,8 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.26";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.26";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.26";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.26";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.26";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.27";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.27";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.27";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.27";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.27";
 
 let inicializado = false;
 

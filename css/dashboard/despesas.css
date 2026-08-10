@@ -54,3 +54,174 @@
     display: none;
     -webkit-appearance: none;
 }
+
+/* v8.27 • Despesas parceladas */
+.despesa-forma-field[hidden],
+#despesaParcelasField[hidden],
+.despesa-parcelas-preview[hidden],
+.despesa-edicao-parcelamento[hidden],
+.despesa-excluir-escopo[hidden] {
+    display: none !important;
+}
+
+.despesa-forma-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+}
+
+.despesa-forma-toggle button {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: .7rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.despesa-forma-toggle button.active {
+    border-color: var(--ui-primary-border);
+    background: var(--ui-primary-soft);
+    color: var(--primary);
+}
+
+.despesa-parcelas-preview {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+}
+
+.despesa-parcelas-resumo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.despesa-parcelas-resumo strong {
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+.despesa-parcelas-resumo span {
+    color: var(--text-secondary);
+    font-size: .58rem;
+    white-space: nowrap;
+}
+
+.despesa-parcelas-lista {
+    max-height: 164px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding-top: 4px;
+}
+
+.despesa-parcelas-lista > div {
+    min-height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 2px;
+}
+
+.despesa-parcelas-lista span {
+    color: var(--text-secondary);
+    font-size: .6rem;
+}
+
+.despesa-parcelas-lista strong {
+    color: var(--text);
+    font-size: .62rem;
+    font-weight: 600;
+}
+
+.despesa-edicao-parcelamento {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid var(--ui-primary-border);
+    border-radius: 11px;
+    background: var(--ui-primary-soft);
+    color: var(--text-secondary);
+    font-size: .62rem;
+    line-height: 1.4;
+}
+
+.despesa-edicao-parcelamento i {
+    color: var(--primary);
+}
+
+.despesa-edicao-parcelamento strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.despesa-parcela-badge {
+    flex: 0 0 auto;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: var(--ui-primary-soft);
+    color: var(--primary);
+    font-size: .52rem;
+    font-weight: 600;
+}
+
+.despesa-excluir-escopo {
+    display: grid;
+    gap: 7px;
+    margin: 12px 0 4px;
+}
+
+.despesa-excluir-escopo label {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 8px;
+    align-items: flex-start;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    cursor: pointer;
+}
+
+.despesa-excluir-escopo input {
+    margin: 2px 0 0;
+    accent-color: var(--danger);
+}
+
+.despesa-excluir-escopo span,
+.despesa-excluir-escopo strong,
+.despesa-excluir-escopo small {
+    display: block;
+}
+
+.despesa-excluir-escopo strong {
+    color: var(--text);
+    font-size: .67rem;
+    font-weight: 600;
+}
+
+.despesa-excluir-escopo small {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: .57rem;
+    line-height: 1.35;
+}
+
+.despesas-add-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}

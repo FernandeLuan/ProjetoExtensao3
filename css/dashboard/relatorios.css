@@ -779,3 +779,262 @@ display: flex;
         height: 220px;
     }
 }
+
+/* v8.27 • Relatório dividido entre Análise e Fechamento */
+.relatorio-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin: 0 0 10px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg);
+}
+
+.relatorio-tab {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: .7rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.relatorio-tab i {
+    font-size: .65rem;
+}
+
+.relatorio-tab.active {
+    background: var(--bg-card);
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .08);
+}
+
+.relatorio-tab-panel[hidden] {
+    display: none !important;
+}
+
+.fechamento-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 9px;
+    border: 1px solid rgba(22, 163, 74, .18);
+    border-radius: 17px;
+    background: linear-gradient(145deg, rgba(22, 163, 74, .11), var(--bg-card) 68%);
+}
+
+.fechamento-hero > div:first-child {
+    min-width: 0;
+}
+
+.fechamento-hero span,
+.fechamento-hero small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: .64rem;
+}
+
+.fechamento-hero > div:first-child > strong {
+    display: block;
+    margin: 3px 0 4px;
+    color: var(--text);
+    font-size: 1.56rem;
+    line-height: 1.1;
+    letter-spacing: -.035em;
+}
+
+.fechamento-margem {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    border: 1px solid var(--ui-success-border);
+    border-radius: 11px;
+    background: var(--ui-success-soft);
+    text-align: right;
+}
+
+.fechamento-margem strong {
+    display: block;
+    margin-top: 2px;
+    color: var(--ui-success-text);
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.fechamento-kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-bottom: 10px;
+}
+
+.fechamento-kpis article {
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg-card);
+}
+
+.fechamento-kpis span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+    font-size: .62rem;
+    line-height: 1.3;
+}
+
+.fechamento-kpis span i {
+    color: var(--primary);
+    font-size: .62rem;
+}
+
+.fechamento-kpis strong {
+    display: block;
+    color: var(--text);
+    font-size: .84rem;
+    font-weight: 600;
+}
+
+.fechamento-fluxo {
+    display: grid;
+    gap: 1px;
+}
+
+.fechamento-fluxo-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 34px;
+    padding: 5px 2px;
+    color: var(--text-secondary);
+    font-size: .65rem;
+}
+
+.fechamento-fluxo-linha strong {
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.fechamento-fluxo-linha.is-minus strong {
+    color: var(--danger);
+}
+
+.fechamento-fluxo-linha.is-subtotal {
+    margin-top: 3px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.fechamento-fluxo-linha.is-total {
+    margin-top: 4px;
+    padding: 10px;
+    border-radius: 11px;
+    background: var(--ui-success-soft);
+    color: var(--text);
+    font-weight: 600;
+}
+
+.fechamento-fluxo-linha.is-total strong {
+    color: var(--ui-success-text);
+    font-size: .76rem;
+    font-weight: 700;
+}
+
+.fechamento-lista {
+    display: grid;
+    gap: 7px;
+}
+
+.fechamento-lista-vazia {
+    padding: 13px;
+    color: var(--text-secondary);
+    font-size: .63rem;
+    text-align: center;
+}
+
+.fechamento-lista-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+    padding: 9px 10px;
+    border-radius: 11px;
+    background: var(--bg);
+}
+
+.fechamento-lista-item > div {
+    min-width: 0;
+}
+
+.fechamento-lista-item strong,
+.fechamento-lista-item span,
+.fechamento-lista-item small {
+    display: block;
+}
+
+.fechamento-lista-item strong {
+    overflow: hidden;
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fechamento-lista-item small {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: .57rem;
+    line-height: 1.35;
+}
+
+.fechamento-lista-item > span,
+.fechamento-lista-item > div:last-child {
+    color: var(--text);
+    font-size: .67rem;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.fechamento-lista-item .fechamento-item-taxa {
+    margin-top: 2px;
+    color: var(--danger);
+    font-size: .56rem;
+    font-weight: 500;
+}
+
+.fechamento-actions {
+    margin-top: 12px;
+}
+
+@media (max-width: 360px) {
+    .fechamento-hero > div:first-child > strong {
+        font-size: 1.38rem;
+    }
+
+    .fechamento-margem {
+        padding: 7px 8px;
+    }
+}
+
+.fechamento-kpis span b {
+    font: inherit;
+    color: inherit;
+}

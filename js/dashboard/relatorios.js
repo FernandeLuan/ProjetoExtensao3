@@ -1,20 +1,20 @@
-import { APP_NAME } from "./constants.js?v=8.26";
-import { state } from "./state.js?v=8.26";
-import { obterAtendimentosPeriodo } from "./data/sync.js?v=8.26";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.26";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.26";
-import { obterWorkspaceId } from "./data/context.js?v=8.26";
+import { APP_NAME } from "./constants.js?v=8.27";
+import { state } from "./state.js?v=8.27";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=8.27";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=8.27";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.27";
+import { obterWorkspaceId } from "./data/context.js?v=8.27";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=8.26";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.26";
+} from "./data/resumos-repository.js?v=8.27";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.27";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./services/financeiro-service.js?v=8.26";
+} from "./services/financeiro-service.js?v=8.27";
 import {
     chaveData,
     dataDeInput,
@@ -22,10 +22,11 @@ import {
     somarDias,
     obterDataAtendimento,
     formatarTituloData
-} from "./utils/date.js?v=8.26";
-import { formatarMoeda } from "./utils/money.js?v=8.26";
-import { escaparHtml } from "./utils/dom.js?v=8.26";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.26";
+} from "./utils/date.js?v=8.27";
+import { formatarMoeda } from "./utils/money.js?v=8.27";
+import { escaparHtml } from "./utils/dom.js?v=8.27";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.27";
+import { calcularFechamentoFinanceiro } from "./services/relatorio-financeiro-service.js?v=8.27";
 
 let inicializado = false;
 let relatorioAtual = null;
@@ -47,6 +48,11 @@ const labelData = el("labelDataRelatorio");
 const btnAnterior = el("btnRelDataAnterior");
 const btnProxima = el("btnRelDataProxima");
 const btnCalendario = el("btnCalendarioRelatorio");
+const btnAbaAnalise = el("btnRelatorioAnalise");
+const btnAbaFechamento = el("btnRelatorioFechamento");
+const painelAnalise = el("relatorioConteudo");
+const painelFechamento = el("relatorioFechamento");
+let abaRelatorioAtual = "analise";
 
 function moeda(valor) {
     return `R$ ${formatarMoeda(Number(valor || 0))}`;
@@ -235,6 +241,23 @@ function nomeMembro(membro) {
     if (snapshot) return snapshot;
 
     return String(membro?.email || "Profissional").trim();
+}
+
+function profissionalEhDono(uid, atendimento = null) {
+    if (!uid) return false;
+
+    if (
+        atendimento?.profissionalDono === true ||
+        atendimento?.financeiro?.profissionalDono === true
+    ) return true;
+
+    if (uid === state.membroAtual?.uid || uid === state.membroAtual?.id) {
+        if (state.membroAtual?.dono === true) return true;
+    }
+
+    const membro = (state.equipe || [])
+        .find((item) => (item.uid || item.id) === uid);
+    return membro?.dono === true;
 }
 
 async function prepararSeletorProfissional() {
@@ -513,6 +536,199 @@ function calcularResumo(atendimentos, despesas, visaoBarbearia) {
     };
 }
 
+
+function percentual(valor) {
+    return `${Number(valor || 0).toFixed(2).replace(".", ",")}%`;
+}
+
+function criarFechamentoDadosCompletos(relatorio) {
+    return calcularFechamentoFinanceiro({
+        atendimentos: relatorio?.atendimentos || [],
+        despesas: relatorio?.despesas || [],
+        visaoBarbearia: relatorio?.visaoBarbearia === true,
+        ehProfissionalDono: profissionalEhDono,
+        nomeProfissional: (_uid, atendimento) => nomeProfissionalAtendimento(atendimento)
+    });
+}
+
+function criarFechamentoResumos(resumo, visaoBarbearia) {
+    const bruto = Number(resumo?.faturamento || 0);
+    const taxas = Number(resumo?.taxas || 0);
+    const repasse = Number(resumo?.repasse || 0);
+    const despesas = Number(resumo?.totalDespesas || 0);
+    const liquidoAposTaxas = bruto - taxas;
+    const equipe = Array.isArray(resumo?.equipe) ? resumo.equipe : [];
+
+    const producaoDonoLiquida = visaoBarbearia
+        ? equipe.filter((item) => item.dono).reduce((soma, item) => soma + Number(item.liquido || 0), 0)
+        : 0;
+    const liquidoProfissionais = visaoBarbearia
+        ? equipe.filter((item) => !item.dono).reduce((soma, item) => soma + Number(item.liquido || 0), 0)
+        : 0;
+    const receitaAntesDespesas = visaoBarbearia
+        ? producaoDonoLiquida + repasse
+        : Number(resumo?.liquidoBarbeiro || 0);
+    const resultadoLiquido = receitaAntesDespesas - despesas;
+    const margemLiquida = bruto > 0 ? (resultadoLiquido / bruto) * 100 : 0;
+
+    return {
+        faturamentoBruto: bruto,
+        taxasCartao: taxas,
+        liquidoAposTaxas,
+        repasse,
+        repasseRecebido: visaoBarbearia ? repasse : 0,
+        repasseBarbearia: visaoBarbearia ? 0 : repasse,
+        liquidoProfissionais,
+        producaoDonoLiquida,
+        receitaAntesDespesas,
+        totalDespesas: despesas,
+        resultadoLiquido,
+        margemLiquida,
+        ticketMedio: Number(resumo?.ticket || 0),
+        atendimentos: Number(resumo?.totalAtendimentos || 0),
+        saidaParticipacao: visaoBarbearia ? liquidoProfissionais : repasse,
+        pagamentos: (resumo?.pagamentos || []).map(([nome, valor]) => ({
+            nome,
+            bruto: Number(valor || 0),
+            taxas: null,
+            liquidoAposTaxas: null,
+            quantidade: null
+        })),
+        despesasPorCategoria: despesas > 0
+            ? [{ nome: "Total do período", valor: despesas, agregado: true }]
+            : [],
+        equipe: equipe.map((item) => ({
+            uid: item.uid,
+            nome: item.nome,
+            dono: Boolean(item.dono),
+            quantidade: Number(item.qtd || 0),
+            bruto: Number(item.faturamento || 0),
+            taxas: Number(item.taxas || 0),
+            repasse: Number(item.repasse || 0),
+            liquidoProfissional: Number(item.liquido || 0)
+        }))
+    };
+}
+
+function renderizarListaFechamento(containerId, html) {
+    const container = el(containerId);
+    if (!container) return;
+    container.innerHTML = html || '<div class="fechamento-lista-vazia">Sem movimentação neste período.</div>';
+}
+
+function renderizarFechamento(relatorio) {
+    const fechamento = relatorio?.fechamento;
+    if (!fechamento) return;
+
+    setTexto("fechamentoResultado", moeda(fechamento.resultadoLiquido));
+    setTexto("fechamentoMargem", percentual(fechamento.margemLiquida));
+    setTexto("fechamentoPeriodoLabel", formatarPeriodo(relatorio.inicio, relatorio.fim));
+    setTexto("fechamentoBruto", moeda(fechamento.faturamentoBruto));
+    setTexto("fechamentoTaxas", moeda(fechamento.taxasCartao));
+    setTexto("fechamentoRepasse", moeda(fechamento.repasse));
+    setTexto("fechamentoDespesas", moeda(fechamento.totalDespesas));
+    setTexto(
+        "fechamentoRepasseLabel",
+        relatorio.visaoBarbearia ? "Repasse recebido" : "Repasse à barbearia"
+    );
+
+    const fluxo = el("fechamentoFluxo");
+    if (fluxo) {
+        const linhas = [
+            { label: "Faturamento bruto", valor: fechamento.faturamentoBruto },
+            { label: "Taxas de cartão", valor: fechamento.taxasCartao, minus: true },
+            { label: "Líquido após taxas", valor: fechamento.liquidoAposTaxas, subtotal: true }
+        ];
+
+        if (relatorio.visaoBarbearia) {
+            linhas.push(
+                { label: "Líquido dos profissionais", valor: fechamento.liquidoProfissionais, minus: true },
+                { label: "Receita da barbearia", valor: fechamento.receitaAntesDespesas, subtotal: true }
+            );
+        } else {
+            linhas.push({ label: "Repasse à barbearia", valor: fechamento.repasseBarbearia, minus: true });
+        }
+
+        linhas.push(
+            { label: relatorio.visaoBarbearia ? "Despesas da barbearia" : "Despesas profissionais", valor: fechamento.totalDespesas, minus: true },
+            { label: "Resultado líquido", valor: fechamento.resultadoLiquido, total: true }
+        );
+
+        fluxo.innerHTML = linhas.map((linha) => `
+            <div class="fechamento-fluxo-linha${linha.minus ? " is-minus" : ""}${linha.subtotal ? " is-subtotal" : ""}${linha.total ? " is-total" : ""}">
+                <span>${escaparHtml(linha.label)}</span>
+                <strong>${linha.minus && Number(linha.valor || 0) > 0 ? "- " : ""}${moeda(linha.valor)}</strong>
+            </div>
+        `).join("");
+    }
+
+    renderizarListaFechamento(
+        "fechamentoPagamentosLista",
+        (fechamento.pagamentos || []).map((item) => {
+            const taxaConhecida = Number.isFinite(item.taxas);
+            return `
+                <div class="fechamento-lista-item">
+                    <div>
+                        <strong>${escaparHtml(item.nome)}</strong>
+                        <small>${item.quantidade == null ? "Faturamento no período" : `${item.quantidade} pagamento${item.quantidade === 1 ? "" : "s"}`} • líquido ${taxaConhecida ? moeda(item.liquidoAposTaxas) : "incluído no total"}</small>
+                    </div>
+                    <div>
+                        <strong>${moeda(item.bruto)}</strong>
+                        <span class="fechamento-item-taxa">${taxaConhecida ? `Taxas - ${moeda(item.taxas)}` : "Taxas no total geral"}</span>
+                    </div>
+                </div>
+            `;
+        }).join("")
+    );
+
+    const equipeCard = el("fechamentoEquipeCard");
+    if (equipeCard) equipeCard.hidden = !relatorio.visaoBarbearia;
+
+    if (relatorio.visaoBarbearia) {
+        renderizarListaFechamento(
+            "fechamentoEquipeLista",
+            (fechamento.equipe || []).map((item) => `
+                <div class="fechamento-lista-item">
+                    <div>
+                        <strong>${escaparHtml(item.nome)}${item.dono ? " • dono" : ""}</strong>
+                        <small>${item.quantidade} atendimento${item.quantidade === 1 ? "" : "s"} • taxas ${moeda(item.taxas)}</small>
+                    </div>
+                    <div>
+                        <strong>${moeda(item.bruto)}</strong>
+                        <span class="fechamento-item-taxa">${item.dono ? `Líquido próprio ${moeda(item.liquidoProfissional)}` : `Repasse ${moeda(item.repasse)}`}</span>
+                    </div>
+                </div>
+            `).join("")
+        );
+    }
+
+    renderizarListaFechamento(
+        "fechamentoDespesasLista",
+        (fechamento.despesasPorCategoria || []).map((item) => `
+            <div class="fechamento-lista-item">
+                <div>
+                    <strong>${escaparHtml(item.nome)}</strong>
+                    <small>${item.agregado ? "Detalhamento por categoria indisponível no resumo consolidado" : "Despesa considerada no período"}</small>
+                </div>
+                <span>${moeda(item.valor)}</span>
+            </div>
+        `).join("")
+    );
+}
+
+function selecionarAbaRelatorio(aba) {
+    abaRelatorioAtual = aba === "fechamento" ? "fechamento" : "analise";
+    const fechamentoAtivo = abaRelatorioAtual === "fechamento";
+
+    if (painelAnalise) painelAnalise.hidden = fechamentoAtivo;
+    if (painelFechamento) painelFechamento.hidden = !fechamentoAtivo;
+
+    btnAbaAnalise?.classList.toggle("active", !fechamentoAtivo);
+    btnAbaAnalise?.setAttribute("aria-selected", String(!fechamentoAtivo));
+    btnAbaFechamento?.classList.toggle("active", fechamentoAtivo);
+    btnAbaFechamento?.setAttribute("aria-selected", String(fechamentoAtivo));
+}
+
 function calcularAjustes(atendimentos) {
     let quantidade = 0;
     let diferenca = 0;
@@ -747,6 +963,8 @@ function renderizar(relatorio) {
 
     relatorio.resumo = resumo;
     relatorio.ajustes = ajustes;
+    relatorio.fechamento = criarFechamentoDadosCompletos(relatorio);
+    renderizarFechamento(relatorio);
 }
 
 function usarResumosNoRelatorio() {
@@ -842,17 +1060,23 @@ function consolidarResumos(resumos, resumosBarbearia, visaoBarbearia) {
             const uid = resumo.profissionalUid;
             if (!dados.equipe.has(uid)) {
                 dados.equipe.set(uid, {
+                    uid,
                     nome: nomeProfissionalResumo(resumo),
+                    dono: profissionalEhDono(uid),
                     qtd: 0,
                     faturamento: 0,
-                    repasse: 0
+                    taxas: 0,
+                    repasse: 0,
+                    liquido: 0
                 });
             }
 
             const item = dados.equipe.get(uid);
             item.qtd += qtd;
             item.faturamento += bruto;
+            item.taxas += taxas;
             item.repasse += repasse;
+            item.liquido += liquido;
         }
     });
 
@@ -886,7 +1110,7 @@ function consolidarResumos(resumos, resumosBarbearia, visaoBarbearia) {
         .sort((a, b) => b[1] - a[1]);
 
     dados.equipe = [...dados.equipe.values()]
-        .filter((item) => item.qtd > 0 || item.faturamento !== 0 || item.repasse !== 0)
+        .filter((item) => item.qtd > 0 || item.faturamento !== 0 || item.repasse !== 0 || item.liquido !== 0)
         .sort((a, b) => b.faturamento - a.faturamento);
 
     return dados;
@@ -1055,6 +1279,8 @@ function renderizarResumos(relatorio) {
 
     relatorio.resumo = resumo;
     relatorio.ajustes = ajustes;
+    relatorio.fechamento = criarFechamentoResumos(resumo, relatorio.visaoBarbearia);
+    renderizarFechamento(relatorio);
 }
 
 async function carregarDadosPorResumos(inicio, fim, visaoBarbearia, profissionalUid) {
@@ -1212,196 +1438,80 @@ export async function carregarRelatorio() {
     }
 }
 
-function montarResumoWhatsAppResumos() {
-    if (!relatorioAtual?.resumo) return "";
+function montarFechamentoWhatsApp() {
+    if (!relatorioAtual?.fechamento) return "";
 
     const r = relatorioAtual;
-    const s = r.resumo;
-
+    const f = r.fechamento;
     const linhas = [
         `*${APP_NAME.toUpperCase()}*`,
         r.visaoBarbearia
             ? "*FECHAMENTO DA BARBEARIA*"
-            : `*RESUMO PROFISSIONAL - ${r.nomeVisao}*`,
+            : `*FECHAMENTO PROFISSIONAL - ${String(r.nomeVisao || "Profissional").toUpperCase()}*`,
         formatarPeriodo(r.inicio, r.fim),
         "",
-        `Atendimentos: ${s.totalAtendimentos}`,
-        `Faturamento bruto: ${moeda(s.faturamento)}`,
-        `Ticket médio bruto: ${moeda(s.ticket)}`
+        `Atendimentos: ${f.atendimentos}`,
+        `Faturamento bruto: ${moeda(f.faturamentoBruto)}`,
+        `Taxas de cartão: - ${moeda(f.taxasCartao)}`,
+        `Líquido após taxas: ${moeda(f.liquidoAposTaxas)}`
     ];
 
     if (r.visaoBarbearia) {
         linhas.push(
-            `Repasse previsto: ${moeda(s.repasse)}`,
-            `Despesas da barbearia: ${moeda(s.totalDespesas)}`
+            `Repasse recebido da equipe: ${moeda(f.repasseRecebido)}`,
+            `Líquido dos profissionais: - ${moeda(f.liquidoProfissionais)}`,
+            `Receita da barbearia antes das despesas: ${moeda(f.receitaAntesDespesas)}`,
+            `Despesas da barbearia: - ${moeda(f.totalDespesas)}`
         );
     } else {
         linhas.push(
-            `Taxas de cartão: ${moeda(s.taxas)}`,
-            `Repasse ao proprietário: ${moeda(s.repasse)}`,
-            `Despesas profissionais: ${moeda(s.totalDespesas)}`,
-            `*Resultado profissional: ${moeda(s.resultado)}*`
+            `Repasse à barbearia: - ${moeda(f.repasseBarbearia)}`,
+            `Despesas profissionais: - ${moeda(f.totalDespesas)}`
         );
     }
 
-    if (s.pagamentos.length) {
+    linhas.push(
+        `*Resultado líquido: ${moeda(f.resultadoLiquido)}*`,
+        `Margem líquida: ${percentual(f.margemLiquida)}`,
+        `Ticket médio bruto: ${moeda(f.ticketMedio)}`
+    );
+
+    if (f.pagamentos?.length) {
         linhas.push("", "*FORMAS DE PAGAMENTO*");
-        s.pagamentos.forEach(([nome, valor]) => linhas.push(`${nome}: ${moeda(valor)}`));
+        f.pagamentos.forEach((item) => {
+            const taxa = Number.isFinite(item.taxas)
+                ? ` | taxas ${moeda(item.taxas)}`
+                : "";
+            linhas.push(`${item.nome}: ${moeda(item.bruto)}${taxa}`);
+        });
     }
 
-    if (r.visaoBarbearia && s.equipe.length) {
+    if (r.visaoBarbearia && f.equipe?.length) {
         linhas.push("", "*EQUIPE*");
-        s.equipe.forEach((item) => {
+        f.equipe.forEach((item) => {
             linhas.push(
-                `${item.nome}: ${item.qtd} atend. | bruto ${moeda(item.faturamento)} | repasse ${moeda(item.repasse)}`
+                item.dono
+                    ? `${item.nome}: bruto ${moeda(item.bruto)} | líquido próprio ${moeda(item.liquidoProfissional)}`
+                    : `${item.nome}: bruto ${moeda(item.bruto)} | repasse ${moeda(item.repasse)}`
             );
         });
     }
 
-    if (s.servicosQtd.length) {
-        linhas.push("", "*SERVIÇOS*");
-        s.servicosQtd.slice(0, 5).forEach(([nome, qtd]) => {
-            const pct = s.totalAtendimentos
-                ? (qtd / s.totalAtendimentos) * 100
-                : 0;
-            linhas.push(`${nome}: ${qtd} (${pct.toFixed(1).replace(".", ",")}%)`);
+    if (f.despesasPorCategoria?.length) {
+        linhas.push("", "*DESPESAS*");
+        f.despesasPorCategoria.forEach((item) => {
+            linhas.push(`${item.nome}: ${moeda(item.valor)}`);
         });
-    }
-
-    if (r.ajustes?.quantidade) {
-        linhas.push(
-            "",
-            "*AJUSTES DE PREÇO*",
-            `${r.ajustes.quantidade} atendimento(s) | diferença ${moedaSinal(r.ajustes.diferenca)}`
-        );
-    }
-
-    return linhas.join("\n");
-}
-
-function montarResumoWhatsApp() {
-    if (!relatorioAtual?.resumo) return "";
-    if (relatorioAtual.modoResumos) return montarResumoWhatsAppResumos();
-
-    const r = relatorioAtual;
-    const s = r.resumo;
-
-    const linhas = [
-        `*${APP_NAME.toUpperCase()}*`,
-        r.visaoBarbearia
-            ? "*FECHAMENTO DA BARBEARIA*"
-            : `*RESUMO PROFISSIONAL - ${r.nomeVisao}*`,
-        formatarPeriodo(r.inicio, r.fim),
-        "",
-        `Atendimentos: ${r.atendimentos.length}`,
-        `Faturamento bruto: ${moeda(s.faturamento)}`,
-        `Ticket médio bruto: ${moeda(s.ticket)}`
-    ];
-
-    if (r.visaoBarbearia) {
-        linhas.push(
-            `Repasse previsto: ${moeda(s.repasse)}`,
-            `Despesas da barbearia: ${moeda(s.totalDespesas)}`
-        );
-    } else {
-        linhas.push(
-            `Taxas de cartão: ${moeda(s.taxas)}`,
-            `Repasse ao proprietário: ${moeda(s.repasse)}`,
-            `Despesas profissionais: ${moeda(s.totalDespesas)}`,
-            `*Resultado profissional: ${moeda(s.resultado)}*`
-        );
-    }
-
-    const pagamentos =
-        agrupar(
-            r.atendimentos,
-            (a) => a.pagamento || "Outros",
-            obterBrutoAtendimento
-        );
-
-    if (pagamentos.length) {
-        linhas.push("", "*FORMAS DE PAGAMENTO*");
-        pagamentos.forEach(
-            ([nome, valor]) =>
-                linhas.push(`${nome}: ${moeda(valor)}`)
-        );
-    }
-
-    if (r.visaoBarbearia) {
-        const mapaEquipe = new Map();
-
-        r.atendimentos.forEach((a) => {
-            const uid = a.profissionalUid || "__legado__";
-
-            if (!mapaEquipe.has(uid)) {
-                mapaEquipe.set(uid, {
-                    nome: nomeProfissionalAtendimento(a),
-                    qtd: 0,
-                    bruto: 0,
-                    repasse: 0
-                });
-            }
-
-            const item = mapaEquipe.get(uid);
-            item.qtd += 1;
-            item.bruto += obterBrutoAtendimento(a);
-            item.repasse += obterRepasseAtendimento(a);
-        });
-
-        if (mapaEquipe.size) {
-            linhas.push("", "*EQUIPE*");
-
-            [...mapaEquipe.values()]
-                .forEach((item) => {
-                    linhas.push(
-                        `${item.nome}: ${item.qtd} atend. | bruto ${moeda(item.bruto)} | repasse ${moeda(item.repasse)}`
-                    );
-                });
-        }
-    }
-
-    const servicos =
-        agrupar(
-            r.atendimentos,
-            (a) => a.servicoNome || a.servico || "Outros"
-        );
-
-    if (servicos.length) {
-        linhas.push("", "*SERVIÇOS*");
-
-        servicos
-            .slice(0, 5)
-            .forEach(([nome, qtd]) => {
-                const pct =
-                    r.atendimentos.length
-                        ? (qtd / r.atendimentos.length) * 100
-                        : 0;
-
-                linhas.push(
-                    `${nome}: ${qtd} (${pct.toFixed(1).replace(".", ",")}%)`
-                );
-            });
-    }
-
-    if (r.ajustes?.quantidade) {
-        linhas.push(
-            "",
-            "*AJUSTES DE PREÇO*",
-            `${r.ajustes.quantidade} atendimento(s) | diferença ${moedaSinal(r.ajustes.diferenca)}`
-        );
     }
 
     return linhas.join("\n");
 }
 
 function enviarWhatsApp() {
-    const mensagem = montarResumoWhatsApp();
+    const mensagem = montarFechamentoWhatsApp();
 
     if (!mensagem) {
-        setStatus(
-            "Carregue um relatório antes de compartilhar.",
-            true
-        );
+        setStatus("Carregue um fechamento antes de compartilhar.", true);
         return;
     }
 
@@ -1555,7 +1665,10 @@ export async function initRelatorios() {
 
     atualizarNavegadorPeriodo();
     registrarEventosData();
+    selecionarAbaRelatorio(abaRelatorioAtual);
 
+    btnAbaAnalise?.addEventListener("click", () => selecionarAbaRelatorio("analise"));
+    btnAbaFechamento?.addEventListener("click", () => selecionarAbaRelatorio("fechamento"));
 
     profissionalSelect
         ?.addEventListener(

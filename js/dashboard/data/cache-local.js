@@ -1,4 +1,4 @@
-import { registrarCacheLocal } from "./read-monitor.js?v=8.26";
+import { registrarCacheLocal } from "./read-monitor.js?v=8.27";
 
 const PREFIXO = "srnk:v1:";
 

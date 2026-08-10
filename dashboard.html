@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.26" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.27" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -390,7 +390,12 @@
 </select>
 </label>
 
-<div id="relatorioConteudo">
+<div class="relatorio-tabs" role="tablist" aria-label="Tipo de relatório">
+<button type="button" id="btnRelatorioAnalise" class="relatorio-tab active" role="tab" aria-selected="true" aria-controls="relatorioConteudo"><i class="fas fa-chart-pie"></i><span>Análise</span></button>
+<button type="button" id="btnRelatorioFechamento" class="relatorio-tab" role="tab" aria-selected="false" aria-controls="relatorioFechamento"><i class="fas fa-calculator"></i><span>Fechamento</span></button>
+</div>
+
+<div id="relatorioConteudo" class="relatorio-tab-panel" role="tabpanel" aria-labelledby="btnRelatorioAnalise">
 <div class="relatorio-hero">
 <div class="relatorio-hero-label-row">
 <span id="relatorioResultadoLabel">Resultado profissional</span>
@@ -456,11 +461,64 @@
 </article>
 </div>
 
-<div class="relatorio-actions">
+<div id="relatorioFechamento" class="relatorio-tab-panel fechamento-page" role="tabpanel" aria-labelledby="btnRelatorioFechamento" hidden>
+<div class="fechamento-hero">
+<div>
+<span>Resultado líquido</span>
+<strong id="fechamentoResultado">R$ 0,00</strong>
+<small id="fechamentoPeriodoLabel">Hoje</small>
+</div>
+<div class="fechamento-margem">
+<span>Margem</span>
+<strong id="fechamentoMargem">0,00%</strong>
+</div>
+</div>
+
+<div class="fechamento-kpis">
+<article><span><i class="fas fa-sack-dollar"></i> Faturamento bruto</span><strong id="fechamentoBruto">R$ 0,00</strong></article>
+<article><span><i class="fas fa-credit-card"></i> Taxas de cartão</span><strong id="fechamentoTaxas">R$ 0,00</strong></article>
+<article><span><i class="fas fa-hand-holding-dollar"></i><b id="fechamentoRepasseLabel">Repasse</b></span><strong id="fechamentoRepasse">R$ 0,00</strong></article>
+<article><span><i class="fas fa-receipt"></i> Despesas</span><strong id="fechamentoDespesas">R$ 0,00</strong></article>
+</div>
+
+<article class="relatorio-card fechamento-fluxo-card">
+<div class="relatorio-card-head">
+<div><h3>Composição do resultado</h3><p>Do faturamento bruto até o valor que realmente ficou no período</p></div>
+<i class="fas fa-scale-balanced"></i>
+</div>
+<div class="fechamento-fluxo" id="fechamentoFluxo"></div>
+</article>
+
+<article class="relatorio-card">
+<div class="relatorio-card-head">
+<div><h3>Formas de pagamento</h3><p>Bruto, taxas pagas e líquido após taxas</p></div>
+<i class="fas fa-wallet"></i>
+</div>
+<div class="fechamento-lista" id="fechamentoPagamentosLista"></div>
+</article>
+
+<article class="relatorio-card" id="fechamentoEquipeCard" hidden>
+<div class="relatorio-card-head">
+<div><h3>Equipe</h3><p>Produção, taxas e repasse da equipe no período</p></div>
+<i class="fas fa-users"></i>
+</div>
+<div class="fechamento-lista" id="fechamentoEquipeLista"></div>
+</article>
+
+<article class="relatorio-card">
+<div class="relatorio-card-head">
+<div><h3>Despesas por categoria</h3><p>Valores que entraram no fechamento deste período</p></div>
+<i class="fas fa-receipt"></i>
+</div>
+<div class="fechamento-lista" id="fechamentoDespesasLista"></div>
+</article>
+
+<div class="relatorio-actions fechamento-actions">
 <button type="button" class="relatorio-whatsapp" id="btnWhatsApp">
 <i class="fab fa-whatsapp"></i>
-<span>Enviar resumo no WhatsApp</span>
+<span>Enviar fechamento no WhatsApp</span>
 </button>
+</div>
 </div>
 
 <div class="relatorio-status" id="relatorioStatus" aria-live="polite"></div>
@@ -941,12 +999,22 @@ Aparência
 <!-- MODAL: NOVA / EDITAR DESPESA -->
 <div id="modalDespesa" class="equipe-modal despesa-modal" hidden>
 <div class="equipe-modal-card despesa-modal-card" role="dialog" aria-modal="true" aria-labelledby="tituloModalDespesa">
-<div class="equipe-modal-header"><div><h3 id="tituloModalDespesa">Nova despesa</h3><p>Registre um custo profissional sem sair do mês selecionado.</p></div><button type="button" id="btnFecharModalDespesa" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
+<div class="equipe-modal-header"><div><h3 id="tituloModalDespesa">Nova despesa</h3><p id="subtituloModalDespesa">Registre um custo à vista ou distribua o valor em parcelas mensais.</p></div><button type="button" id="btnFecharModalDespesa" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
 <form id="formDespesa" class="equipe-form despesa-form" novalidate>
 <label class="equipe-field"><span id="labelDespesaData">Data</span><div class="despesa-date-control"><input id="despesaData" type="date" required><button type="button" id="btnCalendarioDespesa" aria-label="Abrir calendário"><i class="fas fa-calendar-days"></i></button></div></label>
 <label class="equipe-field"><span id="labelDespesaCategoria">Categoria</span><select id="despesaCategoria" required><option value="Material">Material</option><option value="Produtos">Produtos</option><option value="Equipamento">Equipamento</option><option value="Manutenção">Manutenção</option><option value="Outros">Outros</option></select></label>
-<label class="equipe-field"><span id="labelDespesaDescricao">Descrição</span><input id="despesaDescricao" type="text" maxlength="120" placeholder="Ex.: lâminas, talco e álcool" required></label>
+<label class="equipe-field"><span id="labelDespesaDescricao">Descrição</span><input id="despesaDescricao" type="text" maxlength="120" placeholder="Ex.: cadeira, lâminas ou produtos" required></label>
+<div class="equipe-field despesa-forma-field" id="despesaFormaField">
+<span>Forma</span>
+<div class="despesa-forma-toggle" role="group" aria-label="Forma da despesa">
+<button type="button" id="btnDespesaAVista" class="active" aria-pressed="true"><i class="fas fa-money-bill-wave"></i>À vista</button>
+<button type="button" id="btnDespesaParcelada" aria-pressed="false"><i class="fas fa-layer-group"></i>Parcelada</button>
+</div>
+</div>
 <label class="equipe-field"><span id="labelDespesaValor">Valor</span><div class="equipe-money-field"><span>R$</span><input id="despesaValor" type="tel" inputmode="numeric" placeholder="0,00" required></div></label>
+<label class="equipe-field" id="despesaParcelasField" hidden><span id="labelDespesaParcelas">Parcelas</span><input id="despesaParcelas" type="number" inputmode="numeric" min="2" max="36" step="1" value="2" required></label>
+<div id="despesaParcelasPreview" class="despesa-parcelas-preview" hidden></div>
+<div id="despesaEdicaoParcelamentoInfo" class="despesa-edicao-parcelamento" hidden></div>
 <label class="equipe-field" id="despesaTipoField" hidden><span>Tipo</span><select id="despesaTipo"><option value="profissional">Minha despesa</option><option value="barbearia">Despesa da barbearia</option></select></label>
 <div id="despesaStatus" class="equipe-form-status despesa-form-status" hidden aria-live="polite"></div>
 <button type="submit" id="btnSalvarDespesa" class="btn despesa-submit">Registrar despesa</button>
@@ -959,6 +1027,10 @@ Aparência
 <div class="modal-box despesa-confirm-box">
 <h3>Excluir despesa?</h3>
 <p id="modalDescricaoDespesa">Você tem certeza?</p>
+<div id="despesaExcluirEscopo" class="despesa-excluir-escopo" hidden>
+<label><input type="radio" name="despesaExcluirOpcao" value="somente" checked><span><strong>Somente esta parcela</strong><small>As demais parcelas continuam normalmente.</small></span></label>
+<label><input type="radio" name="despesaExcluirOpcao" value="proximas"><span><strong>Esta e as próximas parcelas</strong><small>As parcelas anteriores permanecem no histórico.</small></span></label>
+</div>
 <div class="modal-actions">
 <button id="btnCancelarDespesa" type="button">Cancelar</button>
 <button id="btnConfirmarDespesa" type="button">Excluir</button>
@@ -1226,8 +1298,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.26" defer></script>
-<script src="js/dashboard/index.js?v=8.26" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.27" defer></script>
+<script src="js/dashboard/index.js?v=8.27" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {
