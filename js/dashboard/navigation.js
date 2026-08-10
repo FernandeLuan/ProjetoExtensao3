@@ -1,11 +1,12 @@
 import { abrirPainelHoje } from "./painel.js?v=7.4";
-import { abrirHistoricoHoje } from "./historico.js?v=8.4";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.11";
+import { abrirRegistrar } from "./registrar.js?v=8.16";
+import { abrirHistoricoHoje } from "./historico.js?v=8.16";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.16";
 import { abrirDespesasAtual } from "./despesas.js?v=8.10";
-import { abrirEquipe } from "./equipe.js?v=8.14";
-import { abrirConta } from "./conta.js?v=8.11";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.10";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.14";
+import { abrirEquipe } from "./equipe.js?v=8.16";
+import { abrirConta } from "./conta.js?v=8.16";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.16";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.16";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
@@ -107,6 +108,7 @@ export async function exibirSecao(href) {
     animarEntradaSecao(target);
     atualizarNavegacaoAtiva(targetId);
 
+    if (href === "#registrar") await abrirRegistrar();
     if (href === "#barbeariaHome") await abrirVisaoGeralBarbearia();
     if (href === "#painelFinanceiro") void abrirPainelHoje();
     if (href === "#historico") void abrirHistoricoHoje();

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v815";
+const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v816";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,12 +7,12 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./css/dashboard.css?v=8.15",
+  "./css/dashboard.css?v=8.16",
   "./css/login.css",
   "./css/style.css",
   "./js/firebase-init.js",
-  "./js/login.js?v=8.15",
-  "./js/dashboard/index.js?v=8.15"
+  "./js/login.js?v=8.16",
+  "./js/dashboard/index.js?v=8.16"
 ];
 
 self.addEventListener("install", (event) => {

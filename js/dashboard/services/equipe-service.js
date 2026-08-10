@@ -18,7 +18,7 @@ import {
 import {
     criarAcessoBarbeiroNoBanco,
     listarMembrosEquipe
-} from "../data/equipe-repository.js?v=8.15";
+} from "../data/equipe-repository.js?v=8.16";
 
 function normalizarComparacao(valor) {
     return String(valor || "")

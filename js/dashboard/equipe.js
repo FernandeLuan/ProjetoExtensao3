@@ -5,9 +5,9 @@ import {
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.15";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.15";
-import { obterServicos } from "./services/catalogo-service.js?v=8.15";
+} from "./data/equipe-repository.js?v=8.16";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.16";
+import { obterServicos } from "./services/catalogo-service.js?v=8.16";
 import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.12";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=7.4";
 import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
@@ -1119,6 +1119,8 @@ export function initEquipe() {
 }
 
 export async function abrirEquipe() {
-    if (!inicializado) return;
+    // v8.16: a navegação pode abrir a tela mesmo se o bootstrap foi interrompido.
+    // Inicializamos de forma idempotente aqui para não deixar "Carregando equipe..." preso.
+    if (!inicializado) initEquipe();
     await prepararEquipe();
 }

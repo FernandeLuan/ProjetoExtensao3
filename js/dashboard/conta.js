@@ -13,7 +13,7 @@ import {
     salvarNomeConta,
     salvarFotoConta
 } from "./data/conta-repository.js?v=7.4";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.4";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.16";
 
 import {
     mostrarErro,

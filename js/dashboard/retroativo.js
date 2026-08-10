@@ -1,9 +1,9 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.16";
 import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
 import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.4";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.15";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.16";
 import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=7.4";
 import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=7.4";
 import { abrirSeletorData } from "./utils/dom.js?v=7.4";
@@ -37,8 +37,7 @@ function membroSelecionado(){
  const uid=selectProfissional?.value||state.user?.uid;
  const membro=(state.equipe||[]).find(i=>(i.uid||i.id)===uid)||state.membroAtual;
  if(!membro)return null;
- const ambienteTeste=String(state.workspaceId||"").startsWith("teste-");
- const dono=membro?.dono===true||(ambienteTeste&&uid===state.user?.uid&&state.membroAtual?.papel==="admin");
+ const dono=membro?.dono===true;
  return {...membro,uid:membro.uid||membro.id||uid,dono,repassePct:dono?0:Number(membro?.repassePct??state.configSistema?.repasseDonoPct??35)};
 }
 function mostrarStatus(texto="",erro=false){if(!status)return;status.textContent=texto;status.hidden=!texto;status.classList.toggle("error",erro);}
