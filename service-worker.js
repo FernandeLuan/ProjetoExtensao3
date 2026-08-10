@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v822";
+const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v823";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,7 +7,7 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./css/dashboard.css?v=8.22",
+  "./css/dashboard.css?v=8.23",
   "./css/login.css?v=8.19",
   "./css/style.css",
   "./js/firebase-init.js",

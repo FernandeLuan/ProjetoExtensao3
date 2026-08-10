@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Carga PRD | Sr NK</title>
+    <link rel="stylesheet" href="css/dashboard.css?v=8.23">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { min-height: 100vh; padding: 20px; background: var(--bg); color: var(--text); font-family: Poppins, sans-serif; }
+        .carga-wrap { width: min(720px, 100%); margin: 0 auto; }
+        .carga-card { margin-bottom: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-card); box-shadow: var(--shadow); }
+        .carga-card h1, .carga-card h2 { margin: 0; }
+        .carga-card h1 { font-size: 1rem; }
+        .carga-card h2 { font-size: .84rem; }
+        .carga-card p { margin: 6px 0 0; color: var(--text-secondary); font-size: .7rem; line-height: 1.55; }
+        .carga-actions { display: grid; gap: 8px; margin-top: 14px; }
+        .carga-actions button { min-height: 44px; border: 1px solid var(--border); border-radius: 12px; background: var(--primary); color: white; font: inherit; font-size: .72rem; font-weight: 600; cursor: pointer; }
+        .carga-actions button.secondary { background: var(--bg); color: var(--text); }
+        .carga-actions button.danger { border-color: rgba(220,38,38,.25); background: rgba(220,38,38,.08); color: var(--danger); }
+        .carga-actions button:disabled { opacity: .45; cursor: default; }
+        .carga-status { margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--bg); color: var(--text-secondary); white-space: pre-wrap; font-size: .66rem; line-height: 1.55; }
+        .carga-ok { color: var(--success); }
+        .carga-alerta { color: var(--danger); }
+    </style>
+</head>
+<body>
+<main class="carga-wrap">
+    <section class="carga-card">
+        <h1>Carga controlada da ETAPA 8</h1>
+        <p>Ferramenta não vinculada ao menu. Funciona somente para Admin/Owner autenticado na produção oficial.</p>
+        <div id="contextoCarga" class="carga-status">Validando produção...</div>
+    </section>
+
+    <section class="carga-card">
+        <h2>José Henrique • dados de teste</h2>
+        <p>Gera de 5 a 10 atendimentos por dia, de segunda a sábado, entre 10/07/2026 e 10/08/2026. A programação determinística prevê 10 atendimentos em 10/08. Serviços, pagamentos e horários são dados de teste.</p>
+        <div class="carga-actions">
+            <button id="btnCargaJose" disabled>Inserir carga do José Henrique</button>
+            <button id="btnCompletarJoseHoje" class="secondary" disabled>Completar atendimentos de hoje do José</button>
+            <button id="btnRemoverCargaJose" class="danger" disabled>Remover somente a carga de teste do José</button>
+        </div>
+        <div id="statusJose" class="carga-status">Aguardando validação.</div>
+    </section>
+
+    <section class="carga-card">
+        <h2>Marlon • dados reais informados</h2>
+        <p>03/08: 6 Cabelo (1 Crédito, 5 Pix). 04/08: 2 Cabelo no Crédito, 1 Cabelo no Débito; os 5 restantes no Pix, mantendo 2 Cabelo + Sobrancelha, 1 Cabelo + Barba e 5 Cabelo no total. 05/08: 1 Cabelo + Barba e 6 Cabelo (1 Crédito, 3 Débito, 3 Pix).</p>
+        <div class="carga-actions">
+            <button id="btnCargaMarlon" disabled>Inserir 21 atendimentos reais do Marlon</button>
+        </div>
+        <div id="statusMarlon" class="carga-status">Aguardando validação.</div>
+    </section>
+
+    <section class="carga-card">
+        <div class="carga-actions"><button class="secondary" onclick="location.href='dashboard.html'">Voltar ao Sr NK</button></div>
+    </section>
+</main>
+<script type="module" src="js/ferramentas/carga-dados-prd.js?v=8.23"></script>
+</body>
+</html>
