@@ -1,7 +1,7 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
 import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.4";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=7.4";
 import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=7.4";
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
 import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=7.4";
@@ -38,28 +38,13 @@ function getValorCustomizado() {
 }
 
 function obterMembroAtualNormalizado() {
-    const ambienteTeste = String(state.workspaceId || "").startsWith("teste-");
-    const dono = state.membroAtual?.dono === true
-        || (
-            ambienteTeste
-            && state.membroAtual?.papel === "admin"
-        );
-
     return {
         id: state.user?.uid,
         uid: state.user?.uid,
         nome: state.perfilUsuario?.nome || state.membroAtual?.nome || state.user?.displayName || state.user?.email || "Profissional",
-        repassePct: dono
-            ? 0
-            : Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35),
-        dono,
+        repassePct: Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35),
         precosPersonalizados: state.membroAtual?.precosPersonalizados || {},
-        ...state.membroAtual,
-        // Garante que o fallback temporário de DEV não seja sobrescrito pelo spread.
-        dono,
-        repassePct: dono
-            ? 0
-            : Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35)
+        ...state.membroAtual
     };
 }
 
@@ -168,7 +153,6 @@ function renderizarServicos() {
         valorServico.textContent = `R$ ${formatarMoeda(preco)}`;
 
         botao.append(nomeServico, valorServico);
-        botao.addEventListener("click", () => selecionarServico(servico.id, true));
         servicosContainer.appendChild(botao);
     });
 
@@ -339,9 +323,29 @@ export async function initRegistrar() {
     if (inicializado) return;
     inicializado = true;
 
-    pagamentosContainer?.querySelectorAll(".chip-pagamento").forEach((chip) => {
-        chip.addEventListener("click", () => selecionarPagamento(chip.dataset.valor, true));
-    });
+    // v8.13: delegação de eventos deixa os seletores resistentes a re-renderizações
+    // e evita o cenário em que o botão recebe apenas o foco visual, mas o estado
+    // interno do Registrar não é atualizado. Sempre selecionamos explicitamente;
+    // clicar novamente no mesmo item mantém a seleção.
+    if (servicosContainer && servicosContainer.dataset.srnkRegistrarServicosBound !== "true") {
+        servicosContainer.dataset.srnkRegistrarServicosBound = "true";
+        servicosContainer.addEventListener("click", (event) => {
+            const botao = event.target.closest(".btn-servico");
+            if (!botao || !servicosContainer.contains(botao) || botao.hidden) return;
+            const servicoId = String(botao.dataset.servicoId || "").trim();
+            if (servicoId) selecionarServico(servicoId, false);
+        });
+    }
+
+    if (pagamentosContainer && pagamentosContainer.dataset.srnkRegistrarPagamentosBound !== "true") {
+        pagamentosContainer.dataset.srnkRegistrarPagamentosBound = "true";
+        pagamentosContainer.addEventListener("click", (event) => {
+            const chip = event.target.closest(".chip-pagamento");
+            if (!chip || !pagamentosContainer.contains(chip) || chip.hidden) return;
+            const pagamento = String(chip.dataset.valor || "").trim();
+            if (pagamento) selecionarPagamento(pagamento, false);
+        });
+    }
 
     inputValorPersonalizado?.addEventListener("input", () => {
         aplicarMascaraMoedaInput(inputValorPersonalizado);
@@ -364,10 +368,13 @@ export async function initRegistrar() {
         if (checkboxObservacao.checked) setTimeout(() => inputObservacao?.focus(), 0);
     });
 
-    atendimentoForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        await registrarAtendimentoAtual();
-    });
+    if (atendimentoForm && atendimentoForm.dataset.srnkRegistrarSubmitBound !== "true") {
+        atendimentoForm.dataset.srnkRegistrarSubmitBound = "true";
+        atendimentoForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await registrarAtendimentoAtual();
+        });
+    }
 
     btnUndoInline?.addEventListener("click", async () => {
         if (!ultimoIdRegistrado) return;
