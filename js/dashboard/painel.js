@@ -1,13 +1,14 @@
-import { state, onStateChange } from "./state.js?v=8.30";
-import { formatarMoeda } from "./utils/money.js?v=8.30";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.30";
-import { setTexto } from "./utils/dom.js?v=8.30";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.30";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.30";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.30";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.30";
-import { obterWorkspaceId } from "./data/context.js?v=8.30";
-import { garantirChartJs } from "./services/external-assets.js?v=8.30";
+import { state, onStateChange } from "./state.js?v=8.31";
+import { formatarMoeda } from "./utils/money.js?v=8.31";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=8.31";
+import { setTexto } from "./utils/dom.js?v=8.31";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.31";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=8.31";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=8.31";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=8.31";
+import { obterWorkspaceId } from "./data/context.js?v=8.31";
+import { garantirChartJs } from "./services/external-assets.js?v=8.31";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.31";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -140,10 +141,13 @@ async function selecionarData(novaData) {
 
     // O painel nunca permite navegar para o futuro.
     dataSelecionada = normalizada > hoje ? hoje : normalizada;
+    const loading = iniciarLoadingTela("Atualizando painel...", { delay: 260 });
     try {
         await carregarResumosPainel(somarDias(dataSelecionada, -6), dataSelecionada);
     } catch (error) {
         console.error("Erro ao carregar período do painel:", error);
+    } finally {
+        finalizarLoadingTela(loading);
     }
     atualizarCards();
 }

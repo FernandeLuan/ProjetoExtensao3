@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v830";
+const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v831";
 const NAVIGATION_TIMEOUT_MS = 1800;
 
 const APP_SHELL = [
@@ -9,27 +9,29 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./css/dashboard.css?v=8.30",
-  "./css/login.css?v=8.30",
+  "./Fotos/Sr.NK.jpg",
+  "./css/dashboard.css?v=8.31",
+  "./css/login.css?v=8.31",
   "./css/style.css",
-  "./js/firebase-init.js?v=8.30",
-  "./js/login.js?v=8.30",
-  "./js/mobile-interactions.js?v=8.30",
-  "./js/dashboard/index.js?v=8.30",
-  "./js/dashboard/app.js?v=8.30",
-  "./js/dashboard/theme.js?v=8.30",
-  "./js/dashboard/connectivity.js?v=8.30",
-  "./js/dashboard/navigation.js?v=8.30",
-  "./js/dashboard/visao.js?v=8.30",
-  "./js/dashboard/permissoes.js?v=8.30",
-  "./js/dashboard/state.js?v=8.30",
-  "./js/dashboard/constants.js?v=8.30",
-  "./js/dashboard/primeiro-acesso.js?v=8.30",
-  "./js/dashboard/services/feedback-service.js?v=8.30",
-  "./js/dashboard/data/context.js?v=8.30",
-  "./js/dashboard/data/configuracoes-repository.js?v=8.30",
-  "./js/dashboard/data/cache-local.js?v=8.30",
-  "./js/dashboard/data/read-monitor.js?v=8.30"
+  "./js/firebase-init.js?v=8.31",
+  "./js/login.js?v=8.31",
+  "./js/mobile-interactions.js?v=8.31",
+  "./js/dashboard/index.js?v=8.31",
+  "./js/dashboard/app.js?v=8.31",
+  "./js/dashboard/theme.js?v=8.31",
+  "./js/dashboard/connectivity.js?v=8.31",
+  "./js/dashboard/navigation.js?v=8.31",
+  "./js/dashboard/visao.js?v=8.31",
+  "./js/dashboard/permissoes.js?v=8.31",
+  "./js/dashboard/state.js?v=8.31",
+  "./js/dashboard/constants.js?v=8.31",
+  "./js/dashboard/primeiro-acesso.js?v=8.31",
+  "./js/dashboard/services/feedback-service.js?v=8.31",
+  "./js/dashboard/services/ui-loading-service.js?v=8.31",
+  "./js/dashboard/data/context.js?v=8.31",
+  "./js/dashboard/data/configuracoes-repository.js?v=8.31",
+  "./js/dashboard/data/cache-local.js?v=8.31",
+  "./js/dashboard/data/read-monitor.js?v=8.31"
 ];
 
 self.addEventListener("install", (event) => {

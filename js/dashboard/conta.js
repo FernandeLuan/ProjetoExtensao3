@@ -1,5 +1,5 @@
-import { auth } from "../firebase-init.js?v=8.30";
-import { state } from "./state.js?v=8.30";
+import { auth } from "../firebase-init.js?v=8.31";
+import { state } from "./state.js?v=8.31";
 
 import {
     EmailAuthProvider,
@@ -11,13 +11,14 @@ import {
 import {
     obterDadosConta,
     salvarFotoConta
-} from "./data/conta-repository.js?v=8.30";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.30";
+} from "./data/conta-repository.js?v=8.31";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.31";
 
 import {
     mostrarErro,
     mostrarSucesso
-} from "./services/feedback-service.js?v=8.30";
+} from "./services/feedback-service.js?v=8.31";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
 
 
 let inicializado = false;
@@ -184,10 +185,7 @@ async function salvarTaxasConta() {
         return;
     }
 
-    if (btnSalvarTaxasConta) {
-        btnSalvarTaxasConta.disabled = true;
-        btnSalvarTaxasConta.textContent = "Salvando...";
-    }
+    iniciarAcaoBotao(btnSalvarTaxasConta, "Salvando taxas...");
 
     setTaxasStatus();
 
@@ -197,15 +195,13 @@ async function salvarTaxasConta() {
             taxaCreditoPct: credito
         });
         preencherTaxasConta({ ...state.membroAtual, ...taxas });
+        await concluirAcaoBotao(btnSalvarTaxasConta, "Taxas salvas ✓", 680);
         mostrarSucesso("Taxas atualizadas.");
     } catch (error) {
         console.error("Erro ao salvar taxas do cartão:", error);
         setTaxasStatus(error?.message || "Não foi possível salvar as taxas.", true);
     } finally {
-        if (btnSalvarTaxasConta) {
-            btnSalvarTaxasConta.disabled = false;
-            btnSalvarTaxasConta.textContent = "Salvar taxas";
-        }
+        restaurarAcaoBotao(btnSalvarTaxasConta);
     }
 }
 
@@ -499,11 +495,7 @@ async function alterarFoto(
         "carregando"
     );
 
-    if (btnSelecionarFoto) {
-        btnSelecionarFoto.disabled = true;
-        btnSelecionarFoto.textContent =
-            "Enviando...";
-    }
+    iniciarAcaoBotao(btnSelecionarFoto, "Enviando foto...");
 
     try {
 
@@ -521,6 +513,8 @@ atualizarAvatar(
             contaNome?.textContent || "",
             auth.currentUser?.email || ""
         );
+
+        await concluirAcaoBotao(btnSelecionarFoto, "Foto atualizada ✓", 680);
 
         mostrarSucesso(
             "Foto atualizada."
@@ -543,13 +537,7 @@ atualizarAvatar(
             "carregando"
         );
 
-        if (btnSelecionarFoto) {
-            btnSelecionarFoto.disabled =
-                false;
-
-            btnSelecionarFoto.textContent =
-                "Alterar foto";
-        }
+        restaurarAcaoBotao(btnSelecionarFoto);
 
         if (inputFotoPerfil) {
             inputFotoPerfil.value = "";
@@ -679,11 +667,7 @@ async function alterarSenha(
 
     if (!user?.email) return;
 
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent =
-            "Atualizando...";
-    }
+    iniciarAcaoBotao(btn, "Atualizando senha...");
 
     try {
 
@@ -709,6 +693,8 @@ async function alterarSenha(
                 "formAlterarSenha"
             )
             ?.reset();
+
+        await concluirAcaoBotao(btn, "Senha atualizada ✓", 720);
 
         mostrarSucesso(
             "Senha atualizada."
@@ -750,12 +736,7 @@ async function alterarSenha(
         }
 
     } finally {
-
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent =
-                "Atualizar Senha";
-        }
+        restaurarAcaoBotao(btn);
     }
 }
 

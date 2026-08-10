@@ -1,13 +1,14 @@
-import { auth } from "../firebase-init.js?v=8.30";
+import { auth } from "../firebase-init.js?v=8.31";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { state, onStateChange } from "./state.js?v=8.30";
-import { mostrarErro } from "./services/feedback-service.js?v=8.30";
+import { state, onStateChange } from "./state.js?v=8.31";
+import { mostrarErro } from "./services/feedback-service.js?v=8.31";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.31";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
     podeAcessarSecao,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.30";
+} from "./permissoes.js?v=8.31";
 
 let inicializado = false;
 const modulos = new Map();
@@ -17,6 +18,19 @@ const execucoesSecao = new Map();
 const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+const MENSAGENS_LOADING_SECAO = {
+    registrar: "Preparando registro...",
+    barbeariaHome: "Atualizando visão geral...",
+    painelFinanceiro: "Carregando painel...",
+    historico: "Buscando histórico...",
+    relatorios: "Montando relatório...",
+    estoque: "Carregando estoque...",
+    despesas: "Carregando despesas...",
+    equipe: "Carregando equipe...",
+    conta: "Carregando sua conta...",
+    configuracoes: "Carregando configurações..."
+};
 
 async function authLogout() {
     try {
@@ -199,60 +213,60 @@ async function importarModulo(chave, caminho) {
 async function carregarSecao(targetId) {
     switch (targetId) {
         case "registrar": {
-            const modulo = await importarModulo("registrar", "./registrar.js?v=8.30");
+            const modulo = await importarModulo("registrar", "./registrar.js?v=8.31");
             await modulo.initRegistrar?.();
             await modulo.abrirRegistrar?.();
             return;
         }
         case "barbeariaHome": {
-            const modulo = await importarModulo("barbeariaHome", "./barbearia-home.js?v=8.30");
+            const modulo = await importarModulo("barbeariaHome", "./barbearia-home.js?v=8.31");
             await modulo.abrirVisaoGeralBarbearia?.();
             return;
         }
         case "painelFinanceiro": {
-            const modulo = await importarModulo("painel", "./painel.js?v=8.30");
+            const modulo = await importarModulo("painel", "./painel.js?v=8.31");
             await modulo.abrirPainelHoje?.();
             return;
         }
         case "historico": {
-            const modulo = await importarModulo("historico", "./historico.js?v=8.30");
+            const modulo = await importarModulo("historico", "./historico.js?v=8.31");
             await modulo.abrirHistoricoHoje?.();
             return;
         }
         case "relatorios": {
-            const modulo = await importarModulo("relatorios", "./relatorios.js?v=8.30");
+            const modulo = await importarModulo("relatorios", "./relatorios.js?v=8.31");
             await modulo.initRelatorios?.();
             await modulo.prepararRelatoriosHoje?.();
             return;
         }
         case "estoque": {
-            const modulo = await importarModulo("estoque", "./estoque.js?v=8.30");
+            const modulo = await importarModulo("estoque", "./estoque.js?v=8.31");
             modulo.initEstoque?.();
             await modulo.abrirEstoque?.();
             return;
         }
         case "despesas": {
-            const modulo = await importarModulo("despesas", "./despesas.js?v=8.30");
+            const modulo = await importarModulo("despesas", "./despesas.js?v=8.31");
             modulo.initDespesas?.();
             await modulo.abrirDespesasAtual?.();
             return;
         }
         case "equipe": {
-            const modulo = await importarModulo("equipe", "./equipe.js?v=8.30");
+            const modulo = await importarModulo("equipe", "./equipe.js?v=8.31");
             modulo.initEquipe?.();
             await modulo.abrirEquipe?.();
             return;
         }
         case "conta": {
-            const modulo = await importarModulo("conta", "./conta.js?v=8.30");
+            const modulo = await importarModulo("conta", "./conta.js?v=8.31");
             modulo.initConta?.();
             await modulo.abrirConta?.();
             return;
         }
         case "configuracoes": {
             const [configuracoes, retroativo] = await Promise.all([
-                importarModulo("configuracoes", "./configuracoes.js?v=8.30"),
-                importarModulo("retroativo", "./retroativo.js?v=8.30")
+                importarModulo("configuracoes", "./configuracoes.js?v=8.31"),
+                importarModulo("retroativo", "./retroativo.js?v=8.31")
             ]);
             configuracoes.initConfiguracoes?.();
             await retroativo.initRetroativo?.();
@@ -270,12 +284,18 @@ function iniciarCarregamentoSecao(targetId, section) {
 
     if (execucoesSecao.has(targetId)) return;
 
+    const loadingToken = iniciarLoadingTela(
+        MENSAGENS_LOADING_SECAO[targetId] || "Carregando...",
+        { delay: 260 }
+    );
+
     const execucao = carregarSecao(targetId)
         .catch((error) => {
             console.error(`Erro ao carregar a seção ${targetId}:`, error);
             mostrarErro("Não foi possível abrir esta seção. Tente novamente.");
         })
         .finally(() => {
+            finalizarLoadingTela(loadingToken);
             execucoesSecao.delete(targetId);
             section?.removeAttribute("aria-busy");
             section?.classList.remove("section-module-loading");

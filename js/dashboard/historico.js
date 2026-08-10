@@ -1,15 +1,22 @@
-import { state, onStateChange } from "./state.js?v=8.30";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=8.30";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=8.30";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.30";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.30";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.30";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.30";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=8.30";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.30";
-import { escaparHtml } from "./utils/dom.js?v=8.30";
-import { mostrarErro } from "./services/feedback-service.js?v=8.30";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.30";
+import { state, onStateChange } from "./state.js?v=8.31";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=8.31";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=8.31";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.31";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.31";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.31";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.31";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=8.31";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.31";
+import { escaparHtml } from "./utils/dom.js?v=8.31";
+import { mostrarErro } from "./services/feedback-service.js?v=8.31";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.31";
+import {
+    iniciarAcaoBotao,
+    concluirAcaoBotao,
+    restaurarAcaoBotao,
+    iniciarLoadingTela,
+    finalizarLoadingTela
+} from "./services/ui-loading-service.js?v=8.31";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -154,6 +161,7 @@ async function selecionarDataHistorico(data) {
     const nova = inicioDoDia(data);
     dataHistoricoSelecionada = nova > hoje ? hoje : nova;
     fecharDetalheHistorico(true);
+    const loading = iniciarLoadingTela("Carregando histórico...", { delay: 260 });
     try {
         await garantirAtendimentosPeriodo(
             dataHistoricoSelecionada,
@@ -165,6 +173,8 @@ async function selecionarDataHistorico(data) {
     } catch (error) {
         console.error(error);
         mostrarErro("Não foi possível carregar este dia.");
+    } finally {
+        finalizarLoadingTela(loading);
     }
     atualizarHistorico();
 }
@@ -533,10 +543,21 @@ btnSalvarEdicaoHistorico?.addEventListener("click",async()=>{
       const esperado=Number(preco.preco||0), valorDiferenciado=esperado>0?Math.abs(valorBruto-esperado)>.009:true;
       atualizacao=criarAtualizacaoFinanceiraAtendimento({servico:servicoNome,servicoId:servico?.id||original.servicoId||null,precoBase:preco.precoBase,precoProfissional:preco.precoProfissional,origemPreco:preco.origem,pagamento,valorBruto,observacao,valorDiferenciado},state.configSistema,original);
     }
-    const texto=btnSalvarEdicaoHistorico.textContent; btnSalvarEdicaoHistorico.textContent="Salvando...";btnSalvarEdicaoHistorico.disabled=true;
-    try{await editarAtendimento(original.id,atualizacao);fecharModalEdicao();fecharDetalheHistorico(true);invalidarCacheAtendimentos();atualizarHistorico();}
-    catch(error){console.error(error);mostrarErro("Não foi possível salvar a alteração.");}
-    finally{btnSalvarEdicaoHistorico.textContent=texto;btnSalvarEdicaoHistorico.disabled=false;}
+    iniciarAcaoBotao(btnSalvarEdicaoHistorico, "Salvando alteração...");
+    try {
+        await editarAtendimento(original.id, atualizacao);
+        await concluirAcaoBotao(btnSalvarEdicaoHistorico, "Alteração salva ✓", 680);
+        fecharModalEdicao();
+        fecharDetalheHistorico(true);
+        invalidarCacheAtendimentos();
+        atualizarHistorico();
+    } catch (error) {
+        restaurarAcaoBotao(btnSalvarEdicaoHistorico);
+        console.error(error);
+        mostrarErro("Não foi possível salvar a alteração.");
+    } finally {
+        restaurarAcaoBotao(btnSalvarEdicaoHistorico);
+    }
 });
 
 function fecharModalExclusao() {
@@ -562,20 +583,20 @@ document.getElementById("btnCancelar")?.addEventListener("click", fecharModalExc
 btnConfirmar?.addEventListener("click", async () => {
     if (!idParaExcluir) return;
 
-    btnConfirmar.disabled = true;
-    btnConfirmar.textContent = "Excluindo...";
+    iniciarAcaoBotao(btnConfirmar, "Excluindo atendimento...");
 
     try {
         await excluirAtendimento(idParaExcluir);
+        await concluirAcaoBotao(btnConfirmar, "Atendimento excluído ✓", 620);
         invalidarCacheAtendimentos();
         atualizarHistorico();
         fecharDetalheHistorico(true);
     } catch (error) {
+        restaurarAcaoBotao(btnConfirmar);
         console.error(error);
         mostrarErro("Não foi possível excluir o atendimento.");
     } finally {
-        btnConfirmar.disabled = false;
-        btnConfirmar.textContent = "Excluir";
+        restaurarAcaoBotao(btnConfirmar);
         fecharModalExclusao();
     }
 });

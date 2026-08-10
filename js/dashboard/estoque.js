@@ -1,9 +1,16 @@
-import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.30";
-import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.30";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.30";
-import { paraDate, chaveData } from "./utils/date.js?v=8.30";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.30";
-import { garantirZXing } from "./services/external-assets.js?v=8.30";
+import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.31";
+import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.31";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.31";
+import { paraDate, chaveData } from "./utils/date.js?v=8.31";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+import {
+    iniciarAcaoBotao,
+    concluirAcaoBotao,
+    restaurarAcaoBotao,
+    iniciarLoadingTela,
+    finalizarLoadingTela
+} from "./services/ui-loading-service.js?v=8.31";
+import { garantirZXing } from "./services/external-assets.js?v=8.31";
 import {
     CATEGORIAS_ESTOQUE,
     UNIDADES_ESTOQUE,
@@ -12,7 +19,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=8.30";
+} from "./services/estoque-service.js?v=8.31";
 import {
     atualizarProdutoEstoque,
     criarProdutoEstoque,
@@ -25,9 +32,9 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=8.30";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.30";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.30";
+} from "./data/estoque-repository.js?v=8.31";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.31";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.31";
 
 let inicializado = false;
 let produtos = [];
@@ -300,22 +307,32 @@ async function salvarProduto(event) {
         ativo: $("estoqueProdutoAtivo").checked
     };
 
-    btn.disabled = true;
+    const editando = Boolean(produtoEmEdicao);
+    iniciarAcaoBotao(btn, editando ? "Salvando..." : "Cadastrando...");
+
     try {
-        if (produtoEmEdicao) {
+        if (editando) {
             await atualizarProdutoEstoque(produtoEmEdicao.id, dados);
-            mostrarSucesso("Produto atualizado.");
         } else {
             await criarProdutoEstoque(dados);
-            mostrarSucesso("Produto cadastrado.");
         }
+
+        await concluirAcaoBotao(btn, editando ? "Produto atualizado ✓" : "Produto cadastrado ✓", 720);
         setModal("modalProdutoEstoque", false);
-        await carregarDados({ forcar: true });
+        mostrarSucesso(editando ? "Produto atualizado." : "Produto cadastrado.");
+
+        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 320 });
+        try {
+            await carregarDados({ forcar: true });
+        } finally {
+            finalizarLoadingTela(loading);
+        }
     } catch (error) {
         console.error(error);
+        restaurarAcaoBotao(btn);
         mostrarErro(error?.message || "Não foi possível salvar o produto.");
     } finally {
-        btn.disabled = false;
+        restaurarAcaoBotao(btn);
     }
 }
 
@@ -381,7 +398,7 @@ async function salvarMovimentacao(event) {
         return;
     }
 
-    btn.disabled = true;
+    iniciarAcaoBotao(btn, gerarDespesa ? "Salvando e lançando despesa..." : "Atualizando estoque...");
     try {
         await movimentarEstoque({
             produtoId: produtoMovimentacao.id,
@@ -421,27 +438,38 @@ async function salvarMovimentacao(event) {
             }
         }
 
+        await concluirAcaoBotao(btn, gerarDespesa ? "Tudo atualizado ✓" : "Estoque atualizado ✓", 720);
         mostrarSucesso(gerarDespesa ? "Estoque e despesa atualizados." : "Estoque atualizado.");
         setModal("modalMovimentarEstoque", false);
-        await carregarDados({ forcar: true });
+
+        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 320 });
+        try {
+            await carregarDados({ forcar: true });
+        } finally {
+            finalizarLoadingTela(loading);
+        }
     } catch (error) {
         console.error(error);
+        restaurarAcaoBotao(btn);
         mostrarErro(error?.message || "Não foi possível movimentar o estoque.");
     } finally {
-        btn.disabled = false;
+        restaurarAcaoBotao(btn);
     }
 }
 
 async function abrirVenda(produto) {
-    // Atualiza comissão global antes de mostrar o preview; a gravação ainda
-    // valida a configuração novamente dentro da transação.
-    try {
-        definirConfiguracoes(await carregarConfiguracoesDoBanco({ forcar: true }));
-    } catch (error) {
-        console.warn("Não foi possível atualizar a comissão antes da venda:", error);
-    }
+    const loading = iniciarLoadingTela("Preparando venda...", { delay: 180 });
 
-    produtoVenda = produto;
+    try {
+        // Atualiza comissão global antes de mostrar o preview; a gravação ainda
+        // valida a configuração novamente dentro da transação.
+        try {
+            definirConfiguracoes(await carregarConfiguracoesDoBanco({ forcar: true }));
+        } catch (error) {
+            console.warn("Não foi possível atualizar a comissão antes da venda:", error);
+        }
+
+        produtoVenda = produto;
     $("vendaProdutoNome").textContent = produto.nome || "Produto";
     $("vendaProdutoPreco").textContent = moeda(produto.precoVenda);
     $("vendaProdutoEstoque").textContent = `${formatarQuantidadeEstoque(produto.quantidadeAtual, produto.unidade)} disponível`;
@@ -462,8 +490,11 @@ async function abrirVenda(produto) {
         $("vendaProfissional").innerHTML = `<option value="${escapar(state.user?.uid || "")}">${escapar(nomeAtual())}</option>`;
     }
 
-    atualizarPreviewVenda();
-    setModal("modalVendaProduto", true);
+        await atualizarPreviewVenda();
+        setModal("modalVendaProduto", true);
+    } finally {
+        finalizarLoadingTela(loading);
+    }
 }
 
 async function membroSelecionadoVenda() {
@@ -504,7 +535,7 @@ async function salvarVenda(event) {
         ? (admin ? $("vendaProfissional").value : state.user?.uid)
         : null;
     const btn = $("btnRegistrarVendaProduto");
-    btn.disabled = true;
+    iniciarAcaoBotao(btn, "Registrando venda...");
     try {
         const venda = await registrarVendaProduto({
             produtoId: produtoVenda.id,
@@ -513,14 +544,22 @@ async function salvarVenda(event) {
             gerarComissao,
             profissionalUid
         });
+        await concluirAcaoBotao(btn, "Venda registrada ✓", 760);
         setModal("modalVendaProduto", false);
         mostrarSucesso(venda.gerarComissao ? `Venda registrada • comissão ${moeda(venda.comissaoValor)}.` : "Venda registrada.");
-        await carregarDados({ forcar: true });
+
+        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 320 });
+        try {
+            await carregarDados({ forcar: true });
+        } finally {
+            finalizarLoadingTela(loading);
+        }
     } catch (error) {
         console.error(error);
+        restaurarAcaoBotao(btn);
         mostrarErro(error?.message || "Não foi possível registrar a venda.");
     } finally {
-        btn.disabled = false;
+        restaurarAcaoBotao(btn);
     }
 }
 

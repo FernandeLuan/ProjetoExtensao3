@@ -1,11 +1,12 @@
-import { state, onStateChange } from "./state.js?v=8.30";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.30";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.30";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.30";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.30";
-import { usuarioEhAdmin } from "./permissoes.js?v=8.30";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.30";
-import { mostrarErro } from "./services/feedback-service.js?v=8.30";
+import { state, onStateChange } from "./state.js?v=8.31";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.31";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.31";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.31";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.31";
+import { usuarioEhAdmin } from "./permissoes.js?v=8.31";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.31";
+import { mostrarErro } from "./services/feedback-service.js?v=8.31";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -293,11 +294,8 @@ async function registrarAtendimentoAtual() {
         profissional: profissionalSelecionado
     }, state.configSistema);
 
-    if (btnRegistrar) {
-        btnRegistrar.disabled = true;
-        btnRegistrar.textContent = "Salvando...";
-        btnRegistrar.style.opacity = "0.7";
-    }
+    feedbackTemporario = true;
+    iniciarAcaoBotao(btnRegistrar, "Registrando...");
 
     try {
         const id = await criarAtendimento(payload);
@@ -306,16 +304,15 @@ async function registrarAtendimentoAtual() {
         // O novo atendimento já entra no state local pelo repository.
         // Apenas invalida o cache para a próxima tela aberta buscar dados frescos.
         invalidarCacheAtendimentos();
-        if (btnRegistrar) btnRegistrar.style.opacity = "1";
-        mostrarFeedbackBotao("Registrado ✓");
+        await concluirAcaoBotao(btnRegistrar, "Registrado ✓", 760);
     } catch (error) {
         console.error("Erro ao registrar atendimento:", error);
         mostrarErro("Não foi possível registrar o atendimento.");
-        if (btnRegistrar) btnRegistrar.style.opacity = "1";
-        feedbackTemporario = false;
-        atualizarTextoBotao();
+        restaurarAcaoBotao(btnRegistrar);
     } finally {
-        if (btnRegistrar) btnRegistrar.disabled = false;
+        feedbackTemporario = false;
+        restaurarAcaoBotao(btnRegistrar);
+        atualizarTextoBotao();
     }
 }
 

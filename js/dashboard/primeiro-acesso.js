@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=8.30";
+import { auth, db } from "../firebase-init.js?v=8.31";
 import {
     updatePassword,
     signOut
@@ -8,6 +8,7 @@ import {
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
 
 function obterElementos() {
     return {
@@ -75,10 +76,7 @@ export function exigirTrocaSenhaPrimeiroAcesso({ workspaceId, perfil, membro }) 
                 return;
             }
 
-            if (elementos.btnSalvar) {
-                elementos.btnSalvar.disabled = true;
-                elementos.btnSalvar.textContent = "Salvando...";
-            }
+            iniciarAcaoBotao(elementos.btnSalvar, "Atualizando senha...");
 
             try {
                 const user = auth.currentUser;
@@ -110,6 +108,7 @@ export function exigirTrocaSenhaPrimeiroAcesso({ workspaceId, perfil, membro }) 
                 perfil.trocarSenha = false;
                 if (membro) membro.primeiroAcessoPendente = false;
 
+                await concluirAcaoBotao(elementos.btnSalvar, "Senha atualizada ✓", 720);
                 elementos.form.reset();
                 elementos.modal.hidden = true;
                 document.body.classList.remove("primeiro-acesso-bloqueado");
@@ -124,10 +123,7 @@ export function exigirTrocaSenhaPrimeiroAcesso({ workspaceId, perfil, membro }) 
                         : "Não foi possível atualizar a senha. Tente novamente."
                 );
             } finally {
-                if (elementos.btnSalvar) {
-                    elementos.btnSalvar.disabled = false;
-                    elementos.btnSalvar.textContent = "Definir minha senha";
-                }
+                restaurarAcaoBotao(elementos.btnSalvar);
             }
         };
 

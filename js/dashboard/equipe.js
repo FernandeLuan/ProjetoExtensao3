@@ -1,16 +1,23 @@
-import { state } from "./state.js?v=8.30";
+import { state } from "./state.js?v=8.31";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.30";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.30";
-import { obterServicos } from "./services/catalogo-service.js?v=8.30";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.30";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.30";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.30";
+} from "./data/equipe-repository.js?v=8.31";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.31";
+import { obterServicos } from "./services/catalogo-service.js?v=8.31";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.31";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.31";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+import {
+    iniciarAcaoBotao,
+    concluirAcaoBotao,
+    restaurarAcaoBotao,
+    iniciarLoadingTela,
+    finalizarLoadingTela
+} from "./services/ui-loading-service.js?v=8.31";
 
 let inicializado = false;
 let carregando = false;
@@ -383,10 +390,7 @@ async function criarNovoBarbeiro(event) {
         return;
     }
 
-    if (btnCriarAcesso) {
-        btnCriarAcesso.disabled = true;
-        btnCriarAcesso.textContent = "Salvando...";
-    }
+    iniciarAcaoBotao(btnCriarAcesso, "Criando acesso...");
     if (btnCancelarAdicionar) btnCancelarAdicionar.disabled = true;
 
     try {
@@ -399,9 +403,17 @@ async function criarNovoBarbeiro(event) {
             repassePct
         });
 
+        await concluirAcaoBotao(btnCriarAcesso, "Profissional cadastrado ✓", 760);
         modalAdicionar.hidden = true;
         document.body.classList.remove("modal-equipe-aberto");
-        await carregarEquipe();
+
+        const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 320 });
+        try {
+            await carregarEquipe();
+        } finally {
+            finalizarLoadingTela(loading);
+        }
+
         abrirModalAcessoCriado(acesso);
     } catch (error) {
         console.error("Erro ao criar barbeiro:", error);
@@ -420,10 +432,7 @@ async function criarNovoBarbeiro(event) {
             mostrarErro(mensagem);
         }
     } finally {
-        if (btnCriarAcesso) {
-            btnCriarAcesso.disabled = false;
-            btnCriarAcesso.textContent = "Salvar";
-        }
+        restaurarAcaoBotao(btnCriarAcesso);
         if (btnCancelarAdicionar) btnCancelarAdicionar.disabled = false;
     }
 }
@@ -691,10 +700,7 @@ async function salvarFinanceiroMembro() {
         }
     });
 
-    if (btnSalvarFinanceiro) {
-        btnSalvarFinanceiro.disabled = true;
-        btnSalvarFinanceiro.textContent = "Salvando...";
-    }
+    iniciarAcaoBotao(btnSalvarFinanceiro, "Salvando alterações...");
     if (btnCancelarFinanceiro) btnCancelarFinanceiro.disabled = true;
 
     try {
@@ -784,8 +790,15 @@ async function salvarFinanceiroMembro() {
             row?.querySelector(".btn-alterar")?.classList.remove("hidden");
         });
 
+        await concluirAcaoBotao(btnSalvarFinanceiro, "Alterações salvas ✓", 720);
         mostrarSucesso("Dados do profissional salvos.");
-        await carregarEquipe();
+
+        const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 320 });
+        try {
+            await carregarEquipe();
+        } finally {
+            finalizarLoadingTela(loading);
+        }
     } catch (error) {
         console.error("Erro ao salvar dados do profissional:", error);
         if (error?.campo === "nome" || error?.code === "equipe/nome-duplicado") {
@@ -798,10 +811,7 @@ async function salvarFinanceiroMembro() {
             mostrarErro(error?.message || "Não foi possível salvar.");
         }
     } finally {
-        if (btnSalvarFinanceiro) {
-            btnSalvarFinanceiro.disabled = false;
-            btnSalvarFinanceiro.textContent = "Salvar";
-        }
+        restaurarAcaoBotao(btnSalvarFinanceiro);
         if (btnCancelarFinanceiro) btnCancelarFinanceiro.disabled = false;
     }
 }

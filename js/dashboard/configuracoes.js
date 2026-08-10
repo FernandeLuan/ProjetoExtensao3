@@ -1,8 +1,9 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.30";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.30";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.30";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.30";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.30";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.31";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.31";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.31";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.31";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
 
 let inicializado = false;
 
@@ -147,22 +148,17 @@ async function confirmarExclusaoServico() {
     if (!servicoParaExcluir) return;
     const servico = servicoParaExcluir;
 
-    if (btnConfirmarServico) {
-        btnConfirmarServico.disabled = true;
-        btnConfirmarServico.textContent = "Excluindo...";
-    }
+    iniciarAcaoBotao(btnConfirmarServico, "Excluindo...");
 
     try {
         const servicos = (state.configSistema.servicos || []).filter((item) => item.id !== servico.id);
         await persistirConfig({ ...state.configSistema, servicos }, "Serviço excluído.");
+        await concluirAcaoBotao(btnConfirmarServico, "Serviço excluído ✓", 650);
     } catch (error) {
         console.error(error);
         mostrarErro("Não foi possível excluir o serviço.");
     } finally {
-        if (btnConfirmarServico) {
-            btnConfirmarServico.disabled = false;
-            btnConfirmarServico.textContent = "Excluir";
-        }
+        restaurarAcaoBotao(btnConfirmarServico);
         fecharModalExclusaoServico();
     }
 }
@@ -257,15 +253,17 @@ function renderizarServicos() {
                     mostrarErro("Informe nome e preço válidos.");
                     return;
                 }
-                salvar.disabled = true;
+                iniciarAcaoBotao(salvar, "Salvando...");
                 try {
                     const servicos = state.configSistema.servicos.map((item) => item.id === servico.id ? { ...item, nome: novoNome, preco: novoPreco } : { ...item });
                     await persistirConfig({ ...state.configSistema, servicos }, "Serviço atualizado.");
+                    await concluirAcaoBotao(salvar, "Atualizado ✓", 650);
                 } catch (error) {
                     console.error(error);
+                    restaurarAcaoBotao(salvar);
                     mostrarErro("Não foi possível atualizar o serviço.");
                 } finally {
-                    salvar.disabled = false;
+                    restaurarAcaoBotao(salvar);
                 }
             });
         });
@@ -461,16 +459,18 @@ async function salvarComissaoProdutos() {
         mostrarErro("Informe uma comissão entre 0,00% e 100,00%.");
         return;
     }
-    btnSalvarComissaoProdutos.disabled = true;
+    iniciarAcaoBotao(btnSalvarComissaoProdutos, "Salvando...");
     setStatus(comissaoProdutosStatus, "Salvando...");
     try {
         await persistirConfig({ ...state.configSistema, comissaoProdutosPct: Number(valor.toFixed(2)) }, "Comissão sobre produtos atualizada.");
+        await concluirAcaoBotao(btnSalvarComissaoProdutos, "Comissão salva ✓", 650);
         fecharEditorComissaoProdutos();
     } catch (error) {
         console.error(error);
+        restaurarAcaoBotao(btnSalvarComissaoProdutos);
         setStatus(comissaoProdutosStatus, "Não foi possível salvar.", true);
     } finally {
-        btnSalvarComissaoProdutos.disabled = false;
+        restaurarAcaoBotao(btnSalvarComissaoProdutos);
     }
 }
 
@@ -511,20 +511,22 @@ async function adicionarServico() {
         return;
     }
 
-    btnSalvarNovoServico.disabled = true;
+    iniciarAcaoBotao(btnSalvarNovoServico, "Cadastrando serviço...");
     try {
         const ordem = Math.max(0, ...state.configSistema.servicos.map((servico) => Number(servico.ordem || 0))) + 1;
         const servicos = [...state.configSistema.servicos, { id: gerarIdServico(nome), nome, preco, ativo: true, ordem }];
         await persistirConfig({ ...state.configSistema, servicos }, "Serviço adicionado.");
+        await concluirAcaoBotao(btnSalvarNovoServico, "Serviço cadastrado ✓", 720);
         novoServicoForm.hidden = true;
         novoServicoNome.value = "";
         novoServicoPreco.value = "";
         limparErroNovoServico();
     } catch (error) {
         console.error(error);
+        restaurarAcaoBotao(btnSalvarNovoServico);
         mostrarErro("Não foi possível adicionar o serviço.");
     } finally {
-        btnSalvarNovoServico.disabled = false;
+        restaurarAcaoBotao(btnSalvarNovoServico);
     }
 }
 

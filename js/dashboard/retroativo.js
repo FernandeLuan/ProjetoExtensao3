@@ -1,13 +1,14 @@
-import { state, onStateChange } from "./state.js?v=8.30";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.30";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.30";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.30";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.30";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.30";
-import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=8.30";
-import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=8.30";
-import { abrirSeletorData } from "./utils/dom.js?v=8.30";
-import { mostrarErro } from "./services/feedback-service.js?v=8.30";
+import { state, onStateChange } from "./state.js?v=8.31";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.31";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.31";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.31";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.31";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.31";
+import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=8.31";
+import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=8.31";
+import { abrirSeletorData } from "./utils/dom.js?v=8.31";
+import { mostrarErro } from "./services/feedback-service.js?v=8.31";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
 
 let inicializado=false, ultimoId=null, undoInterval=null, undoTimeout=null;
 const form=document.getElementById("formAtendimentoRetroativo");
@@ -110,10 +111,10 @@ async function salvar(event){
  if(checkObservacao?.checked&&!obs){erroLabel(labels.observacao);erroInput(inputObservacao);temErro=true;}
  if(temErro||!servico||!profissional||valor<=0)return;
  const payload=criarPayloadAtendimento({servico:servico.nome,servicoId:servico.id,servicoNome:servico.nome,precoBase:preco.precoBase,precoProfissional:preco.precoProfissional,origemPreco:preco.origem,pagamento,valorBruto:valor,observacao:obs.slice(0,160),valorDiferenciado:Boolean(checkValor?.checked),dataAtendimento:data,retroativo:true,horaInformada:false,profissional},state.configSistema);
- btnSalvar.disabled=true;btnSalvar.textContent="Salvando...";
- try{const id=await criarAtendimento(payload);dispararUndo(id);invalidarCacheAtendimentos();limparFormulario();mostrarStatus("Atendimento retroativo salvo ✓");setTimeout(()=>{if(status?.textContent.includes("salvo"))mostrarStatus();},2200);}
- catch(error){console.error(error);mostrarErro("Não foi possível salvar o atendimento retroativo.");}
- finally{btnSalvar.disabled=false;btnSalvar.textContent="Salvar atendimento";}
+ iniciarAcaoBotao(btnSalvar,"Salvando atendimento...");
+ try{const id=await criarAtendimento(payload);dispararUndo(id);invalidarCacheAtendimentos();limparFormulario();await concluirAcaoBotao(btnSalvar,"Atendimento salvo ✓",720);mostrarStatus("Atendimento retroativo salvo ✓");setTimeout(()=>{if(status?.textContent.includes("salvo"))mostrarStatus();},2200);}
+ catch(error){console.error(error);restaurarAcaoBotao(btnSalvar);mostrarErro("Não foi possível salvar o atendimento retroativo.");}
+ finally{restaurarAcaoBotao(btnSalvar);}
 }
 
 export async function initRetroativo(){

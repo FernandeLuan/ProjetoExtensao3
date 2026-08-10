@@ -1,21 +1,23 @@
-import { state } from "./state.js?v=8.30";
+import { state } from "./state.js?v=8.31";
 import {
     aplicarPermissoesInterface,
     podeUsarVisaoBarbearia,
     podeUsarVisaoProfissional,
     usuarioEhAdmin,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.30";
+} from "./permissoes.js?v=8.31";
 import {
     abrirInicioDaVisaoAtual,
     configurarNavegacaoParaVisao
-} from "./navigation.js?v=8.30";
+} from "./navigation.js?v=8.31";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.31";
 
 const VISAO_PROFISSIONAL = "profissional";
 const VISAO_BARBEARIA = "barbearia";
 
 let inicializado = false;
 let toastTimer = null;
+let visaoLoadingToken = null;
 
 function visaoAtual() {
     return visaoEhBarbearia() ? VISAO_BARBEARIA : VISAO_PROFISSIONAL;
@@ -109,10 +111,19 @@ function recolherSeletorVisao() {
 
 
 function mostrarLoading(mostrar) {
-    const overlay = document.getElementById("visaoLoading");
-    if (!overlay) return;
-    overlay.hidden = !mostrar;
-    document.body.classList.toggle("troca-visao-em-andamento", mostrar);
+    if (mostrar) {
+        if (!visaoLoadingToken) {
+            visaoLoadingToken = iniciarLoadingTela("Trocando visão...", { delay: 80 });
+        }
+        document.body.classList.add("troca-visao-em-andamento");
+        return;
+    }
+
+    if (visaoLoadingToken) {
+        finalizarLoadingTela(visaoLoadingToken);
+        visaoLoadingToken = null;
+    }
+    document.body.classList.remove("troca-visao-em-andamento");
 }
 
 function mostrarToast(visao) {

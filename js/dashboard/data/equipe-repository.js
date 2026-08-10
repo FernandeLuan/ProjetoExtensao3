@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.30";
+import { db } from "../../firebase-init.js?v=8.31";
 import {
     collection,
     doc,
@@ -12,16 +12,16 @@ import {
     deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=8.30";
-import { state, definirEquipe, definirMembroAtual } from "../state.js?v=8.30";
-import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=8.30";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.30";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.30";
+import { SCHEMA_VERSION } from "../constants.js?v=8.31";
+import { state, definirEquipe, definirMembroAtual } from "../state.js?v=8.31";
+import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=8.31";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.31";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.31";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=8.30";
+} from "./cache-local.js?v=8.31";
 
 const CACHE_EQUIPE_MS = 5 * 60 * 1000;
 let cacheEquipe = null;

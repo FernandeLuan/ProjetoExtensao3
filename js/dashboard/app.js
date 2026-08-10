@@ -1,28 +1,33 @@
-import { auth } from "../firebase-init.js?v=8.30";
+import { auth } from "../firebase-init.js?v=8.31";
 import {
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { inicializarContexto } from "./data/context.js?v=8.30";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.30";
-import { definirConfiguracoes } from "./state.js?v=8.30";
-import { initTheme } from "./theme.js?v=8.30";
-import { initConnectivity } from "./connectivity.js?v=8.30";
-import { initNavigation } from "./navigation.js?v=8.30";
-import { mostrarErro } from "./services/feedback-service.js?v=8.30";
-import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.30";
-import { aplicarPermissoesInterface } from "./permissoes.js?v=8.30";
-import { initVisao } from "./visao.js?v=8.30";
+import { inicializarContexto } from "./data/context.js?v=8.31";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.31";
+import { definirConfiguracoes } from "./state.js?v=8.31";
+import { initTheme } from "./theme.js?v=8.31";
+import { initConnectivity } from "./connectivity.js?v=8.31";
+import { initNavigation } from "./navigation.js?v=8.31";
+import { mostrarErro } from "./services/feedback-service.js?v=8.31";
+import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.31";
+import { aplicarPermissoesInterface } from "./permissoes.js?v=8.31";
+import { initVisao } from "./visao.js?v=8.31";
 
 let appInicializado = false;
 const inicioBoot = performance.now();
+const BOOT_MINIMO_MS = 760;
 
 initTheme();
 initConnectivity();
 initNavigation();
 
-function finalizarBoot() {
+async function finalizarBoot() {
+    const decorrido = performance.now() - inicioBoot;
+    const restante = Math.max(0, BOOT_MINIMO_MS - decorrido);
+    if (restante > 0) await new Promise((resolve) => setTimeout(resolve, restante));
+
     document.body.classList.remove("dashboard-booting");
     document.getElementById("appBootStatus")?.setAttribute("hidden", "");
 
@@ -48,7 +53,7 @@ async function inicializarApp(user) {
     await initVisao();
 
     appInicializado = true;
-    finalizarBoot();
+    await finalizarBoot();
 }
 
 document.getElementById("logoutBtnSide")?.addEventListener("click", async (event) => {
@@ -82,7 +87,7 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
 
-        finalizarBoot();
+        await finalizarBoot();
         mostrarErro("Não foi possível carregar seu ambiente. Confira sua conexão e tente novamente.");
     }
 });

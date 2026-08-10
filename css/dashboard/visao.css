@@ -520,3 +520,36 @@
 .barbearia-home-equipe-lista .relatorio-equipe-item {
     padding: 0;
 }
+
+/* v8.31 • feedback visual alinhado ao loader principal */
+.visao-loading-card {
+    min-width: 196px;
+    flex-direction: column;
+    gap: 10px;
+    padding: 17px 18px 15px;
+}
+
+.visao-loading-logo-wrap {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+}
+
+.visao-loading-logo-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 2px solid rgba(37, 99, 235, .14);
+    border-top-color: var(--primary);
+    border-radius: 15px;
+    animation: srnk-visao-spin .75s linear infinite;
+}
+
+.visao-loading-logo-wrap img {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 11px;
+}

@@ -5,13 +5,20 @@ import {
     editarDespesa,
     excluirDespesaParcelada,
     listarDespesasPorPeriodo
-} from "./data/despesas-repository.js?v=8.30";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.30";
-import { state } from "./state.js?v=8.30";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.30";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.30";
-import { abrirSeletorData } from "./utils/dom.js?v=8.30";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.30";
+} from "./data/despesas-repository.js?v=8.31";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.31";
+import { state } from "./state.js?v=8.31";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.31";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.31";
+import { abrirSeletorData } from "./utils/dom.js?v=8.31";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+import {
+    iniciarAcaoBotao,
+    concluirAcaoBotao,
+    restaurarAcaoBotao,
+    iniciarLoadingTela,
+    finalizarLoadingTela
+} from "./services/ui-loading-service.js?v=8.31";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -210,6 +217,7 @@ function renderizarDespesas() {
 export async function carregarDespesasMes() {
     atualizarNavegacaoMes();
     listaEl?.classList.add("carregando");
+    const loading = iniciarLoadingTela("Carregando despesas...", { delay: 260 });
 
     try {
         const { inicio, fim } = obterPeriodoMes();
@@ -232,6 +240,7 @@ export async function carregarDespesasMes() {
         mostrarErro("Não foi possível carregar as despesas.");
         return [];
     } finally {
+        finalizarLoadingTela(loading);
         listaEl?.classList.remove("carregando");
     }
 }
@@ -469,8 +478,10 @@ async function salvarDespesa(event) {
         : null;
     const data = combinarDataComHora(dataBase, originalData || new Date());
 
-    btnSalvar.disabled = true;
-    btnSalvar.textContent = despesaEmEdicao ? "Salvando..." : (parcelada ? "Gerando parcelas..." : "Registrando...");
+    iniciarAcaoBotao(
+        btnSalvar,
+        despesaEmEdicao ? "Salvando..." : (parcelada ? "Gerando parcelas..." : "Registrando...")
+    );
 
     try {
         if (despesaEmEdicao) {
@@ -516,14 +527,20 @@ async function salvarDespesa(event) {
             mostrarSucesso("Despesa registrada.");
         }
 
+        await concluirAcaoBotao(
+            btnSalvar,
+            despesaEmEdicao ? "Alteração salva ✓" : (parcelada ? "Parcelas registradas ✓" : "Despesa registrada ✓"),
+            720
+        );
+
         fecharModalDespesa({ forcar: true });
         await carregarDespesasMes();
     } catch (error) {
         console.error(error);
+        restaurarAcaoBotao(btnSalvar);
         mostrarErro(error?.message || "Não foi possível salvar a despesa.");
     } finally {
-        btnSalvar.disabled = false;
-        btnSalvar.textContent = despesaEmEdicao ? "Salvar alterações" : "Registrar despesa";
+        restaurarAcaoBotao(btnSalvar);
     }
 }
 
@@ -561,8 +578,7 @@ async function confirmarExclusaoDespesa() {
     const incluirProximas = despesa.parcelada === true &&
         escopoExcluir?.querySelector('input[name="despesaExcluirOpcao"]:checked')?.value === "proximas";
 
-    btnConfirmarExcluir.disabled = true;
-    btnConfirmarExcluir.textContent = "Excluindo...";
+    iniciarAcaoBotao(btnConfirmarExcluir, "Excluindo despesa...");
 
     try {
         const resultado = await excluirDespesaParcelada(despesa, { incluirProximas });
@@ -581,6 +597,7 @@ async function confirmarExclusaoDespesa() {
 
         despesasMes = despesasMes.filter((item) => !idsRemovidos.has(item.id));
         renderizarDespesas();
+        await concluirAcaoBotao(btnConfirmarExcluir, "Despesa excluída ✓", 620);
         mostrarSucesso(
             incluirProximas
                 ? `${resultado.quantidade} parcela${resultado.quantidade === 1 ? "" : "s"} excluída${resultado.quantidade === 1 ? "" : "s"}.`
@@ -588,11 +605,11 @@ async function confirmarExclusaoDespesa() {
         );
         fecharExclusaoDespesa();
     } catch (error) {
+        restaurarAcaoBotao(btnConfirmarExcluir);
         console.error(error);
         mostrarErro("Não foi possível excluir a despesa.");
     } finally {
-        btnConfirmarExcluir.disabled = false;
-        btnConfirmarExcluir.textContent = "Excluir";
+        restaurarAcaoBotao(btnConfirmarExcluir);
     }
 }
 

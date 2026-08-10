@@ -5,9 +5,10 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.30" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.31" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="Fotos/Sr.NK.jpg">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +17,15 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
 </head>
 <body class="dashboard-booting">
-<div class="app-boot-status" id="appBootStatus" role="status" aria-live="polite">
-    <span class="app-boot-spinner" aria-hidden="true"></span>
-    <span>Abrindo Sr NK...</span>
+<div class="app-boot-status" id="appBootStatus" role="status" aria-live="polite" aria-label="Abrindo Sr NK">
+    <div class="app-boot-brand" aria-hidden="true">
+        <div class="app-boot-logo-shell">
+            <img class="app-boot-logo" src="Fotos/Sr.NK.jpg" alt="">
+        </div>
+    </div>
+    <strong class="app-boot-title">Sr NK</strong>
+    <span class="app-boot-subtitle">Preparando seu espaço...</span>
+    <div class="app-boot-progress" aria-hidden="true"><span></span></div>
 </div>
 <div aria-live="polite" class="connection-status" hidden="" id="connectionStatus" role="status">
 <i aria-hidden="true" class="fas fa-wifi"></i>
@@ -710,8 +717,9 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v2.1.3</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v2.1.4</span></div>
 <div class="update-history">
+<article class="update-version-item"><button aria-controls="updateDetails214" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.4</strong><span>10/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails214"><p>Nova experiência de carregamento e confirmação de ações.</p><ul><li>Animação de abertura com a marca Sr NK.</li><li>Loading inteligente nas telas que demoram para buscar dados, sem piscar em carregamentos rápidos.</li><li>Cadastros e registros agora mostram estado de processamento e confirmação visual de sucesso.</li></ul></div></article>
 <article class="update-version-item"><button aria-controls="updateDetails213" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.3</strong><span>08/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails213"><p>Correção de estabilidade da homologação.</p><ul><li>Corrigido erro de sintaxe no Histórico que interrompia o carregamento dos módulos e travava a navegação na tela inicial.</li><li>Cache local do PWA desativado durante testes em localhost para evitar arquivos antigos.</li></ul></div></article>
 <article class="update-version-item"><button aria-controls="updateDetails211" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.1</strong><span>08/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails211"><p>Refino de Histórico, Relatórios e Minha Conta.</p><ul><li>Histórico compacto, busca restrita ao profissional selecionado e auditoria de registros legados.</li><li>Relatórios com navegação de período no padrão do Painel e compartilhamento por WhatsApp.</li><li>Despesas e atendimento retroativo com calendário, validação visual e ações padronizadas.</li><li>Tema movido para Minha Conta e interface de Configurações compactada.</li></ul></div></article>
 <article class="update-version-item"><button aria-controls="updateDetails201" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.0.1</strong><span>08/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails201"><p>Ajustes de homologação da v2.</p><ul><li>Registro normal sempre vinculado ao usuário logado, sem seletor de profissional.</li><li>Correção do carregamento dos estilos de modais.</li><li>Atualização do cache do PWA para evitar arquivos antigos durante testes.</li></ul></div></article>
@@ -1453,11 +1461,22 @@ Aparência
 <div class="visao-toast" id="visaoToast" hidden role="status" aria-live="polite"></div>
 <div class="visao-loading" id="visaoLoading" hidden aria-live="polite" aria-busy="true">
     <div class="visao-loading-card">
-        <span class="visao-loading-spinner" aria-hidden="true"></span>
+        <span class="visao-loading-logo-wrap" aria-hidden="true">
+            <img src="Fotos/Sr.NK.jpg" alt="">
+        </span>
         <strong>Carregando visão...</strong>
     </div>
 </div>
 </main>
+<div class="app-loading-overlay" id="appAsyncLoading" hidden role="status" aria-live="polite" aria-busy="true">
+    <div class="app-loading-card">
+        <div class="app-loading-logo-wrap" aria-hidden="true">
+            <img class="app-loading-logo" src="Fotos/Sr.NK.jpg" alt="">
+        </div>
+        <strong id="appAsyncLoadingText">Carregando...</strong>
+        <div class="app-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    </div>
+</div>
 <nav aria-label="Navegação principal" class="bottom-nav">
 <a aria-current="page" class="bottom-nav-item active" data-nav-slot="1" data-nav-target="registrar" href="#registrar">
 <i class="fas fa-house"></i>
@@ -1480,8 +1499,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.30" defer></script>
-<script src="js/dashboard/index.js?v=8.30" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.31" defer></script>
+<script src="js/dashboard/index.js?v=8.31" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {
