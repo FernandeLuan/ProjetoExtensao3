@@ -622,6 +622,7 @@ function esconderFinanceInfo() {
     if (!financeInfoTooltip) return;
 
     financeInfoTooltip.hidden = true;
+    financeInfoTooltip.classList.remove("is-below");
 
     if (financeInfoTimer) {
         clearTimeout(financeInfoTimer);
@@ -642,27 +643,25 @@ document.querySelectorAll(".finance-info-btn").forEach((btn) => {
 
         requestAnimationFrame(() => {
             const larguraTooltip = financeInfoTooltip.offsetWidth;
+            const alturaTooltip = financeInfoTooltip.offsetHeight;
             const metade = larguraTooltip / 2;
-
             const margem = 16;
+            const espacamento = 9;
 
-            let centroX =
-                rect.left +
-                rect.width / 2;
-
+            let centroX = rect.left + rect.width / 2;
             centroX = Math.max(
                 margem + metade,
-                Math.min(
-                    window.innerWidth - margem - metade,
-                    centroX
-                )
+                Math.min(window.innerWidth - margem - metade, centroX)
             );
 
-            financeInfoTooltip.style.left =
-                `${centroX}px`;
+            const cabeAcima = rect.top - espacamento - alturaTooltip >= margem;
+            const top = cabeAcima
+                ? rect.top - espacamento - alturaTooltip
+                : Math.min(window.innerHeight - margem - alturaTooltip, rect.bottom + espacamento);
 
-            financeInfoTooltip.style.top =
-                `${rect.top - 9}px`;
+            financeInfoTooltip.classList.toggle("is-below", !cabeAcima);
+            financeInfoTooltip.style.left = `${centroX}px`;
+            financeInfoTooltip.style.top = `${Math.max(margem, top)}px`;
         });
 
         if (financeInfoTimer) {

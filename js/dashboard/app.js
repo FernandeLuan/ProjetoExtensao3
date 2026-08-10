@@ -8,17 +8,18 @@ import { inicializarContexto } from "./data/context.js?v=7.4";
 import { recarregarConfiguracoes } from "./data/sync.js?v=7.4";
 import { initTheme } from "./theme.js?v=7.4";
 import { initConnectivity } from "./connectivity.js?v=7.4";
-import { initNavigation } from "./navigation.js?v=7.4";
-import { initRegistrar } from "./registrar.js?v=7.4";
-import { initConfiguracoes } from "./configuracoes.js?v=7.4";
-import { initRetroativo } from "./retroativo.js?v=7.4";
-import { initEquipe } from "./equipe.js?v=7.4";
-import { initDespesas } from "./despesas.js?v=7.4";
-import { initConta } from "./conta.js?v=7.4";
-import { initRelatorios } from "./relatorios.js?v=7.4";
+import { initNavigation } from "./navigation.js?v=8.11";
+import { initRegistrar } from "./registrar.js?v=8.4";
+import { initConfiguracoes } from "./configuracoes.js?v=8.8";
+import { initRetroativo } from "./retroativo.js?v=8.10";
+import { initEquipe } from "./equipe.js?v=8.11";
+import { initDespesas } from "./despesas.js?v=8.10";
+import { initConta } from "./conta.js?v=8.11";
+import { initRelatorios } from "./relatorios.js?v=8.11";
 import { mostrarErro } from "./services/feedback-service.js?v=7.4";
 import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=7.4";
-import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=7.4";
+import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=7.5";
+import { initVisao } from "./visao.js?v=8.11";
 
 let appInicializado = false;
 
@@ -29,6 +30,7 @@ initNavigation();
 async function inicializarApp(user) {
     const contexto = await inicializarContexto(user);
     aplicarPermissoesInterface();
+    await initVisao();
 
     if (contexto.perfil?.trocarSenha === true) {
         await exigirTrocaSenhaPrimeiroAcesso(contexto);

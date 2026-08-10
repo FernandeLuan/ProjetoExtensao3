@@ -1,12 +1,17 @@
 import { state } from "./state.js?v=7.4";
 
-const SECOES_APENAS_ADMIN = new Set([
+const SECOES_APENAS_BARBEARIA = new Set([
+    "barbeariaHome",
     "configuracoes",
     "equipe"
 ]);
 
+const SECOES_APENAS_PROFISSIONAL = new Set([
+    "registrar",
+    "painelFinanceiro"
+]);
+
 export function papelEhAdmin(papel) {
-    // "owner" continua aceito para não quebrar o ambiente já existente.
     return papel === "admin" || papel === "owner";
 }
 
@@ -18,25 +23,67 @@ export function usuarioEhBarbeiro() {
     return state.membroAtual?.ativo === true && state.membroAtual?.papel === "barber";
 }
 
+export function usuarioEhDono() {
+    return state.membroAtual?.ativo === true && state.membroAtual?.dono === true;
+}
+
+export function usuarioAtuaComoProfissional() {
+    if (state.membroAtual?.ativo !== true) return false;
+    return state.membroAtual?.atuaComoProfissional !== false;
+}
+
+export function podeUsarVisaoBarbearia() {
+    if (state.membroAtual?.ativo !== true) return false;
+    return state.membroAtual?.papel === "admin"
+        || state.membroAtual?.acessoBarbearia === true;
+}
+
+export function podeUsarVisaoProfissional() {
+    return usuarioAtuaComoProfissional();
+}
+
+export function visaoEhBarbearia() {
+    return document.body?.dataset?.srnkVisao === "barbearia";
+}
+
+export function visaoEhProfissional() {
+    return !visaoEhBarbearia();
+}
+
+export function podeAdministrarNaVisaoAtual() {
+    return usuarioEhAdmin() && podeUsarVisaoBarbearia() && visaoEhBarbearia();
+}
+
+export function obterSecaoInicialVisao() {
+    return visaoEhBarbearia() ? "barbeariaHome" : "registrar";
+}
+
 export function podeAcessarSecao(targetId) {
-    if (!SECOES_APENAS_ADMIN.has(targetId)) return true;
-    return usuarioEhAdmin();
+    if (SECOES_APENAS_BARBEARIA.has(targetId)) {
+        return podeAdministrarNaVisaoAtual();
+    }
+
+    if (SECOES_APENAS_PROFISSIONAL.has(targetId)) {
+        return podeUsarVisaoProfissional() && visaoEhProfissional();
+    }
+
+    return true;
 }
 
 export function aplicarPermissoesInterface() {
-    const admin = usuarioEhAdmin();
+    const adminNaVisao = podeAdministrarNaVisaoAtual();
+    const profissional = podeUsarVisaoProfissional() && visaoEhProfissional();
 
-    const itemConfiguracoes = document
-        .querySelector('#sidebarMenu a[href="#configuracoes"]')
-        ?.closest("li");
-
+    const itemConfiguracoes = document.getElementById("menuConfiguracoesItem");
     const itemEquipe = document.getElementById("menuEquipeItem");
     const itemDespesas = document.getElementById("menuDespesasItem");
 
-    if (itemConfiguracoes) itemConfiguracoes.hidden = !admin;
-    if (itemEquipe) itemEquipe.hidden = !admin;
+    if (itemConfiguracoes) itemConfiguracoes.hidden = !adminNaVisao;
+    if (itemEquipe) itemEquipe.hidden = !adminNaVisao;
     if (itemDespesas) itemDespesas.hidden = false;
 
-    document.body.classList.toggle("usuario-admin", admin);
-    document.body.classList.toggle("usuario-barbeiro", !admin);
+    document.body.classList.toggle("usuario-admin", usuarioEhAdmin());
+    document.body.classList.toggle("usuario-barbeiro", !usuarioEhAdmin());
+    document.body.classList.toggle("visao-profissional", profissional);
+    document.body.classList.toggle("visao-barbearia", adminNaVisao);
 }

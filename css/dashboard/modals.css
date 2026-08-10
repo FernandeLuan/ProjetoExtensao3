@@ -73,7 +73,8 @@
 }
 
 #btnCancelar,
-#btnCancelarDespesa {
+#btnCancelarDespesa,
+#btnCancelarServico {
     border: 1px solid var(--border);
 
     background: var(--bg);
@@ -81,7 +82,8 @@
 }
 
 #btnConfirmar,
-#btnConfirmarDespesa {
+#btnConfirmarDespesa,
+#btnConfirmarServico {
     border: 0;
 
     background: var(--danger);

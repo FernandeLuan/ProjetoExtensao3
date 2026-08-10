@@ -1,22 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // =========================================================
+    // ETAPA 7 — permissões do banco alinhadas à interface
+    // =========================================================
+
     function signedIn() {
       return request.auth != null;
     }
 
-    function isActiveMember(barbeariaId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid))
-        && get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.ativo == true;
+    function memberPath(barbeariaId, uid) {
+      return /databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(uid);
     }
 
-    function hasAdminRole(barbeariaId) {
+    function memberExists(barbeariaId, uid) {
+      return signedIn() && exists(memberPath(barbeariaId, uid));
+    }
+
+    function memberData(barbeariaId, uid) {
+      return get(memberPath(barbeariaId, uid)).data;
+    }
+
+    function isActiveMember(barbeariaId) {
+      return memberExists(barbeariaId, request.auth.uid)
+        && memberData(barbeariaId, request.auth.uid).ativo == true;
+    }
+
+    function isActiveSpecificMember(barbeariaId, uid) {
+      return signedIn()
+        && exists(memberPath(barbeariaId, uid))
+        && memberData(barbeariaId, uid).ativo == true;
+    }
+
+    function specificMemberCanActAsProfessional(barbeariaId, uid) {
+      return isActiveSpecificMember(barbeariaId, uid)
+        && memberData(barbeariaId, uid).get("atuaComoProfissional", true) != false;
+    }
+
+    function isAdminRoleValue(papel) {
+      return papel == "admin" || papel == "owner";
+    }
+
+    function isAdmin(barbeariaId) {
       return isActiveMember(barbeariaId)
-        && (
-          get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.papel == "admin"
-          || get(/databases/$(database)/documents/barbearias/$(barbeariaId)/membros/$(request.auth.uid)).data.papel == "owner"
-        );
+        && isAdminRoleValue(memberData(barbeariaId, request.auth.uid).papel);
+    }
+
+    function canActAsProfessional(barbeariaId) {
+      return isActiveMember(barbeariaId)
+        && memberData(barbeariaId, request.auth.uid).get("atuaComoProfissional", true) != false;
     }
 
     function isTechnicalOwner(barbeariaId) {
@@ -25,41 +58,249 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/barbearias/$(barbeariaId)).data.ownerUid == request.auth.uid;
     }
 
-    function isAdmin(barbeariaId) {
-      // Primeiro resolve admin/owner pelo documento de membro. O ownerUid técnico
-      // continua como fallback para compatibilidade, mas deixa de ser a primeira
-      // consulta auxiliar feita para administradores normais.
-      return hasAdminRole(barbeariaId) || isTechnicalOwner(barbeariaId);
+    function validCardRate(value) {
+      return value is number && value >= 0 && value < 10;
+    }
+
+    function validRepasse(value) {
+      return value is number && value >= 0 && value <= 99.99;
+    }
+
+    // ---------------------------------------------------------
+    // USUÁRIOS
+    // ---------------------------------------------------------
+
+    function selfUserCreate(uid) {
+      let keys = request.resource.data.keys();
+      return request.auth.uid == uid
+        && keys.hasAll([
+          "email",
+          "barbeariaId",
+          "schemaVersion",
+          "criadoEm",
+          "atualizadoEm"
+        ])
+        && keys.hasOnly([
+          "email",
+          "nome",
+          "fotoPerfil",
+          "barbeariaId",
+          "trocarSenha",
+          "schemaVersion",
+          "criadoEm",
+          "atualizadoEm"
+        ])
+        && request.resource.data.barbeariaId == uid
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.atualizadoEm == request.time;
+    }
+
+    function adminCreatesUser() {
+      let keys = request.resource.data.keys();
+      return request.resource.data.barbeariaId is string
+        && isAdmin(request.resource.data.barbeariaId)
+        && keys.hasAll([
+          "nome",
+          "email",
+          "barbeariaId",
+          "trocarSenha",
+          "schemaVersion",
+          "criadoEm",
+          "atualizadoEm"
+        ])
+        && keys.hasOnly([
+          "nome",
+          "email",
+          "barbeariaId",
+          "trocarSenha",
+          "schemaVersion",
+          "criadoEm",
+          "atualizadoEm"
+        ])
+        && request.resource.data.trocarSenha == true
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.atualizadoEm == request.time;
+    }
+
+    function selfUserUpdate(uid) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+
+      let nameChange = changed.hasOnly(["nome", "atualizadoEm"])
+        && request.resource.data.get("nome", "") is string
+        && request.resource.data.get("nome", "").size() > 0
+        && request.resource.data.get("nome", "").size() <= 60
+        && request.resource.data.atualizadoEm == request.time;
+
+      let photoChange = changed.hasOnly(["fotoPerfil", "atualizadoEm"])
+        && request.resource.data.get("fotoPerfil", "") is string
+        && request.resource.data.atualizadoEm == request.time;
+
+      let firstAccessChange = changed.hasOnly(["trocarSenha", "atualizadoEm"])
+        && resource.data.get("trocarSenha", false) == true
+        && request.resource.data.get("trocarSenha", true) == false
+        && request.resource.data.atualizadoEm == request.time;
+
+      let bootstrapWorkspace = changed.hasOnly(["barbeariaId", "schemaVersion", "atualizadoEm"])
+        && !resource.data.keys().hasAny(["barbeariaId"])
+        && request.resource.data.barbeariaId == uid
+        && request.resource.data.atualizadoEm == request.time;
+
+      return request.auth.uid == uid
+        && (nameChange || photoChange || firstAccessChange || bootstrapWorkspace);
     }
 
     match /usuarios/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
-
-      allow create: if signedIn() && (
-        request.auth.uid == uid
-        || (
-          request.resource.data.barbeariaId is string
-          && isAdmin(request.resource.data.barbeariaId)
-        )
-      );
-
-      allow update: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && (selfUserCreate(uid) || adminCreatesUser());
+      allow update: if signedIn() && selfUserUpdate(uid);
       allow delete: if false;
     }
 
+    // ---------------------------------------------------------
+    // BARBEARIAS / TENANT
+    // ---------------------------------------------------------
+
     match /barbearias/{barbeariaId} {
-      allow read: if signedIn() && (
-        barbeariaId == request.auth.uid
-        || isActiveMember(barbeariaId)
-        || isTechnicalOwner(barbeariaId)
-      );
+      // O owner técnico só participa do bootstrap/leitura do documento raiz.
+      // Toda autorização de negócio abaixo depende do membro ativo + papel.
+      allow read: if isActiveMember(barbeariaId) || isTechnicalOwner(barbeariaId);
 
       allow create: if signedIn()
         && barbeariaId == request.auth.uid
         && request.resource.data.ownerUid == request.auth.uid;
 
-      allow update: if isAdmin(barbeariaId);
-      allow delete: if false;
+      // A interface atual não edita o documento raiz da barbearia.
+      // Isso também impede troca de ownerUid pelo cliente.
+      allow update, delete: if false;
+
+      // -------------------------------------------------------
+      // MEMBROS / EQUIPE
+      // -------------------------------------------------------
+
+      function bootstrapMemberCreate(uid) {
+        return barbeariaId == request.auth.uid
+          && uid == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && isAdminRoleValue(request.resource.data.papel)
+          && request.resource.data.ativo == true
+          && request.resource.data.get("repassePct", 0) == 0
+          && request.resource.data.get("primeiroAcessoPendente", false) == false;
+      }
+
+      function adminCreatesBarber(uid) {
+        let keys = request.resource.data.keys();
+        return isAdmin(barbeariaId)
+          && request.resource.data.uid == uid
+          && request.resource.data.papel == "barber"
+          && request.resource.data.ativo == true
+          && request.resource.data.dono == false
+          && request.resource.data.atuaComoProfissional == true
+          && request.resource.data.primeiroAcessoPendente == true
+          && request.resource.data.criadoPorUid == request.auth.uid
+          && validCardRate(request.resource.data.taxaDebitoPct)
+          && validCardRate(request.resource.data.taxaCreditoPct)
+          && validRepasse(request.resource.data.repassePct)
+          && keys.hasAll([
+            "uid",
+            "nome",
+            "email",
+            "papel",
+            "ativo",
+            "repassePct",
+            "taxaDebitoPct",
+            "taxaCreditoPct",
+            "dono",
+            "atuaComoProfissional",
+            "precosPersonalizados",
+            "primeiroAcessoPendente",
+            "criadoPorUid",
+            "criadoEm",
+            "atualizadoEm"
+          ])
+          && keys.hasOnly([
+            "uid",
+            "nome",
+            "email",
+            "papel",
+            "ativo",
+            "repassePct",
+            "taxaDebitoPct",
+            "taxaCreditoPct",
+            "dono",
+            "atuaComoProfissional",
+            "precosPersonalizados",
+            "primeiroAcessoPendente",
+            "criadoPorUid",
+            "criadoEm",
+            "atualizadoEm"
+          ])
+          && request.resource.data.criadoEm == request.time
+          && request.resource.data.atualizadoEm == request.time;
+      }
+
+      function selfMemberUpdate(uid) {
+        let changed = request.resource.data.diff(resource.data).affectedKeys();
+
+        let nameChange = changed.hasOnly(["nome", "atualizadoEm"])
+          && request.resource.data.get("nome", "") is string
+          && request.resource.data.get("nome", "").size() > 0
+          && request.resource.data.get("nome", "").size() <= 60
+          && request.resource.data.atualizadoEm == request.time;
+
+        let rateChange = changed.hasOnly([
+            "taxaDebitoPct",
+            "taxaCreditoPct",
+            "atualizadoEm"
+          ])
+          && validCardRate(request.resource.data.get("taxaDebitoPct", 0))
+          && validCardRate(request.resource.data.get("taxaCreditoPct", 0))
+          && request.resource.data.atualizadoEm == request.time;
+
+        let firstAccessChange = changed.hasOnly([
+            "primeiroAcessoPendente",
+            "atualizadoEm"
+          ])
+          && resource.data.get("primeiroAcessoPendente", false) == true
+          && request.resource.data.get("primeiroAcessoPendente", true) == false
+          && request.resource.data.atualizadoEm == request.time;
+
+        return signedIn()
+          && uid == request.auth.uid
+          && resource.data.ativo == true
+          && (nameChange || rateChange || firstAccessChange);
+      }
+
+      function adminMemberUpdate(uid) {
+        let changed = request.resource.data.diff(resource.data).affectedKeys();
+        let financialFields = [
+          "repassePct",
+          "taxaDebitoPct",
+          "taxaCreditoPct",
+          "precosPersonalizados",
+          "atualizadoEm"
+        ];
+        let accessFields = ["ativo", "atualizadoEm"];
+
+        let financialChange = changed.hasOnly(financialFields)
+          && validRepasse(request.resource.data.get("repassePct", 0))
+          && validCardRate(request.resource.data.get("taxaDebitoPct", 0))
+          && validCardRate(request.resource.data.get("taxaCreditoPct", 0))
+          && request.resource.data.get("precosPersonalizados", {}) is map
+          && (
+            resource.data.get("dono", false) != true
+            || request.resource.data.get("repassePct", 0) == 0
+          )
+          && request.resource.data.atualizadoEm == request.time;
+
+        let accessChange = changed.hasOnly(accessFields)
+          && uid != request.auth.uid
+          && resource.data.papel == "barber"
+          && request.resource.data.papel == resource.data.papel
+          && request.resource.data.ativo is bool
+          && request.resource.data.atualizadoEm == request.time;
+
+        return isAdmin(barbeariaId) && (financialChange || accessChange);
+      }
 
       match /membros/{uid} {
         allow read: if signedIn() && (
@@ -68,127 +309,453 @@ service cloud.firestore {
         );
 
         allow create: if signedIn() && (
-          (
-            barbeariaId == request.auth.uid
-            && uid == request.auth.uid
-            && (
-              request.resource.data.papel == "admin"
-              || request.resource.data.papel == "owner"
-            )
-          )
-          || isAdmin(barbeariaId)
+          bootstrapMemberCreate(uid)
+          || adminCreatesBarber(uid)
         );
 
-        allow update: if isAdmin(barbeariaId) || (
-          signedIn()
-          && uid == request.auth.uid
-          && resource.data.ativo == true
+        allow update: if selfMemberUpdate(uid) || adminMemberUpdate(uid);
+
+        // A interface preserva o membro e alterna apenas ativo/inativo.
+        allow delete: if false;
+      }
+
+      // -------------------------------------------------------
+      // ATENDIMENTOS
+      // -------------------------------------------------------
+
+      function attendanceFinancialSnapshotValid() {
+        let uid = request.resource.data.profissionalUid;
+        let target = memberData(barbeariaId, uid);
+        let fin = request.resource.data.get("financeiro", {});
+        let isOwner = target.get("dono", false) == true;
+        let targetHasRepasse = target.keys().hasAny(["repassePct"]);
+
+        return fin is map
+          && fin.keys().hasAll([
+            "profissionalDono",
+            "taxaDebitoPct",
+            "taxaCreditoPct",
+            "taxaAplicadaPct",
+            "taxaCartaoValor",
+            "repasseDonoPct",
+            "valorBruto",
+            "valorLiquido",
+            "repasseDono",
+            "liquidoBarbeiro"
+          ])
+          && fin.keys().hasOnly([
+            "profissionalDono",
+            "taxaDebitoPct",
+            "taxaCreditoPct",
+            "taxaAplicadaPct",
+            "taxaCartaoValor",
+            "repasseDonoPct",
+            "valorBruto",
+            "valorLiquido",
+            "repasseDono",
+            "liquidoBarbeiro"
+          ])
+          && request.resource.data.get("profissionalDono", false) == isOwner
+          && fin.profissionalDono == isOwner
+          && fin.taxaDebitoPct == target.get("taxaDebitoPct", 0)
+          && fin.taxaCreditoPct == target.get("taxaCreditoPct", 0)
           && (
-            request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(["nome", "atualizadoEm"])
-            || (
-              request.resource.data.diff(resource.data).affectedKeys()
-                .hasOnly(["primeiroAcessoPendente", "atualizadoEm"])
-              && request.resource.data.primeiroAcessoPendente == false
-            )
+            isOwner
+              ? fin.repasseDonoPct == 0
+              : (!targetHasRepasse || fin.repasseDonoPct == target.repassePct)
           )
+          && request.resource.data.valorServicoBruto == fin.valorBruto
+          && request.resource.data.valorBrutoTotal == fin.valorBruto
+          && request.resource.data.valorLiquido == fin.valorLiquido
+          && request.resource.data.taxaCartaoValor == fin.taxaCartaoValor
+          && request.resource.data.repasseDono == fin.repasseDono
+          && request.resource.data.liquidoBarbeiro == fin.liquidoBarbeiro
+          && (!isOwner || fin.repasseDono == 0);
+      }
+
+      function attendanceCreateShape() {
+        let keys = request.resource.data.keys();
+        return keys.hasAll([
+            "servico",
+            "pagamento",
+            "valorBrutoTotal",
+            "profissionalUid",
+            "registradoPorUid",
+            "dataAtendimento",
+            "financeiro",
+            "resumoVersion",
+            "createdAt",
+            "updatedAt"
+          ])
+          && keys.hasOnly([
+            "cliente",
+            "servicoId",
+            "servico",
+            "servicoNome",
+            "precoBase",
+            "precoProfissional",
+            "origemPreco",
+            "pagamento",
+            "valorServicoBruto",
+            "valorBrutoTotal",
+            "valorLiquido",
+            "taxaCartaoValor",
+            "repasseDono",
+            "liquidoBarbeiro",
+            "profissionalUid",
+            "profissionalNome",
+            "profissionalDono",
+            "data",
+            "dataAtendimento",
+            "valorDiferenciado",
+            "observacao",
+            "editado",
+            "retroativo",
+            "horaInformada",
+            "schemaVersion",
+            "financeiro",
+            "registradoPorUid",
+            "registradoPorNome",
+            "resumoVersion",
+            "createdAt",
+            "updatedAt"
+          ])
+          && request.resource.data.profissionalUid is string
+          && request.resource.data.dataAtendimento is timestamp
+          && request.resource.data.valorBrutoTotal is number
+          && request.resource.data.registradoPorUid == request.auth.uid
+          && request.resource.data.get("editado", false) == false
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time
+          && attendanceFinancialSnapshotValid();
+      }
+
+      function attendanceUpdateShape() {
+        let changed = request.resource.data.diff(resource.data).affectedKeys();
+        let oldFinance = resource.data.get("financeiro", {});
+        let newFinance = request.resource.data.get("financeiro", {});
+
+        let snapshotRatesPreserved = oldFinance.size() == 0 || (
+          newFinance.get("taxaDebitoPct", null) == oldFinance.get("taxaDebitoPct", null)
+          && newFinance.get("taxaCreditoPct", null) == oldFinance.get("taxaCreditoPct", null)
+          && newFinance.get("repasseDonoPct", null) == oldFinance.get("repasseDonoPct", null)
+          && newFinance.get("profissionalDono", false) == oldFinance.get("profissionalDono", false)
         );
 
-        allow delete: if isAdmin(barbeariaId);
+        let ownerSnapshotPreserved = !resource.data.keys().hasAny(["profissionalDono"])
+          || request.resource.data.get("profissionalDono", false) == resource.data.get("profissionalDono", false);
+
+        let financialValuesConsistent = newFinance.size() == 0 || (
+          request.resource.data.get("valorServicoBruto", 0) == newFinance.get("valorBruto", 0)
+          && request.resource.data.get("valorBrutoTotal", 0) == newFinance.get("valorBruto", 0)
+          && request.resource.data.get("valorLiquido", 0) == newFinance.get("valorLiquido", 0)
+          && request.resource.data.get("taxaCartaoValor", 0) == newFinance.get("taxaCartaoValor", 0)
+          && request.resource.data.get("repasseDono", 0) == newFinance.get("repasseDono", 0)
+          && request.resource.data.get("liquidoBarbeiro", 0) == newFinance.get("liquidoBarbeiro", 0)
+        );
+
+        return changed.hasOnly([
+            "servico",
+            "servicoNome",
+            "servicoId",
+            "precoBase",
+            "precoProfissional",
+            "origemPreco",
+            "pagamento",
+            "valorServicoBruto",
+            "valorBrutoTotal",
+            "valorLiquido",
+            "taxaCartaoValor",
+            "repasseDono",
+            "liquidoBarbeiro",
+            "observacao",
+            "valorDiferenciado",
+            "profissionalDono",
+            "schemaVersion",
+            "financeiro",
+            "editado",
+            "editadoEm",
+            "updatedAt"
+          ])
+          && request.resource.data.get("editado", false) == true
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.get("editadoEm", request.time) == request.time
+          && snapshotRatesPreserved
+          && ownerSnapshotPreserved
+          && financialValuesConsistent;
       }
 
       match /atendimentos/{atendimentoId} {
         allow read: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
+          canActAsProfessional(barbeariaId)
           && resource.data.profissionalUid == request.auth.uid
         );
 
-        allow create: if isActiveMember(barbeariaId) && (
+        allow create: if attendanceCreateShape()
+          && specificMemberCanActAsProfessional(barbeariaId, request.resource.data.profissionalUid)
+          && (
+            isAdmin(barbeariaId)
+            || (
+              canActAsProfessional(barbeariaId)
+              && request.resource.data.profissionalUid == request.auth.uid
+            )
+          );
+
+        allow update: if attendanceUpdateShape() && (
           isAdmin(barbeariaId)
           || (
-            request.resource.data.profissionalUid == request.auth.uid
-            && request.resource.data.registradoPorUid == request.auth.uid
+            canActAsProfessional(barbeariaId)
+            && resource.data.profissionalUid == request.auth.uid
           )
         );
 
-        allow update: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
-          && resource.data.profissionalUid == request.auth.uid
-          && request.resource.data.profissionalUid == resource.data.profissionalUid
-          && request.resource.data.registradoPorUid == resource.data.registradoPorUid
-        );
-
-        // O barbeiro pode excluir apenas o próprio registro (necessário para o "Desfazer").
         allow delete: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
+          canActAsProfessional(barbeariaId)
           && resource.data.profissionalUid == request.auth.uid
         );
+      }
+
+      // -------------------------------------------------------
+      // CONFIGURAÇÕES / CATÁLOGO GLOBAL
+      // -------------------------------------------------------
+
+      function validConfigCreate() {
+        return request.resource.data.keys().hasOnly([
+            "taxaDebito",
+            "taxaCredito",
+            "repasseDonoPct",
+            "pagamentoPadrao",
+            "pagamentosAtivos",
+            "servicos",
+            "precos",
+            "schemaVersion",
+            "createdAt",
+            "updatedAt"
+          ])
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validConfigUpdate() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "taxaDebito",
+            "taxaCredito",
+            "repasseDonoPct",
+            "pagamentoPadrao",
+            "pagamentosAtivos",
+            "servicos",
+            "precos",
+            "schemaVersion",
+            "updatedAt"
+          ])
+          && request.resource.data.updatedAt == request.time;
       }
 
       match /configuracoes/{configId} {
-        allow read: if isActiveMember(barbeariaId) || isAdmin(barbeariaId);
-        allow create, update: if isAdmin(barbeariaId);
+        allow read: if configId == "geral" && isActiveMember(barbeariaId);
+        allow create: if configId == "geral" && isAdmin(barbeariaId) && validConfigCreate();
+        allow update: if configId == "geral" && isAdmin(barbeariaId) && validConfigUpdate();
         allow delete: if false;
+      }
+
+      // -------------------------------------------------------
+      // DESPESAS
+      // -------------------------------------------------------
+
+      function professionalExpenseForCurrentUser(data) {
+        return data.tipo == "profissional"
+          && data.profissionalUid == request.auth.uid;
+      }
+
+      function barbershopExpense(data) {
+        return data.tipo == "barbearia"
+          && data.get("profissionalUid", null) == null;
+      }
+
+      function expenseCreateShape() {
+        let keys = request.resource.data.keys();
+        return keys.hasAll([
+            "tipo",
+            "categoria",
+            "descricao",
+            "valor",
+            "dataDespesa",
+            "registradoPorUid",
+            "resumoVersion",
+            "createdAt",
+            "updatedAt"
+          ])
+          && keys.hasOnly([
+            "profissionalUid",
+            "profissionalNome",
+            "registradoPorUid",
+            "registradoPorNome",
+            "tipo",
+            "categoria",
+            "descricao",
+            "valor",
+            "data",
+            "dataDespesa",
+            "schemaVersion",
+            "resumoVersion",
+            "createdAt",
+            "updatedAt"
+          ])
+          && request.resource.data.registradoPorUid == request.auth.uid
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function expenseUpdateShape() {
+        let changed = request.resource.data.diff(resource.data).affectedKeys();
+        return changed.hasOnly([
+            "data",
+            "dataDespesa",
+            "categoria",
+            "descricao",
+            "valor",
+            "tipo",
+            "profissionalUid",
+            "profissionalNome",
+            "updatedAt",
+            "editado"
+          ])
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.get("editado", false) == true;
+      }
+
+      function canReadExpense() {
+        return isAdmin(barbeariaId) || (
+          canActAsProfessional(barbeariaId)
+          && professionalExpenseForCurrentUser(resource.data)
+        );
+      }
+
+      function canCreateExpense() {
+        return expenseCreateShape() && (
+          (
+            canActAsProfessional(barbeariaId)
+            && professionalExpenseForCurrentUser(request.resource.data)
+          )
+          || (
+            isAdmin(barbeariaId)
+            && barbershopExpense(request.resource.data)
+          )
+        );
+      }
+
+      function canModifyExpense() {
+        let ownsProfessional = professionalExpenseForCurrentUser(resource.data);
+        let isBarbershop = barbershopExpense(resource.data);
+        let resultValid = professionalExpenseForCurrentUser(request.resource.data)
+          || (isAdmin(barbeariaId) && barbershopExpense(request.resource.data));
+
+        return expenseUpdateShape()
+          && resultValid
+          && (
+            (
+              canActAsProfessional(barbeariaId)
+              && ownsProfessional
+            )
+            || (
+              isAdmin(barbeariaId)
+              && (ownsProfessional || isBarbershop)
+            )
+          );
+      }
+
+      function canDeleteExpense() {
+        return (
+            canActAsProfessional(barbeariaId)
+            && professionalExpenseForCurrentUser(resource.data)
+          )
+          || (
+            isAdmin(barbeariaId)
+            && (
+              professionalExpenseForCurrentUser(resource.data)
+              || barbershopExpense(resource.data)
+            )
+          );
       }
 
       match /despesas/{despesaId} {
-        allow read: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
-          && resource.data.tipo == "profissional"
-          && resource.data.profissionalUid == request.auth.uid
-        );
-
-        allow create: if isActiveMember(barbeariaId) && (
-          isAdmin(barbeariaId)
-          || (
-            request.resource.data.tipo == "profissional"
-            && request.resource.data.profissionalUid == request.auth.uid
-            && request.resource.data.registradoPorUid == request.auth.uid
-          )
-        );
-
-        allow update: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
-          && resource.data.tipo == "profissional"
-          && resource.data.profissionalUid == request.auth.uid
-          && request.resource.data.tipo == "profissional"
-          && request.resource.data.profissionalUid == resource.data.profissionalUid
-          && request.resource.data.registradoPorUid == resource.data.registradoPorUid
-        );
-
-        allow delete: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
-          && resource.data.tipo == "profissional"
-          && resource.data.profissionalUid == request.auth.uid
-        );
+        allow read: if canReadExpense();
+        allow create: if canCreateExpense();
+        allow update: if canModifyExpense();
+        allow delete: if canDeleteExpense();
       }
 
-      // Resumos derivados por profissional. São cache financeiro diário e podem ser
-      // reconstruídos a partir de atendimentos/despesas se necessário.
+      // -------------------------------------------------------
+      // RESUMOS DERIVADOS
+      // -------------------------------------------------------
+
+      function professionalSummaryShape(uid, diaId) {
+        return request.resource.data.keys().hasOnly([
+            "dataChave",
+            "profissionalUid",
+            "profissionalNome",
+            "resumoVersion",
+            "updatedAt",
+            "atendimentos",
+            "faturamentoBrutoCentavos",
+            "taxasCartaoCentavos",
+            "repasseCentavos",
+            "liquidoBarbeiroCentavos",
+            "ajustesQuantidade",
+            "ajustesDiferencaCentavos",
+            "despesasProfissionaisCentavos",
+            "pagamentosQtd",
+            "pagamentosValorCentavos",
+            "pagamentosNomes",
+            "servicosQtd",
+            "servicosFaturamentoCentavos",
+            "servicosNomes"
+          ])
+          && request.resource.data.profissionalUid == uid
+          && request.resource.data.dataChave == diaId
+          && request.resource.data.updatedAt == request.time;
+      }
+
       match /resumosProfissionais/{uid}/dias/{diaId} {
         allow read: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
+          canActAsProfessional(barbeariaId)
           && uid == request.auth.uid
         );
 
-        allow create, update: if isAdmin(barbeariaId) || (
-          isActiveMember(barbeariaId)
-          && uid == request.auth.uid
-          && request.resource.data.profissionalUid == request.auth.uid
+        allow create, update: if professionalSummaryShape(uid, diaId) && (
+          isAdmin(barbeariaId)
+          || (
+            canActAsProfessional(barbeariaId)
+            && uid == request.auth.uid
+          )
         );
 
         allow delete: if false;
       }
 
-      // Resumo diário da barbearia guarda apenas dados agregados administrativos,
-      // como despesas da própria barbearia.
+      function barbershopSummaryShape(diaId) {
+        return request.resource.data.keys().hasOnly([
+            "dataChave",
+            "despesasBarbeariaCentavos",
+            "resumoVersion",
+            "updatedAt"
+          ])
+          && request.resource.data.dataChave == diaId
+          && request.resource.data.updatedAt == request.time;
+      }
+
       match /resumosBarbearia/{diaId} {
-        allow read, create, update: if isAdmin(barbeariaId);
+        allow read: if isAdmin(barbeariaId);
+        allow create, update: if isAdmin(barbeariaId)
+          && barbershopSummaryShape(diaId);
         allow delete: if false;
       }
     }
 
-    // Estrutura antiga permanece somente como backup bloqueado.
+    // ---------------------------------------------------------
+    // ESTRUTURA LEGADA BLOQUEADA
+    // ---------------------------------------------------------
+
     match /atendimentos/{documento} {
       allow read, write: if false;
     }
@@ -196,5 +763,7 @@ service cloud.firestore {
     match /configuracoes/{documento} {
       allow read, write: if false;
     }
+
+    // Qualquer caminho não descrito acima permanece negado por padrão.
   }
 }

@@ -1,18 +1,27 @@
 import { abrirPainelHoje } from "./painel.js?v=7.4";
-import { abrirHistoricoHoje } from "./historico.js?v=7.4";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=7.4";
-import { abrirDespesasAtual } from "./despesas.js?v=7.4";
-import { abrirEquipe } from "./equipe.js?v=7.4";
-import { abrirConta } from "./conta.js?v=7.4";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=7.4";
-import { podeAcessarSecao } from "./permissoes.js?v=7.4";
+import { abrirHistoricoHoje } from "./historico.js?v=8.4";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.11";
+import { abrirDespesasAtual } from "./despesas.js?v=8.10";
+import { abrirEquipe } from "./equipe.js?v=8.11";
+import { abrirConta } from "./conta.js?v=8.11";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.10";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.4";
+import {
+    aplicarPermissoesInterface,
+    obterSecaoInicialVisao,
+    podeAcessarSecao,
+    visaoEhBarbearia
+} from "./permissoes.js?v=7.5";
 
 let inicializado = false;
 
 const menuToggle = document.getElementById("menuToggle");
 const sidebarMenu = document.getElementById("sidebarMenu");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
-const bottomNavItems = document.querySelectorAll(".bottom-nav-item[data-nav-target]");
+
+function itensBottomNav() {
+    return [...document.querySelectorAll(".bottom-nav-item[data-nav-target]")];
+}
 
 function abrirMenu() {
     sidebarMenu?.classList.add("active");
@@ -28,8 +37,38 @@ export function fecharMenu() {
     menuToggle?.setAttribute("aria-expanded", "false");
 }
 
+function definirItemNav(slot, { target, icone, label }) {
+    const item = document.querySelector(`[data-nav-slot="${slot}"]`);
+    if (!item) return;
+
+    item.dataset.navTarget = target;
+    item.setAttribute("href", `#${target}`);
+
+    const iconeEl = item.querySelector("i");
+    const labelEl = item.querySelector("span");
+
+    if (iconeEl) iconeEl.className = icone;
+    if (labelEl) labelEl.textContent = label;
+}
+
+export function configurarNavegacaoParaVisao() {
+    if (visaoEhBarbearia()) {
+        definirItemNav("1", { target: "barbeariaHome", icone: "fas fa-store", label: "Visão geral" });
+        definirItemNav("2", { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" });
+        definirItemNav("3", { target: "equipe", icone: "fas fa-users", label: "Equipe" });
+        definirItemNav("4", { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" });
+    } else {
+        definirItemNav("1", { target: "registrar", icone: "fas fa-house", label: "Início" });
+        definirItemNav("2", { target: "painelFinanceiro", icone: "fas fa-chart-line", label: "Painel" });
+        definirItemNav("3", { target: "historico", icone: "fas fa-clock-rotate-left", label: "Histórico" });
+        definirItemNav("4", { target: "relatorios", icone: "fas fa-file-lines", label: "Relatório" });
+    }
+
+    aplicarPermissoesInterface();
+}
+
 function atualizarNavegacaoAtiva(targetId) {
-    bottomNavItems.forEach((item) => {
+    itensBottomNav().forEach((item) => {
         const ativo = item.dataset.navTarget === targetId;
         item.classList.toggle("active", ativo);
         if (ativo) item.setAttribute("aria-current", "page");
@@ -38,7 +77,7 @@ function atualizarNavegacaoAtiva(targetId) {
 
     menuToggle?.classList.toggle(
         "active",
-        ["configuracoes", "equipe", "despesas", "conta"].includes(targetId)
+        ["configuracoes", "despesas", "conta"].includes(targetId)
     );
 }
 
@@ -49,13 +88,13 @@ function animarEntradaSecao(section) {
     setTimeout(() => section.classList.remove("section-enter"), 220);
 }
 
-export function exibirSecao(href) {
+export async function exibirSecao(href) {
     if (!href?.startsWith("#")) return;
     let targetId = href.slice(1);
 
     if (!podeAcessarSecao(targetId)) {
-        href = "#registrar";
-        targetId = "registrar";
+        targetId = obterSecaoInicialVisao();
+        href = `#${targetId}`;
     }
 
     const target = document.querySelector(href);
@@ -68,6 +107,7 @@ export function exibirSecao(href) {
     animarEntradaSecao(target);
     atualizarNavegacaoAtiva(targetId);
 
+    if (href === "#barbeariaHome") await abrirVisaoGeralBarbearia();
     if (href === "#painelFinanceiro") void abrirPainelHoje();
     if (href === "#historico") void abrirHistoricoHoje();
     if (href === "#relatorios") void prepararRelatoriosHoje();
@@ -75,6 +115,11 @@ export function exibirSecao(href) {
     if (href === "#equipe") void abrirEquipe();
     if (href === "#conta") void abrirConta();
     if (href === "#configuracoes") void prepararRetroativoParaUso();
+}
+
+export async function abrirInicioDaVisaoAtual() {
+    fecharMenu();
+    await exibirSecao(`#${obterSecaoInicialVisao()}`);
 }
 
 export function initNavigation() {
@@ -91,19 +136,20 @@ export function initNavigation() {
         if (event.key === "Escape") fecharMenu();
     });
 
-    bottomNavItems.forEach((item) => {
-        item.addEventListener("click", (event) => {
-            event.preventDefault();
-            fecharMenu();
-            exibirSecao(`#${item.dataset.navTarget}`);
-        });
+    document.querySelector(".bottom-nav")?.addEventListener("click", (event) => {
+        const item = event.target.closest(".bottom-nav-item[data-nav-target]");
+        if (!item) return;
+
+        event.preventDefault();
+        fecharMenu();
+        void exibirSecao(`#${item.dataset.navTarget}`);
     });
 
     sidebarMenu?.querySelectorAll("a").forEach((link) => {
         link.addEventListener("click", (event) => {
             if (link.id === "logoutBtnSide") return;
             event.preventDefault();
-            exibirSecao(link.getAttribute("href"));
+            void exibirSecao(link.getAttribute("href"));
             fecharMenu();
         });
     });

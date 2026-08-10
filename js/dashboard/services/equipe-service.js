@@ -17,9 +17,9 @@ import {
 
 import {
     criarAcessoBarbeiroNoBanco
-} from "../data/equipe-repository.js?v=7.4";
+} from "../data/equipe-repository.js?v=8.4";
 
-export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria }) {
+export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria, taxaDebitoPct, taxaCreditoPct, repassePct }) {
     const nomeLimpo = String(nome || "").trim().slice(0, 60);
     const emailLimpo = String(email || "").trim().toLowerCase();
 
@@ -59,7 +59,10 @@ export async function criarAcessoBarbeiro({ nome, email, senhaTemporaria }) {
         await criarAcessoBarbeiroNoBanco({
             uid: usuarioCriado.uid,
             nome: nomeLimpo,
-            email: emailLimpo
+            email: emailLimpo,
+            taxaDebitoPct,
+            taxaCreditoPct,
+            repassePct
         });
 
         return {

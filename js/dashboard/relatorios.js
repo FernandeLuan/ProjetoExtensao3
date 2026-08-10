@@ -2,13 +2,13 @@ import { APP_NAME } from "./constants.js?v=7.4";
 import { state } from "./state.js?v=7.4";
 import { obterAtendimentosPeriodo } from "./data/sync.js?v=7.4";
 import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=7.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.4";
 import { obterWorkspaceId } from "./data/context.js?v=7.4";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
 } from "./data/resumos-repository.js?v=7.4";
-import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=7.5";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
@@ -239,7 +239,9 @@ function nomeMembro(membro) {
 async function prepararSeletorProfissional() {
     if (!profissionalSelect || !profissionalField) return;
 
-    if (!usuarioEhAdmin()) {
+    // O seletor de equipe só existe no contexto administrativo da barbearia.
+    // Na visão profissional, até o Admin vê somente os próprios números.
+    if (!podeAdministrarNaVisaoAtual()) {
         profissionalField.hidden = true;
         profissionalSelect.innerHTML = "";
         return;
@@ -575,7 +577,7 @@ function renderEquipe(atendimentos) {
     if (!card || !lista) return;
 
     const exibir =
-        usuarioEhAdmin() &&
+        podeAdministrarNaVisaoAtual() &&
         profissionalSelect?.value === "barbearia";
 
     card.hidden = !exibir;
@@ -954,7 +956,7 @@ function renderEquipeResumos(itens) {
     const lista = el("relatorioEquipeLista");
     if (!card || !lista) return;
 
-    const exibir = usuarioEhAdmin() && profissionalSelect?.value === "barbearia";
+    const exibir = podeAdministrarNaVisaoAtual() && profissionalSelect?.value === "barbearia";
     card.hidden = !exibir;
     if (!exibir) return;
 
@@ -1114,14 +1116,14 @@ export async function carregarRelatorio() {
     const inicio = inicioDoDia(periodoInicio);
     const fim = inicioDoDia(periodoFim);
 
-    const admin = usuarioEhAdmin();
+    const adminBarbearia = podeAdministrarNaVisaoAtual();
     const selecao =
-        admin
+        adminBarbearia
             ? (profissionalSelect?.value || "barbearia")
             : state.user?.uid;
 
     const visaoBarbearia =
-        admin &&
+        adminBarbearia &&
         selecao === "barbearia";
 
     const profissionalUid =
@@ -1237,7 +1239,7 @@ function montarResumoWhatsAppResumos() {
     } else {
         linhas.push(
             `Taxas de cartão: ${moeda(s.taxas)}`,
-            `Repasse ao proprietário: ${moeda(s.repasse)}`,
+            `Repasse: ${moeda(s.repasse)}`,
             `Despesas profissionais: ${moeda(s.totalDespesas)}`,
             `*Resultado profissional: ${moeda(s.resultado)}*`
         );
@@ -1305,7 +1307,7 @@ function montarResumoWhatsApp() {
     } else {
         linhas.push(
             `Taxas de cartão: ${moeda(s.taxas)}`,
-            `Repasse ao proprietário: ${moeda(s.repasse)}`,
+            `Repasse: ${moeda(s.repasse)}`,
             `Despesas profissionais: ${moeda(s.totalDespesas)}`,
             `*Resultado profissional: ${moeda(s.resultado)}*`
         );
@@ -1580,9 +1582,8 @@ export async function prepararRelatoriosHoje() {
 
     if (!inicializado) return;
 
-    if (usuarioEhAdmin()) {
-        await prepararSeletorProfissional();
-    }
+    // A própria função decide se o seletor deve existir neste contexto.
+    await prepararSeletorProfissional();
     await carregarRelatorio();
 }
 

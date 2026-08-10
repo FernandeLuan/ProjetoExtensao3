@@ -354,7 +354,7 @@
     left: 0;
     top: 0;
 
-    transform: translate(-50%, -100%);
+    transform: translateX(-50%);
 
     width: max-content;
     max-width: min(260px, calc(100vw - 32px));
@@ -391,6 +391,15 @@
     border-bottom: 1px solid var(--border);
 
     transform: translateX(-50%) rotate(45deg);
+}
+
+
+.finance-info-tooltip.is-below::after {
+    top: -5px;
+    bottom: auto;
+    border: 0;
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
 }
 
 .finance-info-tooltip[hidden] {

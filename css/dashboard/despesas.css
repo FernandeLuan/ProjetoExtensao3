@@ -47,3 +47,10 @@
 .despesa-submit { min-height:43px !important; margin-top:2px; border-radius:12px !important; font-size:.74rem !important; }
 .despesa-form-status:empty,.despesa-form-status[hidden] { display:none !important; }
 .despesa-confirm-box { max-width:340px; }
+
+
+/* Evita duplicidade entre o ícone nativo do date e o botão do projeto. */
+.despesa-date-control input::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}

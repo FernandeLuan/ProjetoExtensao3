@@ -13,6 +13,7 @@ import {
     salvarNomeConta,
     salvarFotoConta
 } from "./data/conta-repository.js?v=7.4";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.4";
 
 import {
     mostrarErro,
@@ -74,6 +75,27 @@ const btnSalvarNome =
 const btnCancelarNome =
     document.getElementById("btnCancelarNome");
 
+const btnToggleConta =
+    document.getElementById("btnToggleConta");
+
+const contaAccountContent =
+    document.getElementById("contaAccountContent");
+
+const btnToggleVisao =
+    document.getElementById("btnToggleVisao");
+
+const contaVisaoContent =
+    document.getElementById("contaVisaoContent");
+
+const contaTaxasCard =
+    document.getElementById("contaTaxasCard");
+
+const btnToggleTaxasConta =
+    document.getElementById("btnToggleTaxasConta");
+
+const contaTaxasContent =
+    document.getElementById("contaTaxasContent");
+
 const btnToggleSeguranca =
     document.getElementById("btnToggleSeguranca");
 
@@ -86,8 +108,125 @@ const btnToggleAparencia =
 const contaThemeContent =
     document.getElementById("contaThemeContent");
 
+const btnToggleInformacoes =
+    document.getElementById("btnToggleInformacoes");
+
+const contaInfoContent =
+    document.getElementById("contaInfoContent");
+
 const btnSairConta =
     document.getElementById("btnSairConta");
+
+const contaTaxaDebito =
+    document.getElementById("contaTaxaDebito");
+
+const contaTaxaCredito =
+    document.getElementById("contaTaxaCredito");
+
+const contaTaxasStatus =
+    document.getElementById("contaTaxasStatus");
+
+const btnSalvarTaxasConta =
+    document.getElementById("btnSalvarTaxasConta");
+
+
+function atualizarVisibilidadeTaxasConta(membro = state.membroAtual) {
+    if (!contaTaxasCard) return false;
+
+    const podeEditar =
+        membro?.ativo === true &&
+        membro?.papel === "barber";
+
+    contaTaxasCard.hidden = !podeEditar;
+
+    if (!podeEditar && contaTaxasContent && btnToggleTaxasConta) {
+        contaTaxasContent.hidden = true;
+        btnToggleTaxasConta.setAttribute("aria-expanded", "false");
+        btnToggleTaxasConta.classList.remove("aberto");
+    }
+
+    return podeEditar;
+}
+
+
+function mascaraTaxa(input) {
+    if (!input) return;
+    let value = input.value.replace(/\D/g, "").replace(/^0+/, "");
+    if (!value) {
+        input.value = "";
+        return;
+    }
+    if (value.length > 3) value = value.slice(0, 3);
+    input.value = (Number.parseInt(value, 10) / 100).toFixed(2).replace(".", ",");
+}
+
+function taxaNumero(valor) {
+    const numero = Number(String(valor || "").replace(",", "."));
+    return Number.isFinite(numero) ? numero : NaN;
+}
+
+function formatarTaxa(valor, fallback) {
+    const numero = Number(valor ?? fallback);
+    return Number.isFinite(numero)
+        ? numero.toFixed(2).replace(".", ",")
+        : "";
+}
+
+function setTaxasStatus(texto = "", erro = false) {
+    if (!contaTaxasStatus) return;
+    contaTaxasStatus.textContent = texto;
+    contaTaxasStatus.hidden = !texto;
+    contaTaxasStatus.classList.toggle("error", Boolean(erro));
+}
+
+function preencherTaxasConta(membro = state.membroAtual) {
+    if (contaTaxaDebito) {
+        contaTaxaDebito.value = formatarTaxa(membro?.taxaDebitoPct, 0);
+    }
+
+    if (contaTaxaCredito) {
+        contaTaxaCredito.value = formatarTaxa(membro?.taxaCreditoPct, 0);
+    }
+}
+
+async function salvarTaxasConta() {
+    const debito = taxaNumero(contaTaxaDebito?.value);
+    const credito = taxaNumero(contaTaxaCredito?.value);
+
+    if (!Number.isFinite(debito) || debito < 0 || debito >= 10) {
+        setTaxasStatus("Informe a taxa de débito entre 0,00% e 9,99%.", true);
+        return;
+    }
+
+    if (!Number.isFinite(credito) || credito < 0 || credito >= 10) {
+        setTaxasStatus("Informe a taxa de crédito entre 0,00% e 9,99%.", true);
+        return;
+    }
+
+    if (btnSalvarTaxasConta) {
+        btnSalvarTaxasConta.disabled = true;
+        btnSalvarTaxasConta.textContent = "Salvando...";
+    }
+
+    setTaxasStatus();
+
+    try {
+        const taxas = await atualizarTaxasProprias({
+            taxaDebitoPct: debito,
+            taxaCreditoPct: credito
+        });
+        preencherTaxasConta({ ...state.membroAtual, ...taxas });
+        mostrarSucesso("Taxas atualizadas.");
+    } catch (error) {
+        console.error("Erro ao salvar taxas do cartão:", error);
+        setTaxasStatus(error?.message || "Não foi possível salvar as taxas.", true);
+    } finally {
+        if (btnSalvarTaxasConta) {
+            btnSalvarTaxasConta.disabled = false;
+            btnSalvarTaxasConta.textContent = "Salvar taxas";
+        }
+    }
+}
 
 
 /* =============================
@@ -241,6 +380,10 @@ async function carregarConta() {
         if (contaPerfil) {
             contaPerfil.textContent =
                 perfil;
+        }
+
+        if (atualizarVisibilidadeTaxasConta(membro)) {
+            preencherTaxasConta(membro);
         }
 
         if (contaUltimoAcesso) {
@@ -566,6 +709,27 @@ function alternarCardRecolhivel(botao, conteudo) {
 }
 
 
+function alternarConta() {
+    alternarCardRecolhivel(
+        btnToggleConta,
+        contaAccountContent
+    );
+}
+
+function alternarVisao() {
+    alternarCardRecolhivel(
+        btnToggleVisao,
+        contaVisaoContent
+    );
+}
+
+function alternarTaxasConta() {
+    alternarCardRecolhivel(
+        btnToggleTaxasConta,
+        contaTaxasContent
+    );
+}
+
 function alternarSeguranca() {
     alternarCardRecolhivel(
         btnToggleSeguranca,
@@ -578,6 +742,14 @@ function alternarAparencia() {
     alternarCardRecolhivel(
         btnToggleAparencia,
         contaThemeContent
+    );
+}
+
+
+function alternarInformacoes() {
+    alternarCardRecolhivel(
+        btnToggleInformacoes,
+        contaInfoContent
     );
 }
 
@@ -786,6 +958,24 @@ export function initConta() {
     );
 
 
+    btnToggleConta
+        ?.addEventListener(
+            "click",
+            alternarConta
+        );
+
+    btnToggleVisao
+        ?.addEventListener(
+            "click",
+            alternarVisao
+        );
+
+    btnToggleTaxasConta
+        ?.addEventListener(
+            "click",
+            alternarTaxasConta
+        );
+
     btnToggleSeguranca
         ?.addEventListener(
             "click",
@@ -799,6 +989,12 @@ export function initConta() {
             alternarAparencia
         );
 
+    btnToggleInformacoes
+        ?.addEventListener(
+            "click",
+            alternarInformacoes
+        );
+
 
     document
         .getElementById(
@@ -808,6 +1004,22 @@ export function initConta() {
             "submit",
             alterarSenha
         );
+
+
+    contaTaxaDebito?.addEventListener(
+        "input",
+        () => mascaraTaxa(contaTaxaDebito)
+    );
+
+    contaTaxaCredito?.addEventListener(
+        "input",
+        () => mascaraTaxa(contaTaxaCredito)
+    );
+
+    btnSalvarTaxasConta?.addEventListener(
+        "click",
+        salvarTaxasConta
+    );
 
 
     btnSairConta?.addEventListener(

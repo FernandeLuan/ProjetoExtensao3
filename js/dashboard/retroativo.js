@@ -1,8 +1,8 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=7.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.4";
 import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=7.4";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.4";
 import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=7.4";
 import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=7.4";
 import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=7.4";
@@ -33,7 +33,14 @@ function erroLabel(el){el?.classList.add("label-erro","shake");setTimeout(()=>el
 function erroInput(el){el?.classList.add("input-erro","shake");setTimeout(()=>el?.classList.remove("shake"),500);setTimeout(()=>el?.classList.remove("input-erro"),3000);}
 function limparErro(el,label){el?.classList.remove("input-erro");label?.classList.remove("label-erro");}
 function atualizarLimiteData(){if(inputData){inputData.max=chaveData(inicioDoDia(new Date()));}}
-function membroSelecionado(){const uid=selectProfissional?.value||state.user?.uid;return (state.equipe||[]).find(i=>(i.uid||i.id)===uid)||state.membroAtual;}
+function membroSelecionado(){
+ const uid=selectProfissional?.value||state.user?.uid;
+ const membro=(state.equipe||[]).find(i=>(i.uid||i.id)===uid)||state.membroAtual;
+ if(!membro)return null;
+ const ambienteTeste=String(state.workspaceId||"").startsWith("teste-");
+ const dono=membro?.dono===true||(ambienteTeste&&uid===state.user?.uid&&state.membroAtual?.papel==="admin");
+ return {...membro,uid:membro.uid||membro.id||uid,dono,repassePct:dono?0:Number(membro?.repassePct??state.configSistema?.repasseDonoPct??35)};
+}
 function mostrarStatus(texto="",erro=false){if(!status)return;status.textContent=texto;status.hidden=!texto;status.classList.toggle("error",erro);}
 
 function renderizarOpcoes(){
@@ -43,14 +50,45 @@ function renderizarOpcoes(){
 
 async function prepararProfissionais({ carregarSeVazio = false } = {}){
  if(!selectProfissional)return;
+ const selecionadoAntes=selectProfissional.value;
  let membros = Array.isArray(state.equipe) ? state.equipe : [];
- if(carregarSeVazio && !membros.length){
+
+ // Atendimento retroativo pertence ao profissional escolhido, não ao papel do
+ // usuário que está registrando. Em acesso administrativo carregamos a equipe
+ // real e exibimos somente membros ativos que atuam como profissionais.
+ if(carregarSeVazio || !membros.length){
    membros = await listarMembrosEquipe();
  }
+
+ const atual=state.membroAtual;
+ const uidAtual=state.user?.uid;
+ const candidatos=[...membros];
+ if(atual && uidAtual && !candidatos.some(m=>(m.uid||m.id)===uidAtual)){
+   candidatos.unshift({...atual,uid:atual.uid||atual.id||uidAtual});
+ }
+
  selectProfissional.innerHTML="";
  const vistos=new Set();
- [{uid:state.user?.uid,nome:nomeAtual(),ativo:true},...membros].filter(m=>m?.ativo!==false).forEach(m=>{const uid=m.uid||m.id;if(!uid||vistos.has(uid))return;vistos.add(uid);const o=document.createElement("option");o.value=uid;const nome=m.nome||(uid===state.user?.uid?nomeAtual():m.email||"Profissional");o.textContent=uid===state.user?.uid?`Eu • ${nome}`:nome;selectProfissional.appendChild(o);});
- selectProfissional.value=state.user?.uid||selectProfissional.options[0]?.value||"";
+ candidatos
+   .filter(m=>m?.ativo!==false && m?.atuaComoProfissional!==false)
+   .forEach(m=>{
+     const uid=m.uid||m.id;
+     if(!uid||vistos.has(uid))return;
+     vistos.add(uid);
+     const o=document.createElement("option");
+     o.value=uid;
+     const nomeExibicao = uid === uidAtual
+       ? (state.perfilUsuario?.nome || m.nome || state.user?.displayName || m.email)
+       : (m.nome || m.email);
+     o.textContent=String(nomeExibicao||"Profissional").trim();
+     selectProfissional.appendChild(o);
+   });
+
+ const existeAnterior=[...selectProfissional.options].some(o=>o.value===selecionadoAntes);
+ const existeAtual=[...selectProfissional.options].some(o=>o.value===uidAtual);
+ selectProfissional.value=existeAnterior
+   ? selecionadoAntes
+   : (existeAtual ? uidAtual : (selectProfissional.options[0]?.value||""));
 }
 
 function aplicarPagamentoPadrao(){if(!selectPagamento||selectPagamento.value)return;const p=state.configSistema.pagamentoPadrao;if(pagamentoEstaAtivo(p))selectPagamento.value=p;}
@@ -83,9 +121,8 @@ async function salvar(event){
 }
 
 export async function initRetroativo(){
- if(inicializado)return;inicializado=true;atualizarLimiteData();await prepararProfissionais();renderizarOpcoes();aplicarPagamentoPadrao();
- btnCalendario?.addEventListener("click",()=>abrirSeletorData(inputData));
- inputData?.parentElement?.addEventListener("click",e=>{if(!e.target.closest("button"))abrirSeletorData(inputData);});
+ if(inicializado)return;inicializado=true;atualizarLimiteData();await prepararProfissionais({ carregarSeVazio: true });renderizarOpcoes();aplicarPagamentoPadrao();
+ btnCalendario?.addEventListener("click",(event)=>{event.preventDefault();event.stopPropagation();abrirSeletorData(inputData);});
  checkValor?.addEventListener("change",()=>{if(campoValor)campoValor.hidden=!checkValor.checked;if(!checkValor.checked&&inputValor)inputValor.value="";if(checkValor.checked)setTimeout(()=>inputValor?.focus(),0);});
  checkObservacao?.addEventListener("change",()=>{if(campoObservacao)campoObservacao.hidden=!checkObservacao.checked;if(!checkObservacao.checked&&inputObservacao)inputObservacao.value="";if(checkObservacao.checked)setTimeout(()=>inputObservacao?.focus(),0);});
  inputValor?.addEventListener("input",()=>{aplicarMascaraMoedaInput(inputValor);limparErro(inputValor,labels.valor);});

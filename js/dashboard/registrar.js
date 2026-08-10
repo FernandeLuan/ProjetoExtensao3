@@ -1,7 +1,7 @@
 import { state, onStateChange } from "./state.js?v=7.4";
 import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=7.4";
 import { invalidarCacheAtendimentos } from "./data/sync.js?v=7.4";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=7.4";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.4";
 import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=7.4";
 import { usuarioEhAdmin } from "./permissoes.js?v=7.4";
 import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=7.4";
@@ -38,13 +38,28 @@ function getValorCustomizado() {
 }
 
 function obterMembroAtualNormalizado() {
+    const ambienteTeste = String(state.workspaceId || "").startsWith("teste-");
+    const dono = state.membroAtual?.dono === true
+        || (
+            ambienteTeste
+            && state.membroAtual?.papel === "admin"
+        );
+
     return {
         id: state.user?.uid,
         uid: state.user?.uid,
         nome: state.perfilUsuario?.nome || state.membroAtual?.nome || state.user?.displayName || state.user?.email || "Profissional",
-        repassePct: Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35),
+        repassePct: dono
+            ? 0
+            : Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35),
+        dono,
         precosPersonalizados: state.membroAtual?.precosPersonalizados || {},
-        ...state.membroAtual
+        ...state.membroAtual,
+        // Garante que o fallback temporário de DEV não seja sobrescrito pelo spread.
+        dono,
+        repassePct: dono
+            ? 0
+            : Number(state.membroAtual?.repassePct ?? state.configSistema?.repasseDonoPct ?? 35)
     };
 }
 

@@ -6,6 +6,7 @@ export const state = {
     membroAtual: null,
     barbearia: null,
     workspaceId: null,
+    visaoAtual: "profissional",
     equipe: [],
     atendimentos: [],
     configSistema: normalizarConfig()
@@ -55,6 +56,13 @@ export function definirBarbearia(barbearia) {
 export function definirWorkspaceId(workspaceId) {
     state.workspaceId = workspaceId || null;
     emitir("workspaceId", state.workspaceId);
+}
+
+
+export function definirVisaoAtual(visao) {
+    const normalizada = visao === "barbearia" ? "barbearia" : "profissional";
+    state.visaoAtual = normalizada;
+    emitir("visaoAtual", state.visaoAtual);
 }
 
 export function definirEquipe(equipe) {

@@ -132,7 +132,7 @@ export async function listarMembrosEquipe({ forcar = false } = {}) {
     }
 }
 
-export async function criarAcessoBarbeiroNoBanco({ uid, nome, email }) {
+export async function criarAcessoBarbeiroNoBanco({ uid, nome, email, taxaDebitoPct, taxaCreditoPct, repassePct }) {
     if (!usuarioEhAdmin()) {
         throw new Error("Somente o administrador pode adicionar barbeiros.");
     }
@@ -140,7 +140,10 @@ export async function criarAcessoBarbeiroNoBanco({ uid, nome, email }) {
     const workspaceId = obterWorkspaceId();
     const uidAtual = obterUidAtual();
     const agora = serverTimestamp();
-    const repassePadrao = Number(state.configSistema?.repasseDonoPct ?? 35);
+    const debito = validarTaxaProfissional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissional(taxaCreditoPct, "crédito");
+    const repasse = Number(repassePct);
+    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
 
     const batch = writeBatch(db);
 
@@ -160,7 +163,11 @@ export async function criarAcessoBarbeiroNoBanco({ uid, nome, email }) {
         email,
         papel: "barber",
         ativo: true,
-        repassePct: repassePadrao,
+        repassePct: Number(repasse.toFixed(2)),
+        taxaDebitoPct: debito,
+        taxaCreditoPct: credito,
+        dono: false,
+        atuaComoProfissional: true,
         precosPersonalizados: {},
         primeiroAcessoPendente: true,
         criadoPorUid: uidAtual,
@@ -193,14 +200,54 @@ export async function alterarStatusMembro(uid, ativo) {
     invalidarCacheEquipe();
 }
 
-export async function atualizarFinanceiroMembro(uid, { repassePct, precosPersonalizados }) {
+function validarTaxaProfissional(valor, rotulo) {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero) || numero < 0 || numero >= 10) {
+        throw new Error(`Informe uma taxa de ${rotulo} entre 0,00% e 9,99%.`);
+    }
+    return Number(numero.toFixed(2));
+}
+
+export async function atualizarTaxasProprias({ taxaDebitoPct, taxaCreditoPct }) {
+    const uid = obterUidAtual();
+    if (!uid) throw new Error("Usuário inválido.");
+    if (state.membroAtual?.ativo !== true) throw new Error("Seu acesso não está ativo.");
+
+    const debito = validarTaxaProfissional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissional(taxaCreditoPct, "crédito");
+
+    await updateDoc(doc(db, "barbearias", obterWorkspaceId(), "membros", uid), {
+        taxaDebitoPct: debito,
+        taxaCreditoPct: credito,
+        atualizadoEm: serverTimestamp()
+    });
+
+    definirMembroAtual({
+        ...state.membroAtual,
+        taxaDebitoPct: debito,
+        taxaCreditoPct: credito
+    });
+    invalidarCacheEquipe();
+
+    return { taxaDebitoPct: debito, taxaCreditoPct: credito };
+}
+
+export async function atualizarFinanceiroMembro(uid, {
+    repassePct,
+    precosPersonalizados,
+    taxaDebitoPct,
+    taxaCreditoPct
+}) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar repasses e preços.");
     if (!uid) throw new Error("Membro inválido.");
 
     const repasse = Number(repassePct);
-    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 100) {
-        throw new Error("Informe um percentual de repasse entre 0 e 100.");
+    if (!Number.isFinite(repasse) || repasse < 0 || repasse > 99.99) {
+        throw new Error("Informe um percentual de repasse entre 0,00% e 99,99%.");
     }
+
+    const debito = validarTaxaProfissional(taxaDebitoPct, "débito");
+    const credito = validarTaxaProfissional(taxaCreditoPct, "crédito");
 
     const precos = {};
     Object.entries(precosPersonalizados || {}).forEach(([servicoId, valor]) => {
@@ -210,6 +257,8 @@ export async function atualizarFinanceiroMembro(uid, { repassePct, precosPersona
 
     await updateDoc(doc(db, "barbearias", obterWorkspaceId(), "membros", uid), {
         repassePct: Number(repasse.toFixed(2)),
+        taxaDebitoPct: debito,
+        taxaCreditoPct: credito,
         precosPersonalizados: precos,
         atualizadoEm: serverTimestamp()
     });

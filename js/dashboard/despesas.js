@@ -105,7 +105,7 @@ async function confirmarExclusaoDespesa(){if(!despesaParaExcluir?.id)return;cons
 export function initDespesas(){
  if(inicializado)return;inicializado=true;
  inputValor?.addEventListener("input",()=>{aplicarMascaraMoedaInput(inputValor,9);limparErro(inputValor,labels.valor);});inputDescricao?.addEventListener("input",()=>limparErro(inputDescricao,labels.descricao));inputCategoria?.addEventListener("change",()=>limparErro(inputCategoria,labels.categoria));inputData?.addEventListener("change",()=>limparErro(inputData,labels.data));
- btnCalendario?.addEventListener("click",()=>abrirSeletorData(inputData));inputData?.parentElement?.addEventListener("click",e=>{if(!e.target.closest("button"))abrirSeletorData(inputData);});
+ btnCalendario?.addEventListener("click",(event)=>{event.preventDefault();event.stopPropagation();abrirSeletorData(inputData);});
  btnMesAnterior?.addEventListener("click",async()=>{mesSelecionado=new Date(mesSelecionado.getFullYear(),mesSelecionado.getMonth()-1,1);await carregarDespesasMes();});
  btnMesProximo?.addEventListener("click",async()=>{const p=new Date(mesSelecionado.getFullYear(),mesSelecionado.getMonth()+1,1),h=new Date(),a=new Date(h.getFullYear(),h.getMonth(),1);if(p>a)return;mesSelecionado=p;await carregarDespesasMes();});
  btnNova?.addEventListener("click",()=>abrirModalDespesa());btnFecharModal?.addEventListener("click",()=>fecharModalDespesa());form?.addEventListener("submit",salvarDespesa);modal?.addEventListener("click",e=>{if(e.target===modal)fecharModalDespesa();});

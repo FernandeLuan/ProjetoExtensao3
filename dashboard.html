@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=7.3" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.11" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -57,6 +57,120 @@
 </ul>
 </nav>
 <main class="dashboard-main">
+<section class="registrar barbearia-home" id="barbeariaHome" style="display:none">
+<div aria-label="Selecionar data da visão geral" class="painel-data-nav barbearia-home-data-nav">
+<button aria-label="Ver dia anterior" class="painel-data-btn" id="btnBarbeariaDataAnterior" type="button">
+<i class="fas fa-chevron-left"></i>
+</button>
+<div class="painel-data-center">
+<span aria-live="polite" class="painel-data-label" id="labelDataBarbeariaHome">Hoje</span>
+<button aria-label="Escolher uma data no calendário" class="painel-calendar-btn" id="btnCalendarioBarbeariaHome" type="button">
+<i aria-hidden="true" class="fas fa-calendar-days"></i>
+</button>
+<input aria-hidden="true" class="painel-date-picker" id="inputDataBarbeariaHome" tabindex="-1" type="date"/>
+</div>
+<button aria-label="Ver próximo dia" class="painel-data-btn" id="btnBarbeariaDataProxima" type="button">
+<i class="fas fa-chevron-right"></i>
+</button>
+</div>
+
+<div class="barbearia-home-status" id="barbeariaHomeStatus" hidden></div>
+
+<article class="finance-card finance-overview barbearia-finance-overview">
+<div class="finance-overview-top">
+<div>
+<div class="finance-label-row">
+<span class="finance-label">Lucro líquido</span>
+<button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong class="finance-main-value" id="barbeariaHomeLucro">R$ 0,00</strong>
+</div>
+<div aria-hidden="true" class="finance-main-icon">
+<i class="fas fa-wallet"></i>
+</div>
+</div>
+
+<div class="finance-summary-row barbearia-faturamento-row">
+<div class="finance-summary-item">
+<div class="finance-summary-label">
+<span>Faturamento</span>
+<button aria-label="O que é faturamento da barbearia?" class="finance-info-btn" data-info="Soma bruta dos atendimentos de toda a equipe antes de taxas e repasses." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong id="barbeariaHomeFaturamento">R$ 0,00</strong>
+</div>
+</div>
+</article>
+
+<div class="finance-mini-grid barbearia-mini-grid">
+<article class="finance-card finance-mini-card barbearia-mini-card">
+<div class="finance-label-row">
+<span class="finance-label">Ticket médio</span>
+<button aria-label="O que é ticket médio da barbearia?" class="finance-info-btn" data-info="Valor médio bruto faturado por atendimento da equipe no dia selecionado." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong class="finance-mini-value" id="barbeariaHomeTicket">R$ 0,00</strong>
+</article>
+
+<article class="finance-card finance-mini-card barbearia-mini-card">
+<div class="finance-label-row">
+<span class="finance-label">Atendimentos</span>
+<button aria-label="O que são os atendimentos da barbearia?" class="finance-info-btn" data-info="Quantidade total de atendimentos realizados pela equipe no dia selecionado." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong class="finance-mini-value" id="barbeariaHomeAtendimentos">0</strong>
+</article>
+</div>
+
+<article class="finance-card barbearia-expense-card">
+<div class="barbearia-expense-content">
+<div class="finance-label-row">
+<span class="finance-label">Despesa da barbearia</span>
+<button aria-label="O que é despesa da barbearia?" class="finance-info-btn" data-info="Total dos gastos lançados como despesa da barbearia no dia selecionado. Despesas pessoais dos profissionais não entram aqui." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong id="barbeariaHomeDespesas">R$ 0,00</strong>
+</div>
+<div aria-hidden="true" class="barbearia-expense-icon">
+<i class="fas fa-receipt"></i>
+</div>
+</article>
+
+<article class="finance-card finance-service-card barbearia-service-card">
+<div class="finance-service-content">
+<div class="finance-label-row">
+<span class="finance-label">Serviço mais vendido</span>
+<button aria-label="O que é serviço mais vendido?" class="finance-info-btn" data-info="Serviço com a maior quantidade de vendas da equipe no dia selecionado." type="button">
+<i class="fas fa-circle-info"></i>
+</button>
+</div>
+<strong class="finance-service-name" id="barbeariaHomeServico">—</strong>
+</div>
+<div aria-hidden="true" class="finance-service-icon">
+<i class="fas fa-star"></i>
+</div>
+</article>
+
+<article class="barbearia-home-equipe-card">
+<div class="barbearia-home-section-head">
+<div>
+<span class="barbearia-home-kicker">Equipe</span>
+<strong>Produção do dia</strong>
+</div>
+<span class="barbearia-home-equipe-total" id="barbeariaHomeEquipeTotal">0 profissionais</span>
+</div>
+<div class="barbearia-home-equipe-lista" id="barbeariaHomeEquipeLista">
+<div class="barbearia-home-vazio">Nenhum atendimento registrado neste dia.</div>
+</div>
+</article>
+
+</section>
 <section class="registrar" id="registrar">
 <h2 class="titulo-sessao">Registrar Atendimento</h2>
 <form id="atendimentoForm">
@@ -395,28 +509,12 @@
 <div class="config-groups">
 
 <div class="config-group">
-<button aria-controls="configGroupTaxas" aria-expanded="false" class="config-group-toggle" data-config-group="taxas" type="button">
-<span class="config-group-icon"><i class="fas fa-credit-card"></i></span>
-<span class="config-group-copy"><strong>Taxas do cartão</strong><small>Débito e crédito usados nos cálculos</small></span>
-<i class="fas fa-chevron-down config-group-chevron"></i>
-</button>
-<div class="config-group-content" hidden id="configGroupTaxas">
-<div class="config-list">
-<div class="config-item" data-campo="taxaDebito" data-tipo="porcentagem"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Débito</span><span class="config-atual" id="lblAtualDebito">Atual: 1,50%</span></div></div><div class="config-action"><button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" inputmode="decimal" maxlength="5" placeholder="0,00" type="text"></div></div>
-<div class="config-item" data-campo="taxaCredito" data-tipo="porcentagem"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Crédito</span><span class="config-atual" id="lblAtualCredito">Atual: 3,51%</span></div></div><div class="config-action"><button class="btn-alterar" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" inputmode="decimal" maxlength="5" placeholder="0,00" type="text"></div></div>
-</div>
-<button class="btn btn-salvar-configs" disabled id="btnSalvarTaxas" type="button">Salvar taxas</button>
-</div>
-</div>
-
-<div class="config-group">
 <button aria-controls="configGroupServicos" aria-expanded="false" class="config-group-toggle" data-config-group="servicos" type="button">
 <span class="config-group-icon"><i class="fas fa-scissors"></i></span>
-<span class="config-group-copy"><strong>Serviços</strong><small>Preço padrão, nome e disponibilidade</small></span>
+<span class="config-group-copy"><strong>Serviços padrão</strong><small>Catálogo global da barbearia</small></span>
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden id="configGroupServicos">
-<div class="config-helper">Serviços desabilitados continuam no histórico, mas somem do Registrar.</div>
 <div class="config-servicos-lista" id="configServicosLista"></div>
 <button type="button" class="config-add-service" id="btnNovoServico"><i class="fas fa-plus"></i> Novo serviço</button>
 <div class="config-novo-servico" id="novoServicoForm" hidden>
@@ -424,7 +522,6 @@
 <div class="config-money-field"><span>R$</span><input id="novoServicoPreco" type="tel" inputmode="numeric" placeholder="0,00"></div>
 <div class="config-inline-actions"><button type="button" id="btnCancelarNovoServico">Cancelar</button><button type="button" id="btnSalvarNovoServico">Adicionar</button></div>
 </div>
-<div class="config-save-status" id="servicosStatus" aria-live="polite"></div>
 </div>
 </div>
 
@@ -567,95 +664,105 @@
 
 
     <!-- CONTA -->
-    <article class="conta-card">
+    <article class="conta-card conta-security-card">
+        <button type="button" id="btnToggleConta" class="conta-security-toggle" aria-expanded="false" aria-controls="contaAccountContent">
+            <span>
+                <i class="fas fa-user"></i>
+                Conta
+            </span>
+            <i class="fas fa-chevron-down conta-security-chevron" aria-hidden="true"></i>
+        </button>
 
-        <h3>Conta</h3>
+        <div id="contaAccountContent" class="conta-security-content" hidden>
+            <div class="conta-info-item">
+                <span class="conta-info-label">Nome</span>
 
-        <div class="conta-info-item">
-            <span class="conta-info-label">Nome</span>
-
-            <div
-                class="conta-nome-visual"
-                id="contaNomeVisual"
-            >
-                <span
-                    class="conta-info-valor"
-                    id="contaNome"
-                >
-                    —
-                </span>
-
-                <button
-                    type="button"
-                    id="btnEditarNome"
-                    class="conta-editar-btn"
-                    aria-label="Editar nome"
-                >
-                    <i class="fas fa-pen"></i>
-                </button>
-            </div>
-
-            <div
-                class="conta-nome-editor"
-                id="contaNomeEditor"
-                hidden
-            >
-                <input
-                    type="text"
-                    id="inputNomeConta"
-                    maxlength="60"
-                    autocomplete="name"
-                    placeholder="Digite seu nome"
-                >
-
-                <div class="conta-nome-actions">
-                    <button
-                        type="button"
-                        id="btnCancelarNome"
-                        class="conta-btn-secundario"
-                    >
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="button"
-                        id="btnSalvarNome"
-                        class="conta-btn-salvar"
-                    >
-                        Salvar
+                <div class="conta-nome-visual" id="contaNomeVisual">
+                    <span class="conta-info-valor" id="contaNome">—</span>
+                    <button type="button" id="btnEditarNome" class="conta-editar-btn" aria-label="Editar nome">
+                        <i class="fas fa-pen"></i>
                     </button>
                 </div>
+
+                <div class="conta-nome-editor" id="contaNomeEditor" hidden>
+                    <input type="text" id="inputNomeConta" maxlength="60" autocomplete="name" placeholder="Digite seu nome">
+                    <div class="conta-nome-actions">
+                        <button type="button" id="btnCancelarNome" class="conta-btn-secundario">Cancelar</button>
+                        <button type="button" id="btnSalvarNome" class="conta-btn-salvar">Salvar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conta-info-item">
+                <span class="conta-info-label">Email</span>
+                <span class="conta-info-valor conta-email" id="contaEmail">—</span>
+            </div>
+
+            <div class="conta-info-item conta-info-item-final">
+                <span class="conta-info-label">Perfil</span>
+                <span class="conta-info-valor" id="contaPerfil">—</span>
             </div>
         </div>
+    </article>
 
-
-        <div class="conta-info-item">
-            <span class="conta-info-label">
-                Email
+    <!-- ALTERAR PERFIL / VISÃO -->
+    <article class="conta-card conta-security-card conta-visao-card" id="contaVisaoCard" hidden>
+        <button type="button" id="btnToggleVisao" class="conta-security-toggle" aria-expanded="false" aria-controls="contaVisaoContent">
+            <span>
+                <i class="fas fa-user-gear"></i>
+                Alterar perfil
             </span>
+            <i class="fas fa-chevron-down conta-security-chevron" aria-hidden="true"></i>
+        </button>
 
-            <span
-                class="conta-info-valor conta-email"
-                id="contaEmail"
-            >
-                —
-            </span>
+        <div id="contaVisaoContent" class="conta-security-content conta-visao-content" hidden>
+            <p class="conta-card-helper">Alterne entre sua rotina profissional e a gestão da barbearia.</p>
+            <div class="conta-visao-options" role="group" aria-label="Escolher perfil do aplicativo">
+                <button type="button" id="btnVisaoProfissional" class="conta-visao-option" aria-pressed="false">
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                    <span>Profissional</span>
+                </button>
+                <button type="button" id="btnVisaoBarbearia" class="conta-visao-option" aria-pressed="false">
+                    <i class="fas fa-store" aria-hidden="true"></i>
+                    <span>Barbearia</span>
+                </button>
+            </div>
         </div>
+    </article>
 
-
-        <div class="conta-info-item conta-info-item-final">
-            <span class="conta-info-label">
-                Perfil
+    <!-- TAXAS DO PROFISSIONAL -->
+    <article class="conta-card conta-security-card conta-taxas-card" id="contaTaxasCard" hidden>
+        <button type="button" id="btnToggleTaxasConta" class="conta-security-toggle" aria-expanded="false" aria-controls="contaTaxasContent">
+            <span>
+                <i class="fas fa-credit-card"></i>
+                Taxas do cartão
             </span>
+            <i class="fas fa-chevron-down conta-security-chevron" aria-hidden="true"></i>
+        </button>
 
-            <span
-                class="conta-info-valor"
-                id="contaPerfil"
-            >
-                —
-            </span>
+        <div id="contaTaxasContent" class="conta-security-content conta-taxas-content" hidden>
+            <p class="conta-card-helper">Usadas nos seus novos atendimentos.</p>
+            <div class="conta-taxas-grid">
+                <label class="conta-taxa-field">
+                    <span>Débito</span>
+                    <div class="conta-percent-field">
+                        <input id="contaTaxaDebito" type="tel" inputmode="numeric" maxlength="5" placeholder="1,50">
+                        <span>%</span>
+                    </div>
+                </label>
+
+                <label class="conta-taxa-field">
+                    <span>Crédito</span>
+                    <div class="conta-percent-field">
+                        <input id="contaTaxaCredito" type="tel" inputmode="numeric" maxlength="5" placeholder="3,51">
+                        <span>%</span>
+                    </div>
+                </label>
+            </div>
+
+            <div id="contaTaxasStatus" class="conta-taxas-status" hidden aria-live="polite"></div>
+            <button type="button" id="btnSalvarTaxasConta" class="conta-taxas-save">Salvar taxas</button>
         </div>
-
     </article>
 
 
@@ -769,25 +876,21 @@ Aparência
 </article>
 
     <!-- INFORMAÇÕES -->
-    <article class="conta-card">
-
-        <h3>Informações</h3>
-
-        <div class="conta-info-item conta-info-item-final">
-
-            <span class="conta-info-label">
-                Último acesso
+    <article class="conta-card conta-security-card conta-info-card">
+        <button type="button" id="btnToggleInformacoes" class="conta-security-toggle" aria-expanded="false" aria-controls="contaInfoContent">
+            <span>
+                <i class="fas fa-circle-info"></i>
+                Informações
             </span>
+            <i class="fas fa-chevron-down conta-security-chevron" aria-hidden="true"></i>
+        </button>
 
-            <span
-                class="conta-info-valor"
-                id="contaUltimoAcesso"
-            >
-                —
-            </span>
-
+        <div id="contaInfoContent" class="conta-security-content conta-info-content" hidden>
+            <div class="conta-info-item conta-info-item-final">
+                <span class="conta-info-label">Último acesso</span>
+                <span class="conta-info-valor" id="contaUltimoAcesso">—</span>
+            </div>
         </div>
-
     </article>
 
 
@@ -805,14 +908,20 @@ Aparência
 <!-- MODAL: FINANCEIRO DO PROFISSIONAL -->
 <div id="modalFinanceiroMembro" class="equipe-modal" hidden>
 <div class="equipe-modal-card equipe-financeiro-card" role="dialog" aria-modal="true" aria-labelledby="tituloFinanceiroMembro">
-<div class="equipe-modal-header"><div><h3 id="tituloFinanceiroMembro">Configurar profissional</h3><p>Repasse e preços específicos.</p></div><button type="button" id="btnFecharFinanceiroMembro" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
-<label class="equipe-field"><span>Repasse ao proprietário</span><div class="equipe-percent-field"><input id="membroRepassePct" type="tel" inputmode="numeric" placeholder="35,00"><span>%</span></div><small>Calculado depois da taxa do cartão.</small></label>
-<div class="equipe-precos-title"><strong>Preços personalizados</strong><span>Deixe vazio para usar o preço padrão.</span></div>
-<div id="membroPrecosLista" class="equipe-precos-lista"></div>
+<div class="equipe-modal-header"><div><h3 id="tituloFinanceiroMembro">Configurar profissional</h3><p>Taxas, repasse e preços específicos.</p></div><button type="button" id="btnFecharFinanceiroMembro" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
+<div class="equipe-financeiro-scroll">
+<article class="equipe-financeiro-section">
+<button class="equipe-financeiro-toggle" id="btnToggleTaxasProfissional" type="button" aria-expanded="false" aria-controls="conteudoTaxasProfissional"><span><strong>Taxas %</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+<div class="equipe-financeiro-body" id="conteudoTaxasProfissional" hidden><div class="config-list equipe-config-list">
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Débito</span><span class="config-atual" id="lblMembroTaxaDebito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaDebito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-credit-card"></i></div><div class="config-info"><span class="config-nome">Crédito</span><span class="config-atual" id="lblMembroTaxaCredito">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarTaxaCredito" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
+<div class="config-item equipe-config-item"><div class="config-item-left"><div class="config-icon"><i class="fas fa-percent"></i></div><div class="config-info"><span class="config-nome">Repasse</span><span class="config-atual" id="lblMembroRepasse">Atual: 0,00%</span></div></div><div class="config-action"><button class="btn-alterar" id="btnEditarRepasse" type="button"><i class="fas fa-pen"></i> Alterar</button><input class="input-config hidden" id="membroRepassePct" type="tel" inputmode="numeric" placeholder="0,00"></div></div>
+</div></div></article>
+<article class="equipe-financeiro-section"><button class="equipe-financeiro-toggle" id="btnTogglePrecosProfissional" type="button" aria-expanded="false" aria-controls="conteudoPrecosProfissional"><span><strong>Preços personalizados</strong><small>Preço específico por serviço</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button><div class="equipe-financeiro-body" id="conteudoPrecosProfissional" hidden><div id="membroPrecosLista" class="config-list equipe-precos-lista"></div></div></article>
 <div id="financeiroMembroStatus" class="equipe-form-status" hidden aria-live="polite"></div>
-<button type="button" id="btnSalvarFinanceiroMembro" class="btn">Salvar configurações</button>
 </div>
-</div>
+<div class="equipe-financeiro-actions"><button type="button" id="btnCancelarFinanceiroMembro">Cancelar</button><button type="button" id="btnSalvarFinanceiroMembro">Salvar</button></div>
+</div></div>
 
 <!-- MODAL: NOVA / EDITAR DESPESA -->
 <div id="modalDespesa" class="equipe-modal despesa-modal" hidden>
@@ -838,6 +947,19 @@ Aparência
 <div class="modal-actions">
 <button id="btnCancelarDespesa" type="button">Cancelar</button>
 <button id="btnConfirmarDespesa" type="button">Excluir</button>
+</div>
+</div>
+</div>
+
+
+<!-- Modal exclusão de serviço -->
+<div class="modal-confirm" id="modalConfirmServico" aria-hidden="true">
+<div class="modal-box">
+<h3>Confirmar exclusão</h3>
+<p id="modalDescricaoServico">Você tem certeza?</p>
+<div class="modal-actions">
+<button id="btnCancelarServico" type="button">Cancelar</button>
+<button id="btnConfirmarServico" type="button">Excluir</button>
 </div>
 </div>
 </div>
@@ -953,16 +1075,16 @@ Aparência
 
             <div class="equipe-field">
                 <span>Senha temporária</span>
-                <div class="equipe-temp-password">
-                    <input id="novoBarbeiroSenha" type="text" readonly aria-label="Senha temporária">
-                    <button type="button" id="btnGerarSenhaTemporaria">
-                        <i class="fas fa-rotate"></i>
-                        <span>Gerar outra</span>
-                    </button>
-                </div>
+                <div class="equipe-temp-password"><input id="novoBarbeiroSenha" type="text" readonly aria-label="Senha temporária"><button type="button" id="btnGerarSenhaTemporaria"><i class="fas fa-rotate"></i><span>Gerar outra</span></button></div>
                 <small>O barbeiro deverá trocá-la no primeiro acesso.</small>
             </div>
-
+            <article class="equipe-financeiro-section equipe-cadastro-financeiro">
+                <button class="equipe-financeiro-toggle" id="btnToggleFinanceiroNovoBarbeiro" type="button" aria-expanded="false" aria-controls="conteudoFinanceiroNovoBarbeiro"><span><strong>Financeiro</strong><small>Débito, crédito e repasse</small></span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+                <div class="equipe-financeiro-body" id="conteudoFinanceiroNovoBarbeiro" hidden>
+                    <div class="equipe-taxas-grid equipe-cadastro-taxas-grid"><label class="equipe-field"><span>Débito %</span><input id="novoBarbeiroTaxaDebitoPct" type="tel" inputmode="numeric" placeholder="0,00" required></label><label class="equipe-field"><span>Crédito %</span><input id="novoBarbeiroTaxaCreditoPct" type="tel" inputmode="numeric" placeholder="0,00" required></label></div>
+                    <label class="equipe-field equipe-repasse-field"><span>Repasse</span><input id="novoBarbeiroRepassePct" type="tel" inputmode="numeric" placeholder="0,00" required></label>
+                </div>
+            </article>
             <div id="cadastroBarbeiroStatus" class="equipe-form-status" hidden aria-live="polite"></div>
 
             <button type="submit" id="btnCriarAcessoBarbeiro" class="btn equipe-create-btn">
@@ -1045,21 +1167,29 @@ Aparência
 </div>
 
 <div class="finance-info-tooltip" hidden="" id="financeInfoTooltip"></div>
+
+<div class="visao-toast" id="visaoToast" hidden role="status" aria-live="polite"></div>
+<div class="visao-loading" id="visaoLoading" hidden aria-live="polite" aria-busy="true">
+    <div class="visao-loading-card">
+        <span class="visao-loading-spinner" aria-hidden="true"></span>
+        <strong>Carregando visão...</strong>
+    </div>
+</div>
 </main>
 <nav aria-label="Navegação principal" class="bottom-nav">
-<a aria-current="page" class="bottom-nav-item active" data-nav-target="registrar" href="#registrar">
+<a aria-current="page" class="bottom-nav-item active" data-nav-slot="1" data-nav-target="registrar" href="#registrar">
 <i class="fas fa-house"></i>
 <span>Início</span>
 </a>
-<a class="bottom-nav-item" data-nav-target="painelFinanceiro" href="#painelFinanceiro">
+<a class="bottom-nav-item" data-nav-slot="2" data-nav-target="painelFinanceiro" href="#painelFinanceiro">
 <i class="fas fa-chart-line"></i>
 <span>Painel</span>
 </a>
-<a class="bottom-nav-item" data-nav-target="historico" href="#historico">
+<a class="bottom-nav-item" data-nav-slot="3" data-nav-target="historico" href="#historico">
 <i class="fas fa-clock-rotate-left"></i>
 <span>Histórico</span>
 </a>
-<a class="bottom-nav-item" data-nav-target="relatorios" href="#relatorios">
+<a class="bottom-nav-item" data-nav-slot="4" data-nav-target="relatorios" href="#relatorios">
 <i class="fas fa-file-lines"></i>
 <span>Relatório</span>
 </a>
@@ -1068,7 +1198,7 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/dashboard/index.js?v=7.4" type="module"></script>
+<script src="js/dashboard/index.js?v=8.11" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

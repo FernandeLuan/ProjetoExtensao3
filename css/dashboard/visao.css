@@ -1,0 +1,440 @@
+/* ========== CONTEXTO PROFISSIONAL / BARBEARIA ========== */
+.conta-visao-cabecalho h3 {
+    margin: 0;
+}
+
+.conta-visao-cabecalho p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    line-height: 1.45;
+}
+
+.conta-visao-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.conta-visao-option {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.conta-visao-option.active {
+    border-color: rgba(37, 99, 235, .38);
+    background: rgba(37, 99, 235, .12);
+    color: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, .08);
+}
+
+.conta-visao-option:active {
+    transform: scale(.97);
+}
+
+#barbeariaHome {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-top: 12px;
+}
+
+.barbearia-home-card {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-card);
+}
+
+.barbearia-home-kicker {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--primary);
+    font-size: .66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.barbearia-home-card strong {
+    color: var(--text);
+    font-size: .92rem;
+}
+
+.barbearia-home-card p {
+    margin: 7px 0 0;
+    color: var(--text-secondary);
+    font-size: .72rem;
+    line-height: 1.55;
+}
+
+.visao-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(15, 17, 21, .28);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.visao-loading[hidden],
+.visao-toast[hidden],
+.conta-visao-card[hidden] {
+    display: none !important;
+}
+
+.visao-loading-card {
+    min-width: 168px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 13px 15px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: var(--bg-card);
+    color: var(--text);
+    box-shadow: 0 16px 42px rgba(0, 0, 0, .2);
+    font-size: .76rem;
+}
+
+.visao-loading-spinner {
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(37, 99, 235, .22);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: srnk-visao-spin .7s linear infinite;
+}
+
+@keyframes srnk-visao-spin {
+    to { transform: rotate(360deg); }
+}
+
+.visao-toast {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    z-index: 12010;
+    width: max-content;
+    max-width: calc(100vw - 28px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-card);
+    color: var(--text);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .2);
+    font-size: .72rem;
+    font-weight: 600;
+    opacity: 0;
+    transform: translate(-50%, -10px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.visao-toast i {
+    color: var(--primary);
+}
+
+.visao-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+
+/* ========== ETAPA 3 • VISÃO GERAL DA BARBEARIA ========== */
+.barbearia-home-status {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(251, 191, 36, .28);
+    border-radius: 12px;
+    background: rgba(251, 191, 36, .08);
+    color: var(--text-secondary);
+    font-size: .7rem;
+    line-height: 1.45;
+}
+
+.barbearia-home-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.barbearia-metric {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: var(--bg-card);
+}
+
+.barbearia-metric-destaque {
+    grid-column: 1 / -1;
+    padding: 15px;
+    background: linear-gradient(145deg, rgba(37, 99, 235, .12), var(--bg-card) 62%);
+    border-color: rgba(37, 99, 235, .18);
+}
+
+.barbearia-metric-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: .65rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.barbearia-metric strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.barbearia-metric-destaque strong {
+    font-size: 1.45rem;
+}
+
+.barbearia-metric strong.barbearia-metric-texto {
+    font-size: .82rem;
+    line-height: 1.3;
+}
+
+.barbearia-metric small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: .6rem;
+    line-height: 1.35;
+}
+
+.barbearia-home-equipe-card {
+    margin-top: 10px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-card);
+}
+
+.barbearia-home-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.barbearia-home-section-head .barbearia-home-kicker {
+    margin-bottom: 2px;
+}
+
+.barbearia-home-section-head strong {
+    color: var(--text);
+    font-size: .86rem;
+}
+
+.barbearia-home-equipe-total {
+    color: var(--text-secondary);
+    font-size: .62rem;
+    white-space: nowrap;
+}
+
+.barbearia-home-equipe-lista {
+    display: grid;
+    gap: 7px;
+}
+
+.barbearia-home-equipe-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+}
+
+.barbearia-home-equipe-item:first-child {
+    border-top: 0;
+}
+
+.barbearia-home-equipe-nome {
+    min-width: 0;
+}
+
+.barbearia-home-equipe-nome strong,
+.barbearia-home-equipe-nome small {
+    display: block;
+}
+
+.barbearia-home-equipe-nome strong {
+    overflow: hidden;
+    color: var(--text);
+    font-size: .75rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.barbearia-home-equipe-nome small {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: .6rem;
+}
+
+.barbearia-home-equipe-valor {
+    text-align: right;
+}
+
+.barbearia-home-equipe-valor strong,
+.barbearia-home-equipe-valor small {
+    display: block;
+}
+
+.barbearia-home-equipe-valor strong {
+    color: var(--text);
+    font-size: .76rem;
+}
+
+.barbearia-home-equipe-valor small {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: .58rem;
+}
+
+.barbearia-home-vazio {
+    padding: 14px 4px 4px;
+    color: var(--text-secondary);
+    font-size: .69rem;
+    text-align: center;
+}
+
+.barbearia-home-nota {
+    margin: 10px 3px 0;
+    color: var(--text-secondary);
+    font-size: .6rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+
+/* Etapa 4 • serviço mais vendido em largura inteira para nomes longos. */
+.barbearia-metric-servico {
+    grid-column: 1 / -1;
+    min-height: 74px;
+}
+
+.barbearia-metric-servico strong.barbearia-metric-texto {
+    margin-top: 6px;
+    font-size: .92rem;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+
+/* Etapa 4.1 • Visão Geral da barbearia alinhada visualmente ao Painel profissional. */
+.barbearia-finance-overview {
+    margin-bottom: 10px;
+}
+
+.barbearia-finance-overview .finance-overview-top {
+    min-height: 72px;
+}
+
+.barbearia-faturamento-row {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.barbearia-faturamento-row .finance-summary-item {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.barbearia-faturamento-row .finance-summary-item strong {
+    color: var(--primary);
+}
+
+.barbearia-mini-card {
+    min-height: 88px;
+    padding: 13px 12px;
+}
+
+.barbearia-mini-card .finance-label {
+    margin-bottom: 0;
+}
+
+.barbearia-mini-card .finance-mini-value {
+    margin-top: 8px;
+}
+
+.barbearia-expense-card {
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.barbearia-expense-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.barbearia-expense-content strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--danger);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.barbearia-expense-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(220, 38, 38, .11);
+    color: var(--danger);
+    font-size: .92rem;
+}
+
+.barbearia-service-card {
+    min-height: 88px;
+}
+
+.barbearia-service-card .finance-service-name {
+    margin-top: 4px;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* A Visão Geral não usa textos auxiliares sob os valores; o contexto fica nos ícones de informação. */
+.barbearia-home .finance-info-btn {
+    flex: 0 0 auto;
+}

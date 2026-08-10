@@ -5,9 +5,7 @@ import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./
 import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=7.4";
 
 let inicializado = false;
-let taxasAlteradas = {};
 
-const btnSalvarTaxas = document.getElementById("btnSalvarTaxas");
 const configGroupToggles = document.querySelectorAll(".config-group-toggle");
 const pagamentoPadraoButtons = document.querySelectorAll("[data-pagamento-padrao]");
 const pagamentoPadraoStatus = document.getElementById("pagamentoPadraoStatus");
@@ -20,6 +18,11 @@ const novoServicoPreco = document.getElementById("novoServicoPreco");
 const btnCancelarNovoServico = document.getElementById("btnCancelarNovoServico");
 const btnSalvarNovoServico = document.getElementById("btnSalvarNovoServico");
 const servicosStatus = document.getElementById("servicosStatus");
+const modalConfirmServico = document.getElementById("modalConfirmServico");
+const modalDescricaoServico = document.getElementById("modalDescricaoServico");
+const btnCancelarServico = document.getElementById("btnCancelarServico");
+const btnConfirmarServico = document.getElementById("btnConfirmarServico");
+let servicoParaExcluir = null;
 
 function gerarIdServico(nome) {
     const slug = String(nome || "servico")
@@ -30,19 +33,6 @@ function gerarIdServico(nome) {
         .replace(/^-|-$/g, "")
         .slice(0, 32) || "servico";
     return `${slug}-${Date.now().toString(36)}`;
-}
-
-function mascaraPorcentagem(input, maxDigitosInteiros) {
-    input.addEventListener("input", (event) => {
-        let value = event.target.value.replace(/\D/g, "").replace(/^0+/, "");
-        if (!value) {
-            event.target.value = "";
-            return;
-        }
-        const maxDigitos = maxDigitosInteiros + 2;
-        if (value.length > maxDigitos) value = value.slice(0, maxDigitos);
-        event.target.value = (Number.parseInt(value, 10) / 100).toFixed(2).replace(".", ",");
-    });
 }
 
 function fecharGrupo(botao) {
@@ -74,18 +64,63 @@ function setStatus(elemento, texto, erro = false) {
     elemento.classList.toggle("error", erro);
 }
 
+function dispararErroVisualInput(elemento) {
+    if (!elemento) return;
+    elemento.classList.remove("shake");
+    void elemento.offsetWidth;
+    elemento.classList.add("input-erro", "shake");
+    setTimeout(() => elemento.classList.remove("shake"), 500);
+    setTimeout(() => elemento.classList.remove("input-erro"), 3000);
+}
+
+function limparErroNovoServico() {
+    novoServicoNome?.classList.remove("input-erro", "shake");
+    novoServicoPreco?.closest(".config-money-field")?.classList.remove("input-erro", "shake");
+}
+
 async function persistirConfig(novaConfig, mensagem = "Configuração salva.") {
     await salvarConfiguracoes(novaConfig);
     definirConfiguracoes(novaConfig);
     mostrarSucesso(mensagem);
 }
 
-function renderizarTaxas() {
-    const config = state.configSistema;
-    const debito = document.getElementById("lblAtualDebito");
-    const credito = document.getElementById("lblAtualCredito");
-    if (debito) debito.textContent = `Atual: ${Number(config.taxaDebito ?? 1.5).toFixed(2).replace(".", ",")}%`;
-    if (credito) credito.textContent = `Atual: ${Number(config.taxaCredito ?? 3.51).toFixed(2).replace(".", ",")}%`;
+function fecharModalExclusaoServico() {
+    modalConfirmServico?.classList.remove("active");
+    modalConfirmServico?.setAttribute("aria-hidden", "true");
+    servicoParaExcluir = null;
+}
+
+function abrirModalExclusaoServico(servico) {
+    servicoParaExcluir = servico;
+    if (modalDescricaoServico) {
+        modalDescricaoServico.textContent = `Excluir “${servico.nome}” do catálogo? Os atendimentos já registrados continuam no histórico.`;
+    }
+    modalConfirmServico?.classList.add("active");
+    modalConfirmServico?.setAttribute("aria-hidden", "false");
+}
+
+async function confirmarExclusaoServico() {
+    if (!servicoParaExcluir) return;
+    const servico = servicoParaExcluir;
+
+    if (btnConfirmarServico) {
+        btnConfirmarServico.disabled = true;
+        btnConfirmarServico.textContent = "Excluindo...";
+    }
+
+    try {
+        const servicos = (state.configSistema.servicos || []).filter((item) => item.id !== servico.id);
+        await persistirConfig({ ...state.configSistema, servicos }, "Serviço excluído.");
+    } catch (error) {
+        console.error(error);
+        mostrarErro("Não foi possível excluir o serviço.");
+    } finally {
+        if (btnConfirmarServico) {
+            btnConfirmarServico.disabled = false;
+            btnConfirmarServico.textContent = "Excluir";
+        }
+        fecharModalExclusaoServico();
+    }
 }
 
 function renderizarServicos() {
@@ -148,17 +183,25 @@ function renderizarServicos() {
 
             const editorActions = document.createElement("div");
             editorActions.className = "config-service-edit-actions";
+            const excluir = document.createElement("button");
+            excluir.type = "button";
+            excluir.className = "config-service-delete";
+            excluir.innerHTML = '<i class="fas fa-trash"></i> Excluir';
             const cancelar = document.createElement("button");
             cancelar.type = "button";
             cancelar.textContent = "Cancelar";
             const salvar = document.createElement("button");
             salvar.type = "button";
             salvar.textContent = "Salvar";
-            editorActions.append(cancelar, salvar);
+            editorActions.append(excluir, cancelar, salvar);
             editor.append(inputNome, inputPreco, editorActions);
             row.appendChild(editor);
             inputNome.focus();
 
+            excluir.addEventListener("click", (event) => {
+                event.stopPropagation();
+                abrirModalExclusaoServico(servico);
+            });
             cancelar.addEventListener("click", (event) => {
                 event.stopPropagation();
                 editor.remove();
@@ -238,49 +281,36 @@ function renderizarPagamentos() {
 }
 
 function renderizarTudo() {
-    renderizarTaxas();
     renderizarServicos();
     renderizarPagamentos();
     const versao = document.getElementById("appVersion");
     if (versao) versao.textContent = `v${APP_VERSION}`;
 }
 
-async function salvarTaxas() {
-    if (!Object.keys(taxasAlteradas).length) return;
-    if (btnSalvarTaxas) {
-        btnSalvarTaxas.disabled = true;
-        btnSalvarTaxas.textContent = "Salvando...";
-    }
-
-    try {
-        await persistirConfig({ ...state.configSistema, ...taxasAlteradas }, "Taxas atualizadas.");
-        taxasAlteradas = {};
-        document.querySelectorAll('#configGroupTaxas .config-item').forEach((item) => {
-            item.querySelector(".btn-alterar")?.classList.remove("hidden");
-            const input = item.querySelector(".input-config");
-            input?.classList.add("hidden");
-            if (input) input.value = "";
-        });
-    } catch (error) {
-        console.error(error);
-        mostrarErro("Não foi possível salvar as taxas.");
-    } finally {
-        if (btnSalvarTaxas) {
-            btnSalvarTaxas.textContent = "Salvar taxas";
-            btnSalvarTaxas.disabled = true;
-        }
-    }
-}
-
 async function adicionarServico() {
+    limparErroNovoServico();
+
     const nome = String(novoServicoNome?.value || "").trim().slice(0, 60);
     const preco = converterParaNumero(novoServicoPreco?.value) || 0;
-    if (nome.length < 2 || preco <= 0) {
-        setStatus(servicosStatus, "Informe nome e preço válidos.", true);
+    const precoContainer = novoServicoPreco?.closest(".config-money-field");
+
+    let invalido = false;
+    if (nome.length < 2) {
+        dispararErroVisualInput(novoServicoNome);
+        invalido = true;
+    }
+    if (preco <= 0) {
+        dispararErroVisualInput(precoContainer);
+        invalido = true;
+    }
+    if (invalido) {
+        mostrarErro("Informe nome e preço válidos.");
         return;
     }
+
     if (state.configSistema.servicos.some((servico) => servico.nome.toLowerCase() === nome.toLowerCase())) {
-        setStatus(servicosStatus, "Já existe um serviço com esse nome.", true);
+        dispararErroVisualInput(novoServicoNome);
+        mostrarErro("Já existe um serviço com esse nome.");
         return;
     }
 
@@ -292,11 +322,10 @@ async function adicionarServico() {
         novoServicoForm.hidden = true;
         novoServicoNome.value = "";
         novoServicoPreco.value = "";
-        setStatus(servicosStatus, "Serviço adicionado ✓");
-        setTimeout(() => setStatus(servicosStatus, ""), 2200);
+        limparErroNovoServico();
     } catch (error) {
         console.error(error);
-        setStatus(servicosStatus, "Não foi possível adicionar o serviço.", true);
+        mostrarErro("Não foi possível adicionar o serviço.");
     } finally {
         btnSalvarNovoServico.disabled = false;
     }
@@ -306,40 +335,6 @@ export function initConfiguracoes() {
     if (inicializado) return;
     inicializado = true;
 
-    document.querySelectorAll('#configGroupTaxas .config-item').forEach((item) => {
-        const btn = item.querySelector(".btn-alterar");
-        const input = item.querySelector(".input-config");
-        const campo = item.dataset.campo;
-        if (!btn || !input) return;
-        mascaraPorcentagem(input, 1);
-
-        btn.addEventListener("click", () => {
-            btn.classList.add("hidden");
-            input.classList.remove("hidden");
-            input.value = "";
-            input.focus();
-        });
-
-        input.addEventListener("input", () => {
-            const valor = converterParaNumero(input.value);
-            if (valor == null || valor <= 0) delete taxasAlteradas[campo];
-            else taxasAlteradas[campo] = valor;
-            if (btnSalvarTaxas) btnSalvarTaxas.disabled = Object.keys(taxasAlteradas).length === 0;
-        });
-
-        document.addEventListener("click", (event) => {
-            if (item.contains(event.target) || input.classList.contains("hidden")) return;
-            const valor = converterParaNumero(input.value);
-            if (valor && valor > 0) return;
-            delete taxasAlteradas[campo];
-            input.value = "";
-            input.classList.add("hidden");
-            btn.classList.remove("hidden");
-            if (btnSalvarTaxas) btnSalvarTaxas.disabled = Object.keys(taxasAlteradas).length === 0;
-        });
-    });
-
-    btnSalvarTaxas?.addEventListener("click", salvarTaxas);
 
     configGroupToggles.forEach((botao) => {
         botao.addEventListener("click", () => {
@@ -392,6 +387,7 @@ export function initConfiguracoes() {
     });
 
     btnNovoServico?.addEventListener("click", () => {
+        limparErroNovoServico();
         novoServicoForm.hidden = false;
         novoServicoNome?.focus();
     });
@@ -399,10 +395,26 @@ export function initConfiguracoes() {
         novoServicoForm.hidden = true;
         if (novoServicoNome) novoServicoNome.value = "";
         if (novoServicoPreco) novoServicoPreco.value = "";
+        limparErroNovoServico();
         setStatus(servicosStatus, "");
     });
-    novoServicoPreco?.addEventListener("input", () => aplicarMascaraMoedaInput(novoServicoPreco));
+    novoServicoNome?.addEventListener("input", () => novoServicoNome.classList.remove("input-erro", "shake"));
+    novoServicoPreco?.addEventListener("input", () => {
+        novoServicoPreco.closest(".config-money-field")?.classList.remove("input-erro", "shake");
+        aplicarMascaraMoedaInput(novoServicoPreco);
+    });
     btnSalvarNovoServico?.addEventListener("click", adicionarServico);
+
+    btnCancelarServico?.addEventListener("click", fecharModalExclusaoServico);
+    btnConfirmarServico?.addEventListener("click", confirmarExclusaoServico);
+    modalConfirmServico?.addEventListener("click", (event) => {
+        if (event.target === modalConfirmServico) fecharModalExclusaoServico();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modalConfirmServico?.classList.contains("active")) {
+            fecharModalExclusaoServico();
+        }
+    });
 
     onStateChange("configSistema", renderizarTudo);
     renderizarTudo();

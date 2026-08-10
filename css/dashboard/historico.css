@@ -891,3 +891,9 @@
         padding: 16px;
     }
 }
+
+/* Etapa 2: o filtro de profissional existe somente na visão da barbearia.
+   A classe base usa display:flex, por isso precisamos preservar o comportamento do atributo hidden. */
+.historico-filter-select[hidden] {
+    display: none !important;
+}

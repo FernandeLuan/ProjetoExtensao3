@@ -627,3 +627,214 @@ body.modal-equipe-aberto {
 .equipe-preco-item.desativado { opacity: .55; }
 .equipe-preco-input { min-height: 35px; padding: 0 7px; }
 .equipe-preco-input input { min-height: 33px; }
+
+
+/* Etapa 5 • taxas por profissional no admin */
+.equipe-taxas-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 10px 0 7px;
+}
+
+.equipe-taxas-title strong {
+    color: var(--text);
+    font-size: .72rem;
+}
+
+.equipe-taxas-title span {
+    color: var(--text-secondary);
+    font-size: .58rem;
+}
+
+.equipe-taxas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.equipe-taxas-grid .equipe-field {
+    margin: 0;
+}
+
+.equipe-financeiro-resumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+
+/* Etapa 5.1 • financeiro do profissional compacto e expansível */
+.equipe-financeiro-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 88dvh;
+    overflow: auto;
+}
+
+.equipe-financeiro-section {
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg);
+    overflow: hidden;
+}
+
+.equipe-financeiro-toggle {
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.equipe-financeiro-toggle > span {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.equipe-financeiro-toggle strong {
+    color: var(--text);
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.equipe-financeiro-toggle small {
+    color: var(--text-secondary);
+    font-size: .58rem;
+    font-weight: 400;
+}
+
+.equipe-financeiro-toggle > i {
+    flex: 0 0 auto;
+    color: var(--text-secondary);
+    font-size: .68rem;
+    transition: transform .2s ease;
+}
+
+.equipe-financeiro-toggle[aria-expanded="true"] > i {
+    transform: rotate(180deg);
+}
+
+.equipe-financeiro-body {
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--border);
+}
+
+.equipe-financeiro-body[hidden] {
+    display: none !important;
+}
+
+.equipe-taxas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 11px;
+}
+
+.equipe-taxas-grid .equipe-field {
+    margin: 0;
+}
+
+.equipe-taxas-grid .equipe-field input,
+.equipe-repasse-field input {
+    min-height: 40px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text);
+    font: inherit;
+    font-size: .76rem;
+}
+
+.equipe-repasse-field {
+    margin-top: 10px;
+}
+
+.equipe-repasse-field.dono-sem-repasse input,
+.equipe-repasse-field input:disabled {
+    opacity: .58;
+    cursor: not-allowed;
+}
+
+.equipe-precos-ajuda {
+    margin: 10px 0 8px;
+    color: var(--text-secondary);
+    font-size: .58rem;
+    line-height: 1.45;
+}
+
+.equipe-precos-lista {
+    max-height: 310px;
+}
+
+.equipe-financeiro-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+    padding-top: 2px;
+}
+
+.equipe-financeiro-actions button {
+    min-height: 42px;
+    border-radius: 11px;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#btnCancelarFinanceiroMembro {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+}
+
+#btnSalvarFinanceiroMembro {
+    border: 0;
+    background: var(--primary);
+    color: #fff;
+}
+
+#btnSalvarFinanceiroMembro:disabled,
+#btnCancelarFinanceiroMembro:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+
+/* Etapa 5.2 • padrão visual Atual + Alterar */
+.equipe-financeiro-card{max-height:calc(100dvh - 36px);overflow:hidden;display:flex;flex-direction:column}
+.equipe-financeiro-card .equipe-modal-header{flex:0 0 auto}
+.equipe-financeiro-scroll{min-height:0;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;padding-bottom:14px}
+.equipe-financeiro-section + .equipe-financeiro-section{margin-top:9px}
+.equipe-config-list{padding-top:10px}
+.equipe-config-item{padding:10px;border-radius:11px}
+.equipe-config-item .config-item-left{gap:8px}
+.equipe-config-item .config-icon{width:34px;height:34px;border-radius:9px;font-size:.78rem}
+.equipe-config-item .config-nome{font-size:.7rem}
+.equipe-config-item .config-atual{font-size:.62rem}
+.equipe-config-item .config-action{min-width:88px}
+.equipe-config-item .btn-alterar{font-size:.67rem}
+.equipe-config-item .input-config{width:82px;min-height:36px;padding:7px 8px;font-size:.72rem}
+.equipe-preco-item.config-item{grid-template-columns:none;display:flex}
+.equipe-preco-item .config-info{max-width:175px}
+.equipe-preco-item .config-nome{white-space:normal;overflow-wrap:break-word;line-height:1.25}
+.equipe-preco-item .config-atual{color:var(--success);font-weight:500}
+.equipe-price-editor{display:flex;align-items:center}
+.equipe-price-editor.hidden{display:none}
+.equipe-price-editor .input-config{width:78px}
+.equipe-financeiro-actions{flex:0 0 auto;z-index:2;margin-top:8px;padding-top:10px;border-top:1px solid var(--border);background:var(--bg-card)}
+.equipe-cadastro-financeiro{margin-top:0}
+.equipe-cadastro-financeiro .equipe-financeiro-body{padding-top:10px}
+.equipe-cadastro-taxas-grid{padding-top:0}

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.1.5-resumos-base";
+const CACHE_NAME = "sr-nk-v2.2.0-pre-etapa8-v811";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,12 +7,12 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./css/dashboard.css?v=7.3",
+  "./css/dashboard.css?v=8.11",
   "./css/login.css",
   "./css/style.css",
   "./js/firebase-init.js",
   "./js/login.js",
-  "./js/dashboard/index.js?v=7.4"
+  "./js/dashboard/index.js?v=8.11"
 ];
 
 self.addEventListener("install", (event) => {

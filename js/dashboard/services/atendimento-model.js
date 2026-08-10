@@ -1,10 +1,24 @@
 import { SCHEMA_VERSION } from "../constants.js?v=7.4";
 import { processarFinanceiro } from "./financeiro-service.js?v=7.4";
 
-function snapshotFinanceiro(financeiro, config) {
+function taxaProfissional(profissional, campo) {
+    const numero = Number(profissional?.[campo]);
+    return Number.isFinite(numero) && numero >= 0 && numero < 10 ? numero : null;
+}
+
+function configFinanceiraProfissional(config, profissional = null, pagamento = "") {
+    const debito = taxaProfissional(profissional, "taxaDebitoPct");
+    const credito = taxaProfissional(profissional, "taxaCreditoPct");
+    if (pagamento === "Débito" && debito == null) throw new Error("Configure a taxa de débito do profissional antes de registrar no cartão.");
+    if (pagamento === "Crédito" && credito == null) throw new Error("Configure a taxa de crédito do profissional antes de registrar no cartão.");
+    return {...config, taxaDebito: debito ?? 0, taxaCredito: credito ?? 0};
+}
+
+function snapshotFinanceiro(financeiro, config, profissionalDono = false) {
     return {
-        taxaDebitoPct: Number(config?.taxaDebito ?? 1.5),
-        taxaCreditoPct: Number(config?.taxaCredito ?? 3.51),
+        profissionalDono: Boolean(profissionalDono),
+        taxaDebitoPct: Number(config?.taxaDebito ?? 0),
+        taxaCreditoPct: Number(config?.taxaCredito ?? 0),
         taxaAplicadaPct: financeiro.taxaAplicadaPct,
         taxaCartaoValor: financeiro.taxaCartaoValor,
         repasseDonoPct: financeiro.repasseDonoPct,
@@ -32,8 +46,12 @@ export function criarPayloadAtendimento({
     profissional = null
 }, config) {
     const nomeServico = servicoNome || servico || "Serviço";
-    const repassePct = Number(profissional?.repassePct ?? config?.repasseDonoPct ?? 35);
-    const financeiro = processarFinanceiro(valorBruto, pagamento, config, repassePct);
+    const profissionalDono = profissional?.dono === true;
+    const repassePct = profissionalDono
+        ? 0
+        : Number(profissional?.repassePct ?? config?.repasseDonoPct ?? 35);
+    const configProfissional = configFinanceiraProfissional(config, profissional, pagamento);
+    const financeiro = processarFinanceiro(valorBruto, pagamento, configProfissional, repassePct);
     const data = dataAtendimento instanceof Date ? dataAtendimento : new Date(dataAtendimento);
 
     return {
@@ -53,6 +71,7 @@ export function criarPayloadAtendimento({
         liquidoBarbeiro: financeiro.liquidoBarbeiro,
         profissionalUid: profissional?.uid || profissional?.id || null,
         profissionalNome: profissional?.nome || null,
+        profissionalDono: Boolean(profissionalDono),
         data: data.toISOString(),
         dataAtendimento: data,
         valorDiferenciado: Boolean(valorDiferenciado),
@@ -61,7 +80,7 @@ export function criarPayloadAtendimento({
         retroativo: Boolean(retroativo),
         horaInformada: Boolean(horaInformada),
         schemaVersion: SCHEMA_VERSION,
-        financeiro: snapshotFinanceiro(financeiro, config)
+        financeiro: snapshotFinanceiro(financeiro, configProfissional, profissionalDono)
     };
 }
 
@@ -76,15 +95,19 @@ export function criarAtualizacaoFinanceiraAtendimento({
     observacao,
     valorDiferenciado
 }, config, original = null) {
+    const profissionalDono = original?.profissionalDono === true
+        || original?.financeiro?.profissionalDono === true;
     const repasseOriginal = Number(original?.financeiro?.repasseDonoPct ?? original?.repasseDonoPct);
-    const repassePct = Number.isFinite(repasseOriginal)
-        ? repasseOriginal
-        : Number(config?.repasseDonoPct ?? 35);
+    const repassePct = profissionalDono
+        ? 0
+        : (Number.isFinite(repasseOriginal)
+            ? repasseOriginal
+            : Number(config?.repasseDonoPct ?? 35));
 
     const configSnapshot = {
         ...config,
-        taxaDebito: Number(original?.financeiro?.taxaDebitoPct ?? config?.taxaDebito ?? 1.5),
-        taxaCredito: Number(original?.financeiro?.taxaCreditoPct ?? config?.taxaCredito ?? 3.51)
+        taxaDebito: Number(original?.financeiro?.taxaDebitoPct ?? 0),
+        taxaCredito: Number(original?.financeiro?.taxaCreditoPct ?? 0)
     };
 
     const financeiro = processarFinanceiro(valorBruto, pagamento, configSnapshot, repassePct);
@@ -105,7 +128,8 @@ export function criarAtualizacaoFinanceiraAtendimento({
         liquidoBarbeiro: financeiro.liquidoBarbeiro,
         observacao: String(observacao || "").trim().slice(0, 160),
         valorDiferenciado: Boolean(valorDiferenciado),
+        profissionalDono: Boolean(profissionalDono),
         schemaVersion: SCHEMA_VERSION,
-        financeiro: snapshotFinanceiro(financeiro, configSnapshot)
+        financeiro: snapshotFinanceiro(financeiro, configSnapshot, profissionalDono)
     };
 }

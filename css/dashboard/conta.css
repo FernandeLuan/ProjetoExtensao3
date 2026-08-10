@@ -367,3 +367,160 @@
 .conta-theme-card .conta-security-content {
     padding-top: 12px;
 }
+
+
+/* Etapa 5 • taxas próprias do profissional */
+.conta-taxas-card {
+    padding: 15px;
+}
+
+.conta-taxas-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.conta-taxas-header h3 {
+    margin: 0;
+}
+
+.conta-taxas-header p {
+    margin: 3px 0 0;
+    color: var(--text-secondary);
+    font-size: .64rem;
+    line-height: 1.4;
+}
+
+.conta-taxas-header > i {
+    margin-top: 2px;
+    color: var(--primary);
+    font-size: .9rem;
+}
+
+.conta-taxas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 13px;
+}
+
+.conta-taxa-field {
+    min-width: 0;
+}
+
+.conta-taxa-field > span {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+    font-size: .62rem;
+    font-weight: 500;
+}
+
+.conta-percent-field {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+}
+
+.conta-percent-field input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: .76rem;
+}
+
+.conta-percent-field > span {
+    color: var(--text-secondary);
+    font-size: .7rem;
+}
+
+.conta-taxas-save {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 12px;
+    border: 0;
+    border-radius: 11px;
+    background: var(--primary);
+    color: #fff;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.conta-taxas-save:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.conta-taxas-status {
+    margin-top: 9px;
+    color: var(--text-secondary);
+    font-size: .62rem;
+    line-height: 1.4;
+}
+
+.conta-taxas-status.error {
+    color: #ef4444;
+}
+
+
+/* v2.4 • Informações e taxas seguem o mesmo padrão recolhível */
+.conta-info-card .conta-security-content {
+    padding-top: 12px;
+}
+
+.conta-taxas-card[hidden] {
+    display: none !important;
+}
+
+
+/* v2.3 • Minha Conta padronizada em cartões recolhíveis */
+.conta-card-helper {
+    margin: 0 0 12px;
+    color: var(--text-secondary);
+    font-size: .64rem;
+    line-height: 1.45;
+}
+
+.conta-visao-content,
+.conta-taxas-content {
+    padding-top: 12px;
+}
+
+.conta-taxas-card {
+    padding: 0;
+}
+
+.conta-taxas-grid {
+    margin-top: 0;
+}
+
+#conta #btnSalvarSenha {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    border-radius: 11px;
+    background: var(--primary);
+    color: #fff;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 600;
+}
+
+#conta #btnSalvarSenha:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}

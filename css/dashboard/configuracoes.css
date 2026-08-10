@@ -139,24 +139,25 @@
 .config-groups {
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 10px;
 }
 
 .config-group {
+    position: relative;
     border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--bg);
+    border-radius: 16px;
+    background: var(--bg-card);
     overflow: hidden;
 }
 
 .config-group-toggle {
     width: 100%;
-    min-height: 62px;
+    min-height: 58px;
     display: grid;
-    grid-template-columns: 38px minmax(0, 1fr) 24px;
+    grid-template-columns: 18px minmax(0, 1fr) 14px;
     align-items: center;
-    gap: 10px;
-    padding: 10px 11px;
+    gap: 9px;
+    padding: 7px 15px;
     border: 0;
     background: transparent;
     color: var(--text);
@@ -166,13 +167,13 @@
 }
 
 .config-group-icon {
-    width: 36px;
-    height: 36px;
+    width: 18px;
+    height: auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    background: rgba(37, 99, 235, 0.1);
+    border-radius: 0;
+    background: transparent;
     color: var(--primary);
     font-size: 0.86rem;
 }
@@ -181,17 +182,17 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .config-group-copy strong {
-    font-size: 0.82rem;
+    font-size: 0.86rem;
     font-weight: 600;
 }
 
 .config-group-copy small {
     color: var(--text-secondary);
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     line-height: 1.35;
 }
 
@@ -206,7 +207,7 @@
 }
 
 .config-group-content {
-    padding: 12px;
+    padding: 12px 15px 15px;
     border-top: 1px solid var(--border);
     background: var(--bg-card);
 }
@@ -281,10 +282,18 @@
 }
 
 .config-save-status {
-    min-height: 16px;
+    min-height: 0;
     color: var(--success);
     font-size: 0.62rem;
     font-weight: 600;
+}
+
+.config-save-status.error {
+    color: var(--danger);
+}
+
+.config-save-status:empty {
+    display: none;
 }
 
 .app-version-row {
@@ -463,6 +472,12 @@
 .config-service-edit-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 5px; }
 .config-service-edit-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-secondary); font: inherit; font-size: .58rem; }
 .config-service-edit-actions button:last-child { color: var(--primary); }
+.config-service-edit-actions .config-service-delete {
+    margin-right: auto;
+    border-color: rgba(220, 38, 38, .24);
+    background: rgba(220, 38, 38, .07);
+    color: var(--danger);
+}
 .config-default-payment { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--border); }
 
 /* v2.1 - Configurações mais leves e controles retroativos consistentes */
@@ -471,7 +486,7 @@
 .config-group { border-radius:12px; box-shadow:none; }
 .config-group-toggle { min-height:54px; grid-template-columns:32px minmax(0,1fr) 20px; gap:8px; padding:8px 10px; }
 .config-group-icon { width:31px; height:31px; border-radius:9px; font-size:.74rem; }
-.config-group-copy strong { font-size:.76rem; }
+.config-group-copy strong { font-size:0.86rem; }
 .config-group-copy small { font-size:.58rem; }
 .config-group-content { padding:10px; }
 .config-list { gap:7px; }
@@ -490,3 +505,11 @@
 .retro-undo-container[hidden] { display:none; }
 .retro-undo-container { margin-top:-2px; }
 .retro-status:empty { display:none; }
+
+
+
+/* Data: um único ícone visual; o picker nativo continua acessível pelo campo. */
+.retro-date-control input::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
