@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.18" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.19" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -28,12 +28,6 @@
 <i class="fas fa-sliders-h"></i>
 <span>Configurações</span>
 </a>
-</li>
-<li id="menuEquipeItem" hidden>
-    <a href="#equipe">
-        <i class="fas fa-users"></i>
-        <span>Equipe</span>
-    </a>
 </li>
 <li id="menuDespesasItem">
 <a href="#despesas">
@@ -1204,7 +1198,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/dashboard/index.js?v=8.18" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.19" defer></script>
+<script src="js/dashboard/index.js?v=8.19" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

@@ -826,19 +826,19 @@ body.modal-equipe-aberto {
 .equipe-config-list{padding-top:10px}
 .equipe-config-item{padding:10px;border-radius:11px}
 .equipe-config-item .config-item-left{gap:8px}
-.equipe-config-item .config-icon{width:34px;height:34px;border-radius:9px;font-size:.78rem}
-.equipe-config-item .config-nome{font-size:.7rem}
-.equipe-config-item .config-atual{font-size:.62rem}
-.equipe-config-item .config-action{min-width:88px}
-.equipe-config-item .btn-alterar{font-size:.67rem}
+.equipe-config-item .config-icon{width:32px;height:32px;border-radius:9px;font-size:.76rem}
+.equipe-config-item .config-nome{font-size:.76rem}
+.equipe-config-item .config-atual{font-size:.65rem}
+.equipe-config-item .config-action{min-width:82px}
+.equipe-config-item .btn-alterar{font-size:.68rem}
 .equipe-config-item .input-config{width:82px;min-height:36px;padding:7px 8px;font-size:.72rem}
-.equipe-preco-item.config-item{grid-template-columns:none;display:flex}
-.equipe-preco-item .config-info{max-width:175px}
+.equipe-preco-item.config-item{display:flex}
+.equipe-preco-item .config-info{max-width:none;min-width:0}
 .equipe-preco-item .config-nome{white-space:normal;overflow-wrap:break-word;line-height:1.25}
 .equipe-preco-item .config-atual{color:var(--success);font-weight:500}
 .equipe-price-editor{display:flex;align-items:center}
 .equipe-price-editor.hidden{display:none}
-.equipe-price-editor .input-config{width:78px}
+.equipe-price-editor .input-config{width:82px}
 .equipe-financeiro-actions{flex:0 0 auto;z-index:2;margin-top:8px;padding-top:10px;border-top:1px solid var(--border);background:var(--bg-card)}
 .equipe-cadastro-financeiro{margin-top:0}
 .equipe-cadastro-financeiro .equipe-financeiro-body{padding-top:10px}
@@ -1064,3 +1064,12 @@ body.modal-equipe-aberto {
     font-size: .58rem;
     line-height: 1.35;
 }
+
+
+/* v8.19 - Taxas e Preços personalizados usam a mesma escala visual. */
+.equipe-config-item .config-nome { font-size: .76rem; line-height: 1.25; }
+.equipe-config-item .config-atual { font-size: .65rem; line-height: 1.3; color: var(--success); font-weight: 500; }
+.equipe-preco-item .config-item-left { flex: 1 1 auto; min-width: 0; }
+.equipe-preco-item .config-info { flex: 1 1 auto; min-width: 0; }
+.equipe-preco-item .config-nome { white-space: normal; overflow-wrap: anywhere; }
+.equipe-preco-item .config-action { flex: 0 0 82px; }

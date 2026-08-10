@@ -1,6 +1,6 @@
 import { abrirPainelHoje } from "./painel.js?v=7.4";
 import { abrirRegistrar } from "./registrar.js?v=8.16";
-import { abrirHistoricoHoje } from "./historico.js?v=8.18";
+import { abrirHistoricoHoje } from "./historico.js?v=8.19";
 import { prepararRelatoriosHoje } from "./relatorios.js?v=8.18";
 import { abrirDespesasAtual } from "./despesas.js?v=8.10";
 import { abrirEquipe } from "./equipe.js?v=8.18";

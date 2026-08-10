@@ -172,7 +172,7 @@ export async function abrirHistoricoHoje() {
 }
 
 function definirFiltroPadraoProfissional() {
-    filtroProfissional = state.user?.uid || "todos";
+    filtroProfissional = usuarioEhAdmin() ? "todos" : (state.user?.uid || "todos");
     profissionalEscolhidoExplicitamente = false;
 }
 
@@ -191,7 +191,7 @@ function prepararFiltrosDinamicos() {
 
     if (filtroProfissionalField) filtroProfissionalField.hidden = !usuarioEhAdmin();
     if (filtroProfissionalSelect && usuarioEhAdmin()) {
-        const atual = filtroProfissionalSelect.value || filtroProfissional || state.user?.uid;
+        const atual = filtroProfissionalSelect.value || filtroProfissional || "todos";
         filtroProfissionalSelect.innerHTML = '<option value="todos">Todos os profissionais</option>';
         const vistos = new Set();
         const membros = [
@@ -216,7 +216,7 @@ function prepararFiltrosDinamicos() {
             filtroProfissionalSelect.appendChild(optLegado);
         }
 
-        filtroProfissionalSelect.value = [...filtroProfissionalSelect.options].some(o => o.value === atual) ? atual : (state.user?.uid || "todos");
+        filtroProfissionalSelect.value = [...filtroProfissionalSelect.options].some(o => o.value === atual) ? atual : "todos";
     }
 }
 
@@ -224,7 +224,7 @@ function filtrosAtivosCount() {
     let n = 0;
     if (filtroServico !== "todos") n++;
     if (filtroPagamento !== "todos") n++;
-    if (usuarioEhAdmin() && (filtroProfissional !== state.user?.uid || profissionalEscolhidoExplicitamente)) n++;
+    if (usuarioEhAdmin() && filtroProfissional !== "todos") n++;
     if (filtroEditados) n++;
     if (filtroAjustados) n++;
     return n;
@@ -244,7 +244,7 @@ function abrirFiltrosHistorico() {
     rascunho = { servico: filtroServico, pagamento: filtroPagamento, profissional: filtroProfissional, editados: filtroEditados, ajustados: filtroAjustados };
     if (filtroServicoSelect) filtroServicoSelect.value = rascunho.servico;
     if (filtroPagamentoSelect) filtroPagamentoSelect.value = rascunho.pagamento;
-    if (filtroProfissionalSelect && usuarioEhAdmin()) filtroProfissionalSelect.value = rascunho.profissional || state.user?.uid || "todos";
+    if (filtroProfissionalSelect && usuarioEhAdmin()) filtroProfissionalSelect.value = rascunho.profissional || "todos";
     if (filtroHistoricoEditados) filtroHistoricoEditados.checked = rascunho.editados;
     if (filtroHistoricoAjustados) filtroHistoricoAjustados.checked = rascunho.ajustados;
     modalFiltrosHistorico?.classList.add("active");
@@ -263,8 +263,7 @@ function atendimentoPassaFiltros(a) {
     if (busca && !textoBusca.includes(busca)) return false;
 
     // A busca sempre respeita o profissional selecionado.
-    // Admin começa nos próprios registros e pode trocar para outro profissional
-    // ou para "Todos" dentro dos filtros.
+    // Admin abre por padrão em "Todos os profissionais"; barbeiro permanece no próprio histórico.
     if (filtroProfissional && filtroProfissional !== "todos") {
         if (filtroProfissional === "__sem_profissional__") {
             if (a.profissionalUid) return false;
@@ -569,7 +568,7 @@ btnFecharFiltrosHistorico?.addEventListener("click",fecharFiltrosHistorico);
 modalFiltrosHistorico?.addEventListener("click",e=>{if(e.target===modalFiltrosHistorico)fecharFiltrosHistorico();});
 btnAplicarFiltrosHistorico?.addEventListener("click",()=>{
     filtroServico=filtroServicoSelect?.value||"todos"; filtroPagamento=filtroPagamentoSelect?.value||"todos";
-    if(usuarioEhAdmin()){filtroProfissional=filtroProfissionalSelect?.value||state.user?.uid||"todos";profissionalEscolhidoExplicitamente=true;} else filtroProfissional=state.user?.uid||"todos";
+    if(usuarioEhAdmin()){filtroProfissional=filtroProfissionalSelect?.value||"todos";profissionalEscolhidoExplicitamente=true;} else filtroProfissional=state.user?.uid||"todos";
     filtroEditados=Boolean(filtroHistoricoEditados?.checked);filtroAjustados=Boolean(filtroHistoricoAjustados?.checked);fecharFiltrosHistorico();atualizarHistorico();
 });
 btnLimparFiltrosHistorico?.addEventListener("click",()=>{filtroServico="todos";filtroPagamento="todos";filtroEditados=false;filtroAjustados=false;definirFiltroPadraoProfissional();if(historicoBusca)historicoBusca.value="";fecharFiltrosHistorico();atualizarHistorico();});
