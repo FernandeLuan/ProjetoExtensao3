@@ -1,8 +1,8 @@
-import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.28";
-import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.28";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.28";
-import { paraDate, chaveData } from "./utils/date.js?v=8.28";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.28";
+import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.29";
+import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.29";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.29";
+import { paraDate, chaveData } from "./utils/date.js?v=8.29";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.29";
 import {
     CATEGORIAS_ESTOQUE,
     UNIDADES_ESTOQUE,
@@ -11,7 +11,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=8.28";
+} from "./services/estoque-service.js?v=8.29";
 import {
     atualizarProdutoEstoque,
     criarProdutoEstoque,
@@ -24,9 +24,9 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=8.28";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.28";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.28";
+} from "./data/estoque-repository.js?v=8.29";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.29";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.29";
 
 let inicializado = false;
 let produtos = [];

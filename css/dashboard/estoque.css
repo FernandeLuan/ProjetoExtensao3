@@ -115,3 +115,236 @@
     .estoque-resumo-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .estoque-produto-acoes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* ========== FORMULÁRIOS DE ESTOQUE — PADRÃO VISUAL ========== */
+/* Mantém cadastro, movimentação e venda com a mesma linguagem dos demais modais. */
+.estoque-form .equipe-field {
+    min-width: 0;
+    gap: 6px;
+}
+
+.estoque-form .equipe-field > span {
+    color: var(--text-secondary);
+    font-size: .66rem;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.estoque-form .equipe-field input,
+.estoque-form .equipe-field select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: .72rem;
+    line-height: 1.2;
+    outline: none;
+    box-shadow: none;
+    transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.estoque-form .equipe-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 34px;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+        linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+    background-position:
+        calc(100% - 16px) calc(50% - 2px),
+        calc(100% - 12px) calc(50% - 2px);
+    background-size: 4px 4px, 4px 4px;
+    background-repeat: no-repeat;
+}
+
+.estoque-form .equipe-field input::placeholder {
+    color: var(--text-secondary);
+    opacity: .68;
+}
+
+.estoque-form .equipe-field input:focus,
+.estoque-form .equipe-field select:focus,
+.estoque-form .equipe-field input:focus-visible,
+.estoque-form .equipe-field select:focus-visible,
+.estoque-code-control:focus-within,
+.estoque-form .equipe-money-field:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+}
+
+.estoque-form .equipe-field input:disabled,
+.estoque-form .equipe-field select:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+/* Campo monetário: prefixo e input passam a ser um único controle. */
+.estoque-form .equipe-money-field {
+    min-height: 42px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.estoque-form .equipe-money-field > span {
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    min-width: 39px;
+    padding: 0 9px;
+    border-right: 1px solid var(--border);
+    background: rgba(100, 116, 139, .055);
+    color: var(--text-secondary);
+    font-size: .64rem;
+    font-weight: 700;
+}
+
+.estoque-form .equipe-money-field input {
+    min-height: 40px;
+    padding: 0 11px;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none !important;
+}
+
+/* Código de barras: input + câmera funcionam visualmente como um grupo. */
+.estoque-code-control {
+    min-height: 42px;
+    overflow: hidden;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg);
+    transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.estoque-code-control input {
+    min-height: 40px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.estoque-code-control button {
+    width: 42px;
+    min-height: 40px;
+    border: 0;
+    border-left: 1px solid var(--border);
+    border-radius: 0;
+    background: rgba(37, 99, 235, .075);
+    color: var(--primary);
+    font-size: .74rem;
+    cursor: pointer;
+}
+
+.estoque-code-control button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -3px;
+}
+
+/* Toggles do cadastro: sem checkbox nativo solto. */
+.estoque-check-row {
+    min-height: 46px;
+    padding: 9px 11px;
+    border-radius: 11px;
+    background: var(--bg);
+}
+
+.estoque-check-row > span {
+    padding-right: 8px;
+    font-size: .65rem;
+    line-height: 1.3;
+}
+
+.estoque-check-row input[type="checkbox"] {
+    position: relative;
+    width: 40px;
+    height: 23px;
+    flex: 0 0 40px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(100, 116, 139, .18);
+    outline: none;
+    cursor: pointer;
+    transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.estoque-check-row input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .20);
+    transition: transform .18s ease;
+}
+
+.estoque-check-row input[type="checkbox"]:checked {
+    border-color: var(--primary);
+    background: var(--primary);
+}
+
+.estoque-check-row input[type="checkbox"]:checked::before {
+    transform: translateX(17px);
+}
+
+.estoque-check-row input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+}
+
+/* Melhor separação entre grupos, sem deixar o modal pesado. */
+.estoque-form .estoque-inline-grid {
+    align-items: start;
+}
+
+.estoque-form-actions {
+    padding-top: 8px;
+    margin-top: 2px;
+    border-top: 1px solid var(--border);
+}
+
+.estoque-form-actions button {
+    transition: transform .12s ease, filter .12s ease, border-color .12s ease;
+}
+
+@media (hover: hover) {
+    .estoque-code-control button:hover,
+    .estoque-form-actions button:hover {
+        filter: brightness(.98);
+    }
+}
+
+@media (max-width: 390px) {
+    .estoque-inline-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .estoque-form .equipe-field input,
+    .estoque-form .equipe-field select,
+    .estoque-form .equipe-money-field,
+    .estoque-code-control,
+    .estoque-check-row input[type="checkbox"],
+    .estoque-check-row input[type="checkbox"]::before {
+        transition: none;
+    }
+}

@@ -1,4 +1,4 @@
-import { normalizarConfig } from "./constants.js?v=8.28";
+import { normalizarConfig } from "./constants.js?v=8.29";
 
 export const state = {
     user: null,

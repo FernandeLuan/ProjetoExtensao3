@@ -1,26 +1,26 @@
-import { auth } from "../firebase-init.js?v=8.28";
+import { auth } from "../firebase-init.js?v=8.29";
 import {
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { inicializarContexto } from "./data/context.js?v=8.28";
-import { recarregarConfiguracoes } from "./data/sync.js?v=8.28";
-import { initTheme } from "./theme.js?v=8.28";
-import { initConnectivity } from "./connectivity.js?v=8.28";
-import { initNavigation } from "./navigation.js?v=8.28";
-import { initRegistrar } from "./registrar.js?v=8.28";
-import { initConfiguracoes } from "./configuracoes.js?v=8.28";
-import { initRetroativo } from "./retroativo.js?v=8.28";
-import { initEquipe } from "./equipe.js?v=8.28";
-import { initDespesas } from "./despesas.js?v=8.28";
-import { initConta } from "./conta.js?v=8.28";
-import { initRelatorios } from "./relatorios.js?v=8.28";
-import { initEstoque } from "./estoque.js?v=8.28";
-import { mostrarErro } from "./services/feedback-service.js?v=8.28";
-import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.28";
-import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=8.28";
-import { initVisao } from "./visao.js?v=8.28";
+import { inicializarContexto } from "./data/context.js?v=8.29";
+import { recarregarConfiguracoes } from "./data/sync.js?v=8.29";
+import { initTheme } from "./theme.js?v=8.29";
+import { initConnectivity } from "./connectivity.js?v=8.29";
+import { initNavigation } from "./navigation.js?v=8.29";
+import { initRegistrar } from "./registrar.js?v=8.29";
+import { initConfiguracoes } from "./configuracoes.js?v=8.29";
+import { initRetroativo } from "./retroativo.js?v=8.29";
+import { initEquipe } from "./equipe.js?v=8.29";
+import { initDespesas } from "./despesas.js?v=8.29";
+import { initConta } from "./conta.js?v=8.29";
+import { initRelatorios } from "./relatorios.js?v=8.29";
+import { initEstoque } from "./estoque.js?v=8.29";
+import { mostrarErro } from "./services/feedback-service.js?v=8.29";
+import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.29";
+import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=8.29";
+import { initVisao } from "./visao.js?v=8.29";
 
 let appInicializado = false;
 

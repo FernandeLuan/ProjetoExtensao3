@@ -3,7 +3,7 @@ import {
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./financeiro-service.js?v=8.28";
+} from "./financeiro-service.js?v=8.29";
 
 function numero(valor) {
     const n = Number(valor || 0);

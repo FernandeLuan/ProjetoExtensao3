@@ -1,22 +1,22 @@
-import { abrirPainelHoje } from "./painel.js?v=8.28";
-import { auth } from "../firebase-init.js?v=8.28";
+import { abrirPainelHoje } from "./painel.js?v=8.29";
+import { auth } from "../firebase-init.js?v=8.29";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { state, onStateChange } from "./state.js?v=8.28";
-import { abrirRegistrar } from "./registrar.js?v=8.28";
-import { abrirHistoricoHoje } from "./historico.js?v=8.28";
-import { prepararRelatoriosHoje } from "./relatorios.js?v=8.28";
-import { abrirDespesasAtual } from "./despesas.js?v=8.28";
-import { abrirEquipe } from "./equipe.js?v=8.28";
-import { abrirConta } from "./conta.js?v=8.28";
-import { abrirEstoque } from "./estoque.js?v=8.28";
-import { prepararRetroativoParaUso } from "./retroativo.js?v=8.28";
-import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.28";
+import { state, onStateChange } from "./state.js?v=8.29";
+import { abrirRegistrar } from "./registrar.js?v=8.29";
+import { abrirHistoricoHoje } from "./historico.js?v=8.29";
+import { prepararRelatoriosHoje } from "./relatorios.js?v=8.29";
+import { abrirDespesasAtual } from "./despesas.js?v=8.29";
+import { abrirEquipe } from "./equipe.js?v=8.29";
+import { abrirConta } from "./conta.js?v=8.29";
+import { abrirEstoque } from "./estoque.js?v=8.29";
+import { prepararRetroativoParaUso } from "./retroativo.js?v=8.29";
+import { abrirVisaoGeralBarbearia } from "./barbearia-home.js?v=8.29";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
     podeAcessarSecao,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.28";
+} from "./permissoes.js?v=8.29";
 
 let inicializado = false;
 
