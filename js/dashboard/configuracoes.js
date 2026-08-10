@@ -1,8 +1,8 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.27";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.27";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.27";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.27";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.27";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=8.28";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=8.28";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=8.28";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.28";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.28";
 
 let inicializado = false;
 
@@ -24,6 +24,14 @@ const btnCancelarServico = document.getElementById("btnCancelarServico");
 const btnConfirmarServico = document.getElementById("btnConfirmarServico");
 let servicoParaExcluir = null;
 
+const comissaoProdutosAtual = document.getElementById("configComissaoProdutosAtual");
+const btnEditarComissaoProdutos = document.getElementById("btnEditarComissaoProdutos");
+const comissaoProdutosEditor = document.getElementById("configComissaoProdutosEditor");
+const comissaoProdutosInput = document.getElementById("configComissaoProdutosInput");
+const btnCancelarComissaoProdutos = document.getElementById("btnCancelarComissaoProdutos");
+const btnSalvarComissaoProdutos = document.getElementById("btnSalvarComissaoProdutos");
+const comissaoProdutosStatus = document.getElementById("configComissaoProdutosStatus");
+
 const ordemCardsLista = document.getElementById("configOrdemCardsLista");
 const btnRestaurarOrdemCards = document.getElementById("btnRestaurarOrdemCards");
 const ordemCardsStatus = document.getElementById("ordemCardsStatus");
@@ -43,6 +51,7 @@ const ORDEM_NAV_PADRAO = [
     "historico",
     "equipe",
     "relatorios",
+    "estoque",
     "despesas",
     "configuracoes",
     "conta"
@@ -52,6 +61,7 @@ const NAV_BARBEARIA = {
     historico: { nome: "Histórico", detalhe: "Atendimentos registrados", icone: "fa-clock-rotate-left" },
     equipe: { nome: "Equipe", detalhe: "Profissionais e acessos", icone: "fa-users" },
     relatorios: { nome: "Relatório", detalhe: "Indicadores e períodos", icone: "fa-file-lines" },
+    estoque: { nome: "Estoque", detalhe: "Produtos, vendas e movimentações", icone: "fa-boxes-stacked" },
     despesas: { nome: "Despesas", detalhe: "Gastos da barbearia", icone: "fa-receipt" },
     configuracoes: { nome: "Configurações", detalhe: "Preferências administrativas", icone: "fa-sliders-h" },
     conta: { nome: "Minha conta", detalhe: "Acesso e segurança", icone: "fa-user-lock" }
@@ -431,11 +441,45 @@ function renderizarOrdemNav() {
     });
 }
 
+function renderizarComissaoProdutos() {
+    const valor = Math.max(0, Math.min(100, Number(state.configSistema?.comissaoProdutosPct ?? 20)));
+    if (comissaoProdutosAtual) comissaoProdutosAtual.textContent = `Atual: ${valor.toFixed(2).replace(".", ",")}%`;
+    if (comissaoProdutosInput && comissaoProdutosEditor?.hidden !== false) {
+        comissaoProdutosInput.value = valor.toFixed(2).replace(".", ",");
+    }
+}
+
+function fecharEditorComissaoProdutos() {
+    if (comissaoProdutosEditor) comissaoProdutosEditor.hidden = true;
+    setStatus(comissaoProdutosStatus, "");
+}
+
+async function salvarComissaoProdutos() {
+    const valor = converterParaNumero(comissaoProdutosInput?.value);
+    if (valor === null || valor < 0 || valor > 100) {
+        dispararErroVisualInput(comissaoProdutosInput);
+        mostrarErro("Informe uma comissão entre 0,00% e 100,00%.");
+        return;
+    }
+    btnSalvarComissaoProdutos.disabled = true;
+    setStatus(comissaoProdutosStatus, "Salvando...");
+    try {
+        await persistirConfig({ ...state.configSistema, comissaoProdutosPct: Number(valor.toFixed(2)) }, "Comissão sobre produtos atualizada.");
+        fecharEditorComissaoProdutos();
+    } catch (error) {
+        console.error(error);
+        setStatus(comissaoProdutosStatus, "Não foi possível salvar.", true);
+    } finally {
+        btnSalvarComissaoProdutos.disabled = false;
+    }
+}
+
 function renderizarTudo() {
     renderizarServicos();
     renderizarPagamentos();
     renderizarOrdemCards();
     renderizarOrdemNav();
+    renderizarComissaoProdutos();
     const versao = document.getElementById("appVersion");
     if (versao) versao.textContent = `v${APP_VERSION}`;
 }
@@ -557,6 +601,16 @@ export function initConfiguracoes() {
         aplicarMascaraMoedaInput(novoServicoPreco);
     });
     btnSalvarNovoServico?.addEventListener("click", adicionarServico);
+
+    btnEditarComissaoProdutos?.addEventListener("click", () => {
+        const valor = Math.max(0, Math.min(100, Number(state.configSistema?.comissaoProdutosPct ?? 20)));
+        if (comissaoProdutosInput) comissaoProdutosInput.value = valor.toFixed(2).replace(".", ",");
+        if (comissaoProdutosEditor) comissaoProdutosEditor.hidden = false;
+        comissaoProdutosInput?.focus();
+    });
+    btnCancelarComissaoProdutos?.addEventListener("click", fecharEditorComissaoProdutos);
+    btnSalvarComissaoProdutos?.addEventListener("click", salvarComissaoProdutos);
+    comissaoProdutosInput?.addEventListener("input", () => comissaoProdutosInput.classList.remove("input-erro", "shake"));
 
     btnRestaurarOrdemCards?.addEventListener("click", async () => {
         btnRestaurarOrdemCards.disabled = true;

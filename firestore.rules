@@ -56,6 +56,42 @@ service cloud.firestore {
       return value is number && value >= 0 && value <= 99.99;
     }
 
+    function stockPath(barbeariaId, produtoId) {
+      return /databases/$(database)/documents/barbearias/$(barbeariaId)/estoque/$(produtoId);
+    }
+
+    function salePath(barbeariaId, vendaId) {
+      return /databases/$(database)/documents/barbearias/$(barbeariaId)/vendas/$(vendaId);
+    }
+
+    function generalConfigPath(barbeariaId) {
+      return /databases/$(database)/documents/barbearias/$(barbeariaId)/configuracoes/geral;
+    }
+
+    function productCommissionPct(barbeariaId) {
+      return exists(generalConfigPath(barbeariaId))
+        ? get(generalConfigPath(barbeariaId)).data.get("comissaoProdutosPct", 20)
+        : 20;
+    }
+
+    function validNonNegative(value) {
+      return value is number && value >= 0;
+    }
+
+    function validProductCommission(value) {
+      return value is number && value >= 0 && value <= 100;
+    }
+
+    function memberProductPaymentRate(barbeariaId, uid, formaPagamento) {
+      return formaPagamento == "Débito"
+        ? memberData(barbeariaId, uid).get("taxaDebitoPct", 0)
+        : (
+          formaPagamento == "Crédito"
+            ? memberData(barbeariaId, uid).get("taxaCreditoPct", 0)
+            : 0
+        );
+    }
+
     // =========================================================
     // USUÁRIOS
     // Compatível com os documentos atuais. O usuário altera só o
@@ -340,6 +376,117 @@ service cloud.firestore {
           && resource.data.tipo == "profissional"
           && resource.data.profissionalUid == request.auth.uid
         );
+      }
+
+
+      // -------------------------------------------------------
+      // ESTOQUE / VENDAS DE PRODUTOS
+      // Admin gerencia o cadastro e as movimentações.
+      // Profissional ativo pode ler o catálogo e registrar apenas
+      // uma venda própria, com baixa atômica do estoque e comissão
+      // calculada pela configuração global.
+      // -------------------------------------------------------
+      match /estoque/{produtoId} {
+        allow read: if isActiveMember(barbeariaId);
+
+        allow create: if isAdmin(barbeariaId)
+          && request.resource.data.nome is string
+          && request.resource.data.categoria is string
+          && request.resource.data.unidade is string
+          && validNonNegative(request.resource.data.quantidadeAtual)
+          && validNonNegative(request.resource.data.estoqueMinimo)
+          && validNonNegative(request.resource.data.custoUnitario)
+          && validNonNegative(request.resource.data.precoVenda);
+
+        allow update: if isAdmin(barbeariaId) || (
+          canActAsProfessional(barbeariaId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "quantidadeAtual",
+            "ultimaVendaId",
+            "atualizadoEm"
+          ])
+          && validNonNegative(resource.data.quantidadeAtual)
+          && validNonNegative(request.resource.data.quantidadeAtual)
+          && request.resource.data.quantidadeAtual < resource.data.quantidadeAtual
+          && request.resource.data.ultimaVendaId is string
+          && getAfter(salePath(barbeariaId, request.resource.data.ultimaVendaId)).data.produtoId == produtoId
+          && getAfter(salePath(barbeariaId, request.resource.data.ultimaVendaId)).data.registradoPorUid == request.auth.uid
+          && getAfter(salePath(barbeariaId, request.resource.data.ultimaVendaId)).data.profissionalUid == request.auth.uid
+          && getAfter(salePath(barbeariaId, request.resource.data.ultimaVendaId)).data.gerarComissao == true
+          && getAfter(salePath(barbeariaId, request.resource.data.ultimaVendaId)).data.quantidade == resource.data.quantidadeAtual - request.resource.data.quantidadeAtual
+        );
+
+        allow delete: if false;
+      }
+
+      match /vendas/{vendaId} {
+        allow read: if isAdmin(barbeariaId) || (
+          canActAsProfessional(barbeariaId)
+          && resource.data.profissionalUid == request.auth.uid
+        );
+
+        allow create: if isActiveMember(barbeariaId)
+          && request.resource.data.registradoPorUid == request.auth.uid
+          && request.resource.data.produtoId is string
+          && request.resource.data.produtoNomeSnapshot is string
+          && request.resource.data.formaPagamento is string
+          && request.resource.data.quantidade is number
+          && request.resource.data.quantidade > 0
+          && validNonNegative(request.resource.data.precoUnitarioSnapshot)
+          && validNonNegative(request.resource.data.valorBruto)
+          && validNonNegative(request.resource.data.taxaPagamentoPctSnapshot)
+          && validNonNegative(request.resource.data.taxaPagamentoValor)
+          && validNonNegative(request.resource.data.custoUnitarioSnapshot)
+          && validNonNegative(request.resource.data.custoTotalSnapshot)
+          && validNonNegative(request.resource.data.comissaoValor)
+          && validProductCommission(request.resource.data.comissaoPctSnapshot)
+          && getAfter(stockPath(barbeariaId, request.resource.data.produtoId)).data.ultimaVendaId == vendaId
+          && getAfter(stockPath(barbeariaId, request.resource.data.produtoId)).data.quantidadeAtual ==
+             get(stockPath(barbeariaId, request.resource.data.produtoId)).data.quantidadeAtual - request.resource.data.quantidade
+          && (
+            isAdmin(barbeariaId)
+            || (
+              canActAsProfessional(barbeariaId)
+              && request.resource.data.gerarComissao == true
+              && request.resource.data.profissionalUid == request.auth.uid
+              && targetCanActAsProfessional(barbeariaId, request.auth.uid)
+              && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("ativo", true) != false
+              && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("vendavel", false) == true
+              && request.resource.data.comissaoPctSnapshot == productCommissionPct(barbeariaId)
+              && request.resource.data.precoUnitarioSnapshot == get(stockPath(barbeariaId, request.resource.data.produtoId)).data.precoVenda
+              && request.resource.data.custoUnitarioSnapshot == get(stockPath(barbeariaId, request.resource.data.produtoId)).data.custoUnitario
+              && request.resource.data.taxaPagamentoPctSnapshot == memberProductPaymentRate(barbeariaId, request.auth.uid, request.resource.data.formaPagamento)
+              && request.resource.data.valorBruto >= request.resource.data.precoUnitarioSnapshot * request.resource.data.quantidade - 0.011
+              && request.resource.data.valorBruto <= request.resource.data.precoUnitarioSnapshot * request.resource.data.quantidade + 0.011
+              && request.resource.data.taxaPagamentoValor >= request.resource.data.valorBruto * request.resource.data.taxaPagamentoPctSnapshot / 100 - 0.011
+              && request.resource.data.taxaPagamentoValor <= request.resource.data.valorBruto * request.resource.data.taxaPagamentoPctSnapshot / 100 + 0.011
+              && request.resource.data.comissaoValor >= request.resource.data.valorBruto * request.resource.data.comissaoPctSnapshot / 100 - 0.011
+              && request.resource.data.comissaoValor <= request.resource.data.valorBruto * request.resource.data.comissaoPctSnapshot / 100 + 0.011
+              && request.resource.data.custoTotalSnapshot >= request.resource.data.custoUnitarioSnapshot * request.resource.data.quantidade - 0.011
+              && request.resource.data.custoTotalSnapshot <= request.resource.data.custoUnitarioSnapshot * request.resource.data.quantidade + 0.011
+            )
+          );
+
+        // Venda é registro financeiro/auditoria: não é reescrita pelo cliente.
+        allow update, delete: if false;
+      }
+
+      match /estoqueMovimentacoes/{movimentoId} {
+        allow read: if isAdmin(barbeariaId);
+
+        allow create: if isAdmin(barbeariaId) || (
+          canActAsProfessional(barbeariaId)
+          && request.resource.data.tipo == "saida_venda"
+          && request.resource.data.registradoPorUid == request.auth.uid
+          && request.resource.data.profissionalUid == request.auth.uid
+          && request.resource.data.vendaId is string
+          && request.resource.data.produtoId is string
+          && getAfter(salePath(barbeariaId, request.resource.data.vendaId)).data.registradoPorUid == request.auth.uid
+          && getAfter(salePath(barbeariaId, request.resource.data.vendaId)).data.profissionalUid == request.auth.uid
+          && getAfter(salePath(barbeariaId, request.resource.data.vendaId)).data.produtoId == request.resource.data.produtoId
+        );
+
+        allow update, delete: if false;
       }
 
       // -------------------------------------------------------

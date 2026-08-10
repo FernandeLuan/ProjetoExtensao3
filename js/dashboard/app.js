@@ -1,25 +1,26 @@
-import { auth } from "../firebase-init.js?v=8.27";
+import { auth } from "../firebase-init.js?v=8.28";
 import {
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { inicializarContexto } from "./data/context.js?v=8.27";
-import { recarregarConfiguracoes } from "./data/sync.js?v=8.27";
-import { initTheme } from "./theme.js?v=8.27";
-import { initConnectivity } from "./connectivity.js?v=8.27";
-import { initNavigation } from "./navigation.js?v=8.27";
-import { initRegistrar } from "./registrar.js?v=8.27";
-import { initConfiguracoes } from "./configuracoes.js?v=8.27";
-import { initRetroativo } from "./retroativo.js?v=8.27";
-import { initEquipe } from "./equipe.js?v=8.27";
-import { initDespesas } from "./despesas.js?v=8.27";
-import { initConta } from "./conta.js?v=8.27";
-import { initRelatorios } from "./relatorios.js?v=8.27";
-import { mostrarErro } from "./services/feedback-service.js?v=8.27";
-import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.27";
-import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=8.27";
-import { initVisao } from "./visao.js?v=8.27";
+import { inicializarContexto } from "./data/context.js?v=8.28";
+import { recarregarConfiguracoes } from "./data/sync.js?v=8.28";
+import { initTheme } from "./theme.js?v=8.28";
+import { initConnectivity } from "./connectivity.js?v=8.28";
+import { initNavigation } from "./navigation.js?v=8.28";
+import { initRegistrar } from "./registrar.js?v=8.28";
+import { initConfiguracoes } from "./configuracoes.js?v=8.28";
+import { initRetroativo } from "./retroativo.js?v=8.28";
+import { initEquipe } from "./equipe.js?v=8.28";
+import { initDespesas } from "./despesas.js?v=8.28";
+import { initConta } from "./conta.js?v=8.28";
+import { initRelatorios } from "./relatorios.js?v=8.28";
+import { initEstoque } from "./estoque.js?v=8.28";
+import { mostrarErro } from "./services/feedback-service.js?v=8.28";
+import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.28";
+import { aplicarPermissoesInterface, usuarioEhAdmin } from "./permissoes.js?v=8.28";
+import { initVisao } from "./visao.js?v=8.28";
 
 let appInicializado = false;
 
@@ -49,6 +50,7 @@ async function inicializarApp(user) {
         initConta();
         initDespesas();
         initRelatorios();
+        initEstoque();
 
         if (usuarioEhAdmin()) {
             initConfiguracoes();

@@ -1038,3 +1038,17 @@ display: flex;
     font: inherit;
     color: inherit;
 }
+
+/* v8.28 - fechamento: total pós-custos do profissional. */
+.fechamento-lista-item.is-total {
+    margin-top: 2px;
+    border: 1px solid var(--ui-success-border);
+    background: var(--ui-success-soft);
+}
+
+.fechamento-lista-item.is-total > span,
+.fechamento-lista-item.is-total > div:last-child,
+.fechamento-lista-item.is-total strong {
+    color: var(--ui-success-text);
+    font-weight: 700;
+}

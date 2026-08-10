@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG = Object.freeze({
     taxaDebito: 1.5,
     taxaCredito: 3.51,
     repasseDonoPct: 35, // fallback para registros/membros antigos
+    comissaoProdutosPct: 20,
     pagamentoPadrao: "nenhum",
     pagamentosAtivos: Object.freeze({
         Pix: true,
@@ -46,6 +47,7 @@ export function criarConfigPadrao() {
         taxaDebito: DEFAULT_CONFIG.taxaDebito,
         taxaCredito: DEFAULT_CONFIG.taxaCredito,
         repasseDonoPct: DEFAULT_CONFIG.repasseDonoPct,
+        comissaoProdutosPct: DEFAULT_CONFIG.comissaoProdutosPct,
         pagamentoPadrao: DEFAULT_CONFIG.pagamentoPadrao,
         pagamentosAtivos: { ...DEFAULT_CONFIG.pagamentosAtivos },
         servicos,
@@ -82,6 +84,7 @@ export function normalizarConfig(config = {}) {
         taxaDebito: Number(config.taxaDebito ?? base.taxaDebito),
         taxaCredito: Number(config.taxaCredito ?? base.taxaCredito),
         repasseDonoPct: Number(config.repasseDonoPct ?? base.repasseDonoPct),
+        comissaoProdutosPct: Math.max(0, Math.min(100, Number(config.comissaoProdutosPct ?? base.comissaoProdutosPct))),
         pagamentoPadrao: PAGAMENTOS.includes(config.pagamentoPadrao) ? config.pagamentoPadrao : "nenhum",
         pagamentosAtivos: {
             ...base.pagamentosAtivos,

@@ -5,13 +5,14 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.27" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.28" rel="stylesheet"/>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/@zxing/browser@0.2.1" defer></script>
 </head>
 <body class="dashboard-booting">
 <div aria-live="polite" class="connection-status" hidden="" id="connectionStatus" role="status">
@@ -464,21 +465,21 @@
 <div id="relatorioFechamento" class="relatorio-tab-panel fechamento-page" role="tabpanel" aria-labelledby="btnRelatorioFechamento" hidden>
 <div class="fechamento-hero">
 <div>
-<span>Resultado líquido</span>
+<span id="fechamentoResultadoLabel">Resultado líquido</span>
 <strong id="fechamentoResultado">R$ 0,00</strong>
 <small id="fechamentoPeriodoLabel">Hoje</small>
 </div>
-<div class="fechamento-margem">
+<div class="fechamento-margem" id="fechamentoMargemBox">
 <span>Margem</span>
 <strong id="fechamentoMargem">0,00%</strong>
 </div>
 </div>
 
 <div class="fechamento-kpis">
-<article><span><i class="fas fa-sack-dollar"></i> Faturamento bruto</span><strong id="fechamentoBruto">R$ 0,00</strong></article>
-<article><span><i class="fas fa-credit-card"></i> Taxas de cartão</span><strong id="fechamentoTaxas">R$ 0,00</strong></article>
-<article><span><i class="fas fa-hand-holding-dollar"></i><b id="fechamentoRepasseLabel">Repasse</b></span><strong id="fechamentoRepasse">R$ 0,00</strong></article>
-<article><span><i class="fas fa-receipt"></i> Despesas</span><strong id="fechamentoDespesas">R$ 0,00</strong></article>
+<article><span><i class="fas fa-sack-dollar"></i> <b id="fechamentoBrutoLabel">Faturamento bruto</b></span><strong id="fechamentoBruto">R$ 0,00</strong></article>
+<article><span><i class="fas fa-credit-card"></i> <b id="fechamentoTaxasLabel">Líquido após taxas</b></span><strong id="fechamentoTaxas">R$ 0,00</strong></article>
+<article><span><i class="fas fa-hand-holding-dollar"></i><b id="fechamentoRepasseLabel">Repasse da Equipe</b></span><strong id="fechamentoRepasse">R$ 0,00</strong></article>
+<article><span><i class="fas fa-wallet"></i> <b id="fechamentoQuartoLabel">Despesas</b></span><strong id="fechamentoDespesas">R$ 0,00</strong></article>
 </div>
 
 <article class="relatorio-card fechamento-fluxo-card">
@@ -491,7 +492,7 @@
 
 <article class="relatorio-card">
 <div class="relatorio-card-head">
-<div><h3>Formas de pagamento</h3><p>Bruto, taxas pagas e líquido após taxas</p></div>
+<div><h3>Formas de pagamento</h3><p id="fechamentoPagamentosDescricao">Bruto e líquido após taxas</p></div>
 <i class="fas fa-wallet"></i>
 </div>
 <div class="fechamento-lista" id="fechamentoPagamentosLista"></div>
@@ -499,13 +500,37 @@
 
 <article class="relatorio-card" id="fechamentoEquipeCard" hidden>
 <div class="relatorio-card-head">
-<div><h3>Equipe</h3><p>Produção, taxas e repasse da equipe no período</p></div>
+<div><h3>Equipe</h3><p>Produção e repasse da equipe no período</p></div>
 <i class="fas fa-users"></i>
 </div>
 <div class="fechamento-lista" id="fechamentoEquipeLista"></div>
 </article>
 
-<article class="relatorio-card">
+<article class="relatorio-card" id="fechamentoProdutosCard" hidden>
+<div class="relatorio-card-head">
+<div><h3>Vendas de produtos</h3><p id="fechamentoProdutosDescricao">Receita, custos e comissão no período</p></div>
+<i class="fas fa-box-open"></i>
+</div>
+<div class="fechamento-lista" id="fechamentoProdutosLista"></div>
+</article>
+
+<article class="relatorio-card" id="fechamentoComissoesCard" hidden>
+<div class="relatorio-card-head">
+<div><h3>Comissões da equipe</h3><p>Vendas e comissão por profissional</p></div>
+<i class="fas fa-percent"></i>
+</div>
+<div class="fechamento-lista" id="fechamentoComissoesLista"></div>
+</article>
+
+<article class="relatorio-card" id="fechamentoCustosProfissionaisCard" hidden>
+<div class="relatorio-card-head">
+<div><h3>Custos profissionais</h3><p>Custos pessoais considerados somente depois do repasse</p></div>
+<i class="fas fa-receipt"></i>
+</div>
+<div class="fechamento-lista" id="fechamentoCustosProfissionaisLista"></div>
+</article>
+
+<article class="relatorio-card" id="fechamentoDespesasCard">
 <div class="relatorio-card-head">
 <div><h3>Despesas por categoria</h3><p>Valores que entraram no fechamento deste período</p></div>
 <i class="fas fa-receipt"></i>
@@ -600,6 +625,29 @@
 </div>
 
 <div class="config-group">
+<button aria-controls="configGroupEstoqueVendas" aria-expanded="false" class="config-group-toggle" data-config-group="estoque-vendas" type="button">
+<span class="config-group-icon"><i class="fas fa-boxes-stacked"></i></span>
+<span class="config-group-copy"><strong>Estoque e vendas</strong><small>Comissão global sobre venda de produtos</small></span>
+<i class="fas fa-chevron-down config-group-chevron"></i>
+</button>
+<div class="config-group-content" hidden id="configGroupEstoqueVendas">
+<div class="config-preference-card config-estoque-comissao">
+<div class="config-preference-copy"><strong>Comissão sobre produtos</strong><span>Percentual único aplicado às vendas com comissão. O valor fica salvo como snapshot em cada venda.</span></div>
+<div class="config-item equipe-config-item">
+<div class="config-item-left"><div class="config-icon"><i class="fas fa-percent"></i></div><div class="config-info"><span class="config-nome">Comissão global</span><span class="config-atual" id="configComissaoProdutosAtual">Atual: 20,00%</span></div></div>
+<div class="config-action"><button class="btn-alterar" id="btnEditarComissaoProdutos" type="button"><i class="fas fa-pen"></i> Alterar</button></div>
+</div>
+<div class="config-commission-editor" id="configComissaoProdutosEditor" hidden>
+<input id="configComissaoProdutosInput" type="tel" inputmode="decimal" placeholder="20,00" aria-label="Comissão global sobre produtos">
+<button id="btnCancelarComissaoProdutos" type="button">Cancelar</button>
+<button id="btnSalvarComissaoProdutos" type="button">Salvar</button>
+</div>
+<div aria-live="polite" class="config-save-status" id="configComissaoProdutosStatus"></div>
+</div>
+</div>
+</div>
+
+<div class="config-group">
 <button aria-controls="configGroupOrdemVisao" aria-expanded="false" class="config-group-toggle" data-config-group="ordem-visao" type="button">
 <span class="config-group-icon"><i class="fas fa-arrow-down-up-across-line"></i></span>
 <span class="config-group-copy"><strong>Ordem da Visão Geral</strong><small>Escolha a sequência dos cards administrativos</small></span>
@@ -678,6 +726,61 @@
 <button type="button" id="btnAdicionarBarbeiro" class="equipe-add-btn"><i class="fas fa-user-plus"></i><span>Adicionar barbeiro</span></button>
 <div class="equipe-grupo"><h3 class="equipe-grupo-titulo">Membros ativos</h3><div id="equipeListaAtivos" class="equipe-lista"></div></div>
 <div id="equipeBlocoInativos" class="equipe-grupo equipe-grupo-inativos" hidden><h3 class="equipe-grupo-titulo">Membros inativos</h3><div id="equipeListaInativos" class="equipe-lista"></div></div>
+</section>
+
+<!-- ESTOQUE E VENDAS -->
+<section id="estoque" class="registrar estoque-page">
+<h2 class="titulo-sessao" id="estoqueTitulo">Estoque</h2>
+<p class="estoque-desc" id="estoqueDescricao">Controle produtos, movimentações e vendas da barbearia.</p>
+
+<div id="estoqueAdminView" hidden>
+<div class="estoque-resumo-grid">
+<article class="estoque-resumo-card"><span>Itens cadastrados</span><strong id="estoqueResumoItens">0</strong></article>
+<article class="estoque-resumo-card is-warning"><span>Estoque baixo</span><strong id="estoqueResumoBaixo">0</strong></article>
+<article class="estoque-resumo-card is-danger"><span>Sem estoque</span><strong id="estoqueResumoZerado">0</strong></article>
+<article class="estoque-resumo-card is-success"><span>Valor em estoque</span><strong id="estoqueResumoValor">R$ 0,00</strong></article>
+</div>
+
+<div class="estoque-tabs" role="tablist" aria-label="Gestão de estoque">
+<button class="estoque-tab active" data-estoque-tab="produtos" type="button" role="tab" aria-selected="true"><i class="fas fa-box"></i>Produtos</button>
+<button class="estoque-tab" data-estoque-tab="vendas" type="button" role="tab" aria-selected="false"><i class="fas fa-cart-shopping"></i>Vendas</button>
+<button class="estoque-tab" data-estoque-tab="movimentacoes" type="button" role="tab" aria-selected="false"><i class="fas fa-arrow-right-arrow-left"></i>Movimentações</button>
+</div>
+
+<div id="estoquePainelProdutos">
+<div class="estoque-toolbar">
+<label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input id="estoqueBusca" type="search" autocomplete="off" placeholder="Buscar produto ou código"></label>
+<button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler</span></button>
+</div>
+<button class="estoque-add-btn" id="btnNovoProdutoEstoque" type="button"><i class="fas fa-plus"></i>Novo produto</button>
+<div class="estoque-filtros" role="group" aria-label="Filtrar estoque">
+<button class="active" data-estoque-filtro="todos" type="button">Todos</button>
+<button data-estoque-filtro="baixo" type="button">Baixo</button>
+<button data-estoque-filtro="zerado" type="button">Zerado</button>
+</div>
+<div class="estoque-produtos-lista" id="estoqueProdutosLista"></div>
+</div>
+
+<div id="estoquePainelVendas" hidden>
+<div class="estoque-log-lista" id="estoqueVendasLista"></div>
+</div>
+
+<div id="estoquePainelMovimentacoes" hidden>
+<div class="estoque-log-lista" id="estoqueMovimentacoesLista"></div>
+</div>
+</div>
+
+<div id="estoqueVendaView" hidden>
+<div class="estoque-resumo-grid estoque-venda-resumo">
+<article class="estoque-resumo-card"><span>Minhas vendas hoje</span><strong id="estoqueVendaHoje">R$ 0,00</strong></article>
+<article class="estoque-resumo-card is-success"><span>Minha comissão hoje</span><strong id="estoqueComissaoHoje">R$ 0,00</strong></article>
+</div>
+<div class="estoque-toolbar">
+<label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input id="estoqueVendaBusca" type="search" autocomplete="off" placeholder="Buscar produto"></label>
+<button class="estoque-scan-btn" id="btnScanVendaProduto" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
+</div>
+<div class="estoque-venda-produtos" id="estoqueVendaProdutos"></div>
+</div>
 </section>
 
 <!-- DESPESAS -->
@@ -996,6 +1099,80 @@ Aparência
 <div class="equipe-financeiro-actions"><button type="button" id="btnCancelarFinanceiroMembro">Cancelar</button><button type="button" id="btnSalvarFinanceiroMembro">Salvar</button></div>
 </div></div>
 
+<!-- MODAL: PRODUTO DE ESTOQUE -->
+<div id="modalProdutoEstoque" class="equipe-modal" hidden aria-hidden="true">
+<div class="equipe-modal-card estoque-modal-card" role="dialog" aria-modal="true" aria-labelledby="tituloModalProdutoEstoque">
+<div class="equipe-modal-header"><div><h3 id="tituloModalProdutoEstoque">Novo produto</h3><p>Cadastre o item e defina como ele será controlado.</p></div><button type="button" id="btnFecharProdutoEstoque" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
+<form id="formProdutoEstoque" class="equipe-form estoque-form" novalidate>
+<label class="equipe-field"><span>Nome do produto</span><input id="estoqueProdutoNome" type="text" maxlength="80" autocomplete="off" placeholder="Ex.: Pomada Black" required></label>
+<div class="estoque-inline-grid">
+<label class="equipe-field"><span>Categoria</span><select id="estoqueProdutoCategoria" required></select></label>
+<label class="equipe-field"><span>Unidade</span><select id="estoqueProdutoUnidade" required></select></label>
+</div>
+<label class="equipe-field"><span>Código de barras</span><div class="estoque-code-control"><input id="estoqueProdutoCodigo" type="text" inputmode="numeric" autocomplete="off" placeholder="Opcional"><button id="btnScanCodigoProduto" type="button" aria-label="Ler código de barras"><i class="fas fa-camera"></i></button></div></label>
+<div class="estoque-inline-grid">
+<label class="equipe-field" id="estoqueProdutoQuantidadeField"><span>Quantidade inicial</span><input id="estoqueProdutoQuantidadeInicial" type="number" min="0" step="0.001" inputmode="decimal" value="0"></label>
+<label class="equipe-field"><span>Estoque mínimo</span><input id="estoqueProdutoEstoqueMinimo" type="number" min="0" step="0.001" inputmode="decimal" value="0"></label>
+</div>
+<label class="equipe-field"><span>Custo unitário</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoCusto" type="tel" inputmode="numeric" placeholder="0,00"></div></label>
+<label class="estoque-check-row"><span>Disponível para venda?</span><input id="estoqueProdutoVendavel" type="checkbox"></label>
+<label class="equipe-field" id="estoqueProdutoPrecoField" hidden><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" type="tel" inputmode="numeric" placeholder="0,00"></div></label>
+<label class="estoque-check-row"><span>Produto ativo</span><input id="estoqueProdutoAtivo" type="checkbox" checked></label>
+<div class="estoque-form-actions"><button type="button" id="btnCancelarProdutoEstoque">Cancelar</button><button type="submit" id="btnSalvarProdutoEstoque">Salvar produto</button></div>
+</form>
+</div>
+</div>
+
+<!-- MODAL: MOVIMENTAR ESTOQUE -->
+<div id="modalMovimentarEstoque" class="equipe-modal" hidden aria-hidden="true">
+<div class="equipe-modal-card estoque-modal-card" role="dialog" aria-modal="true" aria-labelledby="tituloMovimentarEstoque">
+<div class="equipe-modal-header"><div><h3 id="tituloMovimentarEstoque">Movimentar estoque</h3><p>Registre entrada, saída ou ajuste com histórico.</p></div><button type="button" id="btnFecharMovEstoque" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
+<div class="estoque-mov-header"><strong id="movEstoqueProdutoNome">Produto</strong><span>Saldo atual: <b id="movEstoqueSaldoAtual">0 un</b></span></div>
+<form id="formMovimentarEstoque" class="equipe-form estoque-form" novalidate>
+<label class="equipe-field"><span>Movimentação</span><select id="movEstoqueTipo"><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste de saldo</option></select></label>
+<label class="equipe-field" id="movEstoqueQuantidadeField"><span>Quantidade</span><input id="movEstoqueQuantidade" type="number" min="0.001" step="0.001" inputmode="decimal" value="1"></label>
+<label class="equipe-field" id="movEstoqueNovoSaldoField" hidden><span>Novo saldo</span><input id="movEstoqueNovoSaldo" type="number" min="0" step="0.001" inputmode="decimal"></label>
+<label class="equipe-field" id="movEstoqueCustoField"><span>Custo unitário desta compra</span><div class="equipe-money-field"><span>R$</span><input id="movEstoqueCusto" type="tel" inputmode="numeric" placeholder="0,00"></div></label>
+<label class="equipe-field"><span>Motivo</span><input id="movEstoqueMotivo" type="text" maxlength="120" autocomplete="off" placeholder="Ex.: Compra, uso interno, perda"></label>
+<label class="estoque-check-row" id="movEstoqueGerarDespesaField"><span>Gerar despesa desta compra?</span><input id="movEstoqueGerarDespesa" type="checkbox"></label>
+<div class="estoque-despesa-opcoes" id="movEstoqueDespesaOpcoes" hidden>
+<label class="estoque-check-row"><span>Compra parcelada?</span><input id="movEstoqueParcelada" type="checkbox"></label>
+<label class="equipe-field" id="movEstoqueParcelasField" hidden><span>Parcelas</span><input id="movEstoqueParcelas" type="number" min="2" max="36" step="1" value="2"></label>
+<small>A despesa será registrada como “Produtos”. Em parcelamento, cada mês recebe apenas sua parcela.</small>
+</div>
+<div class="estoque-form-actions"><button type="button" id="btnCancelarMovEstoque">Cancelar</button><button type="submit" id="btnSalvarMovimentacaoEstoque">Confirmar</button></div>
+</form>
+</div>
+</div>
+
+<!-- MODAL: VENDA DE PRODUTO -->
+<div id="modalVendaProduto" class="equipe-modal" hidden aria-hidden="true">
+<div class="equipe-modal-card estoque-modal-card" role="dialog" aria-modal="true" aria-labelledby="tituloVendaProduto">
+<div class="equipe-modal-header"><div><h3 id="tituloVendaProduto">Registrar venda</h3><p>A venda baixa o estoque e registra a comissão automaticamente.</p></div><button type="button" id="btnFecharVendaProduto" class="equipe-modal-close" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>
+<div class="estoque-venda-head"><strong id="vendaProdutoNome">Produto</strong><span id="vendaProdutoPreco">R$ 0,00</span><span id="vendaProdutoEstoque">0 disponível</span></div>
+<form id="formVendaProduto" class="equipe-form estoque-form" novalidate>
+<div class="estoque-inline-grid">
+<label class="equipe-field"><span>Quantidade</span><input id="vendaProdutoQuantidade" type="number" min="1" step="1" value="1"></label>
+<label class="equipe-field"><span>Forma de pagamento</span><select id="vendaProdutoPagamento"></select></label>
+</div>
+<label class="estoque-check-row" id="vendaComissaoAdminField"><span>Gerar comissão?</span><input id="vendaGerarComissao" type="checkbox" checked></label>
+<label class="equipe-field" id="vendaProfissionalField"><span>Profissional</span><select id="vendaProfissional"></select></label>
+<div class="estoque-comissao-resumo" id="vendaComissaoResumo"><div><span>Comissão <b id="vendaComissaoPct">20,00%</b></span><strong>Valor do profissional</strong></div><strong id="vendaComissaoValor">R$ 0,00</strong></div>
+<div class="estoque-venda-total"><span>Total da venda</span><strong id="vendaProdutoTotal">R$ 0,00</strong></div>
+<div class="estoque-form-actions"><button type="button" id="btnCancelarVendaProduto">Cancelar</button><button type="submit" id="btnRegistrarVendaProduto">Registrar venda</button></div>
+</form>
+</div>
+</div>
+
+<!-- MODAL: LEITOR DE CÓDIGO DE BARRAS -->
+<div id="modalScannerEstoque" class="equipe-modal" hidden aria-hidden="true">
+<div class="equipe-modal-card estoque-scanner-card" role="dialog" aria-modal="true" aria-labelledby="tituloScannerEstoque">
+<div class="equipe-modal-header"><div><h3 id="tituloScannerEstoque">Ler código de barras</h3><p>Centralize o código da embalagem no quadro.</p></div><button type="button" id="btnFecharScannerEstoque" class="equipe-modal-close" aria-label="Fechar câmera"><i class="fas fa-xmark"></i></button></div>
+<div class="estoque-scanner-wrap"><video id="scannerEstoqueVideo" muted playsinline></video><div class="estoque-scanner-guide"></div></div>
+<div class="estoque-scanner-status" id="scannerEstoqueStatus">Aguardando câmera...</div>
+</div>
+</div>
+
 <!-- MODAL: NOVA / EDITAR DESPESA -->
 <div id="modalDespesa" class="equipe-modal despesa-modal" hidden>
 <div class="equipe-modal-card despesa-modal-card" role="dialog" aria-modal="true" aria-labelledby="tituloModalDespesa">
@@ -1298,8 +1475,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.27" defer></script>
-<script src="js/dashboard/index.js?v=8.27" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.28" defer></script>
+<script src="js/dashboard/index.js?v=8.28" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

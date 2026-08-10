@@ -1,5 +1,5 @@
-import { auth } from "../firebase-init.js?v=8.27";
-import { state } from "./state.js?v=8.27";
+import { auth } from "../firebase-init.js?v=8.28";
+import { state } from "./state.js?v=8.28";
 
 import {
     EmailAuthProvider,
@@ -11,13 +11,13 @@ import {
 import {
     obterDadosConta,
     salvarFotoConta
-} from "./data/conta-repository.js?v=8.27";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.27";
+} from "./data/conta-repository.js?v=8.28";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.28";
 
 import {
     mostrarErro,
     mostrarSucesso
-} from "./services/feedback-service.js?v=8.27";
+} from "./services/feedback-service.js?v=8.28";
 
 
 let inicializado = false;

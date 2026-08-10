@@ -1,11 +1,11 @@
-import { state, onStateChange } from "./state.js?v=8.27";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.27";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.27";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.27";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.27";
-import { usuarioEhAdmin } from "./permissoes.js?v=8.27";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.27";
-import { mostrarErro } from "./services/feedback-service.js?v=8.27";
+import { state, onStateChange } from "./state.js?v=8.28";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.28";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.28";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.28";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.28";
+import { usuarioEhAdmin } from "./permissoes.js?v=8.28";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.28";
+import { mostrarErro } from "./services/feedback-service.js?v=8.28";
 
 let inicializado = false;
 let servicoSelecionadoId = "";

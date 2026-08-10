@@ -5,13 +5,13 @@ import {
     editarDespesa,
     excluirDespesaParcelada,
     listarDespesasPorPeriodo
-} from "./data/despesas-repository.js?v=8.27";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.27";
-import { state } from "./state.js?v=8.27";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.27";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.27";
-import { abrirSeletorData } from "./utils/dom.js?v=8.27";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.27";
+} from "./data/despesas-repository.js?v=8.28";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.28";
+import { state } from "./state.js?v=8.28";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.28";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.28";
+import { abrirSeletorData } from "./utils/dom.js?v=8.28";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.28";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
