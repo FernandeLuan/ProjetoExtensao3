@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=9.1";
+import { auth, db } from "../firebase-init.js?v=9.2";
 import {
     updatePassword,
     signOut
@@ -8,7 +8,7 @@ import {
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.1";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.2";
 
 function obterElementos() {
     return {

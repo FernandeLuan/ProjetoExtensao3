@@ -1,4 +1,4 @@
-/* Sr NK 3.1 - bundle profissional.css */
+/* Sr NK 3.2 - bundle profissional.css */
 
 /* ===== theme.css ===== */
 /* ================================
@@ -5233,3 +5233,135 @@ button.ui-action-success {
     }
 }
 
+
+
+/* ===== v9.2 • resposta instantânea ===== */
+/* A interface pode aparecer antes do Auth terminar, mas permanece realmente
+   inerte até contexto + permissões estarem confirmados. */
+body.session-pending .dashboard-main,
+body.session-pending .bottom-nav,
+body.session-pending .menu-sheet,
+body.session-pending .sidebar-overlay {
+    visibility: visible !important;
+}
+
+body.session-pending .dashboard-main,
+body.session-pending .bottom-nav,
+body.session-pending .menu-sheet {
+    pointer-events: none !important;
+    user-select: none;
+}
+
+body.session-pending .dashboard-main {
+    opacity: .72;
+    filter: saturate(.82);
+    transition: opacity .18s ease, filter .18s ease;
+}
+
+body:not(.session-pending) .dashboard-main {
+    transition: opacity .16s ease, filter .16s ease;
+}
+
+/* Depois do primeiro instante, o splash vira apenas um status compacto.
+   O usuário já enxerga o app enquanto a sessão é confirmada. */
+body.session-pending:not(.dashboard-booting) .app-boot-status:not([hidden]) {
+    display: flex !important;
+    position: fixed;
+    inset: 12px auto auto 50%;
+    transform: translateX(-50%);
+    z-index: 100000;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    min-height: 40px;
+    padding: 7px 11px 7px 8px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--border, rgba(128,128,128,.18));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-card, #fff) 92%, transparent);
+    color: var(--text-primary, #111827);
+    box-shadow: 0 8px 28px rgba(0,0,0,.13);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    text-align: left;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-status::before,
+body.session-pending:not(.dashboard-booting) .app-boot-status::after {
+    display: none;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-brand {
+    margin: 0;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-logo-shell {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    box-shadow: none;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-title {
+    display: none;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-subtitle {
+    margin: 0;
+    font-size: .68rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+body.session-pending:not(.dashboard-booting) .app-boot-progress {
+    width: 30px;
+    height: 3px;
+    margin: 0;
+    flex: 0 0 30px;
+}
+
+/* Confirmação visual não bloqueante: o botão original é restaurado/liberado assim
+   que o write termina; esta camada só comunica sucesso. */
+button.ui-action-confirmed {
+    position: relative;
+    overflow: hidden;
+}
+
+button.ui-action-confirmed::after {
+    content: attr(data-ui-success);
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: inherit;
+    border-radius: inherit;
+    background: var(--success, #16a34a);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: inherit;
+    pointer-events: none;
+    animation: srnk-success-feedback .18s ease-out both;
+}
+
+@keyframes srnk-success-feedback {
+    from { opacity: 0; transform: scale(.985); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.session-pending .dashboard-main,
+    body:not(.session-pending) .dashboard-main,
+    button.ui-action-confirmed::after { transition: none; animation: none; }
+}

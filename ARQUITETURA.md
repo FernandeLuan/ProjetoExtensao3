@@ -1,10 +1,10 @@
-# Sr NK 3.1 — arquitetura separada
+# Sr NK 3.2 — arquitetura separada
 
 ## URLs no GitHub Pages
-- Site público: `/ProjetoExtensao3/`
-- Área profissional: `/ProjetoExtensao3/profissional/`
-- Gestão administrativa: `/ProjetoExtensao3/admin/`
-- Login compartilhado: `/ProjetoExtensao3/login.html`
+- Site público: `/SrNK/`
+- Área profissional: `/SrNK/profissional/`
+- Gestão administrativa: `/SrNK/admin/`
+- Login compartilhado: `/SrNK/login.html`
 
 ## Estrutura
 - `profissional/`: HTML e manifest da área do barbeiro.

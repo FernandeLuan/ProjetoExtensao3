@@ -1,22 +1,22 @@
-import { state, onStateChange } from "./state.js?v=9.1";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.1";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.1";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.1";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.1";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.1";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.1";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.1";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.1";
-import { escaparHtml } from "./utils/dom.js?v=9.1";
-import { mostrarErro } from "./services/feedback-service.js?v=9.1";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.1";
+import { state, onStateChange } from "./state.js?v=9.2";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.2";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.2";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.2";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.2";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.2";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.2";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.2";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.2";
+import { escaparHtml } from "./utils/dom.js?v=9.2";
+import { mostrarErro } from "./services/feedback-service.js?v=9.2";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.2";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.1";
+} from "./services/ui-loading-service.js?v=9.2";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -161,7 +161,7 @@ async function selecionarDataHistorico(data) {
     const nova = inicioDoDia(data);
     dataHistoricoSelecionada = nova > hoje ? hoje : nova;
     fecharDetalheHistorico(true);
-    const loading = iniciarLoadingTela("Carregando histórico...", { delay: 260 });
+    const loading = iniciarLoadingTela("Carregando histórico...", { delay: 320 });
     try {
         await garantirAtendimentosPeriodo(
             dataHistoricoSelecionada,

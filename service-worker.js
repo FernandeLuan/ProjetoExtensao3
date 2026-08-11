@@ -1,6 +1,6 @@
-const CACHE_NAME = "sr-nk-v3.1-runtime-v910";
+const CACHE_NAME = "sr-nk-v3.2-instant-v920";
 
-// Cache inicial deliberadamente pequeno. A v3.0 pré-carregava Profissional + Admin
+// Cache inicial deliberadamente pequeno. A arquitetura antiga pré-carregava Profissional + Admin
 // juntos e anulava parte do ganho da separação. Cada área agora entra no cache
 // somente quando realmente é acessada.
 const CORE_SHELL = [
@@ -12,10 +12,10 @@ const CORE_SHELL = [
   "./icons/icon-512.png",
   "./Fotos/Sr.NK.jpg",
   "./css/style.css",
-  "./css/login.css?v=9.1",
-  "./js/firebase-init.js?v=9.1",
-  "./js/login.js?v=9.1",
-  "./js/mobile-interactions.js?v=9.1"
+  "./css/login.css?v=9.2",
+  "./js/firebase-init.js?v=9.2",
+  "./js/login.js?v=9.2",
+  "./js/mobile-interactions.js?v=9.2"
 ];
 
 self.addEventListener("install", (event) => {

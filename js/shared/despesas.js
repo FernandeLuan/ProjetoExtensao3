@@ -5,20 +5,20 @@ import {
     editarDespesa,
     excluirDespesaParcelada,
     listarDespesasPorPeriodo
-} from "./data/despesas-repository.js?v=9.1";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.1";
-import { state } from "./state.js?v=9.1";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=9.1";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=9.1";
-import { abrirSeletorData } from "./utils/dom.js?v=9.1";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.1";
+} from "./data/despesas-repository.js?v=9.2";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.2";
+import { state } from "./state.js?v=9.2";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=9.2";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=9.2";
+import { abrirSeletorData } from "./utils/dom.js?v=9.2";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.2";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.1";
+} from "./services/ui-loading-service.js?v=9.2";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -217,7 +217,7 @@ function renderizarDespesas() {
 export async function carregarDespesasMes() {
     atualizarNavegacaoMes();
     listaEl?.classList.add("carregando");
-    const loading = iniciarLoadingTela("Carregando despesas...", { delay: 260 });
+    const loading = iniciarLoadingTela("Carregando despesas...", { delay: 320 });
 
     try {
         const { inicio, fim } = obterPeriodoMes();

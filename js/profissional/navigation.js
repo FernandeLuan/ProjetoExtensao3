@@ -1,9 +1,9 @@
-import { auth } from "../firebase-init.js?v=9.1";
+import { auth } from "../firebase-init.js?v=9.2";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.1";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=9.1";
-import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=9.1";
-import { iniciarMedicao, finalizarMedicao } from "../shared/services/perf-service.js?v=9.1";
+import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.2";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=9.2";
+import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=9.2";
+import { iniciarMedicao, finalizarMedicao } from "../shared/services/perf-service.js?v=9.2";
 
 let inicializado = false;
 const modulos = new Map();
@@ -48,22 +48,22 @@ function atualizarAtivo(targetId){
 }
 function animar(section){ section.classList.remove('section-enter'); void section.offsetWidth; section.classList.add('section-enter'); setTimeout(()=>section.classList.remove('section-enter'),220); }
 async function importar(chave,caminho){ if(modulos.has(chave))return modulos.get(chave); if(carregamentos.has(chave))return carregamentos.get(chave); const medicao=iniciarMedicao(`Import ${chave}`); const p=import(caminho).then(m=>{modulos.set(chave,m);carregamentos.delete(chave);finalizarMedicao(medicao);return m;}).catch(e=>{carregamentos.delete(chave);finalizarMedicao(medicao,'erro');throw e;}); carregamentos.set(chave,p); return p; }
-export function preloadInicio(){ return importar('registrar','../shared/registrar.js?v=9.1'); }
+export function preloadInicio(){ return importar('registrar','../shared/registrar.js?v=9.2'); }
 async function carregar(targetId){
   switch(targetId){
-    case 'registrar': { const m=await importar('registrar','../shared/registrar.js?v=9.1'); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
-    case 'painelFinanceiro': { const m=await importar('painel','../shared/painel.js?v=9.1'); await m.abrirPainelHoje?.(); return; }
-    case 'historico': { const m=await importar('historico','../shared/historico.js?v=9.1'); await m.abrirHistoricoHoje?.(); return; }
-    case 'relatorios': { const m=await importar('relatorios','../shared/relatorios.js?v=9.1'); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-    case 'estoque': { const m=await importar('estoque','../shared/estoque.js?v=9.1'); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
-    case 'despesas': { const m=await importar('despesas','../shared/despesas.js?v=9.1'); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
-    case 'conta': { const m=await importar('conta','../shared/conta.js?v=9.1'); m.initConta?.(); await m.abrirConta?.(); return; }
+    case 'registrar': { const m=await importar('registrar','../shared/registrar.js?v=9.2'); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
+    case 'painelFinanceiro': { const m=await importar('painel','../shared/painel.js?v=9.2'); await m.abrirPainelHoje?.(); return; }
+    case 'historico': { const m=await importar('historico','../shared/historico.js?v=9.2'); await m.abrirHistoricoHoje?.(); return; }
+    case 'relatorios': { const m=await importar('relatorios','../shared/relatorios.js?v=9.2'); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
+    case 'estoque': { const m=await importar('estoque','../shared/estoque.js?v=9.2'); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+    case 'despesas': { const m=await importar('despesas','../shared/despesas.js?v=9.2'); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
+    case 'conta': { const m=await importar('conta','../shared/conta.js?v=9.2'); m.initConta?.(); await m.abrirConta?.(); return; }
   }
 }
 function iniciarCarregamento(targetId,section){
   section?.setAttribute('aria-busy','true'); section?.classList.add('section-module-loading');
   if(execucoesSecao.has(targetId))return execucoesSecao.get(targetId);
-  const token=iniciarLoadingTela(MENSAGENS[targetId]||'Carregando...',{delay:260});
+  const token=iniciarLoadingTela(MENSAGENS[targetId]||'Carregando...',{delay:320});
   const medicao=iniciarMedicao(`Seção ${targetId}`);
   const p=carregar(targetId).catch(e=>{console.error(`[Profissional] Erro ao carregar ${targetId}:`,e);mostrarErro('Não foi possível abrir esta seção. Tente novamente.');throw e;}).finally(()=>{finalizarMedicao(medicao);finalizarLoadingTela(token);execucoesSecao.delete(targetId);section?.removeAttribute('aria-busy');section?.classList.remove('section-module-loading');});
   execucoesSecao.set(targetId,p);

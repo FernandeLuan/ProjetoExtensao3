@@ -1,4 +1,4 @@
-# Sr NK 3.1 — diagnóstico de performance
+# Sr NK 3.2 — diagnóstico de performance
 
 ## O que mudou
 
@@ -48,3 +48,13 @@ O primeiro mostra duração das operações. O segundo mostra consultas e docume
 5. Registre um atendimento no Profissional.
 6. Confira se no Admin surgiu algum evento `Loading solicitado`, `Loading visível` ou consulta Firestore.
 7. Compare `__SRNK_PERF__()` e `__SRNK_DIAGNOSTICO__()` nos dois.
+
+
+## v3.2 — Resposta instantânea
+
+- A interface estática aparece após ~90 ms mesmo enquanto o Firebase Auth restaura a sessão.
+- Main/nav permanecem `inert` e sem eventos até Auth + membro + permissões serem confirmados.
+- A primeira tela é importada em paralelo com o Auth.
+- `Firebase Auth` passou a ter medição própria no `__SRNK_PERF__()`.
+- Feedbacks de sucesso de botões não bloqueiam mais o fluxo: o botão é restaurado assim que o write termina e o sucesso fica apenas como camada visual temporária.
+- Loading global passa a aparecer somente depois de ~320 ms na maioria das telas, evitando flashes em ações rápidas.

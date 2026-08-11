@@ -1,11 +1,21 @@
-import { registrarEventoPerf } from "./perf-service.js?v=9.1";
+import { registrarEventoPerf } from "./perf-service.js?v=9.2";
 
 const estadosBotoes = new WeakMap();
+const confirmacoesBotoes = new WeakMap();
 const loadingsTela = new Map();
 let sequenciaLoading = 0;
 
 function aguardar(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function limparConfirmacaoBotao(botao) {
+    if (!botao) return;
+    const timer = confirmacoesBotoes.get(botao);
+    if (timer) clearTimeout(timer);
+    confirmacoesBotoes.delete(botao);
+    botao.classList.remove("ui-action-confirmed");
+    delete botao.dataset.uiSuccess;
 }
 
 function definirConteudoBotao(botao, { texto, tipo = "loading" }) {
@@ -25,6 +35,7 @@ function definirConteudoBotao(botao, { texto, tipo = "loading" }) {
 
 export function iniciarAcaoBotao(botao, texto = "Salvando...") {
     if (!botao) return;
+    limparConfirmacaoBotao(botao);
 
     if (!estadosBotoes.has(botao)) {
         const largura = Math.ceil(botao.getBoundingClientRect().width || 0);
@@ -65,16 +76,22 @@ export function restaurarAcaoBotao(botao) {
     estadosBotoes.delete(botao);
 }
 
-export async function concluirAcaoBotao(botao, texto = "Concluído!", duracao = 460) {
-    if (!botao) return;
+export function concluirAcaoBotao(botao, texto = "Concluído!", duracao = 520) {
+    if (!botao) return Promise.resolve();
 
-    botao.classList.remove("ui-action-loading");
-    botao.classList.add("ui-action-success");
-    botao.setAttribute("aria-busy", "false");
-    definirConteudoBotao(botao, { texto, tipo: "success" });
-
-    if (duracao > 0) await aguardar(duracao);
+    // A gravação já terminou. O botão volta a ficar utilizável imediatamente e o
+    // sucesso aparece como uma camada visual temporária, sem segurar o fluxo.
     restaurarAcaoBotao(botao);
+    limparConfirmacaoBotao(botao);
+    botao.classList.add("ui-action-confirmed");
+    botao.dataset.uiSuccess = String(texto || "Concluído!");
+
+    const tempoVisual = Math.max(180, Math.min(900, Number(duracao) || 520));
+    const timer = setTimeout(() => limparConfirmacaoBotao(botao), tempoVisual);
+    confirmacoesBotoes.set(botao, timer);
+
+    registrarEventoPerf("Feedback sucesso", `${botao.dataset.uiSuccess} • não bloqueante`);
+    return Promise.resolve();
 }
 
 function overlayLoading() {
@@ -100,7 +117,7 @@ function atualizarOverlayLoading() {
     document.body.classList.add("app-loading-em-andamento");
 }
 
-export function iniciarLoadingTela(mensagem = "Carregando...", { delay = 240 } = {}) {
+export function iniciarLoadingTela(mensagem = "Carregando...", { delay = 320 } = {}) {
     const token = `loading-${++sequenciaLoading}`;
     const item = {
         mensagem: String(mensagem || "Carregando..."),
