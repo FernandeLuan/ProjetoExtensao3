@@ -1,7 +1,7 @@
 {
-  "name": "Sr NK Barbearia",
-  "short_name": "Sr NK",
-  "description": "Site oficial da Sr NK Barbearia.",
+  "name": "Sr NK - Gestão",
+  "short_name": "Sr NK Admin",
+  "description": "Gestão administrativa da barbearia Sr NK.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,13 +9,13 @@
   "theme_color": "#0F1115",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "../icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "../icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

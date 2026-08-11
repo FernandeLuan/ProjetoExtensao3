@@ -2,9 +2,12 @@ import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=8.32";
+import { auth } from "./firebase-init.js?v=9.0";
 
 const form = document.getElementById("loginForm");
+const paramsLogin = new URLSearchParams(window.location.search);
+const destinoSolicitado = paramsLogin.get("destino") === "admin" ? "admin" : "profissional";
+const destinoAposLogin = destinoSolicitado === "admin" ? "admin/" : "profissional/";
 
 function animarErro(elemento, mensagem) {
     if (!elemento) return;
@@ -37,7 +40,7 @@ form?.addEventListener("submit", async function(e) {
         document.body.classList.add("fade-out");
 
         setTimeout(() => {
-            window.location.replace("dashboard.html");
+            window.location.replace(destinoAposLogin);
         }, 140);
     } catch (error) {
         btn?.classList.remove("loading", "success");
@@ -96,7 +99,7 @@ btnEsqueci?.addEventListener("click", async function(e) {
     }
 });
 
-const motivoAcesso = new URLSearchParams(window.location.search).get("motivo");
+const motivoAcesso = paramsLogin.get("motivo");
 const mensagemAcesso = document.getElementById("erroLogin");
 if (mensagemAcesso && motivoAcesso === "desativado") {
     animarErro(mensagemAcesso, "Seu acesso à barbearia foi desativado pelo administrador.");

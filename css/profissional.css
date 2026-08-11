@@ -1,0 +1,17 @@
+/* Sr NK 3.0 - Aplicativo Profissional */
+@import url("./dashboard/theme.css?v=9.0");
+@import url("./dashboard/base.css?v=9.0");
+@import url("./dashboard/navigation.css?v=9.0");
+@import url("./dashboard/layout.css?v=9.0");
+@import url("./dashboard/registrar.css?v=9.0");
+@import url("./dashboard/painel.css?v=9.0");
+@import url("./dashboard/historico.css?v=9.0");
+@import url("./dashboard/calendario.css?v=9.0");
+@import url("./dashboard/relatorios.css?v=9.0");
+@import url("./dashboard/estoque.css?v=9.0");
+@import url("./dashboard/despesas.css?v=9.0");
+@import url("./dashboard/primeiro-acesso.css?v=9.0");
+@import url("./dashboard/conta.css?v=9.0");
+@import url("./dashboard/modals.css?v=9.0");
+@import url("./dashboard/utilities.css?v=9.0");
+@import url("./dashboard/ui-system.css?v=9.0");

@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=8.32";
+import { auth, db } from "../firebase-init.js?v=9.0";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
     collection,
@@ -10,18 +10,18 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { inicializarContexto, obterWorkspaceId } from "../dashboard/data/context.js?v=8.32";
-import { recarregarConfiguracoes, invalidarCacheAtendimentos } from "../dashboard/data/sync.js?v=8.32";
-import { listarMembrosEquipe } from "../dashboard/data/equipe-repository.js?v=8.32";
-import { state } from "../dashboard/state.js?v=8.32";
-import { usuarioEhAdmin } from "../dashboard/permissoes.js?v=8.32";
-import { obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "../dashboard/services/catalogo-service.js?v=8.32";
-import { criarPayloadAtendimento } from "../dashboard/services/atendimento-model.js?v=8.32";
+import { inicializarContexto, obterWorkspaceId } from "../shared/data/context.js?v=9.0";
+import { recarregarConfiguracoes, invalidarCacheAtendimentos } from "../shared/data/sync.js?v=9.0";
+import { listarMembrosEquipe } from "../shared/data/equipe-repository.js?v=9.0";
+import { state } from "../shared/state.js?v=9.0";
+import { usuarioEhAdmin } from "../shared/permissoes.js?v=9.0";
+import { obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "../shared/services/catalogo-service.js?v=9.0";
+import { criarPayloadAtendimento } from "../shared/services/atendimento-model.js?v=9.0";
 import {
     anexarDeltasAtendimentosAoBatch,
     invalidarCacheResumos,
     RESUMO_VERSION
-} from "../dashboard/data/resumos-repository.js?v=8.32";
+} from "../shared/data/resumos-repository.js?v=9.0";
 
 const PRODUCAO_ID = "3TYly8cYfAWxI9LCdnAJgKL6t2s2";
 const EMAIL_MARLON = "fernandemarlon93@gmail.com";
