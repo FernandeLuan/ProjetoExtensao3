@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=9.4";
+import { auth, db } from "../firebase-init.js?v=9.5";
 import {
     updatePassword,
     signOut
@@ -8,8 +8,8 @@ import {
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.4";
-import { limparSessaoArea } from "./auth-area-session.js?v=9.4";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.5";
+import { limparSessaoArea } from "./auth-area-session.js?v=9.5";
 
 function obterElementos() {
     return {

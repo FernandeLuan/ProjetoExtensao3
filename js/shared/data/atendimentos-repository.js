@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.4";
+import { db } from "../../firebase-init.js?v=9.5";
 import {
     collection,
     doc,
@@ -12,13 +12,13 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.4";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.4";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.4";
+import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.5";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.5";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.5";
 import {
     anexarDeltasAtendimentosAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.4";
+} from "./resumos-repository.js?v=9.5";
 
 function colecaoAtendimentos() {
     return collection(db, "barbearias", obterWorkspaceId(), "atendimentos");

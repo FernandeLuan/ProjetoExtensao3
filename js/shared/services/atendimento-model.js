@@ -1,5 +1,5 @@
-import { SCHEMA_VERSION } from "../constants.js?v=9.4";
-import { processarFinanceiro } from "./financeiro-service.js?v=9.4";
+import { SCHEMA_VERSION } from "../constants.js?v=9.5";
+import { processarFinanceiro } from "./financeiro-service.js?v=9.5";
 
 function taxaProfissional(profissional, campo) {
     const numero = Number(profissional?.[campo]);

@@ -1,16 +1,16 @@
-import { auth } from "../firebase-init.js?v=9.4";
+import { auth } from "../firebase-init.js?v=9.5";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { inicializarContexto } from "../shared/data/context.js?v=9.4";
-import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.4";
-import { definirConfiguracoes } from "../shared/state.js?v=9.4";
-import { initTheme } from "../shared/theme.js?v=9.4";
-import { initConnectivity } from "../shared/connectivity.js?v=9.4";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=9.4";
-import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.4";
-import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.4";
-import { migrarRepasseParaBaseBruta } from "../shared/data/migracao-repasse-bruto.js?v=9.4";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.4";
-import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=9.4";
+import { inicializarContexto } from "../shared/data/context.js?v=9.5";
+import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.5";
+import { definirConfiguracoes } from "../shared/state.js?v=9.5";
+import { initTheme } from "../shared/theme.js?v=9.5";
+import { initConnectivity } from "../shared/connectivity.js?v=9.5";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=9.5";
+import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.5";
+import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.5";
+import { migrarRepasseParaBaseBruta } from "../shared/data/migracao-repasse-bruto.js?v=9.5";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.5";
+import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=9.5";
 
 const AREA_ATUAL = "admin";
 const SESSAO_DA_AREA_VALIDA = sessaoPertenceArea(AREA_ATUAL);

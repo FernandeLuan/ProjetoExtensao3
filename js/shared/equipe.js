@@ -1,23 +1,23 @@
-import { state } from "./state.js?v=9.4";
+import { state } from "./state.js?v=9.5";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=9.4";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.4";
-import { obterServicos } from "./services/catalogo-service.js?v=9.4";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.4";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.4";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.4";
+} from "./data/equipe-repository.js?v=9.5";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.5";
+import { obterServicos } from "./services/catalogo-service.js?v=9.5";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.5";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.5";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.5";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.4";
+} from "./services/ui-loading-service.js?v=9.5";
 
 let inicializado = false;
 let carregando = false;

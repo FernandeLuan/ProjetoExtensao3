@@ -1,8 +1,8 @@
-import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=9.4";
-import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=9.4";
-import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=9.4";
-import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=9.4";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.4";
+import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=9.5";
+import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=9.5";
+import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=9.5";
+import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=9.5";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.5";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX_ITENS = 24;

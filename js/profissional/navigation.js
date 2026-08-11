@@ -1,9 +1,9 @@
-import { auth } from "../firebase-init.js?v=9.4";
+import { auth } from "../firebase-init.js?v=9.5";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.4";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=9.4";
-import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=9.4";
-import { limparSessaoArea } from "../shared/auth-area-session.js?v=9.4";
+import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.5";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=9.5";
+import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=9.5";
+import { limparSessaoArea } from "../shared/auth-area-session.js?v=9.5";
 
 let inicializado = false;
 const modulos = new Map();
@@ -35,20 +35,25 @@ export function configurarNavegacao(){
 }
 
 function atualizarAtivo(targetId){ let ativoNaBarra=false; itensBottomNav().forEach(item=>{ const ativo=item.dataset.navTarget===targetId; ativoNaBarra ||= ativo; item.classList.toggle('active',ativo); if(ativo)item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current'); }); menuToggle?.classList.toggle('active', !ativoNaBarra && ['estoque','despesas','conta'].includes(targetId)); }
+function preaquecerHistorico(){
+  const executar=()=>{void importar('historico','../shared/historico.js?v=9.5').catch(()=>null);};
+  if('requestIdleCallback' in window) window.requestIdleCallback(executar,{timeout:1800});
+  else window.setTimeout(executar,900);
+}
 function animar(section){ section.classList.remove('section-enter'); void section.offsetWidth; section.classList.add('section-enter'); setTimeout(()=>section.classList.remove('section-enter'),220); }
 async function importar(chave,caminho){ if(modulos.has(chave))return modulos.get(chave); if(carregamentos.has(chave))return carregamentos.get(chave); const p=import(caminho).then(m=>{modulos.set(chave,m);carregamentos.delete(chave);return m;}).catch(e=>{carregamentos.delete(chave);throw e;}); carregamentos.set(chave,p); return p; }
-export function preloadInicio(){ return importar('registrar','../shared/registrar.js?v=9.4'); }
+export function preloadInicio(){ return importar('registrar','../shared/registrar.js?v=9.5'); }
 async function carregar(targetId){ switch(targetId){
-  case 'registrar': { const m=await importar('registrar','../shared/registrar.js?v=9.4'); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
-  case 'painelFinanceiro': { const m=await importar('painel','../shared/painel.js?v=9.4'); await m.abrirPainelHoje?.(); return; }
-  case 'historico': { const m=await importar('historico','../shared/historico.js?v=9.4'); await m.abrirHistoricoHoje?.(); return; }
-  case 'relatorios': { const m=await importar('relatorios','../shared/relatorios.js?v=9.4'); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-  case 'estoque': { const m=await importar('estoque','../shared/estoque.js?v=9.4'); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
-  case 'despesas': { const m=await importar('despesas','../shared/despesas.js?v=9.4'); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
-  case 'conta': { const m=await importar('conta','../shared/conta.js?v=9.4'); m.initConta?.(); await m.abrirConta?.(); return; }
+  case 'registrar': { const m=await importar('registrar','../shared/registrar.js?v=9.5'); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
+  case 'painelFinanceiro': { const m=await importar('painel','../shared/painel.js?v=9.5'); await m.abrirPainelHoje?.(); return; }
+  case 'historico': { const m=await importar('historico','../shared/historico.js?v=9.5'); await m.abrirHistoricoHoje?.(); return; }
+  case 'relatorios': { const m=await importar('relatorios','../shared/relatorios.js?v=9.5'); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
+  case 'estoque': { const m=await importar('estoque','../shared/estoque.js?v=9.5'); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+  case 'despesas': { const m=await importar('despesas','../shared/despesas.js?v=9.5'); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
+  case 'conta': { const m=await importar('conta','../shared/conta.js?v=9.5'); m.initConta?.(); await m.abrirConta?.(); return; }
 }}
 function iniciarCarregamento(targetId,section){ section?.setAttribute('aria-busy','true'); section?.classList.add('section-module-loading'); if(execucoesSecao.has(targetId))return execucoesSecao.get(targetId); const token=iniciarLoadingTela(MENSAGENS[targetId]||'Carregando...',{delay:320}); const p=carregar(targetId).catch(e=>{console.error(`[Profissional] Erro ao carregar ${targetId}:`,e);mostrarErro('Não foi possível abrir esta seção. Tente novamente.');throw e;}).finally(()=>{finalizarLoadingTela(token);execucoesSecao.delete(targetId);section?.removeAttribute('aria-busy');section?.classList.remove('section-module-loading');}); execucoesSecao.set(targetId,p); return p; }
 export async function exibirSecao(href){ if(!href?.startsWith('#'))return; const targetId=href.slice(1); const permitidos=new Set(['registrar','painelFinanceiro','historico','relatorios','estoque','despesas','conta']); if(!permitidos.has(targetId))return exibirSecao('#registrar'); const target=document.querySelector(href); if(!target)return; document.querySelectorAll('main > section').forEach(s=>s.style.display='none'); target.style.display='block'; animar(target); atualizarAtivo(targetId); return iniciarCarregamento(targetId,target); }
-export async function abrirInicio(){ fecharMenu(); await exibirSecao('#registrar'); }
+export async function abrirInicio(){ fecharMenu(); await exibirSecao('#registrar'); preaquecerHistorico(); }
 async function logout(){ try{limparSessaoArea();await signOut(auth);}finally{window.location.href='./login.html';} }
 export function initNavigation(){ if(inicializado)return; inicializado=true; menuToggle?.addEventListener('click',()=>sidebarMenu?.classList.contains('active')?fecharMenu():abrirMenu()); sidebarOverlay?.addEventListener('click',fecharMenu); document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharMenu();}); document.querySelector('.bottom-nav')?.addEventListener('click',e=>{const item=e.target.closest('.bottom-nav-item[data-nav-target]'); if(!item)return; e.preventDefault(); fecharMenu(); void exibirSecao(`#${item.dataset.navTarget}`);}); sidebarMenu?.addEventListener('click',e=>{const link=e.target.closest('a'); if(!link)return; if(link.classList.contains('menu-logout')){e.preventDefault();void logout();return;} const href=link.getAttribute('href'); if(href?.startsWith('#')){e.preventDefault();void exibirSecao(href);fecharMenu();}}); }

@@ -1,22 +1,22 @@
-import { state, onStateChange } from "./state.js?v=9.4";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.4";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.4";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.4";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.4";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.4";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.4";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.4";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.4";
-import { escaparHtml } from "./utils/dom.js?v=9.4";
-import { mostrarErro } from "./services/feedback-service.js?v=9.4";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.4";
+import { state, onStateChange } from "./state.js?v=9.5";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.5";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.5";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.5";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.5";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.5";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.5";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.5";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.5";
+import { escaparHtml } from "./utils/dom.js?v=9.5";
+import { mostrarErro } from "./services/feedback-service.js?v=9.5";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.5";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.4";
+} from "./services/ui-loading-service.js?v=9.5";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -187,25 +187,38 @@ export async function abrirHistoricoHoje() {
             ? "Buscar barbeiro, serviço ou pagamento"
             : "Buscar serviço ou pagamento";
     }
-    try {
-        const tarefas = [
-            garantirAtendimentosPeriodo(
-                dataHistoricoSelecionada,
-                dataHistoricoSelecionada,
-                podeAdministrarNaVisaoAtual()
-                    ? {}
-                    : { profissionalUid: state.user?.uid || null }
-            )
-        ];
 
-        if (podeAdministrarNaVisaoAtual() && !(state.equipe || []).length) {
-            tarefas.push(listarMembrosEquipe());
-        }
-
-        await Promise.all(tarefas);
-    } catch (error) { console.error(error); }
+    // Abre imediatamente com o que já existe no estado local. Isso é
+    // especialmente importante logo após Registrar, porque o atendimento
+    // recém-criado já foi mesclado em state.atendimentos.
     prepararFiltrosDinamicos();
     atualizarHistorico();
+
+    // A sincronização remota não bloqueia a abertura da tela. Quando o
+    // Firestore responder, mesclarAtendimentos atualiza o state e o listener
+    // abaixo redesenha o Histórico automaticamente.
+    const tarefas = [
+        garantirAtendimentosPeriodo(
+            dataHistoricoSelecionada,
+            dataHistoricoSelecionada,
+            podeAdministrarNaVisaoAtual()
+                ? {}
+                : { profissionalUid: state.user?.uid || null }
+        )
+    ];
+
+    if (podeAdministrarNaVisaoAtual() && !(state.equipe || []).length) {
+        tarefas.push(listarMembrosEquipe());
+    }
+
+    void Promise.all(tarefas)
+        .then(() => {
+            prepararFiltrosDinamicos();
+            atualizarHistorico();
+        })
+        .catch((error) => {
+            console.error("Falha ao sincronizar histórico em segundo plano:", error);
+        });
 }
 
 function definirFiltroPadraoProfissional() {

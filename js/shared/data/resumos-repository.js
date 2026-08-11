@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.4";
+import { db } from "../../firebase-init.js?v=9.5";
 import {
     collection,
     doc,
@@ -11,14 +11,14 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { obterWorkspaceId } from "./context.js?v=9.4";
+import { obterWorkspaceId } from "./context.js?v=9.5";
 import {
     obterBrutoAtendimento,
     obterLiquidoBarbeiro,
     obterRepasseAtendimento,
     obterTaxaCartaoValor
-} from "../services/financeiro-service.js?v=9.4";
-import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.4";
+} from "../services/financeiro-service.js?v=9.5";
+import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.5";
 
 export const RESUMO_VERSION = 1;
 

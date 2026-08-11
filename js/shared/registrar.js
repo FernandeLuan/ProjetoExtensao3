@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=9.4";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=9.4";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=9.4";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=9.4";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.4";
-import { usuarioEhAdmin } from "./permissoes.js?v=9.4";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=9.4";
-import { mostrarErro } from "./services/feedback-service.js?v=9.4";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.4";
+import { state, onStateChange } from "./state.js?v=9.5";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=9.5";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=9.5";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=9.5";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.5";
+import { usuarioEhAdmin } from "./permissoes.js?v=9.5";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=9.5";
+import { mostrarErro } from "./services/feedback-service.js?v=9.5";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.5";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -302,8 +302,9 @@ async function registrarAtendimentoAtual() {
         dispararUndoInline(id);
         limparFormularioAposRegistro();
         // O novo atendimento já entra no state local pelo repository.
-        // Apenas invalida o cache para a próxima tela aberta buscar dados frescos.
-        invalidarCacheAtendimentos();
+        // Não limpamos o cache aqui: limpar obrigava o Histórico a refazer a
+        // consulta antes de abrir. A sincronização do Histórico atualiza em
+        // segundo plano sem bloquear a navegação.
         await concluirAcaoBotao(btnRegistrar, "Registrado ✓", 460);
     } catch (error) {
         console.error("Erro ao registrar atendimento:", error);

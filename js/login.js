@@ -5,12 +5,12 @@ import {
     signOut,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=9.4";
+import { auth } from "./firebase-init.js?v=9.5";
 import {
     limparSessaoArea,
     marcarSessaoArea,
     normalizarArea
-} from "./shared/auth-area-session.js?v=9.4";
+} from "./shared/auth-area-session.js?v=9.5";
 
 const form = document.getElementById("loginForm");
 const paramsLogin = new URLSearchParams(window.location.search);
