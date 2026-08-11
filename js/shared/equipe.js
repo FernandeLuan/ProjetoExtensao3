@@ -1,23 +1,23 @@
-import { state } from "./state.js?v=9.5";
+import { state } from "./state.js?v=9.6";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=9.5";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.5";
-import { obterServicos } from "./services/catalogo-service.js?v=9.5";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.5";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.5";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.5";
+} from "./data/equipe-repository.js?v=9.6";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.6";
+import { obterServicos } from "./services/catalogo-service.js?v=9.6";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.6";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.6";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.6";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.5";
+} from "./services/ui-loading-service.js?v=9.6";
 
 let inicializado = false;
 let carregando = false;
@@ -407,7 +407,7 @@ async function criarNovoBarbeiro(event) {
         modalAdicionar.hidden = true;
         document.body.classList.remove("modal-equipe-aberto");
 
-        const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 320 });
+        const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 420 });
         try {
             await carregarEquipe();
         } finally {
@@ -793,7 +793,7 @@ async function salvarFinanceiroMembro() {
         await concluirAcaoBotao(btnSalvarFinanceiro, "Alterações salvas ✓", 460);
         mostrarSucesso("Dados do profissional salvos.");
 
-        const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 320 });
+        const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 420 });
         try {
             await carregarEquipe();
         } finally {

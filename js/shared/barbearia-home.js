@@ -1,9 +1,9 @@
-import { state } from "./state.js?v=9.5";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.5";
+import { state } from "./state.js?v=9.6";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.6";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=9.5";
+} from "./data/resumos-repository.js?v=9.6";
 import {
     chaveData,
     dataDeInput,
@@ -11,9 +11,9 @@ import {
     inicioDoDia,
     mesmoDia,
     somarDias
-} from "./utils/date.js?v=9.5";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.5";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.5";
+} from "./utils/date.js?v=9.6";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.6";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.6";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -361,7 +361,7 @@ async function selecionarData(novaData) {
             : normalizada;
 
     atualizarNavegadorData();
-    const loading = iniciarLoadingTela("Atualizando visão geral...", { delay: 320 });
+    const loading = iniciarLoadingTela("Atualizando visão geral...", { delay: 420 });
     try {
         await abrirVisaoGeralBarbearia();
     } finally {

@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.5";
+import { db } from "../../firebase-init.js?v=9.6";
 import {
     collection,
     doc,
@@ -12,14 +12,14 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.5";
-import { state } from "../state.js?v=9.5";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.5";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.5";
+import { SCHEMA_VERSION } from "../constants.js?v=9.6";
+import { state } from "../state.js?v=9.6";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.6";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.6";
 import {
     anexarDeltasDespesasAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.5";
+} from "./resumos-repository.js?v=9.6";
 
 const CACHE_DESPESAS_MS = 5 * 60 * 1000;
 const cacheDespesas = new Map();

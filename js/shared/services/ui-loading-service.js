@@ -3,6 +3,9 @@ const confirmacoesBotoes = new WeakMap();
 const loadingsTela = new Map();
 let sequenciaLoading = 0;
 
+const LOADING_DELAY_PADRAO_MS = 420;
+const LOADING_VISIVEL_MINIMO_MS = 220;
+
 function aguardar(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -113,18 +116,21 @@ function atualizarOverlayLoading() {
     document.body.classList.add("app-loading-em-andamento");
 }
 
-export function iniciarLoadingTela(mensagem = "Carregando...", { delay = 320 } = {}) {
+export function iniciarLoadingTela(mensagem = "Carregando...", { delay = LOADING_DELAY_PADRAO_MS } = {}) {
     const token = `loading-${++sequenciaLoading}`;
     const item = {
         mensagem: String(mensagem || "Carregando..."),
         visivel: false,
-        timer: null
+        exibidoEm: 0,
+        timer: null,
+        timerSaida: null
     };
 
     item.timer = setTimeout(() => {
         const atual = loadingsTela.get(token);
         if (!atual) return;
         atual.visivel = true;
+        atual.exibidoEm = performance.now();
         atualizarOverlayLoading();
     }, Math.max(0, Number(delay) || 0));
 
@@ -137,6 +143,23 @@ export function finalizarLoadingTela(token) {
     if (!item) return;
 
     clearTimeout(item.timer);
+
+    // Se o overlay chegou a aparecer, evita o efeito de "flash de erro".
+    // Mantemos um tempo visual mínimo curto para a transição parecer intencional.
+    if (item.visivel && item.exibidoEm) {
+        const decorrido = performance.now() - item.exibidoEm;
+        const restante = Math.max(0, LOADING_VISIVEL_MINIMO_MS - decorrido);
+        if (restante > 0) {
+            if (item.timerSaida) return;
+            item.timerSaida = setTimeout(() => {
+                loadingsTela.delete(token);
+                atualizarOverlayLoading();
+            }, restante);
+            return;
+        }
+    }
+
+    if (item.timerSaida) clearTimeout(item.timerSaida);
     loadingsTela.delete(token);
     atualizarOverlayLoading();
 }

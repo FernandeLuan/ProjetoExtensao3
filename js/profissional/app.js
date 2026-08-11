@@ -1,15 +1,15 @@
-import { auth } from "../firebase-init.js?v=9.5";
+import { auth } from "../firebase-init.js?v=9.6";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { inicializarContexto } from "../shared/data/context.js?v=9.5";
-import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.5";
-import { definirConfiguracoes } from "../shared/state.js?v=9.5";
-import { initTheme } from "../shared/theme.js?v=9.5";
-import { initConnectivity } from "../shared/connectivity.js?v=9.5";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=9.5";
-import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.5";
-import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=9.5";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.5";
-import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=9.5";
+import { inicializarContexto } from "../shared/data/context.js?v=9.6";
+import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.6";
+import { definirConfiguracoes } from "../shared/state.js?v=9.6";
+import { initTheme } from "../shared/theme.js?v=9.6";
+import { initConnectivity } from "../shared/connectivity.js?v=9.6";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=9.6";
+import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.6";
+import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=9.6";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.6";
+import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=9.6";
 
 const AREA_ATUAL = "profissional";
 const SESSAO_DA_AREA_VALIDA = sessaoPertenceArea(AREA_ATUAL);
@@ -19,7 +19,9 @@ if (!SESSAO_DA_AREA_VALIDA) {
 
 let appInicializado = false;
 let interfaceLiberada = false;
-const PREVIEW_DELAY_MS = 90;
+const inicioBoot = performance.now();
+const BOOT_MINIMO_MS = 700;
+const PREVIEW_DELAY_MS = 1800;
 const preloadPrimeiraTela = SESSAO_DA_AREA_VALIDA ? preloadInicio() : Promise.resolve();
 
 document.body.dataset.srnkVisao = "profissional";
@@ -65,8 +67,14 @@ function mostrarInterfaceOtimista() {
 bloquearInterface();
 const previewTimer = SESSAO_DA_AREA_VALIDA ? window.setTimeout(mostrarInterfaceOtimista, PREVIEW_DELAY_MS) : 0;
 
-function finalizarBoot({ liberar = true } = {}) {
+async function finalizarBoot({ liberar = true, respeitarMinimo = true } = {}) {
     clearTimeout(previewTimer);
+
+    if (respeitarMinimo) {
+        const restante = Math.max(0, BOOT_MINIMO_MS - (performance.now() - inicioBoot));
+        if (restante > 0) await new Promise((resolve) => setTimeout(resolve, restante));
+    }
+
     document.body.classList.remove("dashboard-booting");
     if (liberar) liberarInterface();
     document.getElementById("appBootStatus")?.setAttribute("hidden", "");
@@ -89,12 +97,16 @@ async function iniciar(user) {
     definirConfiguracoes(await carregarConfiguracoesDoBanco());
     configurarNavegacao();
 
+    const statusBoot = document.getElementById("appBootStatus");
+    const subtituloBoot = statusBoot?.querySelector(".app-boot-subtitle");
+    if (subtituloBoot) subtituloBoot.textContent = "Preparando atendimentos…";
+
     await preloadPrimeiraTela.catch(() => null);
     await abrirInicio();
 
     appInicializado = true;
     marcarSessaoArea(AREA_ATUAL);
-    finalizarBoot({ liberar: true });
+    await finalizarBoot({ liberar: true });
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -122,7 +134,7 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
 
-        finalizarBoot({ liberar: false });
+        await finalizarBoot({ liberar: false, respeitarMinimo: false });
         mostrarErro("Não foi possível carregar seu ambiente. Confira sua conexão e tente novamente.");
     }
 });

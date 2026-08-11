@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v3.5-hotfix-historico-v950";
+const CACHE_NAME = "sr-nk-v3.6-ux-regressivo-v960";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.
@@ -9,15 +9,15 @@ const CORE_SHELL = [
   "./profissional/login.html",
   "./admin/login.html",
   "./manifest.webmanifest",
-  "./icons/icon-192.png?v=9.5",
-  "./icons/icon-512.png?v=9.5",
+  "./icons/icon-192.png?v=9.6",
+  "./icons/icon-512.png?v=9.6",
   "./Fotos/Sr.NK.jpg",
   "./css/style.css",
-  "./css/login.css?v=9.5",
-  "./js/firebase-init.js?v=9.5",
-  "./js/login.js?v=9.5",
-  "./js/shared/auth-area-session.js?v=9.5",
-  "./js/mobile-interactions.js?v=9.5"
+  "./css/login.css?v=9.6",
+  "./js/firebase-init.js?v=9.6",
+  "./js/login.js?v=9.6",
+  "./js/shared/auth-area-session.js?v=9.6",
+  "./js/mobile-interactions.js?v=9.6"
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,16 +1,16 @@
-import { state, onStateChange, definirConfiguracoes } from "./state.js?v=9.5";
-import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=9.5";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=9.5";
-import { paraDate, chaveData } from "./utils/date.js?v=9.5";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.5";
+import { state, onStateChange, definirConfiguracoes } from "./state.js?v=9.6";
+import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=9.6";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=9.6";
+import { paraDate, chaveData } from "./utils/date.js?v=9.6";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.6";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.5";
-import { garantirZXing } from "./services/external-assets.js?v=9.5";
+} from "./services/ui-loading-service.js?v=9.6";
+import { garantirZXing } from "./services/external-assets.js?v=9.6";
 import {
     CATEGORIAS_ESTOQUE,
     UNIDADES_ESTOQUE,
@@ -19,7 +19,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=9.5";
+} from "./services/estoque-service.js?v=9.6";
 import {
     atualizarProdutoEstoque,
     criarProdutoEstoque,
@@ -32,9 +32,9 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=9.5";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=9.5";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=9.5";
+} from "./data/estoque-repository.js?v=9.6";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=9.6";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=9.6";
 
 let inicializado = false;
 let produtos = [];
@@ -329,7 +329,7 @@ async function salvarProduto(event) {
         setModal("modalProdutoEstoque", false);
         mostrarSucesso(editando ? "Produto atualizado." : "Produto cadastrado.");
 
-        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 320 });
+        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 420 });
         try {
             await carregarDados({ forcar: true });
         } finally {
@@ -450,7 +450,7 @@ async function salvarMovimentacao(event) {
         mostrarSucesso(gerarDespesa ? "Estoque e despesa atualizados." : "Estoque atualizado.");
         setModal("modalMovimentarEstoque", false);
 
-        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 320 });
+        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 420 });
         try {
             await carregarDados({ forcar: true });
         } finally {
@@ -556,7 +556,7 @@ async function salvarVenda(event) {
         setModal("modalVendaProduto", false);
         mostrarSucesso(venda.gerarComissao ? `Venda registrada • comissão ${moeda(venda.comissaoValor)}.` : "Venda registrada.");
 
-        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 320 });
+        const loading = iniciarLoadingTela("Atualizando estoque...", { delay: 420 });
         try {
             await carregarDados({ forcar: true });
         } finally {
