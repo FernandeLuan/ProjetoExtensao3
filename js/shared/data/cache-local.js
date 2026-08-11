@@ -1,5 +1,3 @@
-import { registrarCacheLocal } from "./read-monitor.js?v=9.3";
-
 const PREFIXO = "srnk:v1:";
 
 function storageDisponivel() {
@@ -16,14 +14,12 @@ function chaveCompleta(chave) {
 
 export function lerCacheLocal(chave, ttlMs, origem = chave) {
     if (!storageDisponivel()) {
-        registrarCacheLocal(origem, "indisponivel");
         return null;
     }
 
     try {
         const bruto = window.localStorage.getItem(chaveCompleta(chave));
         if (!bruto) {
-            registrarCacheLocal(origem, "miss");
             return null;
         }
 
@@ -33,21 +29,16 @@ export function lerCacheLocal(chave, ttlMs, origem = chave) {
 
         if (!salvoEm || !Object.prototype.hasOwnProperty.call(envelope || {}, "valor")) {
             window.localStorage.removeItem(chaveCompleta(chave));
-            registrarCacheLocal(origem, "invalido");
             return null;
         }
 
         if (ttl > 0 && Date.now() - salvoEm >= ttl) {
             window.localStorage.removeItem(chaveCompleta(chave));
-            registrarCacheLocal(origem, "expirado");
             return null;
         }
-
-        registrarCacheLocal(origem, "hit");
         return envelope.valor;
     } catch (error) {
         console.warn("[SR NK • Cache] Não foi possível ler o cache local.", error);
-        registrarCacheLocal(origem, "erro");
         return null;
     }
 }

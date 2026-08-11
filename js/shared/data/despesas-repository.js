@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.3";
+import { db } from "../../firebase-init.js?v=9.4";
 import {
     collection,
     doc,
@@ -12,15 +12,14 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.3";
-import { state } from "../state.js?v=9.3";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.3";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.3";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
+import { SCHEMA_VERSION } from "../constants.js?v=9.4";
+import { state } from "../state.js?v=9.4";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.4";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.4";
 import {
     anexarDeltasDespesasAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.3";
+} from "./resumos-repository.js?v=9.4";
 
 const CACHE_DESPESAS_MS = 5 * 60 * 1000;
 const cacheDespesas = new Map();
@@ -88,7 +87,6 @@ async function obterDespesaOriginal(id, originalInformado = null) {
     if (originalInformado?.id === id) return originalInformado;
 
     const snap = await getDoc(documentoDespesa(id));
-    registrarConsultaFirestore("despesas/original", snap.exists() ? 1 : 0, id);
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
@@ -131,7 +129,6 @@ export async function listarDespesasPorPeriodo(
             ...filtros,
             orderBy("dataDespesa", "desc")
         ));
-        registrarConsultaFirestore("despesas", snapshot.size);
 
         let itens = snapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
         if (!incluirBarbearia && uidFiltro) {

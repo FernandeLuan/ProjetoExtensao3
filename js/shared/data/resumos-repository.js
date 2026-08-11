@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.3";
+import { db } from "../../firebase-init.js?v=9.4";
 import {
     collection,
     doc,
@@ -11,15 +11,14 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { obterWorkspaceId } from "./context.js?v=9.3";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
+import { obterWorkspaceId } from "./context.js?v=9.4";
 import {
     obterBrutoAtendimento,
     obterLiquidoBarbeiro,
     obterRepasseAtendimento,
     obterTaxaCartaoValor
-} from "../services/financeiro-service.js?v=9.3";
-import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.3";
+} from "../services/financeiro-service.js?v=9.4";
+import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.4";
 
 export const RESUMO_VERSION = 1;
 
@@ -392,8 +391,6 @@ async function executarConsultaResumo({ chave, origem, referencia, inicio, fim, 
             orderBy("dataChave", "asc")
         ));
 
-        registrarConsultaFirestore(origem, snapshot.size);
-
         const itens = snapshot.docs.map((item) => ({
             id: item.id,
             ...item.data()
@@ -424,7 +421,6 @@ async function executarLeituraResumoDia({ chave, origem, referenciaDoc, forcar }
 
     const promessa = (async () => {
         const snapshot = await getDoc(referenciaDoc);
-        registrarConsultaFirestore(origem, snapshot.exists() ? 1 : 0, "leitura direta do dia");
         const itens = snapshot.exists() ? [{ id: snapshot.id, ...snapshot.data() }] : [];
         salvarCache(chave, itens);
         return itens;

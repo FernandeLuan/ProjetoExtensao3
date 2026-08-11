@@ -1,23 +1,23 @@
-import { state } from "./state.js?v=9.3";
+import { state } from "./state.js?v=9.4";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=9.3";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.3";
-import { obterServicos } from "./services/catalogo-service.js?v=9.3";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.3";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.3";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.3";
+} from "./data/equipe-repository.js?v=9.4";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.4";
+import { obterServicos } from "./services/catalogo-service.js?v=9.4";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.4";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.4";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.4";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.3";
+} from "./services/ui-loading-service.js?v=9.4";
 
 let inicializado = false;
 let carregando = false;

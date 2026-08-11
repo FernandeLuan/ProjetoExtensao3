@@ -5,18 +5,17 @@ import {
     signOut,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=9.3";
+import { auth } from "./firebase-init.js?v=9.4";
 import {
     limparSessaoArea,
     marcarSessaoArea,
     normalizarArea
-} from "./shared/auth-area-session.js?v=9.3";
+} from "./shared/auth-area-session.js?v=9.4";
 
 const form = document.getElementById("loginForm");
 const paramsLogin = new URLSearchParams(window.location.search);
 const area = normalizarArea(document.body?.dataset?.loginArea || paramsLogin.get("destino"));
-const debugPerf = paramsLogin.get("debug") === "perf";
-const destinoAposLogin = debugPerf ? "./?debug=perf" : "./";
+const destinoAposLogin = "./";
 let authPreparado = false;
 let preparacaoPromise = null;
 

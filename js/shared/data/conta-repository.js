@@ -1,6 +1,6 @@
 import {
     db
-} from "../../firebase-init.js?v=9.3";
+} from "../../firebase-init.js?v=9.4";
 
 import {
     doc,
@@ -13,10 +13,9 @@ import {
 import {
     obterUidAtual,
     obterWorkspaceId
-} from "./context.js?v=9.3";
+} from "./context.js?v=9.4";
 
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
-import { state } from "../state.js?v=9.3";
+import { state } from "../state.js?v=9.4";
 
 
 export async function obterDadosConta({ forcar = false } = {}) {
@@ -52,8 +51,6 @@ export async function obterDadosConta({ forcar = false } = {}) {
         getDoc(usuarioRef),
         getDoc(membroRef)
     ]);
-
-    registrarConsultaFirestore("conta", 2);
 
     return {
         usuario: usuarioSnap.exists()

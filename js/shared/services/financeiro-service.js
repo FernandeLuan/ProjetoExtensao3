@@ -1,4 +1,4 @@
-import { obterDataAtendimento, chaveData } from "../utils/date.js?v=9.3";
+import { obterDataAtendimento, chaveData } from "../utils/date.js?v=9.4";
 
 export function processarFinanceiro(valorBruto, pagamento, config, repassePctInformado = null) {
     const bruto = Number(valorBruto || 0);
@@ -13,8 +13,9 @@ export function processarFinanceiro(valorBruto, pagamento, config, repassePctInf
     const taxaCartaoValor = bruto * (taxaAplicadaPct / 100);
     const liquidoConta = bruto - taxaCartaoValor;
 
-    // Regra acordada: primeiro desconta a taxa do cartão; o repasse é calculado sobre o líquido.
-    const repasseDono = liquidoConta * (repassePct / 100);
+    // Regra vigente: o repasse da barbearia é calculado sobre o valor bruto do serviço.
+    // A taxa do cartão continua sendo um custo separado do profissional.
+    const repasseDono = bruto * (repassePct / 100);
     const liquidoBarbeiro = liquidoConta - repasseDono;
 
     return {

@@ -1,7 +1,12 @@
 export const AUTH_AREA_KEY = "srnk:auth-area";
-export const AUTH_VALIDATED_KEY = "srnk:sessao-validada";
 
 const AREAS = new Set(["profissional", "admin"]);
+
+// Remove resíduos das versões temporárias de diagnóstico/performance.
+try {
+    localStorage.removeItem("srnk:debug-perf");
+    localStorage.removeItem("srnk:sessao-validada");
+} catch (_) {}
 
 export function normalizarArea(area) {
     return AREAS.has(area) ? area : "profissional";
@@ -20,31 +25,21 @@ export function sessaoPertenceArea(area) {
 }
 
 export function marcarSessaoArea(area) {
-    const normalizada = normalizarArea(area);
     try {
-        sessionStorage.setItem(AUTH_AREA_KEY, normalizada);
-        sessionStorage.setItem(AUTH_VALIDATED_KEY, "1");
+        sessionStorage.setItem(AUTH_AREA_KEY, normalizarArea(area));
     } catch (_) {}
 }
 
 export function limparSessaoArea() {
     try {
         sessionStorage.removeItem(AUTH_AREA_KEY);
-        sessionStorage.removeItem(AUTH_VALIDATED_KEY);
     } catch (_) {}
-    // Remove o marcador legado da v3.2 para não confundir diagnósticos antigos.
-    try { localStorage.removeItem(AUTH_VALIDATED_KEY); } catch (_) {}
 }
 
-export function loginDaArea(area, { motivo = "", trocar = false, debugPerf = false } = {}) {
+export function loginDaArea(area, { motivo = "", trocar = false } = {}) {
     const params = new URLSearchParams();
     if (motivo) params.set("motivo", motivo);
     if (trocar) params.set("trocar", "1");
-    if (debugPerf) params.set("debug", "perf");
     const query = params.toString();
     return `./login.html${query ? `?${query}` : ""}`;
-}
-
-export function debugPerfAtivoNaUrl() {
-    return new URLSearchParams(window.location.search).get("debug") === "perf";
 }

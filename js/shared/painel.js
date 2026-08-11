@@ -1,14 +1,14 @@
-import { state, onStateChange } from "./state.js?v=9.3";
-import { formatarMoeda } from "./utils/money.js?v=9.3";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=9.3";
-import { setTexto } from "./utils/dom.js?v=9.3";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.3";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=9.3";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=9.3";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=9.3";
-import { obterWorkspaceId } from "./data/context.js?v=9.3";
-import { garantirChartJs } from "./services/external-assets.js?v=9.3";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.3";
+import { state, onStateChange } from "./state.js?v=9.4";
+import { formatarMoeda } from "./utils/money.js?v=9.4";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=9.4";
+import { setTexto } from "./utils/dom.js?v=9.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.4";
+import { obterResumoDoDia } from "./services/financeiro-service.js?v=9.4";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=9.4";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=9.4";
+import { obterWorkspaceId } from "./data/context.js?v=9.4";
+import { garantirChartJs } from "./services/external-assets.js?v=9.4";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.4";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;

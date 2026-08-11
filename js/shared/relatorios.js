@@ -1,21 +1,21 @@
-import { APP_NAME } from "./constants.js?v=9.3";
-import { state } from "./state.js?v=9.3";
-import { obterAtendimentosPeriodo } from "./data/sync.js?v=9.3";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=9.3";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.3";
-import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=9.3";
-import { obterWorkspaceId } from "./data/context.js?v=9.3";
+import { APP_NAME } from "./constants.js?v=9.4";
+import { state } from "./state.js?v=9.4";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=9.4";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=9.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.4";
+import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=9.4";
+import { obterWorkspaceId } from "./data/context.js?v=9.4";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=9.3";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.3";
+} from "./data/resumos-repository.js?v=9.4";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.4";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./services/financeiro-service.js?v=9.3";
+} from "./services/financeiro-service.js?v=9.4";
 import {
     chaveData,
     dataDeInput,
@@ -23,12 +23,12 @@ import {
     somarDias,
     obterDataAtendimento,
     formatarTituloData
-} from "./utils/date.js?v=9.3";
-import { formatarMoeda } from "./utils/money.js?v=9.3";
-import { escaparHtml } from "./utils/dom.js?v=9.3";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.3";
-import { calcularFechamentoFinanceiro, calcularResumoVendasProdutos } from "./services/relatorio-financeiro-service.js?v=9.3";
-import { garantirChartJs } from "./services/external-assets.js?v=9.3";
+} from "./utils/date.js?v=9.4";
+import { formatarMoeda } from "./utils/money.js?v=9.4";
+import { escaparHtml } from "./utils/dom.js?v=9.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.4";
+import { calcularFechamentoFinanceiro, calcularResumoVendasProdutos } from "./services/relatorio-financeiro-service.js?v=9.4";
+import { garantirChartJs } from "./services/external-assets.js?v=9.4";
 
 let inicializado = false;
 let relatorioAtual = null;
@@ -1609,7 +1609,7 @@ function mostrarInfoResultado(event) {
 
     infoTooltip.textContent =
         relatorioAtual.visaoBarbearia
-            ? "Repasse previsto é o valor líquido que a barbearia deve receber dos profissionais. A taxa do cartão é descontada antes do cálculo do repasse."
+            ? "Repasse previsto é o valor que a barbearia recebe dos profissionais, calculado sobre o valor bruto dos serviços. A taxa do cartão é descontada separadamente do resultado do profissional."
             : "Resultado profissional é o valor que resta depois das taxas do cartão, do repasse ao proprietário e das despesas profissionais do período.";
 
     infoTooltip.hidden = false;

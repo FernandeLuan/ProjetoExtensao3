@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.3";
+import { db } from "../../firebase-init.js?v=9.4";
 import {
     collection,
     doc,
@@ -15,17 +15,16 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.3";
-import { state } from "../state.js?v=9.3";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.3";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.3";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.3";
+import { SCHEMA_VERSION } from "../constants.js?v=9.4";
+import { state } from "../state.js?v=9.4";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.4";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.4";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.4";
 import {
     calcularVendaProduto,
     normalizarCodigoBarras,
     validarProduto
-} from "../services/estoque-service.js?v=9.3";
+} from "../services/estoque-service.js?v=9.4";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;
@@ -74,7 +73,6 @@ export async function listarProdutosEstoque({ forcar = false, somenteAtivos = fa
     }
 
     const snapshot = await getDocs(query(col("estoque"), orderBy("nome", "asc")));
-    registrarConsultaFirestore("estoque/produtos", snapshot.size);
     cacheProdutos = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     cacheProdutosEm = Date.now();
     return filtrarProdutos(cacheProdutos, { somenteAtivos, somenteVendaveis });
@@ -96,7 +94,6 @@ export async function localizarProdutoPorCodigo(codigo) {
     if (emCache) return emCache;
 
     const snapshot = await getDocs(query(col("estoque"), where("codigoBarras", "==", normalizado), limit(1)));
-    registrarConsultaFirestore("estoque/codigo-barras", snapshot.size, normalizado);
     if (snapshot.empty) return null;
     const item = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
     return item;
@@ -106,7 +103,6 @@ async function garantirCodigoUnico(codigo, ignorarId = null) {
     const normalizado = normalizarCodigoBarras(codigo);
     if (!normalizado) return;
     const snapshot = await getDocs(query(col("estoque"), where("codigoBarras", "==", normalizado), limit(2)));
-    registrarConsultaFirestore("estoque/codigo-unico", snapshot.size, normalizado);
     const conflito = snapshot.docs.some((item) => item.id !== ignorarId);
     if (conflito) throw new Error("Este código de barras já está vinculado a outro produto.");
 }
@@ -155,7 +151,6 @@ export async function criarProdutoEstoque(dados) {
 export async function atualizarProdutoEstoque(id, alteracoes) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar produtos.");
     const snap = await getDoc(ref("estoque", id));
-    registrarConsultaFirestore("estoque/produto", snap.exists() ? 1 : 0, id);
     if (!snap.exists()) throw new Error("Produto não encontrado.");
 
     const original = { id: snap.id, ...snap.data() };
@@ -402,7 +397,6 @@ export async function listarVendasPorPeriodo(
         let consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"));
         if (max) consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"), limit(max));
         const snapshot = await getDocs(consulta);
-        registrarConsultaFirestore("estoque/vendas", snapshot.size);
         const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         cacheVendas.set(chave, { itens, salvoEm: Date.now() });
         return itens;
@@ -436,7 +430,6 @@ export async function listarVendasRecentes({ max = 50, forcar = false } = {}) {
 
     const promessa = (async () => {
         const snapshot = await getDocs(query(col("vendas"), orderBy("dataVenda", "desc"), limit(max)));
-        registrarConsultaFirestore("estoque/vendas-recentes", snapshot.size);
         const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         cacheVendas.set(chave, { itens, salvoEm: Date.now() });
         return itens;
@@ -461,7 +454,6 @@ export async function listarMovimentacoesRecentes({ max = 50, forcar = false } =
 
     const promessa = (async () => {
         const snapshot = await getDocs(query(col("estoqueMovimentacoes"), orderBy("dataMovimentacao", "desc"), limit(max)));
-        registrarConsultaFirestore("estoque/movimentacoes", snapshot.size);
         const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         cacheMovimentacoes.set(chave, { itens, salvoEm: Date.now() });
         return itens;

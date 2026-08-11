@@ -1,9 +1,9 @@
-import { state } from "./state.js?v=9.3";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.3";
+import { state } from "./state.js?v=9.4";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.4";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=9.3";
+} from "./data/resumos-repository.js?v=9.4";
 import {
     chaveData,
     dataDeInput,
@@ -11,10 +11,9 @@ import {
     inicioDoDia,
     mesmoDia,
     somarDias
-} from "./utils/date.js?v=9.3";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.3";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.3";
-import { medirAsync } from "./services/perf-service.js?v=9.3";
+} from "./utils/date.js?v=9.4";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.4";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.4";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -151,7 +150,7 @@ function consolidarBarbearia(profissionais, resumosBarbearia) {
 
         // Regra financeira da barbearia:
         // - dono: fica com todo o líquido após a taxa do cartão;
-        // - barbeiro: a barbearia recebe somente o repasse calculado sobre o líquido.
+        // - barbeiro: a barbearia recebe o repasse calculado sobre o valor bruto do serviço.
         total.receitaBarbearia += profissional.dono
             ? Math.max(0, profissional.faturamento - profissional.taxas)
             : profissional.repasseBarbearia;
@@ -293,25 +292,19 @@ async function carregarDados({ forcar = false } = {}) {
 
     // A consulta do resumo da barbearia não depende da equipe. Iniciá-la agora
     // evita somar sua latência depois da leitura dos membros.
-    const resumosBarbeariaPromise = medirAsync(
-        "Admin • resumo barbearia",
-        () => listarResumosBarbeariaPorPeriodo(inicio, fim, { forcar })
-    );
+    const resumosBarbeariaPromise = listarResumosBarbeariaPorPeriodo(inicio, fim, { forcar });
 
     const membros = membrosAtivos(
         (state.equipe || []).length
             ? state.equipe
-            : await medirAsync("Admin • equipe", () => listarMembrosEquipe())
+            : await listarMembrosEquipe()
     );
 
     const resumosEquipePromise = Promise.all(
         membros.map(async (membro) => {
             const uid = String(membro?.uid || membro?.id || "").trim();
             const resumos = uid
-                ? await medirAsync(
-                    `Admin • resumo ${membro?.nome || uid}`,
-                    () => listarResumosProfissionalPorPeriodo(uid, inicio, fim, { forcar })
-                )
+                ? await listarResumosProfissionalPorPeriodo(uid, inicio, fim, { forcar })
                 : [];
 
             return consolidarProfissional(membro, resumos);

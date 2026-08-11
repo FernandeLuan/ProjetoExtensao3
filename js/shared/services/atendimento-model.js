@@ -1,5 +1,5 @@
-import { SCHEMA_VERSION } from "../constants.js?v=9.3";
-import { processarFinanceiro } from "./financeiro-service.js?v=9.3";
+import { SCHEMA_VERSION } from "../constants.js?v=9.4";
+import { processarFinanceiro } from "./financeiro-service.js?v=9.4";
 
 function taxaProfissional(profissional, campo) {
     const numero = Number(profissional?.[campo]);
@@ -25,7 +25,9 @@ function snapshotFinanceiro(financeiro, config, profissionalDono = false) {
         valorBruto: financeiro.valorBruto,
         valorLiquido: financeiro.liquidoConta,
         repasseDono: financeiro.repasseDono,
-        liquidoBarbeiro: financeiro.liquidoBarbeiro
+        liquidoBarbeiro: financeiro.liquidoBarbeiro,
+        regraRepasseBase: "valorBruto",
+        regraFinanceiraVersion: 2
     };
 }
 
@@ -72,6 +74,8 @@ export function criarPayloadAtendimento({
         profissionalUid: profissional?.uid || profissional?.id || null,
         profissionalNome: profissional?.nome || null,
         profissionalDono: Boolean(profissionalDono),
+        regraRepasseBase: "valorBruto",
+        regraFinanceiraVersion: 2,
         data: data.toISOString(),
         dataAtendimento: data,
         valorDiferenciado: Boolean(valorDiferenciado),
@@ -129,6 +133,8 @@ export function criarAtualizacaoFinanceiraAtendimento({
         observacao: String(observacao || "").trim().slice(0, 160),
         valorDiferenciado: Boolean(valorDiferenciado),
         profissionalDono: Boolean(profissionalDono),
+        regraRepasseBase: "valorBruto",
+        regraFinanceiraVersion: 2,
         schemaVersion: SCHEMA_VERSION,
         financeiro: snapshotFinanceiro(financeiro, configSnapshot, profissionalDono)
     };

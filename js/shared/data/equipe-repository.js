@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.3";
+import { db } from "../../firebase-init.js?v=9.4";
 import {
     collection,
     doc,
@@ -12,16 +12,15 @@ import {
     deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.3";
-import { state, definirEquipe, definirMembroAtual } from "../state.js?v=9.3";
-import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=9.3";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.3";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
+import { SCHEMA_VERSION } from "../constants.js?v=9.4";
+import { state, definirEquipe, definirMembroAtual } from "../state.js?v=9.4";
+import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=9.4";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.4";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=9.3";
+} from "./cache-local.js?v=9.4";
 
 const CACHE_EQUIPE_MS = 5 * 60 * 1000;
 let cacheEquipe = null;
@@ -58,7 +57,6 @@ export async function obterMembroAtual() {
     const workspaceId = obterWorkspaceId();
     const uid = obterUidAtual();
     const snap = await getDoc(doc(db, "barbearias", workspaceId, "membros", uid));
-    registrarConsultaFirestore("equipe/membro-atual", 1);
     if (!snap.exists()) return null;
     const membro = { id: snap.id, ...snap.data() };
     definirMembroAtual(membro);
@@ -74,7 +72,6 @@ export async function obterMembroPorUid(uid) {
     if (emEstado) return emEstado;
 
     const snap = await getDoc(doc(db, "barbearias", obterWorkspaceId(), "membros", uid));
-    registrarConsultaFirestore("equipe/membro", 1);
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
@@ -111,7 +108,6 @@ export async function listarMembrosEquipe({ forcar = false } = {}) {
         const snapshot = await getDocs(
             collection(db, "barbearias", obterWorkspaceId(), "membros")
         );
-        registrarConsultaFirestore("equipe", snapshot.size);
 
         const membros = snapshot.docs.map((documento) => ({
             id: documento.id,
@@ -148,7 +144,6 @@ export async function localizarUsuarioDaBarbeariaPorEmail(email) {
         where("barbeariaId", "==", workspaceId)
     );
     const snapshot = await getDocs(referencia);
-    registrarConsultaFirestore("equipe/usuario-por-email", snapshot.size, emailLimpo);
 
     const documento = snapshot.docs.find((item) =>
         String(item.data()?.email || "").trim().toLowerCase() === emailLimpo
@@ -274,7 +269,6 @@ export async function alterarStatusMembro(uid, ativo) {
 
     const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
     const snap = await getDoc(membroRef);
-    registrarConsultaFirestore("equipe/alterar-status", 1);
     if (!snap.exists()) throw new Error("Membro não encontrado.");
 
     if (papelEhAdmin(snap.data().papel)) {
@@ -295,7 +289,6 @@ export async function excluirMembroInativo(uid) {
 
     const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
     const snap = await getDoc(membroRef);
-    registrarConsultaFirestore("equipe/excluir-membro", 1);
     if (!snap.exists()) throw new Error("Membro não encontrado.");
 
     const membro = snap.data();
@@ -323,7 +316,6 @@ export async function restaurarMembroRemovido({
     const workspaceId = obterWorkspaceId();
     const membroRef = doc(db, "barbearias", workspaceId, "membros", uid);
     const membroSnap = await getDoc(membroRef);
-    registrarConsultaFirestore("equipe/restaurar-membro", 1);
 
     if (!membroSnap.exists()) throw new Error("Cadastro removido não encontrado.");
 
@@ -459,7 +451,6 @@ export async function atualizarFinanceiroMembro(uid, {
 
     const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
     const membroSnap = await getDoc(membroRef);
-    registrarConsultaFirestore("equipe/atualizar-dados-membro", 1);
     if (!membroSnap.exists()) throw new Error("Membro não encontrado.");
 
     const membroAtual = membroSnap.data();

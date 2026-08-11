@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.3";
+import { db } from "../../firebase-init.js?v=9.4";
 import {
     collection,
     doc,
@@ -12,15 +12,13 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.3";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.3";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.3";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
-import { medirAsync } from "../services/perf-service.js?v=9.3";
+import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.4";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.4";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.4";
 import {
     anexarDeltasAtendimentosAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.3";
+} from "./resumos-repository.js?v=9.4";
 
 function colecaoAtendimentos() {
     return collection(db, "barbearias", obterWorkspaceId(), "atendimentos");
@@ -49,7 +47,6 @@ async function obterAtendimentoOriginal(id) {
     if (local) return local;
 
     const snap = await getDoc(documentoAtendimento(id));
-    registrarConsultaFirestore("atendimentos/original", snap.exists() ? 1 : 0, id);
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
@@ -76,7 +73,6 @@ export async function listarAtendimentosPorPeriodo(inicio, fim, { profissionalUi
     );
 
     const snapshot = await getDocs(referencia);
-    registrarConsultaFirestore("atendimentos", snapshot.size, `${dataInicio.toISOString().slice(0, 10)} → ${dataFim.toISOString().slice(0, 10)}`);
     return snapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
 }
 
@@ -106,7 +102,7 @@ export async function criarAtendimento(payload) {
         { atendimento: dados, sinal: 1 }
     ]);
 
-    await medirAsync("Firestore WRITE • atendimento", () => batch.commit());
+    await batch.commit();
 
     // Atualiza a tela localmente. Não faz uma nova leitura só para enxergar o registro recém-criado.
     const agora = new Date();

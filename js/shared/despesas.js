@@ -5,20 +5,20 @@ import {
     editarDespesa,
     excluirDespesaParcelada,
     listarDespesasPorPeriodo
-} from "./data/despesas-repository.js?v=9.3";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.3";
-import { state } from "./state.js?v=9.3";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=9.3";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=9.3";
-import { abrirSeletorData } from "./utils/dom.js?v=9.3";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.3";
+} from "./data/despesas-repository.js?v=9.4";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.4";
+import { state } from "./state.js?v=9.4";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=9.4";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=9.4";
+import { abrirSeletorData } from "./utils/dom.js?v=9.4";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.4";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.3";
+} from "./services/ui-loading-service.js?v=9.4";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
