@@ -1,15 +1,31 @@
-import { auth } from "../firebase-init.js?v=9.2";
+import { auth } from "../firebase-init.js?v=9.3";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { inicializarContexto } from "../shared/data/context.js?v=9.2";
-import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.2";
-import { definirConfiguracoes } from "../shared/state.js?v=9.2";
-import { initTheme } from "../shared/theme.js?v=9.2";
-import { initConnectivity } from "../shared/connectivity.js?v=9.2";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=9.2";
-import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.2";
-import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=9.2";
-import { iniciarMedicao, finalizarMedicao, medirAsync, registrarEventoPerf } from "../shared/services/perf-service.js?v=9.2";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.2";
+import { inicializarContexto } from "../shared/data/context.js?v=9.3";
+import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.3";
+import { definirConfiguracoes } from "../shared/state.js?v=9.3";
+import { initTheme } from "../shared/theme.js?v=9.3";
+import { initConnectivity } from "../shared/connectivity.js?v=9.3";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=9.3";
+import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.3";
+import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=9.3";
+import { iniciarMedicao, finalizarMedicao, medirAsync, registrarEventoPerf } from "../shared/services/perf-service.js?v=9.3";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.3";
+import {
+    debugPerfAtivoNaUrl,
+    limparSessaoArea,
+    loginDaArea,
+    marcarSessaoArea,
+    sessaoPertenceArea
+} from "../shared/auth-area-session.js?v=9.3";
+
+const AREA_ATUAL = "admin";
+const SESSAO_DA_AREA_VALIDA = sessaoPertenceArea(AREA_ATUAL);
+if (!SESSAO_DA_AREA_VALIDA) {
+    window.location.replace(loginDaArea(AREA_ATUAL, {
+        motivo: "sessao-area",
+        debugPerf: debugPerfAtivoNaUrl()
+    }));
+}
 
 let appInicializado = false;
 let interfaceLiberada = false;
@@ -19,7 +35,7 @@ const medicaoBoot = iniciarMedicao("BOOT total", "admin");
 const medicaoAuth = iniciarMedicao("Firebase Auth", "admin");
 const medicaoPrimeiroVisual = iniciarMedicao("Primeiro visual", "admin");
 let primeiroVisualFinalizado = false;
-const preloadPrimeiraTela = preloadInicio();
+const preloadPrimeiraTela = SESSAO_DA_AREA_VALIDA ? preloadInicio() : Promise.resolve();
 
 document.body.dataset.srnkVisao = "barbearia";
 document.body.dataset.srnkArea = "admin";
@@ -72,7 +88,7 @@ function mostrarInterfaceOtimista() {
 }
 
 bloquearInterface();
-const previewTimer = window.setTimeout(mostrarInterfaceOtimista, PREVIEW_DELAY_MS);
+const previewTimer = SESSAO_DA_AREA_VALIDA ? window.setTimeout(mostrarInterfaceOtimista, PREVIEW_DELAY_MS) : 0;
 
 function finalizarBoot({ liberar = true } = {}) {
     clearTimeout(previewTimer);
@@ -90,10 +106,6 @@ async function iniciar(user) {
     }
 
     if (!(usuarioEhAdmin() && podeUsarVisaoBarbearia())) {
-        if (podeUsarVisaoProfissional()) {
-            window.location.replace("../profissional/");
-            return;
-        }
         const error = new Error("Esta conta não possui acesso administrativo.");
         error.code = "SEM_ACESSO";
         throw error;
@@ -109,19 +121,20 @@ async function iniciar(user) {
     await medirAsync("Tela inicial", () => abrirInicio());
 
     appInicializado = true;
-    try { localStorage.setItem("srnk:sessao-validada", "1"); } catch (_) {}
+    marcarSessaoArea(AREA_ATUAL);
     finalizarBoot({ liberar: true });
     finalizarMedicao(medicaoBoot);
 }
 
 onAuthStateChanged(auth, async (user) => {
+    if (!SESSAO_DA_AREA_VALIDA) return;
     finalizarMedicao(medicaoAuth, user ? "sessão encontrada" : "sem sessão");
     registrarEventoPerf("Auth resolvido", user ? "sessão encontrada" : "sem sessão");
 
     if (!user) {
         clearTimeout(previewTimer);
-        try { localStorage.removeItem("srnk:sessao-validada"); } catch (_) {}
-        window.location.replace("../login.html?destino=admin");
+        limparSessaoArea();
+        window.location.replace(loginDaArea(AREA_ATUAL, { debugPerf: debugPerfAtivoNaUrl() }));
         return;
     }
     if (appInicializado) return;
@@ -133,11 +146,12 @@ onAuthStateChanged(auth, async (user) => {
         finalizarMedicao(medicaoBoot, "erro");
 
         if (error?.code === "ACESSO_DESATIVADO" || error?.code === "SEM_ACESSO") {
-            try { localStorage.removeItem("srnk:sessao-validada"); } catch (_) {}
+            limparSessaoArea();
             await signOut(auth);
-            window.location.replace(
-                `../login.html?destino=admin&motivo=${error.code === "ACESSO_DESATIVADO" ? "desativado" : "sem-acesso"}`
-            );
+            window.location.replace(loginDaArea(AREA_ATUAL, {
+                motivo: error.code === "ACESSO_DESATIVADO" ? "desativado" : "sem-acesso",
+                debugPerf: debugPerfAtivoNaUrl()
+            }));
             return;
         }
 

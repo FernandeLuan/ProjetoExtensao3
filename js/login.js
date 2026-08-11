@@ -1,15 +1,24 @@
 import {
+    browserSessionPersistence,
+    setPersistence,
     signInWithEmailAndPassword,
+    signOut,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=9.2";
+import { auth } from "./firebase-init.js?v=9.3";
+import {
+    limparSessaoArea,
+    marcarSessaoArea,
+    normalizarArea
+} from "./shared/auth-area-session.js?v=9.3";
 
 const form = document.getElementById("loginForm");
 const paramsLogin = new URLSearchParams(window.location.search);
-const destinoSolicitado = paramsLogin.get("destino") === "admin" ? "admin" : "profissional";
+const area = normalizarArea(document.body?.dataset?.loginArea || paramsLogin.get("destino"));
 const debugPerf = paramsLogin.get("debug") === "perf";
-const destinoBase = destinoSolicitado === "admin" ? "admin/" : "profissional/";
-const destinoAposLogin = debugPerf ? `${destinoBase}?debug=perf` : destinoBase;
+const destinoAposLogin = debugPerf ? "./?debug=perf" : "./";
+let authPreparado = false;
+let preparacaoPromise = null;
 
 function animarErro(elemento, mensagem) {
     if (!elemento) return;
@@ -20,31 +29,68 @@ function animarErro(elemento, mensagem) {
     elemento.classList.add("erro-animado");
 }
 
+async function prepararSessaoDaAba() {
+    if (authPreparado) return;
+    if (preparacaoPromise) return preparacaoPromise;
+
+    preparacaoPromise = (async () => {
+        // v3.3: cada aba possui sua própria sessão Firebase. O login da área sempre
+        // começa limpo para impedir que Profissional e Admin herdem silenciosamente
+        // a conta usada anteriormente na mesma aba.
+        await setPersistence(auth, browserSessionPersistence);
+        limparSessaoArea();
+
+        try {
+            await signOut(auth);
+        } catch (_) {
+            // Não estar autenticado já é o estado desejado para a tela de login.
+        }
+
+        authPreparado = true;
+    })();
+
+    try {
+        return await preparacaoPromise;
+    } finally {
+        preparacaoPromise = null;
+    }
+}
+
+const btn = document.querySelector(".btn-login");
+btn?.classList.add("loading");
+prepararSessaoDaAba()
+    .catch((error) => {
+        console.error("Erro ao preparar sessão da aba:", error);
+        animarErro(document.getElementById("erroLogin"), "Não foi possível preparar o login. Recarregue a página.");
+    })
+    .finally(() => btn?.classList.remove("loading"));
+
 form?.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const email = document.getElementById("usuario")?.value || "";
     const senha = document.getElementById("senha")?.value || "";
-    const btn = document.querySelector(".btn-login");
     const erro = document.getElementById("erroLogin");
 
     btn?.classList.add("loading");
     if (erro) erro.innerText = "";
 
     try {
+        await prepararSessaoDaAba();
         await signInWithEmailAndPassword(auth, email, senha);
+        marcarSessaoArea(area);
 
-        // A autorização completa é validada no bootstrap do dashboard, que fica
-        // coberto pela tela de entrada. Evitamos repetir aqui as mesmas leituras
-        // de usuário + membro e ganhamos uma ida inteira ao Firestore no login.
+        // A autorização de papel/membro continua sendo validada pelo bootstrap
+        // da própria área, sem duplicar leituras no login.
         btn?.classList.remove("loading");
         btn?.classList.add("success");
         document.body.classList.add("fade-out");
 
         setTimeout(() => {
             window.location.replace(destinoAposLogin);
-        }, 140);
+        }, 90);
     } catch (error) {
+        limparSessaoArea();
         btn?.classList.remove("loading", "success");
 
         if (String(error?.code || "").startsWith("auth/")) {
@@ -77,7 +123,6 @@ toggleSenha?.addEventListener("click", () => {
 });
 
 const btnEsqueci = document.getElementById("btnEsqueciSenha");
-
 btnEsqueci?.addEventListener("click", async function(e) {
     e.preventDefault();
     const email = document.getElementById("usuario")?.value || "";
@@ -107,5 +152,13 @@ if (mensagemAcesso && motivoAcesso === "desativado") {
     animarErro(mensagemAcesso, "Seu acesso à barbearia foi desativado pelo administrador.");
 }
 if (mensagemAcesso && motivoAcesso === "sem-acesso") {
-    animarErro(mensagemAcesso, "Esta conta não possui acesso à barbearia.");
+    animarErro(
+        mensagemAcesso,
+        area === "admin"
+            ? "Esta conta não possui acesso administrativo. Entre com uma conta de administrador."
+            : "Esta conta não possui acesso profissional. Entre com uma conta da equipe."
+    );
+}
+if (mensagemAcesso && motivoAcesso === "sessao-area") {
+    animarErro(mensagemAcesso, "Entre com a conta que deseja usar nesta área.");
 }

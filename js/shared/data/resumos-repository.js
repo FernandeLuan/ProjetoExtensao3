@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.2";
+import { db } from "../../firebase-init.js?v=9.3";
 import {
     collection,
     doc,
@@ -11,15 +11,15 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { obterWorkspaceId } from "./context.js?v=9.2";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.2";
+import { obterWorkspaceId } from "./context.js?v=9.3";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=9.3";
 import {
     obterBrutoAtendimento,
     obterLiquidoBarbeiro,
     obterRepasseAtendimento,
     obterTaxaCartaoValor
-} from "../services/financeiro-service.js?v=9.2";
-import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.2";
+} from "../services/financeiro-service.js?v=9.3";
+import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.3";
 
 export const RESUMO_VERSION = 1;
 

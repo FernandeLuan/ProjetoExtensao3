@@ -1,5 +1,6 @@
-import { auth } from "../firebase-init.js?v=9.2";
-import { state } from "./state.js?v=9.2";
+import { limparSessaoArea } from "./auth-area-session.js?v=9.3";
+import { auth } from "../firebase-init.js?v=9.3";
+import { state } from "./state.js?v=9.3";
 
 import {
     EmailAuthProvider,
@@ -11,14 +12,14 @@ import {
 import {
     obterDadosConta,
     salvarFotoConta
-} from "./data/conta-repository.js?v=9.2";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=9.2";
+} from "./data/conta-repository.js?v=9.3";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=9.3";
 
 import {
     mostrarErro,
     mostrarSucesso
-} from "./services/feedback-service.js?v=9.2";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.2";
+} from "./services/feedback-service.js?v=9.3";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.3";
 
 
 let inicializado = false;
@@ -843,9 +844,9 @@ export function initConta() {
         async () => {
 
             try {
+                limparSessaoArea();
                 await signOut(auth);
-                window.location.href =
-                    `../login.html?destino=${document.body?.dataset?.srnkArea === "admin" ? "admin" : "profissional"}`;
+                window.location.href = "./login.html";
             } catch (error) {
                 console.error(
                     "Erro ao sair:",

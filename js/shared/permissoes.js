@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=9.2";
+import { state } from "./state.js?v=9.3";
 
 const SECOES_APENAS_BARBEARIA = new Set([
     "barbeariaHome",
@@ -33,9 +33,9 @@ export function usuarioAtuaComoProfissional() {
 }
 
 export function podeUsarVisaoBarbearia() {
-    if (state.membroAtual?.ativo !== true) return false;
-    return papelEhAdmin(state.membroAtual?.papel)
-        || state.membroAtual?.acessoBarbearia === true;
+    // A gestão executa operações que as regras do Firestore reservam a admin/owner.
+    // Mantemos a mesma regra no frontend para não exibir uma área que o backend negaria.
+    return usuarioEhAdmin();
 }
 
 export function podeUsarVisaoProfissional() {

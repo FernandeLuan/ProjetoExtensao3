@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=9.2";
+import { auth, db } from "../firebase-init.js?v=9.3";
 import {
     updatePassword,
     signOut
@@ -8,7 +8,8 @@ import {
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.2";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.3";
+import { limparSessaoArea } from "./auth-area-session.js?v=9.3";
 
 function obterElementos() {
     return {
@@ -53,9 +54,10 @@ export function exigirTrocaSenhaPrimeiroAcesso({ workspaceId, perfil, membro }) 
         const aoSair = async () => {
             finalizar();
             try {
+                limparSessaoArea();
                 await signOut(auth);
             } finally {
-                window.location.href = `../login.html?destino=${document.body?.dataset?.srnkArea === "admin" ? "admin" : "profissional"}`;
+                window.location.href = "./login.html";
             }
         };
 

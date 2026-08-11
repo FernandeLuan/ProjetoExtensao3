@@ -1,4 +1,4 @@
-import { registrarEventoPerf } from "./perf-service.js?v=9.2";
+import { registrarEventoPerf } from "./perf-service.js?v=9.3";
 
 const estadosBotoes = new WeakMap();
 const confirmacoesBotoes = new WeakMap();

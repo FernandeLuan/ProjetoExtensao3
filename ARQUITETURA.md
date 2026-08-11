@@ -19,3 +19,13 @@ A separação de interface não substitui as Firestore Rules. O app profissional
 
 ## Compatibilidade
 `dashboard.html` permanece como redirecionamento para `/profissional/` para não quebrar favoritos antigos.
+
+## v3.3 — Autenticação por área
+
+- `/profissional/login.html` autentica exclusivamente a Área Profissional.
+- `/admin/login.html` autentica exclusivamente a Gestão da Barbearia.
+- Firebase Auth usa `browserSessionPersistence`: a sessão pertence à aba/sessão do navegador, não ao navegador inteiro.
+- A sessão recebe um marcador `sessionStorage` (`srnk:auth-area`) e cada aplicação rejeita sessões autenticadas para outra área.
+- Trocar Profissional ↔ Admin sempre passa pelo login da área de destino.
+- Conta sem papel `admin`/`owner` não é redirecionada para Profissional: retorna ao login administrativo com mensagem de acesso negado.
+- O backend continua sendo o mesmo Firebase/Firestore.

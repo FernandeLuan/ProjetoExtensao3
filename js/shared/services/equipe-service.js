@@ -1,6 +1,6 @@
 import {
     firebaseConfig
-} from "../../firebase-init.js?v=9.2";
+} from "../../firebase-init.js?v=9.3";
 
 import {
     initializeApp,
@@ -21,7 +21,7 @@ import {
     restaurarMembroRemovido,
     localizarUsuarioDaBarbeariaPorEmail,
     restaurarMembroOrfao
-} from "../data/equipe-repository.js?v=9.2";
+} from "../data/equipe-repository.js?v=9.3";
 
 function normalizarComparacao(valor) {
     return String(valor || "")

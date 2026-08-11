@@ -1,16 +1,16 @@
-import { state, onStateChange, definirConfiguracoes } from "./state.js?v=9.2";
-import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=9.2";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=9.2";
-import { paraDate, chaveData } from "./utils/date.js?v=9.2";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.2";
+import { state, onStateChange, definirConfiguracoes } from "./state.js?v=9.3";
+import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=9.3";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=9.3";
+import { paraDate, chaveData } from "./utils/date.js?v=9.3";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.3";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.2";
-import { garantirZXing } from "./services/external-assets.js?v=9.2";
+} from "./services/ui-loading-service.js?v=9.3";
+import { garantirZXing } from "./services/external-assets.js?v=9.3";
 import {
     CATEGORIAS_ESTOQUE,
     UNIDADES_ESTOQUE,
@@ -19,7 +19,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=9.2";
+} from "./services/estoque-service.js?v=9.3";
 import {
     atualizarProdutoEstoque,
     criarProdutoEstoque,
@@ -32,9 +32,9 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=9.2";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=9.2";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=9.2";
+} from "./data/estoque-repository.js?v=9.3";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=9.3";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=9.3";
 
 let inicializado = false;
 let produtos = [];
