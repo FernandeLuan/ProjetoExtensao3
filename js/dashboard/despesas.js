@@ -5,20 +5,20 @@ import {
     editarDespesa,
     excluirDespesaParcelada,
     listarDespesasPorPeriodo
-} from "./data/despesas-repository.js?v=8.31";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.31";
-import { state } from "./state.js?v=8.31";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.31";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.31";
-import { abrirSeletorData } from "./utils/dom.js?v=8.31";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+} from "./data/despesas-repository.js?v=8.32";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.32";
+import { state } from "./state.js?v=8.32";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=8.32";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=8.32";
+import { abrirSeletorData } from "./utils/dom.js?v=8.32";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.32";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=8.31";
+} from "./services/ui-loading-service.js?v=8.32";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -597,7 +597,7 @@ async function confirmarExclusaoDespesa() {
 
         despesasMes = despesasMes.filter((item) => !idsRemovidos.has(item.id));
         renderizarDespesas();
-        await concluirAcaoBotao(btnConfirmarExcluir, "Despesa excluída ✓", 620);
+        await concluirAcaoBotao(btnConfirmarExcluir, "Despesa excluída ✓", 460);
         mostrarSucesso(
             incluirProximas
                 ? `${resultado.quantidade} parcela${resultado.quantidade === 1 ? "" : "s"} excluída${resultado.quantidade === 1 ? "" : "s"}.`

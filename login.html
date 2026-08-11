@@ -9,7 +9,9 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/login.css?v=8.31">
+<link rel="stylesheet" href="css/login.css?v=8.32">
+<link rel="modulepreload" href="js/firebase-init.js?v=8.32">
+<link rel="modulepreload" href="js/login.js?v=8.32">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +20,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 </head>
 
 <body>
@@ -99,8 +102,8 @@ Voltar para o site
 
 </section>
 
-<script src="js/mobile-interactions.js?v=8.31" defer></script>
-<script type="module" src="js/login.js?v=8.31"></script>
+<script src="js/mobile-interactions.js?v=8.32" defer></script>
+<script type="module" src="js/login.js?v=8.32"></script>
 <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(console.warn));</script>
 </body>
 </html>

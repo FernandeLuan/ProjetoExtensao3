@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-init.js?v=8.31";
+import { auth, db } from "../firebase-init.js?v=8.32";
 import {
     updatePassword,
     signOut
@@ -8,7 +8,7 @@ import {
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.32";
 
 function obterElementos() {
     return {
@@ -108,7 +108,7 @@ export function exigirTrocaSenhaPrimeiroAcesso({ workspaceId, perfil, membro }) 
                 perfil.trocarSenha = false;
                 if (membro) membro.primeiroAcessoPendente = false;
 
-                await concluirAcaoBotao(elementos.btnSalvar, "Senha atualizada ✓", 720);
+                await concluirAcaoBotao(elementos.btnSalvar, "Senha atualizada ✓", 460);
                 elementos.form.reset();
                 elementos.modal.hidden = true;
                 document.body.classList.remove("primeiro-acesso-bloqueado");

@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=8.31";
+import { state } from "./state.js?v=8.32";
 
 const SECOES_APENAS_BARBEARIA = new Set([
     "barbeariaHome",

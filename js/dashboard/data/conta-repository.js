@@ -1,6 +1,6 @@
 import {
     db
-} from "../../firebase-init.js?v=8.31";
+} from "../../firebase-init.js?v=8.32";
 
 import {
     doc,
@@ -13,12 +13,22 @@ import {
 import {
     obterUidAtual,
     obterWorkspaceId
-} from "./context.js?v=8.31";
+} from "./context.js?v=8.32";
 
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.31";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.32";
+import { state } from "../state.js?v=8.32";
 
 
-export async function obterDadosConta() {
+export async function obterDadosConta({ forcar = false } = {}) {
+
+    // Perfil e membro já foram validados no bootstrap. Reaproveitar o estado torna
+    // "Minha conta" instantânea e evita duas leituras idênticas no Firestore.
+    if (!forcar && state.perfilUsuario && state.membroAtual) {
+        return {
+            usuario: state.perfilUsuario,
+            membro: state.membroAtual
+        };
+    }
 
     const uid = obterUidAtual();
     const workspaceId = obterWorkspaceId();

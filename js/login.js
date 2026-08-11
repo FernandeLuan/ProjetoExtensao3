@@ -1,13 +1,8 @@
 import {
     signInWithEmailAndPassword,
-    sendPasswordResetEmail,
-    signOut
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-    doc,
-    getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { auth, db } from "./firebase-init.js?v=8.31";
+import { auth } from "./firebase-init.js?v=8.32";
 
 const form = document.getElementById("loginForm");
 
@@ -18,39 +13,6 @@ function animarErro(elemento, mensagem) {
     elemento.classList.remove("erro-animado");
     void elemento.offsetWidth;
     elemento.classList.add("erro-animado");
-}
-
-async function validarAcessoAntesDoDashboard(user) {
-    const usuarioSnap = await getDoc(doc(db, "usuarios", user.uid));
-    if (!usuarioSnap.exists()) {
-        const error = new Error("Esta conta não possui acesso à barbearia.");
-        error.code = "SEM_ACESSO";
-        throw error;
-    }
-
-    const perfil = usuarioSnap.data();
-    const workspaceId = String(perfil?.barbeariaId || "").trim();
-    if (!workspaceId) {
-        const error = new Error("Esta conta não possui acesso à barbearia.");
-        error.code = "SEM_ACESSO";
-        throw error;
-    }
-
-    const membroSnap = await getDoc(doc(db, "barbearias", workspaceId, "membros", user.uid));
-    if (!membroSnap.exists()) {
-        const error = new Error("Esta conta não possui acesso à barbearia.");
-        error.code = "SEM_ACESSO";
-        throw error;
-    }
-
-    const membro = membroSnap.data();
-    if (membro?.ativo !== true || membro?.removido === true) {
-        const error = new Error("Seu acesso à barbearia foi desativado pelo administrador.");
-        error.code = "ACESSO_DESATIVADO";
-        throw error;
-    }
-
-    return { perfil, membro, workspaceId };
 }
 
 form?.addEventListener("submit", async function(e) {
@@ -65,30 +27,25 @@ form?.addEventListener("submit", async function(e) {
     if (erro) erro.innerText = "";
 
     try {
-        const credencial = await signInWithEmailAndPassword(auth, email, senha);
-        await validarAcessoAntesDoDashboard(credencial.user);
+        await signInWithEmailAndPassword(auth, email, senha);
 
+        // A autorização completa é validada no bootstrap do dashboard, que fica
+        // coberto pela tela de entrada. Evitamos repetir aqui as mesmas leituras
+        // de usuário + membro e ganhamos uma ida inteira ao Firestore no login.
         btn?.classList.remove("loading");
         btn?.classList.add("success");
+        document.body.classList.add("fade-out");
 
         setTimeout(() => {
-            document.body.classList.add("fade-out");
-            setTimeout(() => { window.location.href = "dashboard.html"; }, 400);
-        }, 600);
+            window.location.replace("dashboard.html");
+        }, 140);
     } catch (error) {
         btn?.classList.remove("loading", "success");
 
-        if (error?.code === "ACESSO_DESATIVADO") {
-            try { await signOut(auth); } catch (_) {}
-            animarErro(erro, "Seu acesso à barbearia foi desativado pelo administrador.");
-        } else if (error?.code === "SEM_ACESSO") {
-            try { await signOut(auth); } catch (_) {}
-            animarErro(erro, "Esta conta não possui acesso à barbearia.");
-        } else if (String(error?.code || "").startsWith("auth/")) {
+        if (String(error?.code || "").startsWith("auth/")) {
             animarErro(erro, "E-mail ou senha inválidos");
         } else {
-            try { await signOut(auth); } catch (_) {}
-            animarErro(erro, "Não foi possível validar seu acesso. Tente novamente.");
+            animarErro(erro, "Não foi possível entrar agora. Tente novamente.");
         }
 
         console.error("Erro de login/validação:", error?.code || error);

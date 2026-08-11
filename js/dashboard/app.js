@@ -1,23 +1,23 @@
-import { auth } from "../firebase-init.js?v=8.31";
+import { auth } from "../firebase-init.js?v=8.32";
 import {
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { inicializarContexto } from "./data/context.js?v=8.31";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.31";
-import { definirConfiguracoes } from "./state.js?v=8.31";
-import { initTheme } from "./theme.js?v=8.31";
-import { initConnectivity } from "./connectivity.js?v=8.31";
-import { initNavigation } from "./navigation.js?v=8.31";
-import { mostrarErro } from "./services/feedback-service.js?v=8.31";
-import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.31";
-import { aplicarPermissoesInterface } from "./permissoes.js?v=8.31";
-import { initVisao } from "./visao.js?v=8.31";
+import { inicializarContexto } from "./data/context.js?v=8.32";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.32";
+import { definirConfiguracoes } from "./state.js?v=8.32";
+import { initTheme } from "./theme.js?v=8.32";
+import { initConnectivity } from "./connectivity.js?v=8.32";
+import { initNavigation } from "./navigation.js?v=8.32";
+import { mostrarErro } from "./services/feedback-service.js?v=8.32";
+import { exigirTrocaSenhaPrimeiroAcesso } from "./primeiro-acesso.js?v=8.32";
+import { aplicarPermissoesInterface } from "./permissoes.js?v=8.32";
+import { initVisao } from "./visao.js?v=8.32";
 
 let appInicializado = false;
 const inicioBoot = performance.now();
-const BOOT_MINIMO_MS = 760;
+const BOOT_MINIMO_MS = 280;
 
 initTheme();
 initConnectivity();

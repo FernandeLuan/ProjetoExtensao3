@@ -1,23 +1,23 @@
-import { state } from "./state.js?v=8.31";
+import { state } from "./state.js?v=8.32";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=8.31";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.31";
-import { obterServicos } from "./services/catalogo-service.js?v=8.31";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.31";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.31";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+} from "./data/equipe-repository.js?v=8.32";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=8.32";
+import { obterServicos } from "./services/catalogo-service.js?v=8.32";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=8.32";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.32";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.32";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=8.31";
+} from "./services/ui-loading-service.js?v=8.32";
 
 let inicializado = false;
 let carregando = false;
@@ -403,7 +403,7 @@ async function criarNovoBarbeiro(event) {
             repassePct
         });
 
-        await concluirAcaoBotao(btnCriarAcesso, "Profissional cadastrado ✓", 760);
+        await concluirAcaoBotao(btnCriarAcesso, "Profissional cadastrado ✓", 460);
         modalAdicionar.hidden = true;
         document.body.classList.remove("modal-equipe-aberto");
 
@@ -790,7 +790,7 @@ async function salvarFinanceiroMembro() {
             row?.querySelector(".btn-alterar")?.classList.remove("hidden");
         });
 
-        await concluirAcaoBotao(btnSalvarFinanceiro, "Alterações salvas ✓", 720);
+        await concluirAcaoBotao(btnSalvarFinanceiro, "Alterações salvas ✓", 460);
         mostrarSucesso("Dados do profissional salvos.");
 
         const loading = iniciarLoadingTela("Atualizando equipe...", { delay: 320 });

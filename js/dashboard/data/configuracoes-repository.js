@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.31";
+import { db } from "../../firebase-init.js?v=8.32";
 import {
     doc,
     getDoc,
@@ -6,19 +6,20 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=8.31";
-import { obterWorkspaceId } from "./context.js?v=8.31";
-import { usuarioEhAdmin } from "../permissoes.js?v=8.31";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.31";
+import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=8.32";
+import { obterWorkspaceId } from "./context.js?v=8.32";
+import { usuarioEhAdmin } from "../permissoes.js?v=8.32";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.32";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=8.31";
+} from "./cache-local.js?v=8.32";
 
-// Configuração contém preços/serviços. TTL curto para economizar reaberturas sem
-// manter preço antigo por muito tempo em outro aparelho.
-const CACHE_CONFIG_MS = 2 * 60 * 1000;
+// Configuração contém preços/serviços. Alterações feitas neste aparelho atualizam ou
+// invalidam o cache imediatamente; a janela de 10 min evita reler o mesmo documento
+// em praticamente toda reabertura sem deixar o dado remoto preso indefinidamente.
+const CACHE_CONFIG_MS = 10 * 60 * 1000;
 
 function referenciaConfiguracao() {
     return doc(db, "barbearias", obterWorkspaceId(), "configuracoes", "geral");

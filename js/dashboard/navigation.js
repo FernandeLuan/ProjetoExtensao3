@@ -1,14 +1,14 @@
-import { auth } from "../firebase-init.js?v=8.31";
+import { auth } from "../firebase-init.js?v=8.32";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { state, onStateChange } from "./state.js?v=8.31";
-import { mostrarErro } from "./services/feedback-service.js?v=8.31";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.31";
+import { state, onStateChange } from "./state.js?v=8.32";
+import { mostrarErro } from "./services/feedback-service.js?v=8.32";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.32";
 import {
     aplicarPermissoesInterface,
     obterSecaoInicialVisao,
     podeAcessarSecao,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.31";
+} from "./permissoes.js?v=8.32";
 
 let inicializado = false;
 const modulos = new Map();
@@ -213,60 +213,60 @@ async function importarModulo(chave, caminho) {
 async function carregarSecao(targetId) {
     switch (targetId) {
         case "registrar": {
-            const modulo = await importarModulo("registrar", "./registrar.js?v=8.31");
+            const modulo = await importarModulo("registrar", "./registrar.js?v=8.32");
             await modulo.initRegistrar?.();
             await modulo.abrirRegistrar?.();
             return;
         }
         case "barbeariaHome": {
-            const modulo = await importarModulo("barbeariaHome", "./barbearia-home.js?v=8.31");
+            const modulo = await importarModulo("barbeariaHome", "./barbearia-home.js?v=8.32");
             await modulo.abrirVisaoGeralBarbearia?.();
             return;
         }
         case "painelFinanceiro": {
-            const modulo = await importarModulo("painel", "./painel.js?v=8.31");
+            const modulo = await importarModulo("painel", "./painel.js?v=8.32");
             await modulo.abrirPainelHoje?.();
             return;
         }
         case "historico": {
-            const modulo = await importarModulo("historico", "./historico.js?v=8.31");
+            const modulo = await importarModulo("historico", "./historico.js?v=8.32");
             await modulo.abrirHistoricoHoje?.();
             return;
         }
         case "relatorios": {
-            const modulo = await importarModulo("relatorios", "./relatorios.js?v=8.31");
+            const modulo = await importarModulo("relatorios", "./relatorios.js?v=8.32");
             await modulo.initRelatorios?.();
             await modulo.prepararRelatoriosHoje?.();
             return;
         }
         case "estoque": {
-            const modulo = await importarModulo("estoque", "./estoque.js?v=8.31");
+            const modulo = await importarModulo("estoque", "./estoque.js?v=8.32");
             modulo.initEstoque?.();
             await modulo.abrirEstoque?.();
             return;
         }
         case "despesas": {
-            const modulo = await importarModulo("despesas", "./despesas.js?v=8.31");
+            const modulo = await importarModulo("despesas", "./despesas.js?v=8.32");
             modulo.initDespesas?.();
             await modulo.abrirDespesasAtual?.();
             return;
         }
         case "equipe": {
-            const modulo = await importarModulo("equipe", "./equipe.js?v=8.31");
+            const modulo = await importarModulo("equipe", "./equipe.js?v=8.32");
             modulo.initEquipe?.();
             await modulo.abrirEquipe?.();
             return;
         }
         case "conta": {
-            const modulo = await importarModulo("conta", "./conta.js?v=8.31");
+            const modulo = await importarModulo("conta", "./conta.js?v=8.32");
             modulo.initConta?.();
             await modulo.abrirConta?.();
             return;
         }
         case "configuracoes": {
             const [configuracoes, retroativo] = await Promise.all([
-                importarModulo("configuracoes", "./configuracoes.js?v=8.31"),
-                importarModulo("retroativo", "./retroativo.js?v=8.31")
+                importarModulo("configuracoes", "./configuracoes.js?v=8.32"),
+                importarModulo("retroativo", "./retroativo.js?v=8.32")
             ]);
             configuracoes.initConfiguracoes?.();
             await retroativo.initRetroativo?.();

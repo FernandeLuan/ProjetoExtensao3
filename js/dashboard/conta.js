@@ -1,5 +1,5 @@
-import { auth } from "../firebase-init.js?v=8.31";
-import { state } from "./state.js?v=8.31";
+import { auth } from "../firebase-init.js?v=8.32";
+import { state } from "./state.js?v=8.32";
 
 import {
     EmailAuthProvider,
@@ -11,14 +11,14 @@ import {
 import {
     obterDadosConta,
     salvarFotoConta
-} from "./data/conta-repository.js?v=8.31";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.31";
+} from "./data/conta-repository.js?v=8.32";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=8.32";
 
 import {
     mostrarErro,
     mostrarSucesso
-} from "./services/feedback-service.js?v=8.31";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
+} from "./services/feedback-service.js?v=8.32";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.32";
 
 
 let inicializado = false;
@@ -195,7 +195,7 @@ async function salvarTaxasConta() {
             taxaCreditoPct: credito
         });
         preencherTaxasConta({ ...state.membroAtual, ...taxas });
-        await concluirAcaoBotao(btnSalvarTaxasConta, "Taxas salvas ✓", 680);
+        await concluirAcaoBotao(btnSalvarTaxasConta, "Taxas salvas ✓", 460);
         mostrarSucesso("Taxas atualizadas.");
     } catch (error) {
         console.error("Erro ao salvar taxas do cartão:", error);
@@ -514,7 +514,7 @@ atualizarAvatar(
             auth.currentUser?.email || ""
         );
 
-        await concluirAcaoBotao(btnSelecionarFoto, "Foto atualizada ✓", 680);
+        await concluirAcaoBotao(btnSelecionarFoto, "Foto atualizada ✓", 460);
 
         mostrarSucesso(
             "Foto atualizada."
@@ -694,7 +694,7 @@ async function alterarSenha(
             )
             ?.reset();
 
-        await concluirAcaoBotao(btn, "Senha atualizada ✓", 720);
+        await concluirAcaoBotao(btn, "Senha atualizada ✓", 460);
 
         mostrarSucesso(
             "Senha atualizada."

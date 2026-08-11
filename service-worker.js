@@ -1,6 +1,4 @@
-const CACHE_NAME = "sr-nk-v2.2.0-etapa8-v831";
-const NAVIGATION_TIMEOUT_MS = 1800;
-
+const CACHE_NAME = "sr-nk-v2.1.5-performance-v832";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,28 +8,28 @@ const APP_SHELL = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./Fotos/Sr.NK.jpg",
-  "./css/dashboard.css?v=8.31",
-  "./css/login.css?v=8.31",
+  "./css/dashboard.css?v=8.32",
+  "./css/login.css?v=8.32",
   "./css/style.css",
-  "./js/firebase-init.js?v=8.31",
-  "./js/login.js?v=8.31",
-  "./js/mobile-interactions.js?v=8.31",
-  "./js/dashboard/index.js?v=8.31",
-  "./js/dashboard/app.js?v=8.31",
-  "./js/dashboard/theme.js?v=8.31",
-  "./js/dashboard/connectivity.js?v=8.31",
-  "./js/dashboard/navigation.js?v=8.31",
-  "./js/dashboard/visao.js?v=8.31",
-  "./js/dashboard/permissoes.js?v=8.31",
-  "./js/dashboard/state.js?v=8.31",
-  "./js/dashboard/constants.js?v=8.31",
-  "./js/dashboard/primeiro-acesso.js?v=8.31",
-  "./js/dashboard/services/feedback-service.js?v=8.31",
-  "./js/dashboard/services/ui-loading-service.js?v=8.31",
-  "./js/dashboard/data/context.js?v=8.31",
-  "./js/dashboard/data/configuracoes-repository.js?v=8.31",
-  "./js/dashboard/data/cache-local.js?v=8.31",
-  "./js/dashboard/data/read-monitor.js?v=8.31"
+  "./js/firebase-init.js?v=8.32",
+  "./js/login.js?v=8.32",
+  "./js/mobile-interactions.js?v=8.32",
+  "./js/dashboard/index.js?v=8.32",
+  "./js/dashboard/app.js?v=8.32",
+  "./js/dashboard/theme.js?v=8.32",
+  "./js/dashboard/connectivity.js?v=8.32",
+  "./js/dashboard/navigation.js?v=8.32",
+  "./js/dashboard/visao.js?v=8.32",
+  "./js/dashboard/permissoes.js?v=8.32",
+  "./js/dashboard/state.js?v=8.32",
+  "./js/dashboard/constants.js?v=8.32",
+  "./js/dashboard/primeiro-acesso.js?v=8.32",
+  "./js/dashboard/services/feedback-service.js?v=8.32",
+  "./js/dashboard/services/ui-loading-service.js?v=8.32",
+  "./js/dashboard/data/context.js?v=8.32",
+  "./js/dashboard/data/configuracoes-repository.js?v=8.32",
+  "./js/dashboard/data/cache-local.js?v=8.32",
+  "./js/dashboard/data/read-monitor.js?v=8.32"
 ];
 
 self.addEventListener("install", (event) => {
@@ -72,34 +70,14 @@ async function buscarRede(request) {
   return salvarNoCache(request, response);
 }
 
-async function navegacaoComTimeout(request) {
+async function navegacaoCacheImediato(request, rede) {
   const cached = await caches.match(request, { ignoreSearch: true });
-  const rede = buscarRede(request);
-
-  if (!cached) {
-    try {
-      return await rede;
-    } catch (_) {
-      return caches.match("./login.html");
-    }
-  }
-
-  let timer;
-  const timeout = new Promise((resolve) => {
-    timer = setTimeout(() => resolve(cached), NAVIGATION_TIMEOUT_MS);
-  });
+  if (cached) return cached;
 
   try {
-    const response = await Promise.race([
-      rede.catch(() => cached),
-      timeout
-    ]);
-    return response || cached;
-  } finally {
-    clearTimeout(timer);
-    // Se o cache venceu a corrida, a busca de rede continua e atualiza o cache
-    // silenciosamente para a próxima abertura.
-    void rede.catch(() => null);
+    return await rede;
+  } catch (_) {
+    return caches.match("./login.html");
   }
 }
 
@@ -134,7 +112,11 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(navegacaoComTimeout(request));
+    // Navegação precisa parecer instantânea nas reaberturas: responde do cache
+    // imediatamente e atualiza o HTML silenciosamente para a próxima abertura.
+    const rede = buscarRede(request);
+    event.respondWith(navegacaoCacheImediato(request, rede));
+    event.waitUntil(rede.catch(() => null));
     return;
   }
 

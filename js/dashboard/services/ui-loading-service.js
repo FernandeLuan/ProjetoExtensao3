@@ -63,7 +63,7 @@ export function restaurarAcaoBotao(botao) {
     estadosBotoes.delete(botao);
 }
 
-export async function concluirAcaoBotao(botao, texto = "Concluído!", duracao = 720) {
+export async function concluirAcaoBotao(botao, texto = "Concluído!", duracao = 460) {
     if (!botao) return;
 
     botao.classList.remove("ui-action-loading");

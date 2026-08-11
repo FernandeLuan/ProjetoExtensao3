@@ -1,22 +1,22 @@
-import { state, onStateChange } from "./state.js?v=8.31";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=8.31";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=8.31";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.31";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.31";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.31";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.31";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=8.31";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.31";
-import { escaparHtml } from "./utils/dom.js?v=8.31";
-import { mostrarErro } from "./services/feedback-service.js?v=8.31";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.31";
+import { state, onStateChange } from "./state.js?v=8.32";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=8.32";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=8.32";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=8.32";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=8.32";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.32";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=8.32";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=8.32";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=8.32";
+import { escaparHtml } from "./utils/dom.js?v=8.32";
+import { mostrarErro } from "./services/feedback-service.js?v=8.32";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=8.32";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=8.31";
+} from "./services/ui-loading-service.js?v=8.32";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -188,16 +188,21 @@ export async function abrirHistoricoHoje() {
             : "Buscar serviço ou pagamento";
     }
     try {
+        const tarefas = [
+            garantirAtendimentosPeriodo(
+                dataHistoricoSelecionada,
+                dataHistoricoSelecionada,
+                podeAdministrarNaVisaoAtual()
+                    ? {}
+                    : { profissionalUid: state.user?.uid || null }
+            )
+        ];
+
         if (podeAdministrarNaVisaoAtual() && !(state.equipe || []).length) {
-            await listarMembrosEquipe();
+            tarefas.push(listarMembrosEquipe());
         }
-        await garantirAtendimentosPeriodo(
-            dataHistoricoSelecionada,
-            dataHistoricoSelecionada,
-            podeAdministrarNaVisaoAtual()
-                ? {}
-                : { profissionalUid: state.user?.uid || null }
-        );
+
+        await Promise.all(tarefas);
     } catch (error) { console.error(error); }
     prepararFiltrosDinamicos();
     atualizarHistorico();
@@ -546,7 +551,7 @@ btnSalvarEdicaoHistorico?.addEventListener("click",async()=>{
     iniciarAcaoBotao(btnSalvarEdicaoHistorico, "Salvando alteração...");
     try {
         await editarAtendimento(original.id, atualizacao);
-        await concluirAcaoBotao(btnSalvarEdicaoHistorico, "Alteração salva ✓", 680);
+        await concluirAcaoBotao(btnSalvarEdicaoHistorico, "Alteração salva ✓", 460);
         fecharModalEdicao();
         fecharDetalheHistorico(true);
         invalidarCacheAtendimentos();
@@ -587,7 +592,7 @@ btnConfirmar?.addEventListener("click", async () => {
 
     try {
         await excluirAtendimento(idParaExcluir);
-        await concluirAcaoBotao(btnConfirmar, "Atendimento excluído ✓", 620);
+        await concluirAcaoBotao(btnConfirmar, "Atendimento excluído ✓", 460);
         invalidarCacheAtendimentos();
         atualizarHistorico();
         fecharDetalheHistorico(true);

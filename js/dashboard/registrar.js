@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=8.31";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.31";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.31";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.31";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.31";
-import { usuarioEhAdmin } from "./permissoes.js?v=8.31";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.31";
-import { mostrarErro } from "./services/feedback-service.js?v=8.31";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.31";
+import { state, onStateChange } from "./state.js?v=8.32";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=8.32";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=8.32";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=8.32";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=8.32";
+import { usuarioEhAdmin } from "./permissoes.js?v=8.32";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=8.32";
+import { mostrarErro } from "./services/feedback-service.js?v=8.32";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=8.32";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -304,7 +304,7 @@ async function registrarAtendimentoAtual() {
         // O novo atendimento já entra no state local pelo repository.
         // Apenas invalida o cache para a próxima tela aberta buscar dados frescos.
         invalidarCacheAtendimentos();
-        await concluirAcaoBotao(btnRegistrar, "Registrado ✓", 760);
+        await concluirAcaoBotao(btnRegistrar, "Registrado ✓", 460);
     } catch (error) {
         console.error("Erro ao registrar atendimento:", error);
         mostrarErro("Não foi possível registrar o atendimento.");

@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.31";
+import { db } from "../../firebase-init.js?v=8.32";
 import {
     collection,
     doc,
@@ -15,21 +15,27 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=8.31";
-import { state } from "../state.js?v=8.31";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.31";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=8.31";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.31";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.31";
+import { SCHEMA_VERSION } from "../constants.js?v=8.32";
+import { state } from "../state.js?v=8.32";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=8.32";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=8.32";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.32";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.32";
 import {
     calcularVendaProduto,
     normalizarCodigoBarras,
     validarProduto
-} from "../services/estoque-service.js?v=8.31";
+} from "../services/estoque-service.js?v=8.32";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
+const CACHE_VENDAS_MS = 2 * 60 * 1000;
+const CACHE_MOVIMENTACOES_MS = 60 * 1000;
 let cacheProdutos = null;
 let cacheProdutosEm = 0;
+const cacheVendas = new Map();
+const vendasEmAndamento = new Map();
+const cacheMovimentacoes = new Map();
+const movimentacoesEmAndamento = new Map();
 
 function col(nome) {
     return collection(db, "barbearias", obterWorkspaceId(), nome);
@@ -42,6 +48,24 @@ function ref(nome, id) {
 export function invalidarCacheEstoque() {
     cacheProdutos = null;
     cacheProdutosEm = 0;
+    cacheVendas.clear();
+    vendasEmAndamento.clear();
+    cacheMovimentacoes.clear();
+    movimentacoesEmAndamento.clear();
+}
+
+function cacheLeituraValido(item, ttl) {
+    return item && (Date.now() - item.salvoEm) < ttl;
+}
+
+function chaveVendaPeriodo(dataInicio, fimExclusivo, uidFiltro, max) {
+    return [
+        obterWorkspaceId(),
+        dataInicio.toISOString().slice(0, 10),
+        fimExclusivo.toISOString().slice(0, 10),
+        uidFiltro || "todos",
+        max || "sem-limite"
+    ].join(":");
 }
 
 export async function listarProdutosEstoque({ forcar = false, somenteAtivos = false, somenteVendaveis = false } = {}) {
@@ -348,45 +372,107 @@ export async function registrarVendaProduto({
     return resultado;
 }
 
-export async function listarVendasPorPeriodo(inicio, fim, { profissionalUid = null, max = null } = {}) {
+export async function listarVendasPorPeriodo(
+    inicio,
+    fim,
+    { profissionalUid = null, max = null, forcar = false } = {}
+) {
     const dataInicio = new Date(inicio);
     dataInicio.setHours(0, 0, 0, 0);
     const fimExclusivo = new Date(fim);
     fimExclusivo.setHours(0, 0, 0, 0);
     fimExclusivo.setDate(fimExclusivo.getDate() + 1);
 
-    const filtros = [
-        where("dataVenda", ">=", Timestamp.fromDate(dataInicio)),
-        where("dataVenda", "<", Timestamp.fromDate(fimExclusivo))
-    ];
-
     const uidFiltro = profissionalUid || (!podeAdministrarNaVisaoAtual() ? obterUidAtual() : null);
-    if (uidFiltro) filtros.unshift(where("profissionalUid", "==", uidFiltro));
+    const chave = chaveVendaPeriodo(dataInicio, fimExclusivo, uidFiltro, max);
 
-    let consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"));
-    if (max) consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"), limit(max));
-    const snapshot = await getDocs(consulta);
-    registrarConsultaFirestore("estoque/vendas", snapshot.size);
-    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+    if (!forcar && cacheLeituraValido(cacheVendas.get(chave), CACHE_VENDAS_MS)) {
+        return cacheVendas.get(chave).itens;
+    }
+    if (!forcar && vendasEmAndamento.has(chave)) return vendasEmAndamento.get(chave);
+
+    const promessa = (async () => {
+        const filtros = [
+            where("dataVenda", ">=", Timestamp.fromDate(dataInicio)),
+            where("dataVenda", "<", Timestamp.fromDate(fimExclusivo))
+        ];
+
+        if (uidFiltro) filtros.unshift(where("profissionalUid", "==", uidFiltro));
+
+        let consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"));
+        if (max) consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"), limit(max));
+        const snapshot = await getDocs(consulta);
+        registrarConsultaFirestore("estoque/vendas", snapshot.size);
+        const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        cacheVendas.set(chave, { itens, salvoEm: Date.now() });
+        return itens;
+    })();
+
+    vendasEmAndamento.set(chave, promessa);
+    try {
+        return await promessa;
+    } finally {
+        vendasEmAndamento.delete(chave);
+    }
 }
 
-export async function listarVendasRecentes({ max = 50 } = {}) {
+export async function listarVendasRecentes({ max = 50, forcar = false } = {}) {
     if (!podeAdministrarNaVisaoAtual()) {
         const hoje = new Date();
         const inicio = new Date(hoje);
         inicio.setHours(0, 0, 0, 0);
-        return listarVendasPorPeriodo(inicio, hoje, { profissionalUid: obterUidAtual(), max });
+        return listarVendasPorPeriodo(inicio, hoje, {
+            profissionalUid: obterUidAtual(),
+            max,
+            forcar
+        });
     }
-    const snapshot = await getDocs(query(col("vendas"), orderBy("dataVenda", "desc"), limit(max)));
-    registrarConsultaFirestore("estoque/vendas-recentes", snapshot.size);
-    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+
+    const chave = `${obterWorkspaceId()}:recentes:${max}`;
+    if (!forcar && cacheLeituraValido(cacheVendas.get(chave), CACHE_VENDAS_MS)) {
+        return cacheVendas.get(chave).itens;
+    }
+    if (!forcar && vendasEmAndamento.has(chave)) return vendasEmAndamento.get(chave);
+
+    const promessa = (async () => {
+        const snapshot = await getDocs(query(col("vendas"), orderBy("dataVenda", "desc"), limit(max)));
+        registrarConsultaFirestore("estoque/vendas-recentes", snapshot.size);
+        const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        cacheVendas.set(chave, { itens, salvoEm: Date.now() });
+        return itens;
+    })();
+
+    vendasEmAndamento.set(chave, promessa);
+    try {
+        return await promessa;
+    } finally {
+        vendasEmAndamento.delete(chave);
+    }
 }
 
-export async function listarMovimentacoesRecentes({ max = 50 } = {}) {
+export async function listarMovimentacoesRecentes({ max = 50, forcar = false } = {}) {
     if (!usuarioEhAdmin()) return [];
-    const snapshot = await getDocs(query(col("estoqueMovimentacoes"), orderBy("dataMovimentacao", "desc"), limit(max)));
-    registrarConsultaFirestore("estoque/movimentacoes", snapshot.size);
-    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+
+    const chave = `${obterWorkspaceId()}:movimentacoes:${max}`;
+    if (!forcar && cacheLeituraValido(cacheMovimentacoes.get(chave), CACHE_MOVIMENTACOES_MS)) {
+        return cacheMovimentacoes.get(chave).itens;
+    }
+    if (!forcar && movimentacoesEmAndamento.has(chave)) return movimentacoesEmAndamento.get(chave);
+
+    const promessa = (async () => {
+        const snapshot = await getDocs(query(col("estoqueMovimentacoes"), orderBy("dataMovimentacao", "desc"), limit(max)));
+        registrarConsultaFirestore("estoque/movimentacoes", snapshot.size);
+        const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        cacheMovimentacoes.set(chave, { itens, salvoEm: Date.now() });
+        return itens;
+    })();
+
+    movimentacoesEmAndamento.set(chave, promessa);
+    try {
+        return await promessa;
+    } finally {
+        movimentacoesEmAndamento.delete(chave);
+    }
 }
 
 export async function listarProfissionaisParaVenda() {

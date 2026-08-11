@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.31";
+import { db } from "../../firebase-init.js?v=8.32";
 import {
     doc,
     getDoc,
@@ -6,7 +6,7 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=8.31";
+import { SCHEMA_VERSION } from "../constants.js?v=8.32";
 import {
     definirUsuario,
     definirPerfilUsuario,
@@ -14,13 +14,13 @@ import {
     definirBarbearia,
     definirWorkspaceId,
     state
-} from "../state.js?v=8.31";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.31";
+} from "../state.js?v=8.32";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.32";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=8.31";
+} from "./cache-local.js?v=8.32";
 
 const CACHE_PERFIL_MS = 30 * 60 * 1000;
 const CACHE_BARBEARIA_MS = 30 * 60 * 1000;
@@ -166,8 +166,13 @@ export async function inicializarContexto(user) {
 
     const perfil = await carregarPerfil(user);
     const workspaceId = perfil?.barbeariaId || user.uid;
-    const barbearia = await carregarBarbearia(workspaceId, user);
-    const membro = await carregarMembroAtual(workspaceId, user, perfil);
+
+    // Depois de descobrir o workspace, barbearia e membro são independentes.
+    // Buscar em paralelo evita somar a latência de duas viagens ao Firestore.
+    const [barbearia, membro] = await Promise.all([
+        carregarBarbearia(workspaceId, user),
+        carregarMembroAtual(workspaceId, user, perfil)
+    ]);
 
     if (membro.ativo !== true) {
         throw erroContexto("ACESSO_DESATIVADO", "Seu acesso à barbearia está desativado.");

@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=8.31";
+import { db } from "../../firebase-init.js?v=8.32";
 import {
     collection,
     doc,
@@ -10,15 +10,15 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { obterWorkspaceId } from "./context.js?v=8.31";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=8.31";
+import { obterWorkspaceId } from "./context.js?v=8.32";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=8.32";
 import {
     obterBrutoAtendimento,
     obterLiquidoBarbeiro,
     obterRepasseAtendimento,
     obterTaxaCartaoValor
-} from "../services/financeiro-service.js?v=8.31";
-import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=8.31";
+} from "../services/financeiro-service.js?v=8.32";
+import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=8.32";
 
 export const RESUMO_VERSION = 1;
 
@@ -343,7 +343,7 @@ export function anexarDeltasDespesasAoBatch(batch, entradas = []) {
 // =============================
 // LEITURA DOS RESUMOS
 // =============================
-const CACHE_RESUMOS_MS = 2 * 60 * 1000;
+const CACHE_RESUMOS_MS = 5 * 60 * 1000;
 const cacheResumos = new Map();
 const resumosEmAndamento = new Map();
 

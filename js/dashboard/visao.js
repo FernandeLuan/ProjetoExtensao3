@@ -1,16 +1,16 @@
-import { state } from "./state.js?v=8.31";
+import { state } from "./state.js?v=8.32";
 import {
     aplicarPermissoesInterface,
     podeUsarVisaoBarbearia,
     podeUsarVisaoProfissional,
     usuarioEhAdmin,
     visaoEhBarbearia
-} from "./permissoes.js?v=8.31";
+} from "./permissoes.js?v=8.32";
 import {
     abrirInicioDaVisaoAtual,
     configurarNavegacaoParaVisao
-} from "./navigation.js?v=8.31";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.31";
+} from "./navigation.js?v=8.32";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=8.32";
 
 const VISAO_PROFISSIONAL = "profissional";
 const VISAO_BARBEARIA = "barbearia";

@@ -1,16 +1,16 @@
-import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.31";
-import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.31";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.31";
-import { paraDate, chaveData } from "./utils/date.js?v=8.31";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.31";
+import { state, onStateChange, definirConfiguracoes } from "./state.js?v=8.32";
+import { podeAdministrarNaVisaoAtual, visaoEhProfissional } from "./permissoes.js?v=8.32";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=8.32";
+import { paraDate, chaveData } from "./utils/date.js?v=8.32";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=8.32";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=8.31";
-import { garantirZXing } from "./services/external-assets.js?v=8.31";
+} from "./services/ui-loading-service.js?v=8.32";
+import { garantirZXing } from "./services/external-assets.js?v=8.32";
 import {
     CATEGORIAS_ESTOQUE,
     UNIDADES_ESTOQUE,
@@ -19,7 +19,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=8.31";
+} from "./services/estoque-service.js?v=8.32";
 import {
     atualizarProdutoEstoque,
     criarProdutoEstoque,
@@ -32,9 +32,9 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=8.31";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.31";
-import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.31";
+} from "./data/estoque-repository.js?v=8.32";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=8.32";
+import { carregarConfiguracoesDoBanco } from "./data/configuracoes-repository.js?v=8.32";
 
 let inicializado = false;
 let produtos = [];
@@ -219,10 +219,18 @@ function selecionarAbaAdmin(aba) {
 
 async function carregarDados({ forcar = false } = {}) {
     const admin = podeAdministrarNaVisaoAtual();
-    produtos = await listarProdutosEstoque({ forcar, somenteAtivos: !admin });
-    vendas = await listarVendasRecentes({ max: 60 });
-    if (admin) movimentacoes = await listarMovimentacoesRecentes({ max: 60 });
-    else movimentacoes = [];
+
+    // As três listas não dependem uma da outra. Em paralelo, a tela espera apenas
+    // a consulta mais lenta, em vez de somar o tempo de produtos + vendas + movimentos.
+    const [produtosCarregados, vendasCarregadas, movimentacoesCarregadas] = await Promise.all([
+        listarProdutosEstoque({ forcar, somenteAtivos: !admin }),
+        listarVendasRecentes({ max: 60, forcar }),
+        admin ? listarMovimentacoesRecentes({ max: 60, forcar }) : Promise.resolve([])
+    ]);
+
+    produtos = produtosCarregados;
+    vendas = vendasCarregadas;
+    movimentacoes = movimentacoesCarregadas;
     atualizarResumoAdmin();
     renderizarProdutosAdmin();
     renderizarProdutosVenda();
@@ -246,7 +254,7 @@ function configurarVisao() {
 export async function abrirEstoque() {
     configurarVisao();
     try {
-        await carregarDados({ forcar: true });
+        await carregarDados({ forcar: false });
     } catch (error) {
         console.error(error);
         mostrarErro(error?.message || "Não foi possível carregar o estoque.");
@@ -317,7 +325,7 @@ async function salvarProduto(event) {
             await criarProdutoEstoque(dados);
         }
 
-        await concluirAcaoBotao(btn, editando ? "Produto atualizado ✓" : "Produto cadastrado ✓", 720);
+        await concluirAcaoBotao(btn, editando ? "Produto atualizado ✓" : "Produto cadastrado ✓", 460);
         setModal("modalProdutoEstoque", false);
         mostrarSucesso(editando ? "Produto atualizado." : "Produto cadastrado.");
 
@@ -438,7 +446,7 @@ async function salvarMovimentacao(event) {
             }
         }
 
-        await concluirAcaoBotao(btn, gerarDespesa ? "Tudo atualizado ✓" : "Estoque atualizado ✓", 720);
+        await concluirAcaoBotao(btn, gerarDespesa ? "Tudo atualizado ✓" : "Estoque atualizado ✓", 460);
         mostrarSucesso(gerarDespesa ? "Estoque e despesa atualizados." : "Estoque atualizado.");
         setModal("modalMovimentarEstoque", false);
 
@@ -544,7 +552,7 @@ async function salvarVenda(event) {
             gerarComissao,
             profissionalUid
         });
-        await concluirAcaoBotao(btn, "Venda registrada ✓", 760);
+        await concluirAcaoBotao(btn, "Venda registrada ✓", 460);
         setModal("modalVendaProduto", false);
         mostrarSucesso(venda.gerarComissao ? `Venda registrada • comissão ${moeda(venda.comissaoValor)}.` : "Venda registrada.");
 

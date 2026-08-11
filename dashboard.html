@@ -5,9 +5,13 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Dashboard | Sr NK</title>
-<link href="css/dashboard.css?v=8.31" rel="stylesheet"/>
+<link href="css/dashboard.css?v=8.32" rel="stylesheet"/>
+<link rel="modulepreload" href="js/firebase-init.js?v=8.32">
+<link rel="modulepreload" href="js/dashboard/index.js?v=8.32">
+<link rel="modulepreload" href="js/dashboard/app.js?v=8.32">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preload" as="image" href="Fotos/Sr.NK.jpg">
 <meta name="theme-color" content="#0F1115">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -717,8 +721,9 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v2.1.4</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v2.1.5</span></div>
 <div class="update-history">
+<article class="update-version-item"><button aria-controls="updateDetails215" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.5</strong><span>10/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails215"><p>Otimização de acesso e consultas.</p><ul><li>Login deixa de repetir consultas que o dashboard já valida com segurança.</li><li>Contexto inicial carrega dados independentes em paralelo e reduz o tempo mínimo da animação de abertura.</li><li>Navegação do PWA usa cache imediatamente e atualiza em segundo plano, sem aguardar até 1,8 s pela rede.</li><li>Estoque deixa de forçar recarga em toda abertura e carrega produtos, vendas e movimentações em paralelo.</li><li>Minha Conta reutiliza o perfil já carregado; Histórico paraleliza equipe e atendimentos; caches de leitura foram ampliados.</li></ul></div></article>
 <article class="update-version-item"><button aria-controls="updateDetails214" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.4</strong><span>10/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails214"><p>Nova experiência de carregamento e confirmação de ações.</p><ul><li>Animação de abertura com a marca Sr NK.</li><li>Loading inteligente nas telas que demoram para buscar dados, sem piscar em carregamentos rápidos.</li><li>Cadastros e registros agora mostram estado de processamento e confirmação visual de sucesso.</li></ul></div></article>
 <article class="update-version-item"><button aria-controls="updateDetails213" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.3</strong><span>08/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails213"><p>Correção de estabilidade da homologação.</p><ul><li>Corrigido erro de sintaxe no Histórico que interrompia o carregamento dos módulos e travava a navegação na tela inicial.</li><li>Cache local do PWA desativado durante testes em localhost para evitar arquivos antigos.</li></ul></div></article>
 <article class="update-version-item"><button aria-controls="updateDetails211" aria-expanded="false" class="update-version-toggle" type="button"><span class="update-version-title"><strong>v2.1.1</strong><span>08/08/2026</span></span><i class="fas fa-chevron-down"></i></button><div class="update-version-details" hidden id="updateDetails211"><p>Refino de Histórico, Relatórios e Minha Conta.</p><ul><li>Histórico compacto, busca restrita ao profissional selecionado e auditoria de registros legados.</li><li>Relatórios com navegação de período no padrão do Painel e compartilhamento por WhatsApp.</li><li>Despesas e atendimento retroativo com calendário, validação visual e ações padronizadas.</li><li>Tema movido para Minha Conta e interface de Configurações compactada.</li></ul></div></article>
@@ -1499,8 +1504,8 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script src="js/mobile-interactions.js?v=8.31" defer></script>
-<script src="js/dashboard/index.js?v=8.31" type="module"></script>
+<script src="js/mobile-interactions.js?v=8.32" defer></script>
+<script src="js/dashboard/index.js?v=8.32" type="module"></script>
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

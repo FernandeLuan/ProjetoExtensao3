@@ -1,10 +1,10 @@
-import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=8.31";
-import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=8.31";
-import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=8.31";
-import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=8.31";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.31";
+import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=8.32";
+import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=8.32";
+import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=8.32";
+import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=8.32";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=8.32";
 
-const CACHE_TTL_MS = 2 * 60 * 1000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX_ITENS = 24;
 const cachePeriodos = new Map();
 const consultasEmAndamento = new Map();
