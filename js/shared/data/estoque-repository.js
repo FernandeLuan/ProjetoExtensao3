@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.0";
+import { db } from "../../firebase-init.js?v=9.1";
 import {
     collection,
     doc,
@@ -15,17 +15,17 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.0";
-import { state } from "../state.js?v=9.0";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.0";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.0";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.0";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.0";
+import { SCHEMA_VERSION } from "../constants.js?v=9.1";
+import { state } from "../state.js?v=9.1";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.1";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.1";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=9.1";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.1";
 import {
     calcularVendaProduto,
     normalizarCodigoBarras,
     validarProduto
-} from "../services/estoque-service.js?v=9.0";
+} from "../services/estoque-service.js?v=9.1";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;

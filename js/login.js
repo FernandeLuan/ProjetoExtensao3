@@ -2,12 +2,14 @@ import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=9.0";
+import { auth } from "./firebase-init.js?v=9.1";
 
 const form = document.getElementById("loginForm");
 const paramsLogin = new URLSearchParams(window.location.search);
 const destinoSolicitado = paramsLogin.get("destino") === "admin" ? "admin" : "profissional";
-const destinoAposLogin = destinoSolicitado === "admin" ? "admin/" : "profissional/";
+const debugPerf = paramsLogin.get("debug") === "perf";
+const destinoBase = destinoSolicitado === "admin" ? "admin/" : "profissional/";
+const destinoAposLogin = debugPerf ? `${destinoBase}?debug=perf` : destinoBase;
 
 function animarErro(elemento, mensagem) {
     if (!elemento) return;

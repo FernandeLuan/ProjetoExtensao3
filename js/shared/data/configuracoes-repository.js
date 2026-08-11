@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.0";
+import { db } from "../../firebase-init.js?v=9.1";
 import {
     doc,
     getDoc,
@@ -6,15 +6,16 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=9.0";
-import { obterWorkspaceId } from "./context.js?v=9.0";
-import { usuarioEhAdmin } from "../permissoes.js?v=9.0";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.0";
+import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=9.1";
+import { obterWorkspaceId } from "./context.js?v=9.1";
+import { usuarioEhAdmin } from "../permissoes.js?v=9.1";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=9.1";
+import { medirAsync, registrarEventoPerf } from "../services/perf-service.js?v=9.1";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=9.0";
+} from "./cache-local.js?v=9.1";
 
 // Configuração contém preços/serviços. Alterações feitas neste aparelho atualizam ou
 // invalidam o cache imediatamente; a janela de 10 min evita reler o mesmo documento
@@ -38,11 +39,11 @@ export async function carregarConfiguracoesDoBanco({ forcar = false } = {}) {
 
     if (!forcar) {
         const cache = lerCacheLocal(chaveCache, CACHE_CONFIG_MS, "configuracoes");
-        if (cache) return normalizarConfig(cache);
+        if (cache) { registrarEventoPerf("Cache configurações", "hit"); return normalizarConfig(cache); }
     }
 
     const ref = referenciaConfiguracao();
-    const snap = await getDoc(ref);
+    const snap = await medirAsync("Firestore • configurações", () => getDoc(ref));
     registrarConsultaFirestore("configuracoes", 1);
 
     if (!snap.exists()) {

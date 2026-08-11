@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.0";
+import { db } from "../../firebase-init.js?v=9.1";
 import {
     collection,
     doc,
@@ -12,14 +12,15 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.0";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.0";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.0";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.0";
+import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.1";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.1";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.1";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=9.1";
+import { medirAsync } from "../services/perf-service.js?v=9.1";
 import {
     anexarDeltasAtendimentosAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.0";
+} from "./resumos-repository.js?v=9.1";
 
 function colecaoAtendimentos() {
     return collection(db, "barbearias", obterWorkspaceId(), "atendimentos");
@@ -105,7 +106,7 @@ export async function criarAtendimento(payload) {
         { atendimento: dados, sinal: 1 }
     ]);
 
-    await batch.commit();
+    await medirAsync("Firestore WRITE • atendimento", () => batch.commit());
 
     // Atualiza a tela localmente. Não faz uma nova leitura só para enxergar o registro recém-criado.
     const agora = new Date();

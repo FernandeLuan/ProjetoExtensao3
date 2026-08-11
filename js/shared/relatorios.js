@@ -1,21 +1,21 @@
-import { APP_NAME } from "./constants.js?v=9.0";
-import { state } from "./state.js?v=9.0";
-import { obterAtendimentosPeriodo } from "./data/sync.js?v=9.0";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=9.0";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.0";
-import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=9.0";
-import { obterWorkspaceId } from "./data/context.js?v=9.0";
+import { APP_NAME } from "./constants.js?v=9.1";
+import { state } from "./state.js?v=9.1";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=9.1";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=9.1";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.1";
+import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=9.1";
+import { obterWorkspaceId } from "./data/context.js?v=9.1";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=9.0";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.0";
+} from "./data/resumos-repository.js?v=9.1";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.1";
 import {
     obterBrutoAtendimento,
     obterTaxaCartaoValor,
     obterRepasseAtendimento,
     obterLiquidoBarbeiro
-} from "./services/financeiro-service.js?v=9.0";
+} from "./services/financeiro-service.js?v=9.1";
 import {
     chaveData,
     dataDeInput,
@@ -23,12 +23,12 @@ import {
     somarDias,
     obterDataAtendimento,
     formatarTituloData
-} from "./utils/date.js?v=9.0";
-import { formatarMoeda } from "./utils/money.js?v=9.0";
-import { escaparHtml } from "./utils/dom.js?v=9.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.0";
-import { calcularFechamentoFinanceiro, calcularResumoVendasProdutos } from "./services/relatorio-financeiro-service.js?v=9.0";
-import { garantirChartJs } from "./services/external-assets.js?v=9.0";
+} from "./utils/date.js?v=9.1";
+import { formatarMoeda } from "./utils/money.js?v=9.1";
+import { escaparHtml } from "./utils/dom.js?v=9.1";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.1";
+import { calcularFechamentoFinanceiro, calcularResumoVendasProdutos } from "./services/relatorio-financeiro-service.js?v=9.1";
+import { garantirChartJs } from "./services/external-assets.js?v=9.1";
 
 let inicializado = false;
 let relatorioAtual = null;

@@ -1,3 +1,5 @@
+import { registrarEventoPerf } from "./perf-service.js?v=9.1";
+
 const estadosBotoes = new WeakMap();
 const loadingsTela = new Map();
 let sequenciaLoading = 0;
@@ -106,10 +108,13 @@ export function iniciarLoadingTela(mensagem = "Carregando...", { delay = 240 } =
         timer: null
     };
 
+    registrarEventoPerf("Loading solicitado", `${item.mensagem} • delay ${Math.max(0, Number(delay) || 0)}ms`);
+
     item.timer = setTimeout(() => {
         const atual = loadingsTela.get(token);
         if (!atual) return;
         atual.visivel = true;
+        registrarEventoPerf("Loading visível", atual.mensagem);
         atualizarOverlayLoading();
     }, Math.max(0, Number(delay) || 0));
 
@@ -122,6 +127,7 @@ export function finalizarLoadingTela(token) {
     if (!item) return;
 
     clearTimeout(item.timer);
+    registrarEventoPerf("Loading finalizado", item.mensagem);
     loadingsTela.delete(token);
     atualizarOverlayLoading();
 }

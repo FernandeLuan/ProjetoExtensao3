@@ -1,9 +1,9 @@
-import { state } from "./state.js?v=9.0";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.0";
+import { state } from "./state.js?v=9.1";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.1";
 import {
     listarResumosBarbeariaPorPeriodo,
     listarResumosProfissionalPorPeriodo
-} from "./data/resumos-repository.js?v=9.0";
+} from "./data/resumos-repository.js?v=9.1";
 import {
     chaveData,
     dataDeInput,
@@ -11,9 +11,10 @@ import {
     inicioDoDia,
     mesmoDia,
     somarDias
-} from "./utils/date.js?v=9.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.0";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.0";
+} from "./utils/date.js?v=9.1";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.1";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.1";
+import { medirAsync } from "./services/perf-service.js?v=9.1";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -287,32 +288,39 @@ function atualizarNavegadorData() {
 }
 
 async function carregarDados({ forcar = false } = {}) {
-    const membros = membrosAtivos(
-        (state.equipe || []).length
-            ? state.equipe
-            : await listarMembrosEquipe()
-    );
-
     const inicio = inicioDoDia(dataSelecionada);
     const fim = inicioDoDia(dataSelecionada);
 
-    const [resumosEquipe, resumosBarbearia] = await Promise.all([
-        Promise.all(
-            membros.map(async (membro) => {
-                const uid = String(membro?.uid || membro?.id || "").trim();
-                const resumos = uid
-                    ? await listarResumosProfissionalPorPeriodo(
-                        uid,
-                        inicio,
-                        fim,
-                        { forcar }
-                    )
-                    : [];
+    // A consulta do resumo da barbearia não depende da equipe. Iniciá-la agora
+    // evita somar sua latência depois da leitura dos membros.
+    const resumosBarbeariaPromise = medirAsync(
+        "Admin • resumo barbearia",
+        () => listarResumosBarbeariaPorPeriodo(inicio, fim, { forcar })
+    );
 
-                return consolidarProfissional(membro, resumos);
-            })
-        ),
-        listarResumosBarbeariaPorPeriodo(inicio, fim, { forcar })
+    const membros = membrosAtivos(
+        (state.equipe || []).length
+            ? state.equipe
+            : await medirAsync("Admin • equipe", () => listarMembrosEquipe())
+    );
+
+    const resumosEquipePromise = Promise.all(
+        membros.map(async (membro) => {
+            const uid = String(membro?.uid || membro?.id || "").trim();
+            const resumos = uid
+                ? await medirAsync(
+                    `Admin • resumo ${membro?.nome || uid}`,
+                    () => listarResumosProfissionalPorPeriodo(uid, inicio, fim, { forcar })
+                )
+                : [];
+
+            return consolidarProfissional(membro, resumos);
+        })
+    );
+
+    const [resumosEquipe, resumosBarbearia] = await Promise.all([
+        resumosEquipePromise,
+        resumosBarbeariaPromise
     ]);
 
     const total = consolidarBarbearia(resumosEquipe, resumosBarbearia);

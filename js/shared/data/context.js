@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.0";
+import { db } from "../../firebase-init.js?v=9.1";
 import {
     doc,
     getDoc,
@@ -6,7 +6,7 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.0";
+import { SCHEMA_VERSION } from "../constants.js?v=9.1";
 import {
     definirUsuario,
     definirPerfilUsuario,
@@ -14,13 +14,14 @@ import {
     definirBarbearia,
     definirWorkspaceId,
     state
-} from "../state.js?v=9.0";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.0";
+} from "../state.js?v=9.1";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=9.1";
+import { medirAsync, registrarEventoPerf } from "../services/perf-service.js?v=9.1";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=9.0";
+} from "./cache-local.js?v=9.1";
 
 const CACHE_PERFIL_MS = 30 * 60 * 1000;
 const CACHE_BARBEARIA_MS = 30 * 60 * 1000;
@@ -45,11 +46,12 @@ async function carregarPerfil(user) {
 
     // Primeiro acesso precisa sempre confirmar trocarSenha no banco.
     if (cache?.barbeariaId && cache?.trocarSenha !== true) {
+        registrarEventoPerf("Cache perfil", "hit");
         return cache;
     }
 
     const usuarioRef = doc(db, "usuarios", user.uid);
-    const usuarioSnap = await getDoc(usuarioRef);
+    const usuarioSnap = await medirAsync("Firestore • perfil", () => getDoc(usuarioRef));
     registrarConsultaFirestore("contexto/usuario", 1);
 
     let perfil = usuarioSnap.exists() ? usuarioSnap.data() : null;
@@ -95,10 +97,10 @@ async function carregarPerfil(user) {
 async function carregarBarbearia(workspaceId, user) {
     const chave = chaveBarbearia(workspaceId);
     const cache = lerCacheLocal(chave, CACHE_BARBEARIA_MS, "contexto/barbearia");
-    if (cache) return cache;
+    if (cache) { registrarEventoPerf("Cache barbearia", "hit"); return cache; }
 
     const barbeariaRef = doc(db, "barbearias", workspaceId);
-    const barbeariaSnap = await getDoc(barbeariaRef);
+    const barbeariaSnap = await medirAsync("Firestore • barbearia", () => getDoc(barbeariaRef));
     registrarConsultaFirestore("contexto/barbearia", 1);
 
     if (barbeariaSnap.exists()) {
@@ -130,7 +132,7 @@ async function carregarMembroAtual(workspaceId, user, perfil) {
     // influenciam autorização e valores financeiros; por isso confirmamos ao vivo
     // uma vez em cada inicialização do app.
     const membroRef = doc(db, "barbearias", workspaceId, "membros", user.uid);
-    const membroSnap = await getDoc(membroRef);
+    const membroSnap = await medirAsync("Firestore • membro", () => getDoc(membroRef));
     registrarConsultaFirestore("contexto/membro", 1);
 
     if (membroSnap.exists()) return membroSnap.data();

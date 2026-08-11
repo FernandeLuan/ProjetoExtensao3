@@ -1,7 +1,8 @@
-import { db } from "../../firebase-init.js?v=9.0";
+import { db } from "../../firebase-init.js?v=9.1";
 import {
     collection,
     doc,
+    getDoc,
     getDocs,
     increment,
     orderBy,
@@ -10,15 +11,15 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { obterWorkspaceId } from "./context.js?v=9.0";
-import { registrarConsultaFirestore } from "./read-monitor.js?v=9.0";
+import { obterWorkspaceId } from "./context.js?v=9.1";
+import { registrarConsultaFirestore } from "./read-monitor.js?v=9.1";
 import {
     obterBrutoAtendimento,
     obterLiquidoBarbeiro,
     obterRepasseAtendimento,
     obterTaxaCartaoValor
-} from "../services/financeiro-service.js?v=9.0";
-import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.0";
+} from "../services/financeiro-service.js?v=9.1";
+import { chaveData, obterDataAtendimento, paraDate } from "../utils/date.js?v=9.1";
 
 export const RESUMO_VERSION = 1;
 
@@ -411,6 +412,32 @@ async function executarConsultaResumo({ chave, origem, referencia, inicio, fim, 
     }
 }
 
+async function executarLeituraResumoDia({ chave, origem, referenciaDoc, forcar }) {
+    if (!forcar) {
+        const cache = cacheResumos.get(chave);
+        if (cacheValido(cache)) return cache.itens;
+    }
+
+    if (resumosEmAndamento.has(chave)) {
+        return resumosEmAndamento.get(chave);
+    }
+
+    const promessa = (async () => {
+        const snapshot = await getDoc(referenciaDoc);
+        registrarConsultaFirestore(origem, snapshot.exists() ? 1 : 0, "leitura direta do dia");
+        const itens = snapshot.exists() ? [{ id: snapshot.id, ...snapshot.data() }] : [];
+        salvarCache(chave, itens);
+        return itens;
+    })();
+
+    resumosEmAndamento.set(chave, promessa);
+    try {
+        return await promessa;
+    } finally {
+        resumosEmAndamento.delete(chave);
+    }
+}
+
 export async function listarResumosProfissionalPorPeriodo(
     uid,
     inicio,
@@ -421,6 +448,17 @@ export async function listarResumosProfissionalPorPeriodo(
     if (!profissionalUid) return [];
 
     const workspaceId = obterWorkspaceId();
+    const chave = chaveCache("profissional", profissionalUid, inicio, fim);
+
+    if (inicioChave(inicio) === inicioChave(fim)) {
+        return executarLeituraResumoDia({
+            chave,
+            origem: "resumos/profissional-dia",
+            referenciaDoc: referenciaResumoProfissional(profissionalUid, inicioChave(inicio)),
+            forcar
+        });
+    }
+
     const referencia = collection(
         db,
         "barbearias",
@@ -431,7 +469,7 @@ export async function listarResumosProfissionalPorPeriodo(
     );
 
     return executarConsultaResumo({
-        chave: chaveCache("profissional", profissionalUid, inicio, fim),
+        chave,
         origem: "resumos/profissional",
         referencia,
         inicio,
@@ -446,6 +484,17 @@ export async function listarResumosBarbeariaPorPeriodo(
     { forcar = false } = {}
 ) {
     const workspaceId = obterWorkspaceId();
+    const chave = chaveCache("barbearia", null, inicio, fim);
+
+    if (inicioChave(inicio) === inicioChave(fim)) {
+        return executarLeituraResumoDia({
+            chave,
+            origem: "resumos/barbearia-dia",
+            referenciaDoc: referenciaResumoBarbearia(inicioChave(inicio)),
+            forcar
+        });
+    }
+
     const referencia = collection(
         db,
         "barbearias",
@@ -454,7 +503,7 @@ export async function listarResumosBarbeariaPorPeriodo(
     );
 
     return executarConsultaResumo({
-        chave: chaveCache("barbearia", null, inicio, fim),
+        chave,
         origem: "resumos/barbearia",
         referencia,
         inicio,
