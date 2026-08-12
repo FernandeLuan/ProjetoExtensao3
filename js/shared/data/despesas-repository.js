@@ -1,9 +1,10 @@
-import { db } from "../../firebase-init.js?v=9.7";
+import { db } from "../../firebase-init.js?v=11.0";
 import {
     collection,
     doc,
     getDoc,
     getDocs,
+    getDocsFromServer,
     orderBy,
     query,
     serverTimestamp,
@@ -12,15 +13,14 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.7";
-import { state } from "../state.js?v=9.7";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
+import { SCHEMA_VERSION } from "../constants.js?v=11.0";
+import { state } from "../state.js?v=11.0";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.0";
 import {
     anexarDeltasDespesasAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.7";
-import { marcarDadosPendentes } from "../services/refresh-service.js?v=9.7";
+} from "./resumos-repository.js?v=11.0";
 
 const CACHE_DESPESAS_MS = 5 * 60 * 1000;
 const cacheDespesas = new Map();
@@ -125,11 +125,12 @@ export async function listarDespesasPorPeriodo(
             );
         }
 
-        const snapshot = await getDocs(query(
+        const consulta = query(
             colecaoDespesas(),
             ...filtros,
             orderBy("dataDespesa", "desc")
-        ));
+        );
+        const snapshot = forcar ? await getDocsFromServer(consulta) : await getDocs(consulta);
 
         let itens = snapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
         if (!incluirBarbearia && uidFiltro) {
@@ -165,7 +166,6 @@ export async function criarDespesa({ data, categoria, descricao, valor, tipo = "
 
     await batch.commit();
     invalidarCacheDespesas();
-    marcarDadosPendentes("despesas");
     return ref;
 }
 
@@ -225,8 +225,6 @@ export async function criarDespesaParcelada({
     anexarDeltasDespesasAoBatch(batch, entradasResumo);
     await batch.commit();
     invalidarCacheDespesas();
-    marcarDadosPendentes("despesas");
-
     return { parcelamentoId, refs, parcelas: totalParcelas };
 }
 
@@ -252,7 +250,6 @@ export async function editarDespesa(id, alteracoes, originalInformado = null) {
 
     await batch.commit();
     invalidarCacheDespesas();
-    marcarDadosPendentes("despesas");
 }
 
 export async function excluirDespesa(id, originalInformado = null) {
@@ -270,7 +267,6 @@ export async function excluirDespesa(id, originalInformado = null) {
 
     await batch.commit();
     invalidarCacheDespesas();
-    marcarDadosPendentes("despesas");
 }
 
 export async function excluirDespesaParcelada(despesa, { incluirProximas = false } = {}) {
@@ -308,6 +304,5 @@ export async function excluirDespesaParcelada(despesa, { incluirProximas = false
     if (deltas.length) anexarDeltasDespesasAoBatch(batch, deltas);
     await batch.commit();
     invalidarCacheDespesas();
-    marcarDadosPendentes("despesas");
     return { quantidade: originais.length };
 }

@@ -404,7 +404,8 @@ service cloud.firestore {
           && validNonNegative(request.resource.data.quantidadeAtual)
           && validNonNegative(request.resource.data.estoqueMinimo)
           && validNonNegative(request.resource.data.custoUnitario)
-          && validNonNegative(request.resource.data.precoVenda);
+          && validNonNegative(request.resource.data.precoVenda)
+          && request.resource.data.get("comissaoHabilitada", true) is bool;
 
         allow update: if isAdmin(barbeariaId) || (
           canActAsProfessional(barbeariaId)
@@ -413,6 +414,7 @@ service cloud.firestore {
             "ultimaVendaId",
             "atualizadoEm"
           ])
+          && resource.data.get("comissaoHabilitada", true) == true
           && validNonNegative(resource.data.quantidadeAtual)
           && validNonNegative(request.resource.data.quantidadeAtual)
           && request.resource.data.quantidadeAtual < resource.data.quantidadeAtual
@@ -459,6 +461,8 @@ service cloud.firestore {
               && request.resource.data.profissionalUid == request.auth.uid
               && targetCanActAsProfessional(barbeariaId, request.auth.uid)
               && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("ativo", true) != false
+              && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("comissaoHabilitada", true) == true
+              && request.resource.data.get("comissaoHabilitadaSnapshot", true) == true
               && request.resource.data.comissaoPctSnapshot == productCommissionPct(barbeariaId)
               && request.resource.data.precoUnitarioSnapshot == get(stockPath(barbeariaId, request.resource.data.produtoId)).data.precoVenda
               && request.resource.data.custoUnitarioSnapshot == get(stockPath(barbeariaId, request.resource.data.produtoId)).data.custoUnitario
@@ -493,6 +497,7 @@ service cloud.firestore {
           && getAfter(salePath(barbeariaId, request.resource.data.vendaId)).data.registradoPorUid == request.auth.uid
           && getAfter(salePath(barbeariaId, request.resource.data.vendaId)).data.profissionalUid == request.auth.uid
           && getAfter(salePath(barbeariaId, request.resource.data.vendaId)).data.produtoId == request.resource.data.produtoId
+          && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("comissaoHabilitada", true) == true
         );
 
         allow update, delete: if false;

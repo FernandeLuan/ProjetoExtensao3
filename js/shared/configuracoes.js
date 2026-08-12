@@ -1,9 +1,9 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=9.7";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=9.7";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=9.7";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.7";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.7";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.7";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=11.0";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=11.0";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=11.0";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.0";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.0";
 
 let inicializado = false;
 
@@ -99,7 +99,11 @@ function fecharGrupo(botao) {
     const id = botao.getAttribute("aria-controls");
     const conteudo = id ? document.getElementById(id) : null;
     botao.setAttribute("aria-expanded", "false");
-    if (conteudo) conteudo.hidden = true;
+    if (conteudo) {
+        conteudo.hidden = true;
+        conteudo.querySelectorAll("[data-product-config-editor]").forEach((editor) => { editor.hidden = true; });
+    }
+    if (id === "configGroupEstoqueVendas") renderizarFinanceiroProdutos();
 }
 
 function fecharOutrosGruposConfig(excecao = null) {

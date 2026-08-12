@@ -1,16 +1,15 @@
-import { state } from "./state.js?v=9.7";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.7";
-import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=9.7";
-import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=9.7";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.7";
-import { garantirChartJs } from "./services/external-assets.js?v=9.7";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.7";
-import { habilitarPullToRefresh, observarMudancas, registrarAtualizacao, temDadosPendentes, textoUltimaAtualizacao } from "./services/refresh-service.js?v=9.7";
+import { state } from "./state.js?v=11.0";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.0";
+import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.0";
+import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=11.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
+import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.0";
+import { garantirChartJs } from "./services/external-assets.js?v=11.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.0";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
 let eventosConfigurados = false;
-let pullRefreshVinculado = false;
 let graficoFaturamento = null;
 let graficoServicos = null;
 let graficoPagamentos = null;
@@ -196,17 +195,67 @@ function renderRanking(id, entradas, formatar) {
     `).join("");
 }
 
-function criarRosca(canvasId, entradas, tooltip) {
+function pluginNumerosRosca() {
+    return {
+        id: "srnkNumerosRoscaAdmin",
+        afterDatasetsDraw(chart, _args, opcoes) {
+            if (!opcoes?.mostrar) return;
+            const meta = chart.getDatasetMeta(0);
+            const valores = chart.data.datasets?.[0]?.data || [];
+            const ctx = chart.ctx;
+            ctx.save();
+            meta.data.forEach((arco, indice) => {
+                const valor = Number(valores[indice] || 0);
+                if (valor <= 0 || !arco) return;
+                const pos = arco.getCenterPoint();
+                const raio = valor >= 10 ? 12 : 11;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, raio, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(15, 23, 42, .82)";
+                ctx.fill();
+                ctx.fillStyle = "#fff";
+                ctx.font = "700 11px Poppins, sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(String(valor), pos.x, pos.y + .5);
+            });
+            ctx.restore();
+        }
+    };
+}
+
+function criarRosca(canvasId, entradas, tooltip, { mostrarNumeros = false } = {}) {
     const canvas = el(canvasId);
     if (!canvas || typeof Chart === "undefined") return null;
     const cores = coresTema();
     const dados = entradas.length ? entradas : [["Sem dados", 1]];
     const vazio = !entradas.length;
     const coresLista = paleta(cores.primary);
+    const corSeparacao = getComputedStyle(document.documentElement).getPropertyValue("--bg-card").trim() || "#fff";
     return new Chart(canvas, {
         type: "doughnut",
-        data: { labels: dados.map(([nome]) => nome), datasets: [{ data: dados.map(([, valor]) => valor), backgroundColor: vazio ? [cores.border] : dados.map((_, i) => coresLista[i % coresLista.length]), borderWidth: 0, spacing: vazio ? 0 : 2 }] },
-        options: { responsive: true, maintainAspectRatio: false, cutout: "68%", animation: { duration: 180 }, plugins: { legend: { display: false }, tooltip: { enabled: !vazio, callbacks: { label: (ctx) => tooltip(ctx.raw, ctx.label) } } } }
+        plugins: [pluginNumerosRosca()],
+        data: {
+            labels: dados.map(([nome]) => nome),
+            datasets: [{
+                data: dados.map(([, valor]) => valor),
+                backgroundColor: vazio ? [cores.border] : dados.map((_, i) => coresLista[i % coresLista.length]),
+                borderWidth: 0,
+                spacing: vazio ? 0 : 2,
+                hoverOffset: vazio ? 0 : 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "68%",
+            animation: { duration: 180 },
+            plugins: {
+                srnkNumerosRoscaAdmin: { mostrar: mostrarNumeros && !vazio },
+                legend: { display: false },
+                tooltip: { enabled: !vazio, callbacks: { label: (ctx) => tooltip(ctx.raw, ctx.label) } }
+            }
+        }
     });
 }
 
@@ -235,7 +284,7 @@ function renderGraficos(total) {
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 180 }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => moeda(ctx.raw) } } }, scales: { x: { grid: { display: false }, ticks: { color: cores.text } }, y: { beginAtZero: true, grid: { color: cores.border }, ticks: { color: cores.text } } } }
         });
     }
-    graficoServicos = criarRosca("graficoBarbeariaServicos", servicos, (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`);
+    graficoServicos = criarRosca("graficoBarbeariaServicos", servicos, (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`, { mostrarNumeros: true });
     graficoPagamentos = criarRosca("graficoBarbeariaPagamentos", pagamentos, (valor) => moeda(valor));
 }
 
@@ -245,14 +294,6 @@ function setStatus(mensagem = "", tipo = "aviso") {
     status.hidden = !mensagem;
     status.textContent = mensagem;
     status.dataset.tipo = tipo;
-}
-
-function atualizarStatusAtualizacao() {
-    const atualizado = el("barbeariaHomeAtualizadoEm");
-    const pendente = el("barbeariaHomeNovosDados");
-    const temPendente = temDadosPendentes(["atendimentos", "despesas"]);
-    if (atualizado) atualizado.textContent = textoUltimaAtualizacao("barbearia-home");
-    if (pendente) pendente.hidden = !temPendente;
 }
 
 function atualizarNavegadorData() {
@@ -313,29 +354,6 @@ async function carregarDados({ forcar = false, aguardarSerie = false } = {}) {
     else void serie.catch((error) => console.warn("Não foi possível completar o gráfico de 7 dias:", error));
 }
 
-async function atualizarForcado() {
-    const loading = iniciarLoadingTela("Atualizando visão geral...", { delay: 120 });
-    try {
-        await abrirVisaoGeralBarbearia({ forcar: true, aguardarSerie: true });
-        registrarAtualizacao("barbearia-home", ["atendimentos", "despesas"]);
-    } finally {
-        finalizarLoadingTela(loading);
-        atualizarStatusAtualizacao();
-    }
-}
-
-function prepararPullRefresh() {
-    if (pullRefreshVinculado) return;
-    const secao = el("barbeariaHome");
-    if (!secao) return;
-    pullRefreshVinculado = true;
-    habilitarPullToRefresh(secao, atualizarForcado);
-    observarMudancas(atualizarStatusAtualizacao);
-    window.setInterval(() => {
-        if (getComputedStyle(secao).display !== "none") atualizarStatusAtualizacao();
-    }, 30000);
-}
-
 export async function abrirVisaoGeralBarbearia({ forcar = false, aguardarSerie = false } = {}) {
     if (carregamentoEmAndamento && !forcar) return carregamentoEmAndamento;
     atualizarNavegadorData();
@@ -356,8 +374,6 @@ export async function abrirVisaoGeralBarbearia({ forcar = false, aguardarSerie =
     try { return await promessa; }
     finally {
         if (carregamentoEmAndamento === promessa) carregamentoEmAndamento = null;
-        prepararPullRefresh();
-        atualizarStatusAtualizacao();
     }
 }
 
@@ -382,4 +398,5 @@ function configurarEventos() {
     input?.addEventListener("change", () => { const escolhida = dataDeInput(input.value); if (escolhida) void selecionarData(escolhida); });
 }
 
+inicializarTooltipsFinanceiros();
 configurarEventos();

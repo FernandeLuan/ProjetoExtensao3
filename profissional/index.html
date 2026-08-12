@@ -5,18 +5,18 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Área Profissional | Sr NK</title>
-<link href="../css/profissional.css?v=9.7" rel="stylesheet"/>
+<link href="../css/profissional.css?v=11.0" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
 <link as="image" href="../Fotos/Sr.NK.jpg" rel="preload"/>
 <meta content="#0F1115" name="theme-color"/>
-<link href="../icons/icon-192.png?v=9.7" rel="apple-touch-icon"/>
+<link href="../icons/icon-192.png?v=11.0" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=9.7" rel="modulepreload"><link href="../js/profissional/index.js?v=9.7" rel="modulepreload"><link href="../js/profissional/app.js?v=9.7" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=9.7">
+<link href="../js/firebase-init.js?v=11.0" rel="modulepreload"><link href="../js/profissional/index.js?v=11.0" rel="modulepreload"><link href="../js/profissional/app.js?v=11.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=11.0">
 </head>
 <body class="dashboard-booting" data-srnk-area="profissional" data-srnk-visao="profissional">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -26,7 +26,7 @@
 </div>
 </div>
 <strong class="app-boot-title">Sr NK</strong>
-<span class="app-boot-subtitle">Preparando sua área profissional...</span>
+<span class="app-boot-subtitle">Verificando seu acesso...</span>
 <div aria-hidden="true" class="app-boot-progress"><span></span></div>
 </div>
 <div aria-live="polite" class="connection-status" hidden="" id="connectionStatus" role="status">
@@ -126,7 +126,6 @@
 <i class="fas fa-chevron-right"></i>
 </button>
 </div>
-<div class="data-refresh-meta"><span id="painelAtualizadoEm">Dados carregados</span><span class="data-refresh-pendente" hidden id="painelNovosDados">Há novos dados — puxe para atualizar.</span></div>
 <!-- Card principal -->
 <article class="finance-card finance-overview">
 <div class="finance-overview-top">
@@ -232,24 +231,19 @@
 </section>
 <!-- FECHAMENTO -->
 <section class="registrar fechamento-simples-page" id="relatorios" style="display:none">
-<h2 class="titulo-sessao">Fechamento</h2>
-<div aria-label="Selecionar data do fechamento" class="painel-data-nav fechamento-data-nav">
-<button aria-label="Ver dia anterior" class="painel-data-btn" id="btnRelDataAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
-<div class="painel-data-center">
-<span aria-live="polite" class="painel-data-label" id="labelDataRelatorio">Hoje</span>
-<button aria-label="Escolher data do fechamento" class="painel-calendar-btn" id="btnCalendarioRelatorio" type="button"><i class="fas fa-calendar-days"></i></button>
+<div class="fechamento-periodo-grid" aria-label="Período do fechamento">
+<button class="fechamento-periodo-btn" id="btnRelDataInicio" type="button" aria-label="Escolher data inicial"><span>De</span><strong id="labelRelDataInicio">Hoje</strong><i class="fas fa-calendar-days" aria-hidden="true"></i></button>
+<button class="fechamento-periodo-btn" id="btnRelDataFim" type="button" aria-label="Escolher data final"><span>Até</span><strong id="labelRelDataFim">Hoje</strong><i class="fas fa-calendar-days" aria-hidden="true"></i></button>
 <input aria-hidden="true" class="painel-date-picker" id="dataInicioRelatorio" tabindex="-1" type="date"/>
+<input aria-hidden="true" class="painel-date-picker" id="dataFimRelatorio" tabindex="-1" type="date"/>
 </div>
-<button aria-label="Ver próximo dia" class="painel-data-btn" id="btnRelDataProxima" type="button"><i class="fas fa-chevron-right"></i></button>
-</div>
-<label class="fechamento-profissional-field" hidden id="relatorioProfissionalField"><span>Gerar para</span><select id="relatorioProfissionalSelect"><option value="barbearia">Barbearia</option></select></label>
 <article class="fechamento-request-card">
 <div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-<div><h3>Fechamento do dia</h3><p>Os valores são atualizados no momento da solicitação.</p></div>
+<div><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
 <button class="btn fechamento-request-btn" id="btnSolicitarFechamento" type="button">Solicitar fechamento</button>
 </article>
 <div class="fechamento-output" hidden id="fechamentoResultadoBox">
-<label for="fechamentoTexto">Texto do fechamento</label>
+<label for="fechamentoTexto">Texto pronto</label>
 <textarea id="fechamentoTexto" readonly rows="12"></textarea>
 <div class="fechamento-output-actions">
 <button id="btnCopiarFechamento" type="button"><i class="fas fa-copy"></i><span>Copiar</span></button>
@@ -291,12 +285,20 @@
 <!-- ESTOQUE E VENDAS -->
 <section class="registrar estoque-page" id="estoque" style="display:none">
 <h2 class="titulo-sessao" id="estoqueTitulo">Estoque</h2>
-<p class="estoque-desc" id="estoqueDescricao">Produtos e vendas da barbearia.</p>
+<p class="estoque-desc" id="estoqueDescricao">Produtos, vendas e movimentações.</p>
+
 <div hidden id="estoqueAdminView">
+<div aria-label="Áreas do estoque" class="estoque-tabs" role="tablist">
+<button class="active" data-estoque-admin-tab="produtos" role="tab" type="button"><i class="fas fa-box"></i><span>Produtos</span></button>
+<button data-estoque-admin-tab="vendas" role="tab" type="button"><i class="fas fa-receipt"></i><span>Venda da equipe</span></button>
+<button data-estoque-admin-tab="movimentacoes" role="tab" type="button"><i class="fas fa-arrow-right-arrow-left"></i><span>Movimentações</span></button>
+</div>
+
+<div id="estoqueAdminPainelProdutos">
 <div class="estoque-resumo-grid estoque-resumo-grid-simple">
 <article class="estoque-resumo-card"><span>Produtos ativos</span><strong id="estoqueResumoItens">0</strong></article>
 <article class="estoque-resumo-card is-danger"><span>Sem estoque</span><strong id="estoqueResumoZerado">0</strong></article>
-<article class="estoque-resumo-card is-success"><span>Valor em estoque</span><strong id="estoqueResumoValor">R$ 0,00</strong></article>
+<article class="estoque-resumo-card is-success"><span>Custo em estoque</span><strong id="estoqueResumoValor">R$ 0,00</strong></article>
 </div>
 <div class="estoque-toolbar estoque-toolbar-admin">
 <label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueBusca" placeholder="Buscar produto ou código" type="search"/></label>
@@ -310,24 +312,44 @@
 <button data-estoque-filtro="arquivados" type="button">Arquivados</button>
 </div>
 <div class="estoque-produtos-lista estoque-produtos-compactos" id="estoqueProdutosLista"></div>
-<section class="estoque-subsection">
-<div class="estoque-subsection-head"><div><h3>Vendas recentes</h3><p>Edite ou cancele uma venda quando necessário.</p></div></div>
-<div class="estoque-log-lista" id="estoqueVendasLista"></div>
-</section>
-<details class="estoque-auditoria">
-<summary><span><i class="fas fa-clock-rotate-left"></i> Movimentações de estoque</span><i class="fas fa-chevron-down"></i></summary>
-<div class="estoque-log-lista" id="estoqueMovimentacoesLista"></div>
-</details>
 </div>
+
+<div hidden id="estoqueAdminPainelVendas">
+<div class="estoque-resumo-grid estoque-venda-resumo estoque-gerencial-grid">
+<article class="estoque-resumo-card"><span>Vendas no mês</span><strong id="estoqueAdminVendasBruto">R$ 0,00</strong></article>
+<article class="estoque-resumo-card"><span>Comissões</span><strong id="estoqueAdminVendasComissoes">R$ 0,00</strong></article>
+<article class="estoque-resumo-card is-success"><span>Resultado no mês</span><strong id="estoqueAdminVendasResultado">R$ 0,00</strong></article>
+</div>
+<div class="estoque-subsection-head"><div><h3>Venda da equipe</h3><p>Vendas do mês atual. Edite ou exclua quando necessário.</p></div></div>
+<div class="estoque-log-lista" id="estoqueVendasLista"></div>
+</div>
+
+<div hidden id="estoqueAdminPainelMovimentacoes">
+<div class="estoque-subsection-head"><div><h3>Extrato de movimentações</h3><p>Entradas, saídas, ajustes, vendas e estornos em ordem cronológica.</p></div></div>
+<div class="estoque-log-lista estoque-extrato-lista" id="estoqueMovimentacoesLista"></div>
+</div>
+</div>
+
 <div hidden id="estoqueVendaView">
-<div class="estoque-subsection-head estoque-vender-head"><div><h3>Vender produto</h3><p>Escolha o produto para registrar a venda.</p></div></div>
+<div aria-label="Venda de produtos" class="estoque-tabs estoque-tabs-pro" role="tablist">
+<button class="active" data-estoque-pro-tab="vender" role="tab" type="button"><i class="fas fa-cart-plus"></i><span>Vender produto</span></button>
+<button data-estoque-pro-tab="minhas" role="tab" type="button"><i class="fas fa-clock-rotate-left"></i><span>Minhas vendas</span></button>
+</div>
+
+<div id="estoqueProPainelVender">
+<details class="estoque-registrar-card" open>
+<summary><span><i class="fas fa-cart-plus"></i><strong>Registrar venda</strong></span><i class="fas fa-chevron-down"></i></summary>
+<div class="estoque-registrar-conteudo">
 <div class="estoque-toolbar">
 <label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueVendaBusca" placeholder="Buscar produto" type="search"/></label>
 <button class="estoque-scan-btn" id="btnScanVendaProduto" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
 </div>
 <div class="estoque-venda-produtos" id="estoqueVendaProdutos"></div>
-<section class="estoque-subsection minhas-vendas-section">
-<div class="estoque-subsection-head"><div><h3>Minhas vendas</h3><p>Visão mensal agrupada por dia.</p></div></div>
+</div>
+</details>
+</div>
+
+<div hidden id="estoqueProPainelMinhas">
 <div class="estoque-mes-nav">
 <button aria-label="Mês anterior" id="btnVendasMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
 <strong id="labelVendasMes">Mês atual</strong>
@@ -338,15 +360,14 @@
 <article class="estoque-resumo-card is-success"><span>Comissão no mês</span><strong id="estoqueComissaoMes">R$ 0,00</strong></article>
 </div>
 <div class="esto-minhas-vendas-lista" id="estoqueMinhasVendasLista"></div>
-</section>
+</div>
 </div>
 </section>
 <!-- DESPESAS -->
 <section class="registrar despesas-page" id="despesas" style="display:none">
-<h2 class="titulo-sessao">Despesas</h2>
 <div class="despesas-periodo-nav">
 <button aria-label="Mês anterior" id="btnDespesaMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
-<strong id="despesasMesLabel">Mês atual</strong>
+<div class="despesas-periodo-center"><strong id="despesasMesLabel">Mês atual</strong><button aria-label="Escolher mês" class="despesas-calendar-btn" id="btnCalendarioDespesasMes" type="button"><i class="fas fa-calendar-days"></i></button></div>
 <button aria-label="Próximo mês" id="btnDespesaMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
 </div>
 <div class="despesas-total-card"><span>Total no mês</span><strong id="despesasTotal">R$ 0,00</strong><small id="despesasQuantidade">0 lançamentos</small></div>
@@ -543,7 +564,7 @@ Aparência
       <label class="equipe-field"><span>Quantidade</span><input id="estoqueProdutoQuantidadeInicial" inputmode="decimal" min="0" step="1" type="number" value="0"/></label>
       <div class="estoque-inline-grid">
         <label class="equipe-field"><span>Custo por produto</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoCusto" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
-        <label class="equipe-field"><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" inputmode="numeric" placeholder="0,00" required type="tel"/></div></label>
+        <label class="equipe-field"><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" inputmode="numeric" placeholder="0,00" required type="tel"/></div></label><label class="estoque-check-row estoque-equipe-toggle"><span><strong>Disponível para equipe</strong><small>Quando ativo, profissionais podem vender este produto e recebem a comissão global.</small></span><input checked id="estoqueProdutoComissao" type="checkbox"/></label>
       </div>
       <div class="estoque-form-actions"><button id="btnCancelarProdutoEstoque" type="button">Cancelar</button><button id="btnSalvarProdutoEstoque" type="submit">Salvar produto</button></div>
     </form>
@@ -623,7 +644,6 @@ Aparência
 <label class="equipe-field" hidden="" id="despesaParcelasField"><span id="labelDespesaParcelas">Parcelas</span><input id="despesaParcelas" inputmode="numeric" max="36" min="2" required="" step="1" type="number" value="2"/></label>
 <div class="despesa-parcelas-preview" hidden="" id="despesaParcelasPreview"></div>
 <div class="despesa-edicao-parcelamento" hidden="" id="despesaEdicaoParcelamentoInfo"></div>
-<label class="equipe-field" hidden="" id="despesaTipoField"><span>Tipo</span><select id="despesaTipo"><option value="profissional">Minha despesa</option><option value="barbearia">Despesa da barbearia</option></select></label>
 <div aria-live="polite" class="equipe-form-status despesa-form-status" hidden="" id="despesaStatus"></div>
 <button class="btn despesa-submit" id="btnSalvarDespesa" type="submit">Registrar despesa</button>
 </form>
@@ -854,12 +874,11 @@ Aparência
 <div class="finance-info-tooltip" hidden="" id="financeInfoTooltip"></div>
 </main>
 <div aria-busy="true" aria-live="polite" class="app-loading-overlay" hidden="" id="appAsyncLoading" role="status">
-<div class="app-loading-card">
-<div aria-hidden="true" class="app-loading-logo-wrap">
-<img alt="" class="app-loading-logo" src="../Fotos/Sr.NK.jpg"/>
-</div>
-<strong id="appAsyncLoadingText">Carregando...</strong>
-<div aria-hidden="true" class="app-loading-dots"><i></i><i></i><i></i></div>
+<div class="app-loading-shell">
+<div aria-hidden="true" class="app-boot-brand"><div class="app-boot-logo-shell"><img alt="" class="app-boot-logo" src="../Fotos/Sr.NK.jpg"/></div></div>
+<strong class="app-boot-title">Sr NK</strong>
+<span class="app-boot-subtitle" id="appAsyncLoadingText">Carregando...</span>
+<div aria-hidden="true" class="app-boot-progress"><span></span></div>
 </div>
 </div>
 <nav aria-label="Navegação principal" class="bottom-nav">
@@ -884,11 +903,11 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script defer="" src="../js/mobile-interactions.js?v=9.7"></script>
+<script defer="" src="../js/mobile-interactions.js?v=11.0"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(console.warn));
 }
 </script>
-<script src="../js/profissional/index.js?v=9.7" type="module"></script></body>
+<script src="../js/profissional/index.js?v=11.0" type="module"></script></body>
 </html>

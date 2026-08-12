@@ -97,6 +97,7 @@ export function validarProduto(produto = {}) {
     const quantidadeAtual = normalizarQuantidade(produto.quantidadeAtual);
     const custoUnitario = arredondar2(produto.custoUnitario);
     const precoVenda = arredondar2(produto.precoVenda);
+    const comissaoHabilitada = produto.comissaoHabilitada !== false;
 
     if (nome.length < 2) throw new Error("Informe o nome do produto.");
     if (quantidadeAtual === null) throw new Error("Informe uma quantidade válida.");
@@ -114,6 +115,7 @@ export function validarProduto(produto = {}) {
         custoUnitario,
         precoVenda,
         vendavel: true,
+        comissaoHabilitada,
         ativo: produto.ativo !== false
     };
 }

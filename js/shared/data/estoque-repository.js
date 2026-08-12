@@ -1,8 +1,9 @@
-import { db } from "../../firebase-init.js?v=9.7";
+import { db } from "../../firebase-init.js?v=11.0";
 import {
     collection,
     doc,
     getDocs,
+    getDocsFromServer,
     limit,
     orderBy,
     query,
@@ -14,13 +15,12 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.7";
-import { state } from "../state.js?v=9.7";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.7";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
-import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=9.7";
-import { marcarDadosPendentes } from "../services/refresh-service.js?v=9.7";
+import { SCHEMA_VERSION } from "../constants.js?v=11.0";
+import { state } from "../state.js?v=11.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.0";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=11.0";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.0";
+import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=11.0";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;
@@ -105,7 +105,7 @@ async function garantirCodigoUnico(codigo, ignorarId = null) {
 
 export async function criarProdutoEstoque(dados) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode cadastrar produtos.");
-    const produto = validarProduto({ ...dados, unidade: "un", estoqueMinimo: 0, vendavel: true, ativo: true });
+    const produto = validarProduto({ ...dados, unidade: "un", estoqueMinimo: 0, vendavel: true, ativo: true, comissaoHabilitada: dados.comissaoHabilitada !== false });
     await garantirCodigoUnico(produto.codigoBarras);
 
     const produtoRef = doc(col("estoque"));
@@ -141,7 +141,6 @@ export async function criarProdutoEstoque(dados) {
 
     await batch.commit();
     invalidarCacheEstoque();
-    marcarDadosPendentes("estoque");
     return produtoRef.id;
 }
 
@@ -165,7 +164,8 @@ export async function atualizarProdutoEstoque(id, alteracoes) {
             unidade: original.unidade || "un",
             estoqueMinimo: 0,
             vendavel: true,
-            ativo: original.ativo !== false
+            ativo: original.ativo !== false,
+            comissaoHabilitada: alteracoes.comissaoHabilitada ?? original.comissaoHabilitada ?? true
         });
 
         const anterior = Number(original.quantidadeAtual || 0);
@@ -181,6 +181,7 @@ export async function atualizarProdutoEstoque(id, alteracoes) {
             custoUnitario: produto.custoUnitario,
             precoVenda: produto.precoVenda,
             vendavel: true,
+            comissaoHabilitada: produto.comissaoHabilitada !== false,
             atualizadoEm: serverTimestamp()
         });
 
@@ -203,7 +204,6 @@ export async function atualizarProdutoEstoque(id, alteracoes) {
     });
 
     invalidarCacheEstoque();
-    marcarDadosPendentes("estoque");
 }
 
 export async function definirStatusProduto(id, ativo) {
@@ -214,7 +214,6 @@ export async function definirStatusProduto(id, ativo) {
         atualizadoEm: serverTimestamp()
     });
     invalidarCacheEstoque();
-    marcarDadosPendentes("estoque");
 }
 
 export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoSaldo = null, motivo = "", custoUnitario = null }) {
@@ -271,7 +270,6 @@ export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoS
     });
 
     invalidarCacheEstoque();
-    marcarDadosPendentes("estoque");
     return resultado;
 }
 
@@ -325,8 +323,18 @@ export async function registrarVendaProduto({
         const comissaoPct = Math.max(0, Math.min(100, Number(configVenda.comissaoProdutosPct ?? 20)));
         const produto = { id: produtoSnap.id, ...produtoSnap.data() };
         if (produto.ativo === false) throw new Error("Este produto está arquivado.");
+        const disponivelEquipe = produto.comissaoHabilitada !== false;
+        if (!adminNaVisao && !disponivelEquipe) {
+            throw new Error("Este produto está disponível somente para venda administrativa.");
+        }
+        if (!disponivelEquipe) {
+            gerarComissao = false;
+            profissionalUid = null;
+        }
 
-        const membro = membroSnap?.exists() ? { id: membroSnap.id, ...membroSnap.data() } : profissional;
+        const membro = gerarComissao
+            ? (membroSnap?.exists() ? { id: membroSnap.id, ...membroSnap.data() } : profissional)
+            : null;
         if (gerarComissao && !validarProfissionalComissao(membro)) {
             throw new Error("O profissional selecionado não está disponível para vendas.");
         }
@@ -368,6 +376,7 @@ export async function registrarVendaProduto({
             custoUnitarioSnapshot: financeiro.custoUnitario,
             custoTotalSnapshot: financeiro.custoTotal,
             resultadoBarbearia: financeiro.resultadoBarbearia,
+            comissaoHabilitadaSnapshot: disponivelEquipe,
             registradoPorUid: uidAtual,
             registradoPorNome,
             dataVenda: Timestamp.fromDate(agora),
@@ -403,7 +412,6 @@ export async function registrarVendaProduto({
     });
 
     invalidarCacheEstoque();
-    marcarDadosPendentes(["vendas", "estoque"]);
     return resultado;
 }
 
@@ -430,9 +438,14 @@ export async function editarVendaProduto(vendaId, { quantidade, formaPagamento, 
         if (!produtoSnap.exists()) throw new Error("Produto da venda não encontrado.");
 
         const produto = { id: produtoSnap.id, ...produtoSnap.data() };
+        const disponivelEquipe = produto.comissaoHabilitada !== false;
+        if (!disponivelEquipe) {
+            gerarComissao = false;
+            profissionalUid = null;
+        }
         const configVenda = configSnap.exists() ? configSnap.data() : {};
         const comissaoPct = Math.max(0, Math.min(100, Number(configVenda.comissaoProdutosPct ?? 20)));
-        const membro = membroSnap?.exists() ? { id: membroSnap.id, ...membroSnap.data() } : null;
+        const membro = gerarComissao && membroSnap?.exists() ? { id: membroSnap.id, ...membroSnap.data() } : null;
         if (gerarComissao && (!profissionalUid || !validarProfissionalComissao(membro))) {
             throw new Error("Selecione um profissional ativo para a comissão.");
         }
@@ -467,6 +480,7 @@ export async function editarVendaProduto(vendaId, { quantidade, formaPagamento, 
             comissaoValor: financeiro.comissaoValor,
             custoTotalSnapshot: financeiro.custoTotal,
             resultadoBarbearia: financeiro.resultadoBarbearia,
+            comissaoHabilitadaSnapshot: disponivelEquipe,
             editada: true,
             editadaPorUid: uidAtual,
             editadaEm: serverTimestamp()
@@ -498,7 +512,6 @@ export async function editarVendaProduto(vendaId, { quantidade, formaPagamento, 
     });
 
     invalidarCacheEstoque();
-    marcarDadosPendentes(["vendas", "estoque"]);
     return resultado;
 }
 
@@ -548,7 +561,6 @@ export async function cancelarVendaProduto(vendaId) {
     });
 
     invalidarCacheEstoque();
-    marcarDadosPendentes(["vendas", "estoque"]);
 }
 
 export async function listarVendasPorPeriodo(
@@ -579,37 +591,7 @@ export async function listarVendasPorPeriodo(
 
         let consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"));
         if (max) consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"), limit(max));
-        const snapshot = await getDocs(consulta);
-        let itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-        if (!incluirCanceladas) itens = itens.filter((item) => item.cancelada !== true);
-        cacheVendas.set(chave, { itens, salvoEm: Date.now() });
-        return itens;
-    })();
-
-    vendasEmAndamento.set(chave, promessa);
-    try { return await promessa; }
-    finally { vendasEmAndamento.delete(chave); }
-}
-
-export async function listarVendasRecentes({ max = 60, forcar = false, incluirCanceladas = true } = {}) {
-    if (!podeAdministrarNaVisaoAtual()) {
-        const hoje = new Date();
-        const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-        return listarVendasPorPeriodo(inicio, fim, {
-            profissionalUid: obterUidAtual(),
-            max,
-            forcar,
-            incluirCanceladas: false
-        });
-    }
-
-    const chave = `${obterWorkspaceId()}:recentes:${max}:${incluirCanceladas ? "todas" : "ativas"}`;
-    if (!forcar && cacheLeituraValido(cacheVendas.get(chave), CACHE_VENDAS_MS)) return cacheVendas.get(chave).itens;
-    if (!forcar && vendasEmAndamento.has(chave)) return vendasEmAndamento.get(chave);
-
-    const promessa = (async () => {
-        const snapshot = await getDocs(query(col("vendas"), orderBy("dataVenda", "desc"), limit(max)));
+        const snapshot = forcar ? await getDocsFromServer(consulta) : await getDocs(consulta);
         let itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         if (!incluirCanceladas) itens = itens.filter((item) => item.cancelada !== true);
         cacheVendas.set(chave, { itens, salvoEm: Date.now() });
@@ -628,7 +610,8 @@ export async function listarMovimentacoesRecentes({ max = 60, forcar = false } =
     if (!forcar && movimentacoesEmAndamento.has(chave)) return movimentacoesEmAndamento.get(chave);
 
     const promessa = (async () => {
-        const snapshot = await getDocs(query(col("estoqueMovimentacoes"), orderBy("dataMovimentacao", "desc"), limit(max)));
+        const referencia = query(col("estoqueMovimentacoes"), orderBy("dataMovimentacao", "desc"), limit(max));
+        const snapshot = forcar ? await getDocsFromServer(referencia) : await getDocs(referencia);
         const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         cacheMovimentacoes.set(chave, { itens, salvoEm: Date.now() });
         return itens;

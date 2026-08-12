@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.7";
+import { db } from "../../firebase-init.js?v=11.0";
 import {
     collection,
     doc,
@@ -12,15 +12,15 @@ import {
     deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.7";
-import { state, definirEquipe, definirMembroAtual } from "../state.js?v=9.7";
-import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=9.7";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
+import { SCHEMA_VERSION } from "../constants.js?v=11.0";
+import { state, definirEquipe, definirMembroAtual } from "../state.js?v=11.0";
+import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=11.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.0";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=9.7";
+} from "./cache-local.js?v=11.0";
 
 const CACHE_EQUIPE_MS = 5 * 60 * 1000;
 let cacheEquipe = null;
@@ -267,19 +267,34 @@ export async function alterarStatusMembro(uid, ativo) {
     if (!uid) throw new Error("Membro inválido.");
     if (uid === obterUidAtual()) throw new Error("Você não pode desativar o próprio acesso.");
 
-    const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
-    const snap = await getDoc(membroRef);
-    if (!snap.exists()) throw new Error("Membro não encontrado.");
-
-    if (papelEhAdmin(snap.data().papel)) {
+    const conhecido = (state.equipe || []).find((item) => (item.uid || item.id) === uid)
+        || (cacheEquipe || []).find((item) => (item.uid || item.id) === uid);
+    if (conhecido && papelEhAdmin(conhecido.papel)) {
         throw new Error("Outro administrador não pode ser desativado por esta ação.");
     }
 
+    const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
     await updateDoc(membroRef, {
         ativo: Boolean(ativo),
         atualizadoEm: serverTimestamp()
     });
-    invalidarCacheEquipe();
+
+    // A gravação já confirmou o novo status. Atualizamos o cache/estado local
+    // imediatamente e evitamos uma segunda consulta completa da equipe.
+    const base = Array.isArray(state.equipe) && state.equipe.length
+        ? state.equipe
+        : (Array.isArray(cacheEquipe) ? cacheEquipe : []);
+    const atualizada = base.map((item) => (item.uid || item.id) === uid
+        ? { ...item, ativo: Boolean(ativo), atualizadoEm: new Date() }
+        : item);
+    if (atualizada.length) {
+        cacheEquipe = atualizada;
+        cacheEquipeEm = Date.now();
+        aplicarEquipeNoEstado(atualizada, { atualizarMembroAtual: false });
+        salvarCacheLocal(chaveCacheEquipe(), atualizada);
+    } else {
+        invalidarCacheEquipe();
+    }
 }
 
 export async function excluirMembroInativo(uid) {

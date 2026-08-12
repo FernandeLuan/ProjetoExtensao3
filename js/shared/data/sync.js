@@ -1,8 +1,8 @@
-import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=9.7";
-import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=9.7";
-import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=9.7";
-import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=9.7";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
+import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=11.0";
+import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=11.0";
+import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=11.0";
+import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=11.0";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.0";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX_ITENS = 24;
@@ -97,7 +97,7 @@ export async function obterAtendimentosPeriodo(
         const atendimentos = await listarAtendimentosPorPeriodo(
             periodo.inicio,
             periodo.fim,
-            { profissionalUid }
+            { profissionalUid, forcar }
         );
 
         mesclarAtendimentos(atendimentos);

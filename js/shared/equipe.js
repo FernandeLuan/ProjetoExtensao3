@@ -1,23 +1,23 @@
-import { state } from "./state.js?v=9.7";
+import { state } from "./state.js?v=11.0";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=9.7";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=9.7";
-import { obterServicos } from "./services/catalogo-service.js?v=9.7";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=9.7";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.7";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.7";
+} from "./data/equipe-repository.js?v=11.0";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=11.0";
+import { obterServicos } from "./services/catalogo-service.js?v=11.0";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=11.0";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.0";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.7";
+} from "./services/ui-loading-service.js?v=11.0";
 
 let inicializado = false;
 let carregando = false;
@@ -470,9 +470,18 @@ function definirSecaoFinanceiro(botao, conteudo, aberta) {
     conteudo.hidden = !aberta;
 }
 
+function resetarEditoresFinanceiros(conteudo) {
+    if (!conteudo) return;
+    conteudo.querySelectorAll(".btn-alterar").forEach((botao) => botao.classList.remove("hidden"));
+    conteudo.querySelectorAll(".equipe-price-editor").forEach((editor) => editor.classList.add("hidden"));
+    conteudo.querySelectorAll("input.input-config, input.equipe-inline-input").forEach((input) => input.classList.add("hidden"));
+    setFinanceiroStatus();
+}
+
 function alternarSecaoFinanceiro(botao, conteudo) {
     if (!botao || !conteudo) return;
     const aberta = botao.getAttribute("aria-expanded") === "true";
+    if (aberta) resetarEditoresFinanceiros(conteudo);
     definirSecaoFinanceiro(botao, conteudo, !aberta);
 }
 
@@ -631,6 +640,11 @@ function abrirFinanceiroMembro(membro) {
 
 function fecharFinanceiroMembro({ forcar = false } = {}) {
     if (btnSalvarFinanceiro?.disabled && !forcar) return;
+    // Qualquer edição não salva volta ao estado “Alterar” ao fechar.
+    [conteudoDados, conteudoTaxas, conteudoPrecos].forEach(resetarEditoresFinanceiros);
+    definirSecaoFinanceiro(btnToggleDados, conteudoDados, false);
+    definirSecaoFinanceiro(btnToggleTaxas, conteudoTaxas, false);
+    definirSecaoFinanceiro(btnTogglePrecos, conteudoPrecos, false);
     if (modalFinanceiro) modalFinanceiro.hidden = true;
     document.body.classList.remove("modal-equipe-aberto");
     membroFinanceiroAtual = null;
@@ -1224,7 +1238,7 @@ export function initEquipe() {
 }
 
 export async function abrirEquipe() {
-    // v8.16: a navegação pode abrir a tela mesmo se o bootstrap foi interrompido.
+    // : a navegação pode abrir a tela mesmo se o bootstrap foi interrompido.
     // Inicializamos de forma idempotente aqui para não deixar "Carregando equipe..." preso.
     if (!inicializado) initEquipe();
     await prepararEquipe();

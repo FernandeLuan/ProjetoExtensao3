@@ -1,15 +1,14 @@
-import { state, onStateChange } from "./state.js?v=9.7";
-import { formatarMoeda } from "./utils/money.js?v=9.7";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=9.7";
-import { setTexto } from "./utils/dom.js?v=9.7";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.7";
-import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=9.7";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=9.7";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=9.7";
-import { obterWorkspaceId } from "./data/context.js?v=9.7";
-import { garantirChartJs } from "./services/external-assets.js?v=9.7";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.7";
-import { habilitarPullToRefresh, observarMudancas, registrarAtualizacao, temDadosPendentes, textoUltimaAtualizacao } from "./services/refresh-service.js?v=9.7";
+import { state, onStateChange } from "./state.js?v=11.0";
+import { formatarMoeda } from "./utils/money.js?v=11.0";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=11.0";
+import { setTexto, inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
+import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=11.0";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=11.0";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.0";
+import { obterWorkspaceId } from "./data/context.js?v=11.0";
+import { garantirChartJs } from "./services/external-assets.js?v=11.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.0";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -18,7 +17,6 @@ let graficoAtendimentosInstance = null;
 let graficoServicosInstance = null;
 let graficoPagamentosInstance = null;
 let resumosPainel = [];
-let pullRefreshVinculado = false;
 
 const btnCalendarioPainel = document.getElementById("btnCalendarioPainel");
 const inputDataPainel = document.getElementById("inputDataPainel");
@@ -115,40 +113,6 @@ async function carregarResumosPainel(inicio, fim, { forcar = false } = {}) {
     resumosPainel = await listarResumosProfissionalPorPeriodo(uid, inicio, fim, { forcar });
 }
 
-function atualizarStatusAtualizacaoPainel() {
-    const atualizado = document.getElementById("painelAtualizadoEm");
-    const pendente = document.getElementById("painelNovosDados");
-    const temPendente = temDadosPendentes("atendimentos");
-    if (atualizado) atualizado.textContent = textoUltimaAtualizacao("painel");
-    if (pendente) pendente.hidden = !temPendente;
-}
-
-async function atualizarPainelForcado() {
-    const loading = iniciarLoadingTela("Atualizando painel...", { delay: 120 });
-    try {
-        await carregarResumosPainel(somarDias(dataSelecionada, -6), dataSelecionada, { forcar: true });
-        registrarAtualizacao("painel", ["atendimentos"]);
-        atualizarCards();
-    } catch (error) {
-        console.error("Erro ao atualizar painel:", error);
-    } finally {
-        finalizarLoadingTela(loading);
-        atualizarStatusAtualizacaoPainel();
-    }
-}
-
-function prepararPullRefreshPainel() {
-    if (pullRefreshVinculado) return;
-    const painel = document.getElementById("painelFinanceiro");
-    if (!painel) return;
-    pullRefreshVinculado = true;
-    habilitarPullToRefresh(painel, atualizarPainelForcado);
-    observarMudancas(atualizarStatusAtualizacaoPainel);
-    window.setInterval(() => {
-        if (painelEstaVisivel()) atualizarStatusAtualizacaoPainel();
-    }, 30000);
-}
-
 
 // =============================
 // NAVEGAÇÃO DE DATA
@@ -204,8 +168,6 @@ export async function abrirPainelHoje() {
     } catch (error) {
         console.error("Erro ao carregar painel de hoje:", error);
     }
-    prepararPullRefreshPainel();
-    atualizarStatusAtualizacaoPainel();
     atualizarCards();
 }
 
@@ -648,7 +610,36 @@ function paletaPainel(cores) {
     ];
 }
 
-function criarRoscaPainel(canvas, entradas, formatarTooltip) {
+function pluginNumerosRosca() {
+    return {
+        id: "srnkNumerosRosca",
+        afterDatasetsDraw(chart, _args, opcoes) {
+            if (!opcoes?.mostrar || !chart?.data?.datasets?.[0]) return;
+            const meta = chart.getDatasetMeta(0);
+            const valores = chart.data.datasets[0].data || [];
+            const ctx = chart.ctx;
+            ctx.save();
+            meta.data.forEach((arco, indice) => {
+                const valor = Number(valores[indice] || 0);
+                if (valor <= 0 || !arco) return;
+                const pos = arco.getCenterPoint();
+                const raio = valor >= 10 ? 12 : 11;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, raio, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(15, 23, 42, .82)";
+                ctx.fill();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "700 11px Poppins, sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(String(valor), pos.x, pos.y + .5);
+            });
+            ctx.restore();
+        }
+    };
+}
+
+function criarRoscaPainel(canvas, entradas, formatarTooltip, { mostrarNumeros = false } = {}) {
     if (!canvas || typeof Chart === "undefined") return null;
     const cores = obterCoresDoTema();
     const paleta = paletaPainel(cores);
@@ -656,6 +647,7 @@ function criarRoscaPainel(canvas, entradas, formatarTooltip) {
     const vazio = !entradas.length;
     return new Chart(canvas, {
         type: "doughnut",
+        plugins: [pluginNumerosRosca()],
         data: {
             labels: dados.map(([nome]) => nome),
             datasets: [{
@@ -672,6 +664,7 @@ function criarRoscaPainel(canvas, entradas, formatarTooltip) {
             cutout: "68%",
             animation: { duration: 180 },
             plugins: {
+                srnkNumerosRosca: { mostrar: mostrarNumeros && !vazio },
                 legend: { display: false },
                 tooltip: {
                     enabled: !vazio,
@@ -705,7 +698,8 @@ function atualizarAnaliseDiaPainel() {
     graficoServicosInstance = criarRoscaPainel(
         document.getElementById("graficoPainelServicos"),
         servicos,
-        (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`
+        (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`,
+        { mostrarNumeros: true }
     );
     graficoPagamentosInstance = criarRoscaPainel(
         document.getElementById("graficoPainelPagamentos"),
@@ -800,71 +794,7 @@ graficoAtendimentosInstance = criarSparklineBarras(
     atualizarAnaliseDiaPainel();
 }
 
-// =============================
-// TOOLTIP DE INFORMAÇÕES
-// =============================
-const financeInfoTooltip = document.getElementById("financeInfoTooltip");
-
-let financeInfoTimer = null;
-
-function esconderFinanceInfo() {
-    if (!financeInfoTooltip) return;
-
-    financeInfoTooltip.hidden = true;
-
-    if (financeInfoTimer) {
-        clearTimeout(financeInfoTimer);
-        financeInfoTimer = null;
-    }
-}
-
-document.querySelectorAll(".finance-info-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-
-        if (!financeInfoTooltip) return;
-
-        const rect = btn.getBoundingClientRect();
-
-        financeInfoTooltip.textContent = btn.dataset.info;
-        financeInfoTooltip.hidden = false;
-
-        requestAnimationFrame(() => {
-            const larguraTooltip = financeInfoTooltip.offsetWidth;
-            const metade = larguraTooltip / 2;
-
-            const margem = 16;
-
-            let centroX =
-                rect.left +
-                rect.width / 2;
-
-            centroX = Math.max(
-                margem + metade,
-                Math.min(
-                    window.innerWidth - margem - metade,
-                    centroX
-                )
-            );
-
-            financeInfoTooltip.style.left =
-                `${centroX}px`;
-
-            financeInfoTooltip.style.top =
-                `${rect.top - 9}px`;
-        });
-
-        if (financeInfoTimer) {
-            clearTimeout(financeInfoTimer);
-        }
-
-        financeInfoTimer = setTimeout(() => {
-            esconderFinanceInfo();
-        }, 5000);
-    });
-});
-
-document.addEventListener("click", esconderFinanceInfo);
+inicializarTooltipsFinanceiros();
 
 function painelEstaVisivel(){
     const painel=document.getElementById("painelFinanceiro");

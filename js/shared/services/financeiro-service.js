@@ -1,4 +1,4 @@
-import { obterDataAtendimento, chaveData } from "../utils/date.js?v=9.7";
+import { obterDataAtendimento, chaveData } from "../utils/date.js?v=11.0";
 
 export function processarFinanceiro(valorBruto, pagamento, config, repassePctInformado = null) {
     const bruto = Number(valorBruto || 0);

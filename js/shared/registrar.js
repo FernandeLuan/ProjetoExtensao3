@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=9.7";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=9.7";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=9.7";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=9.7";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.7";
-import { usuarioEhAdmin } from "./permissoes.js?v=9.7";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=9.7";
-import { mostrarErro } from "./services/feedback-service.js?v=9.7";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.7";
+import { state, onStateChange } from "./state.js?v=11.0";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=11.0";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=11.0";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=11.0";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=11.0";
+import { usuarioEhAdmin } from "./permissoes.js?v=11.0";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=11.0";
+import { mostrarErro } from "./services/feedback-service.js?v=11.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.0";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -321,7 +321,7 @@ export async function initRegistrar() {
     if (inicializado) return;
     inicializado = true;
 
-    // v8.13: delegação de eventos deixa os seletores resistentes a re-renderizações
+    // : delegação de eventos deixa os seletores resistentes a re-renderizações
     // e evita o cenário em que o botão recebe apenas o foco visual, mas o estado
     // interno do Registrar não é atualizado. Sempre selecionamos explicitamente;
     // clicar novamente no mesmo item mantém a seleção.
@@ -409,7 +409,7 @@ export async function initRegistrar() {
 
 }
 
-// v8.16: ao entrar novamente na seção, garante os listeners e atualiza preços/configuração.
+// : ao entrar novamente na seção, garante os listeners e atualiza preços/configuração.
 export async function abrirRegistrar() {
     if (!inicializado) {
         await initRegistrar();

@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.7";
+import { db } from "../../firebase-init.js?v=11.0";
 import {
     doc,
     getDoc,
@@ -6,14 +6,14 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=9.7";
-import { obterWorkspaceId } from "./context.js?v=9.7";
-import { usuarioEhAdmin } from "../permissoes.js?v=9.7";
+import { criarConfigPadrao, normalizarConfig, SCHEMA_VERSION } from "../constants.js?v=11.0";
+import { obterWorkspaceId } from "./context.js?v=11.0";
+import { usuarioEhAdmin } from "../permissoes.js?v=11.0";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=9.7";
+} from "./cache-local.js?v=11.0";
 
 // Configuração contém preços/serviços. Alterações feitas neste aparelho atualizam ou
 // invalidam o cache imediatamente; a janela de 10 min evita reler o mesmo documento

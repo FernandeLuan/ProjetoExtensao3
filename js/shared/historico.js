@@ -1,22 +1,20 @@
-import { state, onStateChange } from "./state.js?v=9.7";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.7";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.7";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.7";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.7";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.7";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.7";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.7";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.7";
-import { escaparHtml } from "./utils/dom.js?v=9.7";
-import { mostrarErro } from "./services/feedback-service.js?v=9.7";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.7";
+import { state, onStateChange } from "./state.js?v=11.0";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=11.0";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=11.0";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.0";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=11.0";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=11.0";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.0";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=11.0";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.0";
+import { escaparHtml } from "./utils/dom.js?v=11.0";
+import { mostrarErro } from "./services/feedback-service.js?v=11.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
-    restaurarAcaoBotao,
-    iniciarLoadingTela,
-    finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.7";
+    restaurarAcaoBotao
+} from "./services/ui-loading-service.js?v=11.0";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");
@@ -66,6 +64,7 @@ let rascunho = {};
 let idParaExcluir = null;
 let atendimentoEmEdicao = null;
 let atendimentoDetalheAtual = null;
+let sincronizandoHistorico = false;
 
 function normalizarTexto(valor) {
     return String(valor || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -161,7 +160,9 @@ async function selecionarDataHistorico(data) {
     const nova = inicioDoDia(data);
     dataHistoricoSelecionada = nova > hoje ? hoje : nova;
     fecharDetalheHistorico(true);
-    const loading = iniciarLoadingTela("Carregando histórico...", { delay: 420 });
+    sincronizandoHistorico = true;
+    atualizarNavegadorHistorico();
+    atualizarHistorico();
     try {
         await garantirAtendimentosPeriodo(
             dataHistoricoSelecionada,
@@ -174,9 +175,9 @@ async function selecionarDataHistorico(data) {
         console.error(error);
         mostrarErro("Não foi possível carregar este dia.");
     } finally {
-        finalizarLoadingTela(loading);
+        sincronizandoHistorico = false;
+        atualizarHistorico();
     }
-    atualizarHistorico();
 }
 
 export async function abrirHistoricoHoje() {
@@ -197,6 +198,9 @@ export async function abrirHistoricoHoje() {
     // A sincronização remota não bloqueia a abertura da tela. Quando o
     // Firestore responder, mesclarAtendimentos atualiza o state e o listener
     // abaixo redesenha o Histórico automaticamente.
+    sincronizandoHistorico = true;
+    atualizarHistorico();
+
     const tarefas = [
         garantirAtendimentosPeriodo(
             dataHistoricoSelecionada,
@@ -214,10 +218,13 @@ export async function abrirHistoricoHoje() {
     void Promise.all(tarefas)
         .then(() => {
             prepararFiltrosDinamicos();
-            atualizarHistorico();
         })
         .catch((error) => {
             console.error("Falha ao sincronizar histórico em segundo plano:", error);
+        })
+        .finally(() => {
+            sincronizandoHistorico = false;
+            atualizarHistorico();
         });
 }
 
@@ -360,7 +367,9 @@ export function atualizarHistorico() {
         .filter(atendimentoPassaFiltros);
 
     if (!lista.length) {
-        historicoContainer.innerHTML = `<div class="historico-vazio">${historicoBusca?.value || filtrosAtivosCount() ? "Nenhum atendimento encontrado com os filtros atuais." : "Nenhum atendimento registrado neste dia."}</div>`;
+        historicoContainer.innerHTML = sincronizandoHistorico
+            ? '<div class="historico-carregando-inline"><span class="ui-button-spinner"></span><strong>Atualizando histórico...</strong><small>Você pode continuar navegando normalmente.</small></div>'
+            : `<div class="historico-vazio">${historicoBusca?.value || filtrosAtivosCount() ? "Nenhum atendimento encontrado com os filtros atuais." : "Nenhum atendimento registrado neste dia."}</div>`;
         return;
     }
 

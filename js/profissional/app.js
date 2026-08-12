@@ -1,15 +1,15 @@
-import { auth } from "../firebase-init.js?v=9.7";
+import { auth } from "../firebase-init.js?v=11.0";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { inicializarContexto } from "../shared/data/context.js?v=9.7";
-import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=9.7";
-import { definirConfiguracoes } from "../shared/state.js?v=9.7";
-import { initTheme } from "../shared/theme.js?v=9.7";
-import { initConnectivity } from "../shared/connectivity.js?v=9.7";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=9.7";
-import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=9.7";
-import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=9.7";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=9.7";
-import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=9.7";
+import { inicializarContexto } from "../shared/data/context.js?v=11.0";
+import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=11.0";
+import { definirConfiguracoes } from "../shared/state.js?v=11.0";
+import { initTheme } from "../shared/theme.js?v=11.0";
+import { initConnectivity } from "../shared/connectivity.js?v=11.0";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=11.0";
+import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=11.0";
+import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=11.0";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=11.0";
+import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=11.0";
 
 const AREA_ATUAL = "profissional";
 const SESSAO_DA_AREA_VALIDA = sessaoPertenceArea(AREA_ATUAL);

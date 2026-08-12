@@ -5,12 +5,12 @@ import {
     signOut,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=9.7";
+import { auth } from "./firebase-init.js?v=11.0";
 import {
     limparSessaoArea,
     marcarSessaoArea,
     normalizarArea
-} from "./shared/auth-area-session.js?v=9.7";
+} from "./shared/auth-area-session.js?v=11.0";
 
 const form = document.getElementById("loginForm");
 const paramsLogin = new URLSearchParams(window.location.search);
@@ -33,7 +33,7 @@ async function prepararSessaoDaAba() {
     if (preparacaoPromise) return preparacaoPromise;
 
     preparacaoPromise = (async () => {
-        // v3.3: cada aba possui sua própria sessão Firebase. O login da área sempre
+        // Cada aba possui sua própria sessão Firebase. O login da área sempre
         // começa limpo para impedir que Profissional e Admin herdem silenciosamente
         // a conta usada anteriormente na mesma aba.
         await setPersistence(auth, browserSessionPersistence);

@@ -1,9 +1,10 @@
-import { db } from "../../firebase-init.js?v=9.7";
+import { db } from "../../firebase-init.js?v=11.0";
 import {
     collection,
     doc,
     getDoc,
     getDocs,
+    getDocsFromServer,
     orderBy,
     query,
     serverTimestamp,
@@ -12,14 +13,13 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.7";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
-import { marcarDadosPendentes } from "../services/refresh-service.js?v=9.7";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
+import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=11.0";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.0";
 import {
     anexarDeltasAtendimentosAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.7";
+} from "./resumos-repository.js?v=11.0";
 
 function colecaoAtendimentos() {
     return collection(db, "barbearias", obterWorkspaceId(), "atendimentos");
@@ -51,7 +51,7 @@ async function obterAtendimentoOriginal(id) {
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-export async function listarAtendimentosPorPeriodo(inicio, fim, { profissionalUid = null } = {}) {
+export async function listarAtendimentosPorPeriodo(inicio, fim, { profissionalUid = null, forcar = false } = {}) {
     const dataInicio = inicio instanceof Date ? new Date(inicio) : new Date(inicio);
     const dataFim = fim instanceof Date ? new Date(fim) : new Date(fim);
     const fimExclusivo = new Date(dataFim);
@@ -73,7 +73,7 @@ export async function listarAtendimentosPorPeriodo(inicio, fim, { profissionalUi
         orderBy("dataAtendimento", "desc")
     );
 
-    const snapshot = await getDocs(referencia);
+    const snapshot = forcar ? await getDocsFromServer(referencia) : await getDocs(referencia);
     return snapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
 }
 
@@ -113,8 +113,6 @@ export async function criarAtendimento(payload) {
         createdAt: agora,
         updatedAt: agora
     }]);
-    marcarDadosPendentes("atendimentos");
-
     return docRef.id;
 }
 
@@ -156,7 +154,6 @@ export async function editarAtendimento(id, alteracoes) {
         editadoEm: agora,
         updatedAt: agora
     });
-    marcarDadosPendentes("atendimentos");
 }
 
 export async function excluirAtendimento(id) {
@@ -174,5 +171,4 @@ export async function excluirAtendimento(id) {
 
     await batch.commit();
     removerAtendimentoDoEstado(id);
-    marcarDadosPendentes("atendimentos");
 }

@@ -1,14 +1,14 @@
-import { state, onStateChange } from "./state.js?v=9.7";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=9.7";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.7";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=9.7";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=9.7";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.7";
-import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=9.7";
-import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=9.7";
-import { abrirSeletorData } from "./utils/dom.js?v=9.7";
-import { mostrarErro } from "./services/feedback-service.js?v=9.7";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.7";
+import { state, onStateChange } from "./state.js?v=11.0";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=11.0";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.0";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=11.0";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=11.0";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=11.0";
+import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=11.0";
+import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=11.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
+import { mostrarErro } from "./services/feedback-service.js?v=11.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.0";
 
 let inicializado=false, ultimoId=null, undoInterval=null, undoTimeout=null;
 const form=document.getElementById("formAtendimentoRetroativo");
@@ -112,15 +112,17 @@ async function salvar(event){
  if(temErro||!servico||!profissional||valor<=0)return;
  const payload=criarPayloadAtendimento({servico:servico.nome,servicoId:servico.id,servicoNome:servico.nome,precoBase:preco.precoBase,precoProfissional:preco.precoProfissional,origemPreco:preco.origem,pagamento,valorBruto:valor,observacao:obs.slice(0,160),valorDiferenciado:Boolean(checkValor?.checked),dataAtendimento:data,retroativo:true,horaInformada:false,profissional},state.configSistema);
  iniciarAcaoBotao(btnSalvar,"Salvando atendimento...");
- try{const id=await criarAtendimento(payload);dispararUndo(id);invalidarCacheAtendimentos();limparFormulario();await concluirAcaoBotao(btnSalvar,"Atendimento salvo ✓",460);mostrarStatus("Atendimento retroativo salvo ✓");setTimeout(()=>{if(status?.textContent.includes("salvo"))mostrarStatus();},2200);}
+ try{const id=await criarAtendimento(payload);dispararUndo(id);limparFormulario();await concluirAcaoBotao(btnSalvar,"Atendimento salvo ✓",460);mostrarStatus("Atendimento retroativo salvo ✓");setTimeout(()=>{if(status?.textContent.includes("salvo"))mostrarStatus();},2200);}
  catch(error){console.error(error);restaurarAcaoBotao(btnSalvar);mostrarErro("Não foi possível salvar o atendimento retroativo.");}
  finally{restaurarAcaoBotao(btnSalvar);}
 }
 
 export async function initRetroativo(){
  if(inicializado)return;inicializado=true;atualizarLimiteData();await prepararProfissionais({ carregarSeVazio: true });renderizarOpcoes();aplicarPagamentoPadrao();
- btnCalendario?.addEventListener("click",()=>abrirSeletorData(inputData));
- inputData?.parentElement?.addEventListener("click",e=>{if(!e.target.closest("button"))abrirSeletorData(inputData);});
+ if(inputData){inputData.setAttribute("readonly","");inputData.setAttribute("inputmode","none");}
+ const abrirCalendario=()=>abrirCalendarioPopover({ancora:btnCalendario||inputData,data:inputData?.value?new Date(`${inputData.value}T12:00:00`):new Date(),max:new Date(),titulo:"Data do atendimento",onSelect:(data)=>{if(inputData)inputData.value=chaveData(data);limparErro(inputData,labels.data);}});
+ btnCalendario?.addEventListener("click",(event)=>{event.preventDefault();event.stopPropagation();abrirCalendario();});
+ inputData?.parentElement?.addEventListener("click",e=>{if(!e.target.closest("button")){e.preventDefault();abrirCalendario();}});
  checkValor?.addEventListener("change",()=>{if(campoValor)campoValor.hidden=!checkValor.checked;if(!checkValor.checked&&inputValor)inputValor.value="";if(checkValor.checked)setTimeout(()=>inputValor?.focus(),0);});
  checkObservacao?.addEventListener("change",()=>{if(campoObservacao)campoObservacao.hidden=!checkObservacao.checked;if(!checkObservacao.checked&&inputObservacao)inputObservacao.value="";if(checkObservacao.checked)setTimeout(()=>inputObservacao?.focus(),0);});
  inputValor?.addEventListener("input",()=>{aplicarMascaraMoedaInput(inputValor);limparErro(inputValor,labels.valor);});

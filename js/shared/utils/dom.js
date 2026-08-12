@@ -21,3 +21,74 @@ export function abrirSeletorData(input) {
         input.click();
     }
 }
+
+let tooltipsFinanceirosInicializados = false;
+let tooltipTimer = null;
+
+function esconderTooltipFinanceiro() {
+    const tooltip = document.getElementById("financeInfoTooltip");
+    if (!tooltip) return;
+    tooltip.hidden = true;
+    tooltip.classList.remove("is-above", "is-below");
+    tooltip.style.removeProperty("left");
+    tooltip.style.removeProperty("top");
+    if (tooltipTimer) clearTimeout(tooltipTimer);
+    tooltipTimer = null;
+}
+
+function posicionarTooltipFinanceiro(botao, tooltip) {
+    const rect = botao.getBoundingClientRect();
+    const margem = 12;
+    const espaco = 10;
+    const largura = tooltip.offsetWidth;
+    const altura = tooltip.offsetHeight;
+    const centroIdeal = rect.left + (rect.width / 2);
+    const centroX = Math.max(
+        margem + largura / 2,
+        Math.min(window.innerWidth - margem - largura / 2, centroIdeal)
+    );
+
+    const cabeAcima = rect.top >= altura + espaco + margem;
+    tooltip.classList.toggle("is-above", cabeAcima);
+    tooltip.classList.toggle("is-below", !cabeAcima);
+    tooltip.style.left = `${centroX}px`;
+    tooltip.style.top = cabeAcima
+        ? `${rect.top - espaco}px`
+        : `${rect.bottom + espaco}px`;
+}
+
+export function inicializarTooltipsFinanceiros() {
+    if (tooltipsFinanceirosInicializados) return;
+    tooltipsFinanceirosInicializados = true;
+
+    document.addEventListener("click", (event) => {
+        const botao = event.target.closest(".finance-info-btn[data-info]");
+        if (!botao) {
+            if (!event.target.closest("#financeInfoTooltip")) esconderTooltipFinanceiro();
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        const tooltip = document.getElementById("financeInfoTooltip");
+        if (!tooltip) return;
+
+        if (!tooltip.hidden && tooltip.dataset.anchorId === String(botao.dataset.info || "")) {
+            esconderTooltipFinanceiro();
+            return;
+        }
+
+        tooltip.textContent = botao.dataset.info || "";
+        tooltip.dataset.anchorId = String(botao.dataset.info || "");
+        tooltip.hidden = false;
+        tooltip.style.position = "fixed";
+        tooltip.style.transform = "translateX(-50%)";
+        requestAnimationFrame(() => posicionarTooltipFinanceiro(botao, tooltip));
+
+        if (tooltipTimer) clearTimeout(tooltipTimer);
+        tooltipTimer = setTimeout(esconderTooltipFinanceiro, 5000);
+    });
+
+    window.addEventListener("resize", esconderTooltipFinanceiro, { passive: true });
+    window.addEventListener("scroll", esconderTooltipFinanceiro, { passive: true });
+}
