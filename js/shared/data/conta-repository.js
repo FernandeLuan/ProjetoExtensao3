@@ -1,6 +1,6 @@
 import {
     db
-} from "../../firebase-init.js?v=9.6";
+} from "../../firebase-init.js?v=9.7";
 
 import {
     doc,
@@ -13,9 +13,9 @@ import {
 import {
     obterUidAtual,
     obterWorkspaceId
-} from "./context.js?v=9.6";
+} from "./context.js?v=9.7";
 
-import { state } from "../state.js?v=9.6";
+import { state } from "../state.js?v=9.7";
 
 
 export async function obterDadosConta({ forcar = false } = {}) {

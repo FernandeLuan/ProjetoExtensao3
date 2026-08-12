@@ -1,8 +1,7 @@
-import { db } from "../../firebase-init.js?v=9.6";
+import { db } from "../../firebase-init.js?v=9.7";
 import {
     collection,
     doc,
-    getDoc,
     getDocs,
     limit,
     orderBy,
@@ -15,16 +14,13 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.6";
-import { state } from "../state.js?v=9.6";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.6";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.6";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.6";
-import {
-    calcularVendaProduto,
-    normalizarCodigoBarras,
-    validarProduto
-} from "../services/estoque-service.js?v=9.6";
+import { SCHEMA_VERSION } from "../constants.js?v=9.7";
+import { state } from "../state.js?v=9.7";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=9.7";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
+import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=9.7";
+import { marcarDadosPendentes } from "../services/refresh-service.js?v=9.7";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;
@@ -44,6 +40,10 @@ function ref(nome, id) {
     return doc(db, "barbearias", obterWorkspaceId(), nome, id);
 }
 
+function nomeUsuarioAtual() {
+    return String(state.membroAtual?.nome || state.perfilUsuario?.nome || state.user?.email || "Usuário");
+}
+
 export function invalidarCacheEstoque() {
     cacheProdutos = null;
     cacheProdutosEm = 0;
@@ -57,33 +57,30 @@ function cacheLeituraValido(item, ttl) {
     return item && (Date.now() - item.salvoEm) < ttl;
 }
 
-function chaveVendaPeriodo(dataInicio, fimExclusivo, uidFiltro, max) {
+function chaveVendaPeriodo(dataInicio, fimExclusivo, uidFiltro, max, incluirCanceladas) {
     return [
         obterWorkspaceId(),
         dataInicio.toISOString().slice(0, 10),
         fimExclusivo.toISOString().slice(0, 10),
         uidFiltro || "todos",
-        max || "sem-limite"
+        max || "sem-limite",
+        incluirCanceladas ? "com-canceladas" : "ativas"
     ].join(":");
 }
 
-export async function listarProdutosEstoque({ forcar = false, somenteAtivos = false, somenteVendaveis = false } = {}) {
+export async function listarProdutosEstoque({ forcar = false, somenteAtivos = false } = {}) {
     if (!forcar && Array.isArray(cacheProdutos) && Date.now() - cacheProdutosEm < CACHE_ESTOQUE_MS) {
-        return filtrarProdutos(cacheProdutos, { somenteAtivos, somenteVendaveis });
+        return filtrarProdutos(cacheProdutos, { somenteAtivos });
     }
 
     const snapshot = await getDocs(query(col("estoque"), orderBy("nome", "asc")));
     cacheProdutos = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     cacheProdutosEm = Date.now();
-    return filtrarProdutos(cacheProdutos, { somenteAtivos, somenteVendaveis });
+    return filtrarProdutos(cacheProdutos, { somenteAtivos });
 }
 
-function filtrarProdutos(lista, { somenteAtivos, somenteVendaveis }) {
-    return (lista || []).filter((produto) => {
-        if (somenteAtivos && produto.ativo === false) return false;
-        if (somenteVendaveis && produto.vendavel !== true) return false;
-        return true;
-    });
+function filtrarProdutos(lista, { somenteAtivos }) {
+    return (lista || []).filter((produto) => !somenteAtivos || produto.ativo !== false);
 }
 
 export async function localizarProdutoPorCodigo(codigo) {
@@ -95,8 +92,7 @@ export async function localizarProdutoPorCodigo(codigo) {
 
     const snapshot = await getDocs(query(col("estoque"), where("codigoBarras", "==", normalizado), limit(1)));
     if (snapshot.empty) return null;
-    const item = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
-    return item;
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
 }
 
 async function garantirCodigoUnico(codigo, ignorarId = null) {
@@ -109,14 +105,14 @@ async function garantirCodigoUnico(codigo, ignorarId = null) {
 
 export async function criarProdutoEstoque(dados) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode cadastrar produtos.");
-    const produto = validarProduto(dados);
+    const produto = validarProduto({ ...dados, unidade: "un", estoqueMinimo: 0, vendavel: true, ativo: true });
     await garantirCodigoUnico(produto.codigoBarras);
 
     const produtoRef = doc(col("estoque"));
     const movimentoRef = doc(col("estoqueMovimentacoes"));
     const batch = writeBatch(db);
     const uid = obterUidAtual();
-    const nome = String(state.membroAtual?.nome || state.perfilUsuario?.nome || state.user?.email || "Administrador");
+    const nome = nomeUsuarioAtual();
 
     batch.set(produtoRef, {
         ...produto,
@@ -134,7 +130,7 @@ export async function criarProdutoEstoque(dados) {
             quantidade: produto.quantidadeAtual,
             saldoAnterior: 0,
             saldoPosterior: produto.quantidadeAtual,
-            motivo: "Estoque inicial",
+            motivo: "Quantidade inicial",
             registradoPorUid: uid,
             registradoPorNome: nome,
             dataMovimentacao: Timestamp.fromDate(new Date()),
@@ -145,40 +141,80 @@ export async function criarProdutoEstoque(dados) {
 
     await batch.commit();
     invalidarCacheEstoque();
+    marcarDadosPendentes("estoque");
     return produtoRef.id;
 }
 
 export async function atualizarProdutoEstoque(id, alteracoes) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar produtos.");
-    const snap = await getDoc(ref("estoque", id));
-    if (!snap.exists()) throw new Error("Produto não encontrado.");
+    await garantirCodigoUnico(alteracoes.codigoBarras, id);
 
-    const original = { id: snap.id, ...snap.data() };
-    const produto = validarProduto({ ...original, ...alteracoes, quantidadeAtual: original.quantidadeAtual });
-    await garantirCodigoUnico(produto.codigoBarras, id);
+    const movimentoRef = doc(col("estoqueMovimentacoes"));
+    const uid = obterUidAtual();
+    const nome = nomeUsuarioAtual();
 
-    await updateDoc(ref("estoque", id), {
-        nome: produto.nome,
-        categoria: produto.categoria,
-        codigoBarras: produto.codigoBarras,
-        unidade: produto.unidade,
-        estoqueMinimo: produto.estoqueMinimo,
-        custoUnitario: produto.custoUnitario,
-        precoVenda: produto.precoVenda,
-        vendavel: produto.vendavel,
-        ativo: produto.ativo,
-        atualizadoEm: serverTimestamp()
+    await runTransaction(db, async (transaction) => {
+        const produtoRef = ref("estoque", id);
+        const snap = await transaction.get(produtoRef);
+        if (!snap.exists()) throw new Error("Produto não encontrado.");
+
+        const original = { id: snap.id, ...snap.data() };
+        const produto = validarProduto({
+            ...original,
+            ...alteracoes,
+            unidade: original.unidade || "un",
+            estoqueMinimo: 0,
+            vendavel: true,
+            ativo: original.ativo !== false
+        });
+
+        const anterior = Number(original.quantidadeAtual || 0);
+        const posterior = Number(produto.quantidadeAtual || 0);
+
+        transaction.update(produtoRef, {
+            nome: produto.nome,
+            categoria: produto.categoria,
+            codigoBarras: produto.codigoBarras,
+            unidade: produto.unidade,
+            quantidadeAtual: posterior,
+            estoqueMinimo: 0,
+            custoUnitario: produto.custoUnitario,
+            precoVenda: produto.precoVenda,
+            vendavel: true,
+            atualizadoEm: serverTimestamp()
+        });
+
+        if (Math.abs(posterior - anterior) > 0.0001) {
+            transaction.set(movimentoRef, {
+                produtoId: id,
+                produtoNomeSnapshot: produto.nome,
+                tipo: "ajuste",
+                quantidade: Number(Math.abs(posterior - anterior).toFixed(3)),
+                saldoAnterior: anterior,
+                saldoPosterior: posterior,
+                motivo: "Ajuste na edição do produto",
+                registradoPorUid: uid,
+                registradoPorNome: nome,
+                dataMovimentacao: Timestamp.fromDate(new Date()),
+                schemaVersion: SCHEMA_VERSION,
+                criadoEm: serverTimestamp()
+            });
+        }
     });
+
     invalidarCacheEstoque();
+    marcarDadosPendentes("estoque");
 }
 
 export async function definirStatusProduto(id, ativo) {
     if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar produtos.");
     await updateDoc(ref("estoque", id), {
         ativo: ativo === true,
+        vendavel: ativo === true,
         atualizadoEm: serverTimestamp()
     });
     invalidarCacheEstoque();
+    marcarDadosPendentes("estoque");
 }
 
 export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoSaldo = null, motivo = "", custoUnitario = null }) {
@@ -186,7 +222,7 @@ export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoS
 
     const movimentoRef = doc(col("estoqueMovimentacoes"));
     const uid = obterUidAtual();
-    const nome = String(state.membroAtual?.nome || state.perfilUsuario?.nome || state.user?.email || "Administrador");
+    const nome = nomeUsuarioAtual();
 
     const resultado = await runTransaction(db, async (transaction) => {
         const produtoRef = ref("estoque", produtoId);
@@ -235,13 +271,18 @@ export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoS
     });
 
     invalidarCacheEstoque();
+    marcarDadosPendentes("estoque");
     return resultado;
 }
 
 async function resolverMembroVenda(profissionalUid) {
-    if (!profissionalUid) return state.membroAtual;
+    if (!profissionalUid) return null;
     if (profissionalUid === state.user?.uid) return state.membroAtual;
     return obterMembroPorUid(profissionalUid);
+}
+
+function validarProfissionalComissao(profissional) {
+    return Boolean(profissional && profissional.ativo === true && profissional.atuaComoProfissional !== false);
 }
 
 export async function registrarVendaProduto({
@@ -260,9 +301,8 @@ export async function registrarVendaProduto({
     }
 
     if (gerarComissao && !profissionalUid) throw new Error("Selecione o profissional da comissão.");
-
-    const profissional = gerarComissao ? await resolverMembroVenda(profissionalUid) : state.membroAtual;
-    if (gerarComissao && (!profissional || profissional.ativo !== true || profissional.atuaComoProfissional === false)) {
+    const profissional = gerarComissao ? await resolverMembroVenda(profissionalUid) : null;
+    if (gerarComissao && !validarProfissionalComissao(profissional)) {
         throw new Error("O profissional selecionado não está disponível para vendas.");
     }
 
@@ -271,25 +311,23 @@ export async function registrarVendaProduto({
     const agora = new Date();
 
     const resultado = await runTransaction(db, async (transaction) => {
-        // Comissão e taxas são lidas ao vivo no momento da venda para que o
-        // snapshot não dependa de uma configuração antiga em cache no aparelho.
         const configRef = ref("configuracoes", "geral");
-        const membroTaxasRef = ref("membros", gerarComissao ? profissionalUid : uidAtual);
         const produtoRef = ref("estoque", produtoId);
-
-        const configSnap = await transaction.get(configRef);
-        const membroTaxasSnap = await transaction.get(membroTaxasRef);
-        const produtoSnap = await transaction.get(produtoRef);
+        const refs = [configRef, produtoRef];
+        if (gerarComissao) refs.push(ref("membros", profissionalUid));
+        const snaps = await Promise.all(refs.map((item) => transaction.get(item)));
+        const configSnap = snaps[0];
+        const produtoSnap = snaps[1];
+        const membroSnap = gerarComissao ? snaps[2] : null;
 
         if (!produtoSnap.exists()) throw new Error("Produto não encontrado.");
-        if (!membroTaxasSnap.exists()) throw new Error("Não foi possível validar as taxas do responsável pela venda.");
-
         const configVenda = configSnap.exists() ? configSnap.data() : {};
         const comissaoPct = Math.max(0, Math.min(100, Number(configVenda.comissaoProdutosPct ?? 20)));
-        const membroTaxas = { id: membroTaxasSnap.id, ...membroTaxasSnap.data() };
         const produto = { id: produtoSnap.id, ...produtoSnap.data() };
-        if (produto.ativo === false || produto.vendavel !== true) throw new Error("Este produto não está disponível para venda.");
-        if (gerarComissao && (membroTaxas.ativo !== true || membroTaxas.atuaComoProfissional === false)) {
+        if (produto.ativo === false) throw new Error("Este produto está arquivado.");
+
+        const membro = membroSnap?.exists() ? { id: membroSnap.id, ...membroSnap.data() } : profissional;
+        if (gerarComissao && !validarProfissionalComissao(membro)) {
             throw new Error("O profissional selecionado não está disponível para vendas.");
         }
 
@@ -303,19 +341,19 @@ export async function registrarVendaProduto({
             formaPagamento,
             gerarComissao,
             comissaoPct,
-            membroTaxas
+            configVenda
         });
         const posterior = Number((anterior - qtd).toFixed(3));
         const profissionalNome = gerarComissao
-            ? String(membroTaxas?.nome || membroTaxas?.email || profissional?.nome || profissional?.email || "Profissional")
+            ? String(membro?.nome || membro?.email || profissional?.nome || profissional?.email || "Profissional")
             : "";
-        const registradoPorNome = String(state.membroAtual?.nome || state.perfilUsuario?.nome || state.user?.email || "Usuário");
+        const registradoPorNome = nomeUsuarioAtual();
 
         const venda = {
             produtoId,
             produtoNomeSnapshot: String(produto.nome || "Produto"),
             categoriaSnapshot: String(produto.categoria || "Outros"),
-            unidadeSnapshot: String(produto.unidade || "un"),
+            unidadeSnapshot: "un",
             quantidade: financeiro.quantidade,
             precoUnitarioSnapshot: financeiro.precoUnitario,
             valorBruto: financeiro.valorBruto,
@@ -333,6 +371,7 @@ export async function registrarVendaProduto({
             registradoPorUid: uidAtual,
             registradoPorNome,
             dataVenda: Timestamp.fromDate(agora),
+            cancelada: false,
             schemaVersion: SCHEMA_VERSION,
             criadoEm: serverTimestamp()
         };
@@ -364,13 +403,158 @@ export async function registrarVendaProduto({
     });
 
     invalidarCacheEstoque();
+    marcarDadosPendentes(["vendas", "estoque"]);
     return resultado;
+}
+
+export async function editarVendaProduto(vendaId, { quantidade, formaPagamento, profissionalUid = null, gerarComissao = true } = {}) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode editar vendas.");
+    const uidAtual = obterUidAtual();
+    const movimentoRef = doc(col("estoqueMovimentacoes"));
+
+    const resultado = await runTransaction(db, async (transaction) => {
+        const vendaRef = ref("vendas", vendaId);
+        const vendaSnap = await transaction.get(vendaRef);
+        if (!vendaSnap.exists()) throw new Error("Venda não encontrada.");
+        const original = { id: vendaSnap.id, ...vendaSnap.data() };
+        if (original.cancelada === true) throw new Error("Uma venda cancelada não pode ser editada.");
+
+        const produtoRef = ref("estoque", original.produtoId);
+        const configRef = ref("configuracoes", "geral");
+        const refs = [produtoRef, configRef];
+        if (gerarComissao && profissionalUid) refs.push(ref("membros", profissionalUid));
+        const snaps = await Promise.all(refs.map((item) => transaction.get(item)));
+        const produtoSnap = snaps[0];
+        const configSnap = snaps[1];
+        const membroSnap = gerarComissao && profissionalUid ? snaps[2] : null;
+        if (!produtoSnap.exists()) throw new Error("Produto da venda não encontrado.");
+
+        const produto = { id: produtoSnap.id, ...produtoSnap.data() };
+        const configVenda = configSnap.exists() ? configSnap.data() : {};
+        const comissaoPct = Math.max(0, Math.min(100, Number(configVenda.comissaoProdutosPct ?? 20)));
+        const membro = membroSnap?.exists() ? { id: membroSnap.id, ...membroSnap.data() } : null;
+        if (gerarComissao && (!profissionalUid || !validarProfissionalComissao(membro))) {
+            throw new Error("Selecione um profissional ativo para a comissão.");
+        }
+
+        const qtdNova = Math.max(1, Number(quantidade || 1));
+        const qtdAntiga = Number(original.quantidade || 0);
+        const saldoAtual = Number(produto.quantidadeAtual || 0);
+        const saldoRestaurado = saldoAtual + qtdAntiga;
+        if (qtdNova > saldoRestaurado) throw new Error("Quantidade maior que o estoque disponível.");
+        const saldoNovo = Number((saldoRestaurado - qtdNova).toFixed(3));
+
+        const financeiro = calcularVendaProduto({
+            produto: { ...produto, precoVenda: Number(original.precoUnitarioSnapshot ?? produto.precoVenda) },
+            quantidade: qtdNova,
+            formaPagamento,
+            gerarComissao,
+            comissaoPct,
+            configVenda
+        });
+        const profissionalNome = gerarComissao ? String(membro?.nome || membro?.email || "Profissional") : null;
+
+        transaction.update(vendaRef, {
+            quantidade: financeiro.quantidade,
+            valorBruto: financeiro.valorBruto,
+            formaPagamento,
+            taxaPagamentoPctSnapshot: financeiro.taxaPagamentoPct,
+            taxaPagamentoValor: financeiro.taxaPagamentoValor,
+            gerarComissao: gerarComissao === true,
+            profissionalUid: gerarComissao ? profissionalUid : null,
+            profissionalNomeSnapshot: gerarComissao ? profissionalNome : null,
+            comissaoPctSnapshot: financeiro.comissaoPct,
+            comissaoValor: financeiro.comissaoValor,
+            custoTotalSnapshot: financeiro.custoTotal,
+            resultadoBarbearia: financeiro.resultadoBarbearia,
+            editada: true,
+            editadaPorUid: uidAtual,
+            editadaEm: serverTimestamp()
+        });
+        transaction.update(produtoRef, {
+            quantidadeAtual: saldoNovo,
+            atualizadoEm: serverTimestamp()
+        });
+
+        if (Math.abs(saldoNovo - saldoAtual) > 0.0001) {
+            transaction.set(movimentoRef, {
+                produtoId: original.produtoId,
+                produtoNomeSnapshot: original.produtoNomeSnapshot || produto.nome || "Produto",
+                tipo: "ajuste_venda",
+                quantidade: Number(Math.abs(saldoNovo - saldoAtual).toFixed(3)),
+                saldoAnterior: saldoAtual,
+                saldoPosterior: saldoNovo,
+                motivo: "Edição de venda",
+                vendaId,
+                registradoPorUid: uidAtual,
+                registradoPorNome: nomeUsuarioAtual(),
+                dataMovimentacao: Timestamp.fromDate(new Date()),
+                schemaVersion: SCHEMA_VERSION,
+                criadoEm: serverTimestamp()
+            });
+        }
+
+        return { ...original, ...financeiro, id: vendaId, formaPagamento, profissionalUid, profissionalNomeSnapshot: profissionalNome };
+    });
+
+    invalidarCacheEstoque();
+    marcarDadosPendentes(["vendas", "estoque"]);
+    return resultado;
+}
+
+export async function cancelarVendaProduto(vendaId) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode cancelar vendas.");
+    const uidAtual = obterUidAtual();
+    const movimentoRef = doc(col("estoqueMovimentacoes"));
+
+    await runTransaction(db, async (transaction) => {
+        const vendaRef = ref("vendas", vendaId);
+        const vendaSnap = await transaction.get(vendaRef);
+        if (!vendaSnap.exists()) throw new Error("Venda não encontrada.");
+        const venda = { id: vendaSnap.id, ...vendaSnap.data() };
+        if (venda.cancelada === true) return;
+
+        const produtoRef = ref("estoque", venda.produtoId);
+        const produtoSnap = await transaction.get(produtoRef);
+        if (!produtoSnap.exists()) throw new Error("Produto da venda não encontrado.");
+        const produto = produtoSnap.data();
+        const anterior = Number(produto.quantidadeAtual || 0);
+        const posterior = Number((anterior + Number(venda.quantidade || 0)).toFixed(3));
+
+        transaction.update(vendaRef, {
+            cancelada: true,
+            canceladaPorUid: uidAtual,
+            canceladaEm: serverTimestamp()
+        });
+        transaction.update(produtoRef, {
+            quantidadeAtual: posterior,
+            atualizadoEm: serverTimestamp()
+        });
+        transaction.set(movimentoRef, {
+            produtoId: venda.produtoId,
+            produtoNomeSnapshot: venda.produtoNomeSnapshot || produto.nome || "Produto",
+            tipo: "estorno_venda",
+            quantidade: Number(venda.quantidade || 0),
+            saldoAnterior: anterior,
+            saldoPosterior: posterior,
+            motivo: "Venda cancelada",
+            vendaId,
+            registradoPorUid: uidAtual,
+            registradoPorNome: nomeUsuarioAtual(),
+            dataMovimentacao: Timestamp.fromDate(new Date()),
+            schemaVersion: SCHEMA_VERSION,
+            criadoEm: serverTimestamp()
+        });
+    });
+
+    invalidarCacheEstoque();
+    marcarDadosPendentes(["vendas", "estoque"]);
 }
 
 export async function listarVendasPorPeriodo(
     inicio,
     fim,
-    { profissionalUid = null, max = null, forcar = false } = {}
+    { profissionalUid = null, max = null, forcar = false, incluirCanceladas = false } = {}
 ) {
     const dataInicio = new Date(inicio);
     dataInicio.setHours(0, 0, 0, 0);
@@ -379,7 +563,7 @@ export async function listarVendasPorPeriodo(
     fimExclusivo.setDate(fimExclusivo.getDate() + 1);
 
     const uidFiltro = profissionalUid || (!podeAdministrarNaVisaoAtual() ? obterUidAtual() : null);
-    const chave = chaveVendaPeriodo(dataInicio, fimExclusivo, uidFiltro, max);
+    const chave = chaveVendaPeriodo(dataInicio, fimExclusivo, uidFiltro, max, incluirCanceladas);
 
     if (!forcar && cacheLeituraValido(cacheVendas.get(chave), CACHE_VENDAS_MS)) {
         return cacheVendas.get(chave).itens;
@@ -391,65 +575,56 @@ export async function listarVendasPorPeriodo(
             where("dataVenda", ">=", Timestamp.fromDate(dataInicio)),
             where("dataVenda", "<", Timestamp.fromDate(fimExclusivo))
         ];
-
         if (uidFiltro) filtros.unshift(where("profissionalUid", "==", uidFiltro));
 
         let consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"));
         if (max) consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"), limit(max));
         const snapshot = await getDocs(consulta);
-        const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        let itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        if (!incluirCanceladas) itens = itens.filter((item) => item.cancelada !== true);
         cacheVendas.set(chave, { itens, salvoEm: Date.now() });
         return itens;
     })();
 
     vendasEmAndamento.set(chave, promessa);
-    try {
-        return await promessa;
-    } finally {
-        vendasEmAndamento.delete(chave);
-    }
+    try { return await promessa; }
+    finally { vendasEmAndamento.delete(chave); }
 }
 
-export async function listarVendasRecentes({ max = 50, forcar = false } = {}) {
+export async function listarVendasRecentes({ max = 60, forcar = false, incluirCanceladas = true } = {}) {
     if (!podeAdministrarNaVisaoAtual()) {
         const hoje = new Date();
-        const inicio = new Date(hoje);
-        inicio.setHours(0, 0, 0, 0);
-        return listarVendasPorPeriodo(inicio, hoje, {
+        const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+        return listarVendasPorPeriodo(inicio, fim, {
             profissionalUid: obterUidAtual(),
             max,
-            forcar
+            forcar,
+            incluirCanceladas: false
         });
     }
 
-    const chave = `${obterWorkspaceId()}:recentes:${max}`;
-    if (!forcar && cacheLeituraValido(cacheVendas.get(chave), CACHE_VENDAS_MS)) {
-        return cacheVendas.get(chave).itens;
-    }
+    const chave = `${obterWorkspaceId()}:recentes:${max}:${incluirCanceladas ? "todas" : "ativas"}`;
+    if (!forcar && cacheLeituraValido(cacheVendas.get(chave), CACHE_VENDAS_MS)) return cacheVendas.get(chave).itens;
     if (!forcar && vendasEmAndamento.has(chave)) return vendasEmAndamento.get(chave);
 
     const promessa = (async () => {
         const snapshot = await getDocs(query(col("vendas"), orderBy("dataVenda", "desc"), limit(max)));
-        const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        let itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        if (!incluirCanceladas) itens = itens.filter((item) => item.cancelada !== true);
         cacheVendas.set(chave, { itens, salvoEm: Date.now() });
         return itens;
     })();
 
     vendasEmAndamento.set(chave, promessa);
-    try {
-        return await promessa;
-    } finally {
-        vendasEmAndamento.delete(chave);
-    }
+    try { return await promessa; }
+    finally { vendasEmAndamento.delete(chave); }
 }
 
-export async function listarMovimentacoesRecentes({ max = 50, forcar = false } = {}) {
+export async function listarMovimentacoesRecentes({ max = 60, forcar = false } = {}) {
     if (!usuarioEhAdmin()) return [];
-
     const chave = `${obterWorkspaceId()}:movimentacoes:${max}`;
-    if (!forcar && cacheLeituraValido(cacheMovimentacoes.get(chave), CACHE_MOVIMENTACOES_MS)) {
-        return cacheMovimentacoes.get(chave).itens;
-    }
+    if (!forcar && cacheLeituraValido(cacheMovimentacoes.get(chave), CACHE_MOVIMENTACOES_MS)) return cacheMovimentacoes.get(chave).itens;
     if (!forcar && movimentacoesEmAndamento.has(chave)) return movimentacoesEmAndamento.get(chave);
 
     const promessa = (async () => {
@@ -460,11 +635,8 @@ export async function listarMovimentacoesRecentes({ max = 50, forcar = false } =
     })();
 
     movimentacoesEmAndamento.set(chave, promessa);
-    try {
-        return await promessa;
-    } finally {
-        movimentacoesEmAndamento.delete(chave);
-    }
+    try { return await promessa; }
+    finally { movimentacoesEmAndamento.delete(chave); }
 }
 
 export async function listarProfissionaisParaVenda() {

@@ -1,22 +1,9 @@
 export const CATEGORIAS_ESTOQUE = Object.freeze([
     "Uso profissional",
     "Higiene",
-    "Descartáveis",
     "Bebidas",
     "Comidas",
-    "Limpeza",
-    "Equipamentos",
     "Outros"
-]);
-
-export const UNIDADES_ESTOQUE = Object.freeze([
-    Object.freeze({ valor: "un", label: "Unidade (un)" }),
-    Object.freeze({ valor: "ml", label: "Mililitro (ml)" }),
-    Object.freeze({ valor: "L", label: "Litro (L)" }),
-    Object.freeze({ valor: "g", label: "Grama (g)" }),
-    Object.freeze({ valor: "kg", label: "Quilograma (kg)" }),
-    Object.freeze({ valor: "cx", label: "Caixa (cx)" }),
-    Object.freeze({ valor: "pct", label: "Pacote (pct)" })
 ]);
 
 export const FORMAS_PAGAMENTO_VENDA = Object.freeze([
@@ -49,23 +36,23 @@ export function normalizarQuantidade(valor) {
 }
 
 export function statusEstoque(produto) {
-    const atual = numeroSeguro(produto?.quantidadeAtual);
-    const minimo = Math.max(0, numeroSeguro(produto?.estoqueMinimo));
-
-    if (atual <= 0) return "zerado";
-    if (minimo > 0 && atual <= minimo) return "baixo";
-    return "ok";
+    if (produto?.ativo === false) return "arquivado";
+    return numeroSeguro(produto?.quantidadeAtual) <= 0 ? "zerado" : "ok";
 }
 
-export function formatarQuantidadeEstoque(valor, unidade = "un") {
+export function formatarQuantidadeEstoque(valor) {
     const numero = numeroSeguro(valor);
     const casas = Number.isInteger(numero) ? 0 : Math.min(3, String(numero).split(".")[1]?.length || 0);
-    return `${numero.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: 3 })} ${unidade || "un"}`;
+    return numero.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: 3 });
 }
 
-export function taxaPagamentoDoMembro(membro, formaPagamento) {
-    if (formaPagamento === "Débito") return Math.max(0, numeroSeguro(membro?.taxaDebitoPct));
-    if (formaPagamento === "Crédito") return Math.max(0, numeroSeguro(membro?.taxaCreditoPct));
+export function taxaPagamentoProdutos(configVenda, formaPagamento) {
+    if (formaPagamento === "Débito") {
+        return Math.max(0, Math.min(9.99, numeroSeguro(configVenda?.taxaDebitoProdutosPct ?? configVenda?.taxaDebito, 1.5)));
+    }
+    if (formaPagamento === "Crédito") {
+        return Math.max(0, Math.min(9.99, numeroSeguro(configVenda?.taxaCreditoProdutosPct ?? configVenda?.taxaCredito, 3.51)));
+    }
     return 0;
 }
 
@@ -75,13 +62,13 @@ export function calcularVendaProduto({
     formaPagamento = "Pix",
     gerarComissao = false,
     comissaoPct = 0,
-    membroTaxas = null
+    configVenda = null
 } = {}) {
     const qtd = Math.max(0, numeroSeguro(quantidade));
     const precoUnitario = Math.max(0, numeroSeguro(produto?.precoVenda));
     const custoUnitario = Math.max(0, numeroSeguro(produto?.custoUnitario));
     const bruto = arredondar2(precoUnitario * qtd);
-    const taxaPct = taxaPagamentoDoMembro(membroTaxas, formaPagamento);
+    const taxaPct = taxaPagamentoProdutos(configVenda, formaPagamento);
     const taxaValor = arredondar2(bruto * taxaPct / 100);
     const pct = gerarComissao ? Math.max(0, Math.min(100, numeroSeguro(comissaoPct))) : 0;
     const comissaoValor = gerarComissao ? arredondar2(bruto * pct / 100) : 0;
@@ -107,31 +94,26 @@ export function validarProduto(produto = {}) {
     const categoria = CATEGORIAS_ESTOQUE.includes(produto.categoria)
         ? produto.categoria
         : "Outros";
-    const unidadeValida = UNIDADES_ESTOQUE.some((item) => item.valor === produto.unidade)
-        ? produto.unidade
-        : "un";
     const quantidadeAtual = normalizarQuantidade(produto.quantidadeAtual);
-    const estoqueMinimo = normalizarQuantidade(produto.estoqueMinimo);
     const custoUnitario = arredondar2(produto.custoUnitario);
     const precoVenda = arredondar2(produto.precoVenda);
-    const vendavel = produto.vendavel === true;
 
     if (nome.length < 2) throw new Error("Informe o nome do produto.");
     if (quantidadeAtual === null) throw new Error("Informe uma quantidade válida.");
-    if (estoqueMinimo === null) throw new Error("Informe um estoque mínimo válido.");
     if (custoUnitario < 0) throw new Error("Informe um custo válido.");
-    if (vendavel && precoVenda <= 0) throw new Error("Informe o preço de venda do produto.");
+    if (precoVenda <= 0) throw new Error("Informe o preço de venda do produto.");
 
     return {
         nome,
         categoria,
         codigoBarras: normalizarCodigoBarras(produto.codigoBarras),
-        unidade: unidadeValida,
+        // Campos mantidos internamente para compatibilidade com os documentos antigos.
+        unidade: String(produto.unidade || "un"),
         quantidadeAtual,
-        estoqueMinimo,
+        estoqueMinimo: 0,
         custoUnitario,
-        precoVenda: vendavel ? precoVenda : Math.max(0, precoVenda),
-        vendavel,
+        precoVenda,
+        vendavel: true,
         ativo: produto.ativo !== false
     };
 }

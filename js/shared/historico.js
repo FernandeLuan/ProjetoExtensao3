@@ -1,22 +1,22 @@
-import { state, onStateChange } from "./state.js?v=9.6";
-import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.6";
-import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.6";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.6";
-import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.6";
-import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.6";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.6";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.6";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.6";
-import { escaparHtml } from "./utils/dom.js?v=9.6";
-import { mostrarErro } from "./services/feedback-service.js?v=9.6";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.6";
+import { state, onStateChange } from "./state.js?v=9.7";
+import { excluirAtendimento, editarAtendimento } from "./data/atendimentos-repository.js?v=9.7";
+import { garantirAtendimentosPeriodo, invalidarCacheAtendimentos } from "./data/sync.js?v=9.7";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=9.7";
+import { criarAtualizacaoFinanceiraAtendimento } from "./services/atendimento-model.js?v=9.7";
+import { obterServicoPorId, obterServicoPorNome, obterServicos, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.7";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=9.7";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento, formatarDataHora } from "./utils/date.js?v=9.7";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.7";
+import { escaparHtml } from "./utils/dom.js?v=9.7";
+import { mostrarErro } from "./services/feedback-service.js?v=9.7";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.7";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=9.6";
+} from "./services/ui-loading-service.js?v=9.7";
 
 const historicoContainer = document.getElementById("historicoContainer");
 const btnHistoricoAnterior = document.getElementById("btnHistoricoAnterior");

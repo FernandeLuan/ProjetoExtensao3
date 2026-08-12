@@ -1,20 +1,24 @@
-import { state, onStateChange } from "./state.js?v=9.6";
-import { formatarMoeda } from "./utils/money.js?v=9.6";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput } from "./utils/date.js?v=9.6";
-import { setTexto } from "./utils/dom.js?v=9.6";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.6";
-import { obterResumoDoDia } from "./services/financeiro-service.js?v=9.6";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=9.6";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=9.6";
-import { obterWorkspaceId } from "./data/context.js?v=9.6";
-import { garantirChartJs } from "./services/external-assets.js?v=9.6";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.6";
+import { state, onStateChange } from "./state.js?v=9.7";
+import { formatarMoeda } from "./utils/money.js?v=9.7";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=9.7";
+import { setTexto } from "./utils/dom.js?v=9.7";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=9.7";
+import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=9.7";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=9.7";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=9.7";
+import { obterWorkspaceId } from "./data/context.js?v=9.7";
+import { garantirChartJs } from "./services/external-assets.js?v=9.7";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=9.7";
+import { habilitarPullToRefresh, observarMudancas, registrarAtualizacao, temDadosPendentes, textoUltimaAtualizacao } from "./services/refresh-service.js?v=9.7";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
 let graficoTicketInstance = null;
 let graficoAtendimentosInstance = null;
+let graficoServicosInstance = null;
+let graficoPagamentosInstance = null;
 let resumosPainel = [];
+let pullRefreshVinculado = false;
 
 const btnCalendarioPainel = document.getElementById("btnCalendarioPainel");
 const inputDataPainel = document.getElementById("inputDataPainel");
@@ -93,10 +97,11 @@ function obterResumoPainel(data) {
     return converterResumoDiario(documento);
 }
 
-async function carregarResumosPainel(inicio, fim) {
+async function carregarResumosPainel(inicio, fim, { forcar = false } = {}) {
     if (!usarResumosNoPainel()) {
         await garantirAtendimentosPeriodo(inicio, fim, {
-            profissionalUid: state.user?.uid || null
+            profissionalUid: state.user?.uid || null,
+            forcar
         });
         return;
     }
@@ -107,7 +112,41 @@ async function carregarResumosPainel(inicio, fim) {
         return;
     }
 
-    resumosPainel = await listarResumosProfissionalPorPeriodo(uid, inicio, fim);
+    resumosPainel = await listarResumosProfissionalPorPeriodo(uid, inicio, fim, { forcar });
+}
+
+function atualizarStatusAtualizacaoPainel() {
+    const atualizado = document.getElementById("painelAtualizadoEm");
+    const pendente = document.getElementById("painelNovosDados");
+    const temPendente = temDadosPendentes("atendimentos");
+    if (atualizado) atualizado.textContent = textoUltimaAtualizacao("painel");
+    if (pendente) pendente.hidden = !temPendente;
+}
+
+async function atualizarPainelForcado() {
+    const loading = iniciarLoadingTela("Atualizando painel...", { delay: 120 });
+    try {
+        await carregarResumosPainel(somarDias(dataSelecionada, -6), dataSelecionada, { forcar: true });
+        registrarAtualizacao("painel", ["atendimentos"]);
+        atualizarCards();
+    } catch (error) {
+        console.error("Erro ao atualizar painel:", error);
+    } finally {
+        finalizarLoadingTela(loading);
+        atualizarStatusAtualizacaoPainel();
+    }
+}
+
+function prepararPullRefreshPainel() {
+    if (pullRefreshVinculado) return;
+    const painel = document.getElementById("painelFinanceiro");
+    if (!painel) return;
+    pullRefreshVinculado = true;
+    habilitarPullToRefresh(painel, atualizarPainelForcado);
+    observarMudancas(atualizarStatusAtualizacaoPainel);
+    window.setInterval(() => {
+        if (painelEstaVisivel()) atualizarStatusAtualizacaoPainel();
+    }, 30000);
 }
 
 
@@ -165,6 +204,8 @@ export async function abrirPainelHoje() {
     } catch (error) {
         console.error("Erro ao carregar painel de hoje:", error);
     }
+    prepararPullRefreshPainel();
+    atualizarStatusAtualizacaoPainel();
     atualizarCards();
 }
 
@@ -554,6 +595,127 @@ function criarSparklineBarras(canvas, labels, dados, cor) {
     });
 }
 
+
+function agrupamentoPainel() {
+    if (usarResumosNoPainel()) {
+        const chave = chaveData(dataSelecionada);
+        const docResumo = resumosPainel.find((item) => item.dataChave === chave || item.id === chave) || {};
+        const servicosQtd = docResumo.servicosQtd || {};
+        const servicosNomes = docResumo.servicosNomes || {};
+        const pagamentosValor = docResumo.pagamentosValorCentavos || {};
+        const pagamentosNomes = docResumo.pagamentosNomes || {};
+
+        const servicos = Object.entries(servicosQtd)
+            .map(([id, qtd]) => [String(servicosNomes[id] || id || "Serviço"), Number(qtd || 0)])
+            .filter(([, qtd]) => qtd > 0)
+            .sort((a, b) => b[1] - a[1]);
+
+        const pagamentos = Object.entries(pagamentosValor)
+            .map(([id, centavos]) => [String(pagamentosNomes[id] || id || "Outros"), Number(centavos || 0) / 100])
+            .filter(([, valor]) => valor > 0)
+            .sort((a, b) => b[1] - a[1]);
+        return { servicos, pagamentos };
+    }
+
+    const chave = chaveData(dataSelecionada);
+    const lista = atendimentosDoProfissionalAtual().filter((item) => {
+        const data = obterDataAtendimento(item);
+        return data && chaveData(data) === chave;
+    });
+    const servicos = new Map();
+    const pagamentos = new Map();
+    lista.forEach((item) => {
+        const servico = String(item.servicoNome || item.servico || "Serviço");
+        const pagamento = String(item.pagamento || "Outros");
+        servicos.set(servico, (servicos.get(servico) || 0) + 1);
+        pagamentos.set(pagamento, (pagamentos.get(pagamento) || 0) + obterBrutoAtendimento(item));
+    });
+    return {
+        servicos: [...servicos.entries()].sort((a, b) => b[1] - a[1]),
+        pagamentos: [...pagamentos.entries()].sort((a, b) => b[1] - a[1])
+    };
+}
+
+function paletaPainel(cores) {
+    return [
+        cores.primary,
+        "#22c55e",
+        "#f59e0b",
+        "#8b5cf6",
+        "#06b6d4",
+        "#f97316",
+        "#ec4899"
+    ];
+}
+
+function criarRoscaPainel(canvas, entradas, formatarTooltip) {
+    if (!canvas || typeof Chart === "undefined") return null;
+    const cores = obterCoresDoTema();
+    const paleta = paletaPainel(cores);
+    const dados = entradas.length ? entradas : [["Sem dados", 1]];
+    const vazio = !entradas.length;
+    return new Chart(canvas, {
+        type: "doughnut",
+        data: {
+            labels: dados.map(([nome]) => nome),
+            datasets: [{
+                data: dados.map(([, valor]) => valor),
+                backgroundColor: vazio ? [cores.border] : dados.map((_, i) => paleta[i % paleta.length]),
+                borderWidth: 0,
+                spacing: vazio ? 0 : 2,
+                hoverOffset: vazio ? 0 : 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "68%",
+            animation: { duration: 180 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: !vazio,
+                    callbacks: { label: (ctx) => formatarTooltip(ctx.raw, ctx.label) }
+                }
+            }
+        }
+    });
+}
+
+function renderRankingPainel(containerId, entradas, formatarValor) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!entradas.length) {
+        container.innerHTML = '<div class="relatorio-ranking-vazio">Sem dados nesta data.</div>';
+        return;
+    }
+    container.innerHTML = entradas.map(([nome, valor], indice) => `
+        <div class="relatorio-ranking-item">
+            <span class="relatorio-ranking-pos">${indice + 1}</span>
+            <div class="relatorio-ranking-copy"><strong>${String(nome).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</strong></div>
+            <strong class="relatorio-ranking-value">${formatarValor(valor)}</strong>
+        </div>
+    `).join("");
+}
+
+function atualizarAnaliseDiaPainel() {
+    const { servicos, pagamentos } = agrupamentoPainel();
+    destruirGrafico(graficoServicosInstance);
+    destruirGrafico(graficoPagamentosInstance);
+    graficoServicosInstance = criarRoscaPainel(
+        document.getElementById("graficoPainelServicos"),
+        servicos,
+        (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`
+    );
+    graficoPagamentosInstance = criarRoscaPainel(
+        document.getElementById("graficoPainelPagamentos"),
+        pagamentos,
+        (valor) => `R$ ${formatarMoeda(valor)}`
+    );
+    renderRankingPainel("painelServicosLista", servicos, (valor) => `${valor}x`);
+    renderRankingPainel("painelPagamentosLista", pagamentos, (valor) => `R$ ${formatarMoeda(valor)}`);
+}
+
 export function atualizarGrafico() {
     if (typeof Chart === "undefined") return;
 
@@ -635,6 +797,7 @@ graficoAtendimentosInstance = criarSparklineBarras(
             }
         }
     });
+    atualizarAnaliseDiaPainel();
 }
 
 // =============================

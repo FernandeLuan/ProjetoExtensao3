@@ -1,6 +1,6 @@
-import { limparSessaoArea } from "./auth-area-session.js?v=9.6";
-import { auth } from "../firebase-init.js?v=9.6";
-import { state } from "./state.js?v=9.6";
+import { limparSessaoArea } from "./auth-area-session.js?v=9.7";
+import { auth } from "../firebase-init.js?v=9.7";
+import { state } from "./state.js?v=9.7";
 
 import {
     EmailAuthProvider,
@@ -12,14 +12,14 @@ import {
 import {
     obterDadosConta,
     salvarFotoConta
-} from "./data/conta-repository.js?v=9.6";
-import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=9.6";
+} from "./data/conta-repository.js?v=9.7";
+import { atualizarTaxasProprias } from "./data/equipe-repository.js?v=9.7";
 
 import {
     mostrarErro,
     mostrarSucesso
-} from "./services/feedback-service.js?v=9.6";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.6";
+} from "./services/feedback-service.js?v=9.7";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.7";
 
 
 let inicializado = false;

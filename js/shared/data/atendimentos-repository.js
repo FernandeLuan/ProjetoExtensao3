@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.6";
+import { db } from "../../firebase-init.js?v=9.7";
 import {
     collection,
     doc,
@@ -12,13 +12,14 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.6";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.6";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.6";
+import { state, removerAtendimentoDoEstado, mesclarAtendimentos, atualizarAtendimentoNoEstado } from "../state.js?v=9.7";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
+import { marcarDadosPendentes } from "../services/refresh-service.js?v=9.7";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
 import {
     anexarDeltasAtendimentosAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.6";
+} from "./resumos-repository.js?v=9.7";
 
 function colecaoAtendimentos() {
     return collection(db, "barbearias", obterWorkspaceId(), "atendimentos");
@@ -112,6 +113,7 @@ export async function criarAtendimento(payload) {
         createdAt: agora,
         updatedAt: agora
     }]);
+    marcarDadosPendentes("atendimentos");
 
     return docRef.id;
 }
@@ -154,6 +156,7 @@ export async function editarAtendimento(id, alteracoes) {
         editadoEm: agora,
         updatedAt: agora
     });
+    marcarDadosPendentes("atendimentos");
 }
 
 export async function excluirAtendimento(id) {
@@ -171,4 +174,5 @@ export async function excluirAtendimento(id) {
 
     await batch.commit();
     removerAtendimentoDoEstado(id);
+    marcarDadosPendentes("atendimentos");
 }

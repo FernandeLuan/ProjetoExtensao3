@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=9.6";
+import { db } from "../../firebase-init.js?v=9.7";
 import {
     collection,
     doc,
@@ -12,14 +12,15 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=9.6";
-import { state } from "../state.js?v=9.6";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.6";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.6";
+import { SCHEMA_VERSION } from "../constants.js?v=9.7";
+import { state } from "../state.js?v=9.7";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=9.7";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=9.7";
 import {
     anexarDeltasDespesasAoBatch,
     RESUMO_VERSION
-} from "./resumos-repository.js?v=9.6";
+} from "./resumos-repository.js?v=9.7";
+import { marcarDadosPendentes } from "../services/refresh-service.js?v=9.7";
 
 const CACHE_DESPESAS_MS = 5 * 60 * 1000;
 const cacheDespesas = new Map();
@@ -164,6 +165,7 @@ export async function criarDespesa({ data, categoria, descricao, valor, tipo = "
 
     await batch.commit();
     invalidarCacheDespesas();
+    marcarDadosPendentes("despesas");
     return ref;
 }
 
@@ -223,6 +225,7 @@ export async function criarDespesaParcelada({
     anexarDeltasDespesasAoBatch(batch, entradasResumo);
     await batch.commit();
     invalidarCacheDespesas();
+    marcarDadosPendentes("despesas");
 
     return { parcelamentoId, refs, parcelas: totalParcelas };
 }
@@ -249,6 +252,7 @@ export async function editarDespesa(id, alteracoes, originalInformado = null) {
 
     await batch.commit();
     invalidarCacheDespesas();
+    marcarDadosPendentes("despesas");
 }
 
 export async function excluirDespesa(id, originalInformado = null) {
@@ -266,6 +270,7 @@ export async function excluirDespesa(id, originalInformado = null) {
 
     await batch.commit();
     invalidarCacheDespesas();
+    marcarDadosPendentes("despesas");
 }
 
 export async function excluirDespesaParcelada(despesa, { incluirProximas = false } = {}) {
@@ -303,5 +308,6 @@ export async function excluirDespesaParcelada(despesa, { incluirProximas = false
     if (deltas.length) anexarDeltasDespesasAoBatch(batch, deltas);
     await batch.commit();
     invalidarCacheDespesas();
+    marcarDadosPendentes("despesas");
     return { quantidade: originais.length };
 }

@@ -1,9 +1,9 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=9.6";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=9.6";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=9.6";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.6";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.6";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.6";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=9.7";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=9.7";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=9.7";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=9.7";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=9.7";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.7";
 
 let inicializado = false;
 
@@ -25,13 +25,27 @@ const btnCancelarServico = document.getElementById("btnCancelarServico");
 const btnConfirmarServico = document.getElementById("btnConfirmarServico");
 let servicoParaExcluir = null;
 
-const comissaoProdutosAtual = document.getElementById("configComissaoProdutosAtual");
-const btnEditarComissaoProdutos = document.getElementById("btnEditarComissaoProdutos");
-const comissaoProdutosEditor = document.getElementById("configComissaoProdutosEditor");
-const comissaoProdutosInput = document.getElementById("configComissaoProdutosInput");
-const btnCancelarComissaoProdutos = document.getElementById("btnCancelarComissaoProdutos");
-const btnSalvarComissaoProdutos = document.getElementById("btnSalvarComissaoProdutos");
-const comissaoProdutosStatus = document.getElementById("configComissaoProdutosStatus");
+const produtosFinanceiroStatus = document.getElementById("configProdutosFinanceiroStatus");
+const PRODUTO_FINANCEIRO_CONFIG = Object.freeze({
+    comissaoProdutosPct: {
+        atual: document.getElementById("configComissaoProdutosAtual"),
+        input: document.getElementById("configComissaoProdutosInput"),
+        max: 100,
+        nome: "Comissão sobre produtos"
+    },
+    taxaDebitoProdutosPct: {
+        atual: document.getElementById("configTaxaDebitoProdutosAtual"),
+        input: document.getElementById("configTaxaDebitoProdutosInput"),
+        max: 9.99,
+        nome: "Taxa no débito"
+    },
+    taxaCreditoProdutosPct: {
+        atual: document.getElementById("configTaxaCreditoProdutosAtual"),
+        input: document.getElementById("configTaxaCreditoProdutosInput"),
+        max: 9.99,
+        nome: "Taxa no crédito"
+    }
+});
 
 const ordemCardsLista = document.getElementById("configOrdemCardsLista");
 const btnRestaurarOrdemCards = document.getElementById("btnRestaurarOrdemCards");
@@ -61,7 +75,7 @@ const NAV_BARBEARIA = {
     barbeariaHome: { nome: "Visão geral", detalhe: "Resumo da barbearia", icone: "fa-store" },
     historico: { nome: "Histórico", detalhe: "Atendimentos registrados", icone: "fa-clock-rotate-left" },
     equipe: { nome: "Equipe", detalhe: "Profissionais e acessos", icone: "fa-users" },
-    relatorios: { nome: "Relatório", detalhe: "Indicadores e períodos", icone: "fa-file-lines" },
+    relatorios: { nome: "Fechamento", detalhe: "Gerar e compartilhar o fechamento", icone: "fa-file-invoice-dollar" },
     estoque: { nome: "Estoque", detalhe: "Produtos, vendas e movimentações", icone: "fa-boxes-stacked" },
     despesas: { nome: "Despesas", detalhe: "Gastos da barbearia", icone: "fa-receipt" },
     configuracoes: { nome: "Configurações", detalhe: "Preferências administrativas", icone: "fa-sliders-h" },
@@ -439,38 +453,72 @@ function renderizarOrdemNav() {
     });
 }
 
-function renderizarComissaoProdutos() {
-    const valor = Math.max(0, Math.min(100, Number(state.configSistema?.comissaoProdutosPct ?? 20)));
-    if (comissaoProdutosAtual) comissaoProdutosAtual.textContent = `Atual: ${valor.toFixed(2).replace(".", ",")}%`;
-    if (comissaoProdutosInput && comissaoProdutosEditor?.hidden !== false) {
-        comissaoProdutosInput.value = valor.toFixed(2).replace(".", ",");
+function valorProdutoConfig(chave) {
+    const meta = PRODUTO_FINANCEIRO_CONFIG[chave];
+    if (!meta) return 0;
+    return Math.max(0, Math.min(meta.max, Number(state.configSistema?.[chave] ?? 0)));
+}
+
+function formatarPercentualConfig(valor) {
+    return `${Number(valor || 0).toFixed(2).replace(".", ",")}%`;
+}
+
+function renderizarFinanceiroProdutos() {
+    Object.entries(PRODUTO_FINANCEIRO_CONFIG).forEach(([chave, meta]) => {
+        const valor = valorProdutoConfig(chave);
+        if (meta.atual) meta.atual.textContent = formatarPercentualConfig(valor);
+        const editor = document.querySelector(`[data-product-config-editor="${chave}"]`);
+        if (meta.input && editor?.hidden !== false) meta.input.value = valor.toFixed(2).replace(".", ",");
+    });
+}
+
+function fecharEditorProdutoConfig(chave) {
+    const editor = document.querySelector(`[data-product-config-editor="${chave}"]`);
+    if (editor) editor.hidden = true;
+    const meta = PRODUTO_FINANCEIRO_CONFIG[chave];
+    if (meta?.input) meta.input.value = valorProdutoConfig(chave).toFixed(2).replace(".", ",");
+    setStatus(produtosFinanceiroStatus, "");
+}
+
+function abrirEditorProdutoConfig(chave) {
+    Object.keys(PRODUTO_FINANCEIRO_CONFIG).forEach((item) => {
+        const editor = document.querySelector(`[data-product-config-editor="${item}"]`);
+        if (editor) editor.hidden = item !== chave;
+    });
+    const meta = PRODUTO_FINANCEIRO_CONFIG[chave];
+    if (!meta) return;
+    if (meta.input) {
+        meta.input.value = valorProdutoConfig(chave).toFixed(2).replace(".", ",");
+        meta.input.focus();
+        meta.input.select?.();
     }
+    setStatus(produtosFinanceiroStatus, "");
 }
 
-function fecharEditorComissaoProdutos() {
-    if (comissaoProdutosEditor) comissaoProdutosEditor.hidden = true;
-    setStatus(comissaoProdutosStatus, "");
-}
-
-async function salvarComissaoProdutos() {
-    const valor = converterParaNumero(comissaoProdutosInput?.value);
-    if (valor === null || valor < 0 || valor > 100) {
-        dispararErroVisualInput(comissaoProdutosInput);
-        mostrarErro("Informe uma comissão entre 0,00% e 100,00%.");
+async function salvarProdutoConfig(chave, botao) {
+    const meta = PRODUTO_FINANCEIRO_CONFIG[chave];
+    if (!meta) return;
+    const valor = converterParaNumero(meta.input?.value);
+    if (valor === null || valor < 0 || valor > meta.max) {
+        dispararErroVisualInput(meta.input);
+        mostrarErro(`Informe um percentual entre 0,00% e ${meta.max.toFixed(2).replace(".", ",")}%.`);
         return;
     }
-    iniciarAcaoBotao(btnSalvarComissaoProdutos, "Salvando...");
-    setStatus(comissaoProdutosStatus, "Salvando...");
+
+    iniciarAcaoBotao(botao, "Salvando...");
+    setStatus(produtosFinanceiroStatus, "Salvando...");
     try {
-        await persistirConfig({ ...state.configSistema, comissaoProdutosPct: Number(valor.toFixed(2)) }, "Comissão sobre produtos atualizada.");
-        await concluirAcaoBotao(btnSalvarComissaoProdutos, "Comissão salva ✓", 460);
-        fecharEditorComissaoProdutos();
+        await persistirConfig(
+            { ...state.configSistema, [chave]: Number(valor.toFixed(2)) },
+            `${meta.nome} atualizada.`
+        );
+        await concluirAcaoBotao(botao, "Salvo ✓", 360);
+        fecharEditorProdutoConfig(chave);
     } catch (error) {
         console.error(error);
-        restaurarAcaoBotao(btnSalvarComissaoProdutos);
-        setStatus(comissaoProdutosStatus, "Não foi possível salvar.", true);
+        setStatus(produtosFinanceiroStatus, "Não foi possível salvar.", true);
     } finally {
-        restaurarAcaoBotao(btnSalvarComissaoProdutos);
+        restaurarAcaoBotao(botao);
     }
 }
 
@@ -479,7 +527,7 @@ function renderizarTudo() {
     renderizarPagamentos();
     renderizarOrdemCards();
     renderizarOrdemNav();
-    renderizarComissaoProdutos();
+    renderizarFinanceiroProdutos();
     const versao = document.getElementById("appVersion");
     if (versao) versao.textContent = `v${APP_VERSION}`;
 }
@@ -604,15 +652,18 @@ export function initConfiguracoes() {
     });
     btnSalvarNovoServico?.addEventListener("click", adicionarServico);
 
-    btnEditarComissaoProdutos?.addEventListener("click", () => {
-        const valor = Math.max(0, Math.min(100, Number(state.configSistema?.comissaoProdutosPct ?? 20)));
-        if (comissaoProdutosInput) comissaoProdutosInput.value = valor.toFixed(2).replace(".", ",");
-        if (comissaoProdutosEditor) comissaoProdutosEditor.hidden = false;
-        comissaoProdutosInput?.focus();
+    document.querySelectorAll("[data-product-config-edit]").forEach((botao) => {
+        botao.addEventListener("click", () => abrirEditorProdutoConfig(botao.dataset.productConfigEdit));
     });
-    btnCancelarComissaoProdutos?.addEventListener("click", fecharEditorComissaoProdutos);
-    btnSalvarComissaoProdutos?.addEventListener("click", salvarComissaoProdutos);
-    comissaoProdutosInput?.addEventListener("input", () => comissaoProdutosInput.classList.remove("input-erro", "shake"));
+    document.querySelectorAll("[data-product-config-cancel]").forEach((botao) => {
+        botao.addEventListener("click", () => fecharEditorProdutoConfig(botao.dataset.productConfigCancel));
+    });
+    document.querySelectorAll("[data-product-config-save]").forEach((botao) => {
+        botao.addEventListener("click", () => void salvarProdutoConfig(botao.dataset.productConfigSave, botao));
+    });
+    Object.values(PRODUTO_FINANCEIRO_CONFIG).forEach((meta) => {
+        meta.input?.addEventListener("input", () => meta.input.classList.remove("input-erro", "shake"));
+    });
 
     btnRestaurarOrdemCards?.addEventListener("click", async () => {
         btnRestaurarOrdemCards.disabled = true;

@@ -1,5 +1,5 @@
 export const APP_NAME = "Sr NK";
-export const APP_VERSION = "3.0.0";
+export const APP_VERSION = "3.7.0";
 export const SCHEMA_VERSION = 3;
 
 export const PAPEIS = Object.freeze({
@@ -27,6 +27,8 @@ export const DEFAULT_CONFIG = Object.freeze({
     taxaCredito: 3.51,
     repasseDonoPct: 35, // fallback para registros/membros antigos
     comissaoProdutosPct: 20,
+    taxaDebitoProdutosPct: 1.5,
+    taxaCreditoProdutosPct: 3.51,
     pagamentoPadrao: "nenhum",
     pagamentosAtivos: Object.freeze({
         Pix: true,
@@ -48,6 +50,8 @@ export function criarConfigPadrao() {
         taxaCredito: DEFAULT_CONFIG.taxaCredito,
         repasseDonoPct: DEFAULT_CONFIG.repasseDonoPct,
         comissaoProdutosPct: DEFAULT_CONFIG.comissaoProdutosPct,
+        taxaDebitoProdutosPct: DEFAULT_CONFIG.taxaDebitoProdutosPct,
+        taxaCreditoProdutosPct: DEFAULT_CONFIG.taxaCreditoProdutosPct,
         pagamentoPadrao: DEFAULT_CONFIG.pagamentoPadrao,
         pagamentosAtivos: { ...DEFAULT_CONFIG.pagamentosAtivos },
         servicos,
@@ -85,6 +89,8 @@ export function normalizarConfig(config = {}) {
         taxaCredito: Number(config.taxaCredito ?? base.taxaCredito),
         repasseDonoPct: Number(config.repasseDonoPct ?? base.repasseDonoPct),
         comissaoProdutosPct: Math.max(0, Math.min(100, Number(config.comissaoProdutosPct ?? base.comissaoProdutosPct))),
+        taxaDebitoProdutosPct: Math.max(0, Math.min(9.99, Number(config.taxaDebitoProdutosPct ?? config.taxaDebito ?? base.taxaDebitoProdutosPct))),
+        taxaCreditoProdutosPct: Math.max(0, Math.min(9.99, Number(config.taxaCreditoProdutosPct ?? config.taxaCredito ?? base.taxaCreditoProdutosPct))),
         pagamentoPadrao: PAGAMENTOS.includes(config.pagamentoPadrao) ? config.pagamentoPadrao : "nenhum",
         pagamentosAtivos: {
             ...base.pagamentosAtivos,

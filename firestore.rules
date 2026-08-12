@@ -82,13 +82,21 @@ service cloud.firestore {
       return value is number && value >= 0 && value <= 100;
     }
 
-    function memberProductPaymentRate(barbeariaId, uid, formaPagamento) {
-      return formaPagamento == "Débito"
-        ? memberData(barbeariaId, uid).get("taxaDebitoPct", 0)
+    function productPaymentRate(barbeariaId, formaPagamento) {
+      return !exists(generalConfigPath(barbeariaId))
+        ? (
+          formaPagamento == "Débito"
+            ? 1.5
+            : (formaPagamento == "Crédito" ? 3.51 : 0)
+        )
         : (
-          formaPagamento == "Crédito"
-            ? memberData(barbeariaId, uid).get("taxaCreditoPct", 0)
-            : 0
+          formaPagamento == "Débito"
+            ? get(generalConfigPath(barbeariaId)).data.get("taxaDebitoProdutosPct", get(generalConfigPath(barbeariaId)).data.get("taxaDebito", 1.5))
+            : (
+              formaPagamento == "Crédito"
+                ? get(generalConfigPath(barbeariaId)).data.get("taxaCreditoProdutosPct", get(generalConfigPath(barbeariaId)).data.get("taxaCredito", 3.51))
+                : 0
+            )
         );
     }
 
@@ -451,11 +459,10 @@ service cloud.firestore {
               && request.resource.data.profissionalUid == request.auth.uid
               && targetCanActAsProfessional(barbeariaId, request.auth.uid)
               && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("ativo", true) != false
-              && get(stockPath(barbeariaId, request.resource.data.produtoId)).data.get("vendavel", false) == true
               && request.resource.data.comissaoPctSnapshot == productCommissionPct(barbeariaId)
               && request.resource.data.precoUnitarioSnapshot == get(stockPath(barbeariaId, request.resource.data.produtoId)).data.precoVenda
               && request.resource.data.custoUnitarioSnapshot == get(stockPath(barbeariaId, request.resource.data.produtoId)).data.custoUnitario
-              && request.resource.data.taxaPagamentoPctSnapshot == memberProductPaymentRate(barbeariaId, request.auth.uid, request.resource.data.formaPagamento)
+              && request.resource.data.taxaPagamentoPctSnapshot == productPaymentRate(barbeariaId, request.resource.data.formaPagamento)
               && request.resource.data.valorBruto >= request.resource.data.precoUnitarioSnapshot * request.resource.data.quantidade - 0.011
               && request.resource.data.valorBruto <= request.resource.data.precoUnitarioSnapshot * request.resource.data.quantidade + 0.011
               && request.resource.data.taxaPagamentoValor >= request.resource.data.valorBruto * request.resource.data.taxaPagamentoPctSnapshot / 100 - 0.011
@@ -467,8 +474,10 @@ service cloud.firestore {
             )
           );
 
-        // Venda é registro financeiro/auditoria: não é reescrita pelo cliente.
-        allow update, delete: if false;
+        // O administrador pode corrigir ou cancelar uma venda. O documento nunca é
+        // apagado: cancelamentos preservam a auditoria e devolvem a quantidade ao estoque.
+        allow update: if isAdmin(barbeariaId);
+        allow delete: if false;
       }
 
       match /estoqueMovimentacoes/{movimentoId} {

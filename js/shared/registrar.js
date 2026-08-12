@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=9.6";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=9.6";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=9.6";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=9.6";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.6";
-import { usuarioEhAdmin } from "./permissoes.js?v=9.6";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=9.6";
-import { mostrarErro } from "./services/feedback-service.js?v=9.6";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.6";
+import { state, onStateChange } from "./state.js?v=9.7";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=9.7";
+import { invalidarCacheAtendimentos } from "./data/sync.js?v=9.7";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=9.7";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=9.7";
+import { usuarioEhAdmin } from "./permissoes.js?v=9.7";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=9.7";
+import { mostrarErro } from "./services/feedback-service.js?v=9.7";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=9.7";
 
 let inicializado = false;
 let servicoSelecionadoId = "";

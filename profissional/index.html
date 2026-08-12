@@ -5,18 +5,18 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Área Profissional | Sr NK</title>
-<link href="../css/profissional.css?v=9.6" rel="stylesheet"/>
+<link href="../css/profissional.css?v=9.7" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
 <link as="image" href="../Fotos/Sr.NK.jpg" rel="preload"/>
 <meta content="#0F1115" name="theme-color"/>
-<link href="../icons/icon-192.png?v=9.6" rel="apple-touch-icon"/>
+<link href="../icons/icon-192.png?v=9.7" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=9.6" rel="modulepreload"><link href="../js/profissional/index.js?v=9.6" rel="modulepreload"><link href="../js/profissional/app.js?v=9.6" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=9.6">
+<link href="../js/firebase-init.js?v=9.7" rel="modulepreload"><link href="../js/profissional/index.js?v=9.7" rel="modulepreload"><link href="../js/profissional/app.js?v=9.7" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=9.7">
 </head>
 <body class="dashboard-booting" data-srnk-area="profissional" data-srnk-visao="profissional">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -126,6 +126,7 @@
 <i class="fas fa-chevron-right"></i>
 </button>
 </div>
+<div class="data-refresh-meta"><span id="painelAtualizadoEm">Dados carregados</span><span class="data-refresh-pendente" hidden id="painelNovosDados">Há novos dados — puxe para atualizar.</span></div>
 <!-- Card principal -->
 <article class="finance-card finance-overview">
 <div class="finance-overview-top">
@@ -216,190 +217,46 @@
 <canvas aria-label="Faturamento bruto dos últimos 7 dias" id="graficoFaturamento"></canvas>
 </div>
 </article>
+<div class="dashboard-analytics-grid">
+<article class="relatorio-card dashboard-analytics-card">
+<div class="relatorio-card-head"><div><h3>Serviços do dia</h3><p>Quantidade por serviço na data selecionada</p></div><i class="fas fa-scissors"></i></div>
+<div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoPainelServicos"></canvas></div>
+<div class="relatorio-ranking" id="painelServicosLista"></div>
+</article>
+<article class="relatorio-card dashboard-analytics-card">
+<div class="relatorio-card-head"><div><h3>Formas de pagamento</h3><p>Distribuição do faturamento bruto do dia</p></div><i class="fas fa-wallet"></i></div>
+<div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoPainelPagamentos"></canvas></div>
+<div class="relatorio-ranking" id="painelPagamentosLista"></div>
+</article>
+</div>
 </section>
-<!-- 3. RELATÓRIOS -->
-<section class="registrar relatorios-page" id="relatorios" style="display:none">
-<div class="relatorio-toolbar">
-<div aria-label="Selecionar período do relatório" class="painel-data-nav relatorio-data-nav">
-<button aria-label="Ver período anterior" class="painel-data-btn" id="btnRelDataAnterior" type="button">
-<i class="fas fa-chevron-left"></i>
-</button>
-<div class="painel-data-center relatorio-data-center">
+<!-- FECHAMENTO -->
+<section class="registrar fechamento-simples-page" id="relatorios" style="display:none">
+<h2 class="titulo-sessao">Fechamento</h2>
+<div aria-label="Selecionar data do fechamento" class="painel-data-nav fechamento-data-nav">
+<button aria-label="Ver dia anterior" class="painel-data-btn" id="btnRelDataAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
+<div class="painel-data-center">
 <span aria-live="polite" class="painel-data-label" id="labelDataRelatorio">Hoje</span>
-<button aria-label="Escolher período personalizado" class="painel-calendar-btn" id="btnCalendarioRelatorio" type="button">
-<i aria-hidden="true" class="fas fa-calendar-days"></i>
-</button>
+<button aria-label="Escolher data do fechamento" class="painel-calendar-btn" id="btnCalendarioRelatorio" type="button"><i class="fas fa-calendar-days"></i></button>
+<input aria-hidden="true" class="painel-date-picker" id="dataInicioRelatorio" tabindex="-1" type="date"/>
 </div>
-<button aria-label="Ver próximo período" class="painel-data-btn" id="btnRelDataProxima" type="button">
-<i class="fas fa-chevron-right"></i>
-</button>
+<button aria-label="Ver próximo dia" class="painel-data-btn" id="btnRelDataProxima" type="button"><i class="fas fa-chevron-right"></i></button>
 </div>
-</div>
-<div class="relatorio-periodo-custom" hidden="" id="relatorioPeriodoCustom">
-<label class="relatorio-date-field">
-<span>De</span>
-<div class="relatorio-date-control" data-date-target="dataInicioRelatorio">
-<input id="dataInicioRelatorio" inputmode="none" readonly="" required="" type="date"/>
-<i aria-hidden="true" class="fas fa-calendar-days"></i>
-</div>
-</label>
-<label class="relatorio-date-field">
-<span>Até</span>
-<div class="relatorio-date-control" data-date-target="dataFimRelatorio">
-<input id="dataFimRelatorio" inputmode="none" readonly="" required="" type="date"/>
-<i aria-hidden="true" class="fas fa-calendar-days"></i>
-</div>
-</label>
-<button id="btnAplicarPeriodoRelatorio" type="button">Aplicar período</button>
-</div>
-<label class="relatorio-profissional-field" hidden="" id="relatorioProfissionalField">
-<span>Exibir</span>
-<select id="relatorioProfissionalSelect">
-<option value="barbearia">Barbearia</option>
-</select>
-</label>
-<div aria-label="Tipo de relatório" class="relatorio-tabs" role="tablist">
-<button aria-controls="relatorioConteudo" aria-selected="true" class="relatorio-tab active" id="btnRelatorioAnalise" role="tab" type="button"><i class="fas fa-chart-pie"></i><span>Análise</span></button>
-<button aria-controls="relatorioFechamento" aria-selected="false" class="relatorio-tab" id="btnRelatorioFechamento" role="tab" type="button"><i class="fas fa-calculator"></i><span>Fechamento</span></button>
-</div>
-<div aria-labelledby="btnRelatorioAnalise" class="relatorio-tab-panel" id="relatorioConteudo" role="tabpanel">
-<div class="relatorio-hero">
-<div class="relatorio-hero-label-row">
-<span id="relatorioResultadoLabel">Resultado profissional</span>
-<button aria-label="Entender este valor" class="relatorio-info-btn" id="btnInfoResultadoRelatorio" type="button">
-<i class="fas fa-circle-info"></i>
-</button>
-</div>
-<strong id="relatorioResultado">R$ 0,00</strong>
-<small hidden="" id="relatorioResultadoDetalhe"></small>
-<small id="relatorioPeriodoLabel">Hoje</small>
-</div>
-<div class="relatorio-kpis">
-<article><span><i class="fas fa-sack-dollar"></i> Faturamento bruto</span><strong id="relatorioFaturamento">R$ 0,00</strong></article>
-<article><span><i class="fas fa-scissors"></i> Atendimentos</span><strong id="relatorioAtendimentos">0</strong></article>
-<article><span><i class="fas fa-chart-simple"></i> Ticket médio bruto</span><strong id="relatorioTicket">R$ 0,00</strong></article>
-<article><span><i class="fas fa-receipt"></i> Despesas</span><strong id="relatorioDespesas">R$ 0,00</strong></article>
-</div>
-<article class="relatorio-card" hidden="" id="relatorioEquipeCard">
-<div class="relatorio-card-head">
-<div><h3>Equipe</h3><p>Produção bruta e repasse por profissional</p></div>
-<i class="fas fa-users"></i>
-</div>
-<div class="relatorio-equipe-lista" id="relatorioEquipeLista"></div>
+<label class="fechamento-profissional-field" hidden id="relatorioProfissionalField"><span>Gerar para</span><select id="relatorioProfissionalSelect"><option value="barbearia">Barbearia</option></select></label>
+<article class="fechamento-request-card">
+<div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+<div><h3>Fechamento do dia</h3><p>Os valores são atualizados no momento da solicitação.</p></div>
+<button class="btn fechamento-request-btn" id="btnSolicitarFechamento" type="button">Solicitar fechamento</button>
 </article>
-<article class="relatorio-card">
-<div class="relatorio-card-head">
-<div><h3>Faturamento bruto</h3><p>Evolução no período selecionado</p></div>
-<i class="fas fa-chart-line"></i>
-</div>
-<div class="relatorio-chart relatorio-chart-line"><canvas id="graficoRelatorioFaturamento"></canvas></div>
-</article>
-<article class="relatorio-card">
-<div class="relatorio-card-head">
-<div><h3>Vendas por serviço</h3><p>Percentual, quantidade e faturamento bruto</p></div>
-<i class="fas fa-scissors"></i>
-</div>
-<div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoRelatorioServicos"></canvas></div>
-<div class="relatorio-ranking" id="relatorioServicosLista"></div>
-</article>
-<article class="relatorio-card">
-<div class="relatorio-card-head">
-<div><h3>Formas de pagamento</h3><p>Distribuição do faturamento bruto</p></div>
-<i class="fas fa-wallet"></i>
-</div>
-<div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoRelatorioPagamentos"></canvas></div>
-<div class="relatorio-ranking" id="relatorioPagamentosLista"></div>
-</article>
-<article class="relatorio-card relatorio-ajustes-card">
-<div class="relatorio-card-head">
-<div><h3>Ajustes de preço</h3><p>Diferença entre preço configurado e valor cobrado</p></div>
-<i class="fas fa-tags"></i>
-</div>
-<div class="relatorio-ajustes-grid">
-<div><span>Atendimentos ajustados</span><strong id="relatorioAjustesQtd">0</strong></div>
-<div><span>Diferença total</span><strong id="relatorioAjustesValor">R$ 0,00</strong></div>
-</div>
-</article>
-</div>
-<div aria-labelledby="btnRelatorioFechamento" class="relatorio-tab-panel fechamento-page" hidden="" id="relatorioFechamento" role="tabpanel">
-<div class="fechamento-hero">
-<div>
-<span id="fechamentoResultadoLabel">Resultado líquido</span>
-<strong id="fechamentoResultado">R$ 0,00</strong>
-<small id="fechamentoPeriodoLabel">Hoje</small>
-</div>
-<div class="fechamento-margem" id="fechamentoMargemBox">
-<span>Margem</span>
-<strong id="fechamentoMargem">0,00%</strong>
-</div>
-</div>
-<div class="fechamento-kpis">
-<article><span><i class="fas fa-sack-dollar"></i> <b id="fechamentoBrutoLabel">Faturamento bruto</b></span><strong id="fechamentoBruto">R$ 0,00</strong></article>
-<article><span><i class="fas fa-credit-card"></i> <b id="fechamentoTaxasLabel">Líquido após taxas</b></span><strong id="fechamentoTaxas">R$ 0,00</strong></article>
-<article><span><i class="fas fa-hand-holding-dollar"></i><b id="fechamentoRepasseLabel">Repasse da Equipe</b></span><strong id="fechamentoRepasse">R$ 0,00</strong></article>
-<article><span><i class="fas fa-wallet"></i> <b id="fechamentoQuartoLabel">Despesas</b></span><strong id="fechamentoDespesas">R$ 0,00</strong></article>
-</div>
-<article class="relatorio-card fechamento-fluxo-card">
-<div class="relatorio-card-head">
-<div><h3>Composição do resultado</h3><p>Do faturamento bruto até o valor que realmente ficou no período</p></div>
-<i class="fas fa-scale-balanced"></i>
-</div>
-<div class="fechamento-fluxo" id="fechamentoFluxo"></div>
-</article>
-<article class="relatorio-card">
-<div class="relatorio-card-head">
-<div><h3>Formas de pagamento</h3><p id="fechamentoPagamentosDescricao">Bruto e líquido após taxas</p></div>
-<i class="fas fa-wallet"></i>
-</div>
-<div class="fechamento-lista" id="fechamentoPagamentosLista"></div>
-</article>
-<article class="relatorio-card" hidden="" id="fechamentoEquipeCard">
-<div class="relatorio-card-head">
-<div><h3>Equipe</h3><p>Produção e repasse da equipe no período</p></div>
-<i class="fas fa-users"></i>
-</div>
-<div class="fechamento-lista" id="fechamentoEquipeLista"></div>
-</article>
-<article class="relatorio-card" hidden="" id="fechamentoProdutosCard">
-<div class="relatorio-card-head">
-<div><h3>Vendas de produtos</h3><p id="fechamentoProdutosDescricao">Receita, custos e comissão no período</p></div>
-<i class="fas fa-box-open"></i>
-</div>
-<div class="fechamento-lista" id="fechamentoProdutosLista"></div>
-</article>
-<article class="relatorio-card" hidden="" id="fechamentoComissoesCard">
-<div class="relatorio-card-head">
-<div><h3>Comissões da equipe</h3><p>Vendas e comissão por profissional</p></div>
-<i class="fas fa-percent"></i>
-</div>
-<div class="fechamento-lista" id="fechamentoComissoesLista"></div>
-</article>
-<article class="relatorio-card" hidden="" id="fechamentoCustosProfissionaisCard">
-<div class="relatorio-card-head">
-<div><h3>Custos profissionais</h3><p>Custos pessoais considerados somente depois do repasse</p></div>
-<i class="fas fa-receipt"></i>
-</div>
-<div class="fechamento-lista" id="fechamentoCustosProfissionaisLista"></div>
-</article>
-<article class="relatorio-card" id="fechamentoDespesasCard">
-<div class="relatorio-card-head">
-<div><h3>Despesas por categoria</h3><p>Valores que entraram no fechamento deste período</p></div>
-<i class="fas fa-receipt"></i>
-</div>
-<div class="fechamento-lista" id="fechamentoDespesasLista"></div>
-</article>
-<div class="relatorio-actions fechamento-actions">
-<button class="relatorio-whatsapp" id="btnWhatsApp" type="button">
-<i class="fab fa-whatsapp"></i>
-<span>Enviar fechamento no WhatsApp</span>
-</button>
+<div class="fechamento-output" hidden id="fechamentoResultadoBox">
+<label for="fechamentoTexto">Texto do fechamento</label>
+<textarea id="fechamentoTexto" readonly rows="12"></textarea>
+<div class="fechamento-output-actions">
+<button id="btnCopiarFechamento" type="button"><i class="fas fa-copy"></i><span>Copiar</span></button>
+<button class="relatorio-whatsapp" id="btnWhatsApp" type="button"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></button>
 </div>
 </div>
 <div aria-live="polite" class="relatorio-status" id="relatorioStatus"></div>
-<div class="relatorio-loading" hidden="" id="relatorioLoading">
-<i class="fas fa-circle-notch fa-spin"></i> Carregando relatório...
-</div>
-<div class="relatorio-info-tooltip" hidden="" id="relatorioInfoTooltip"></div>
 </section>
 <!-- HISTÓRICO -->
 <section class="registrar historico-section" id="historico" style="display:none">
@@ -434,49 +291,54 @@
 <!-- ESTOQUE E VENDAS -->
 <section class="registrar estoque-page" id="estoque" style="display:none">
 <h2 class="titulo-sessao" id="estoqueTitulo">Estoque</h2>
-<p class="estoque-desc" id="estoqueDescricao">Controle produtos, movimentações e vendas da barbearia.</p>
-<div hidden="" id="estoqueAdminView">
-<div class="estoque-resumo-grid">
-<article class="estoque-resumo-card"><span>Itens cadastrados</span><strong id="estoqueResumoItens">0</strong></article>
-<article class="estoque-resumo-card is-warning"><span>Estoque baixo</span><strong id="estoqueResumoBaixo">0</strong></article>
+<p class="estoque-desc" id="estoqueDescricao">Produtos e vendas da barbearia.</p>
+<div hidden id="estoqueAdminView">
+<div class="estoque-resumo-grid estoque-resumo-grid-simple">
+<article class="estoque-resumo-card"><span>Produtos ativos</span><strong id="estoqueResumoItens">0</strong></article>
 <article class="estoque-resumo-card is-danger"><span>Sem estoque</span><strong id="estoqueResumoZerado">0</strong></article>
 <article class="estoque-resumo-card is-success"><span>Valor em estoque</span><strong id="estoqueResumoValor">R$ 0,00</strong></article>
 </div>
-<div aria-label="Gestão de estoque" class="estoque-tabs" role="tablist">
-<button aria-selected="true" class="estoque-tab active" data-estoque-tab="produtos" role="tab" type="button"><i class="fas fa-box"></i>Produtos</button>
-<button aria-selected="false" class="estoque-tab" data-estoque-tab="vendas" role="tab" type="button"><i class="fas fa-cart-shopping"></i>Vendas</button>
-<button aria-selected="false" class="estoque-tab" data-estoque-tab="movimentacoes" role="tab" type="button"><i class="fas fa-arrow-right-arrow-left"></i>Movimentações</button>
-</div>
-<div id="estoquePainelProdutos">
-<div class="estoque-toolbar">
+<div class="estoque-toolbar estoque-toolbar-admin">
 <label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueBusca" placeholder="Buscar produto ou código" type="search"/></label>
 <button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler</span></button>
 </div>
 <button class="estoque-add-btn" id="btnNovoProdutoEstoque" type="button"><i class="fas fa-plus"></i>Novo produto</button>
-<div aria-label="Filtrar estoque" class="estoque-filtros" role="group">
+<div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
 <button class="active" data-estoque-filtro="todos" type="button">Todos</button>
-<button data-estoque-filtro="baixo" type="button">Baixo</button>
-<button data-estoque-filtro="zerado" type="button">Zerado</button>
+<button data-estoque-filtro="ativos" type="button">Ativos</button>
+<button data-estoque-filtro="zerado" type="button">Sem estoque</button>
+<button data-estoque-filtro="arquivados" type="button">Arquivados</button>
 </div>
-<div class="estoque-produtos-lista" id="estoqueProdutosLista"></div>
-</div>
-<div hidden="" id="estoquePainelVendas">
+<div class="estoque-produtos-lista estoque-produtos-compactos" id="estoqueProdutosLista"></div>
+<section class="estoque-subsection">
+<div class="estoque-subsection-head"><div><h3>Vendas recentes</h3><p>Edite ou cancele uma venda quando necessário.</p></div></div>
 <div class="estoque-log-lista" id="estoqueVendasLista"></div>
-</div>
-<div hidden="" id="estoquePainelMovimentacoes">
+</section>
+<details class="estoque-auditoria">
+<summary><span><i class="fas fa-clock-rotate-left"></i> Movimentações de estoque</span><i class="fas fa-chevron-down"></i></summary>
 <div class="estoque-log-lista" id="estoqueMovimentacoesLista"></div>
+</details>
 </div>
-</div>
-<div hidden="" id="estoqueVendaView">
-<div class="estoque-resumo-grid estoque-venda-resumo">
-<article class="estoque-resumo-card"><span>Minhas vendas hoje</span><strong id="estoqueVendaHoje">R$ 0,00</strong></article>
-<article class="estoque-resumo-card is-success"><span>Minha comissão hoje</span><strong id="estoqueComissaoHoje">R$ 0,00</strong></article>
-</div>
+<div hidden id="estoqueVendaView">
+<div class="estoque-subsection-head estoque-vender-head"><div><h3>Vender produto</h3><p>Escolha o produto para registrar a venda.</p></div></div>
 <div class="estoque-toolbar">
 <label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueVendaBusca" placeholder="Buscar produto" type="search"/></label>
 <button class="estoque-scan-btn" id="btnScanVendaProduto" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
 </div>
 <div class="estoque-venda-produtos" id="estoqueVendaProdutos"></div>
+<section class="estoque-subsection minhas-vendas-section">
+<div class="estoque-subsection-head"><div><h3>Minhas vendas</h3><p>Visão mensal agrupada por dia.</p></div></div>
+<div class="estoque-mes-nav">
+<button aria-label="Mês anterior" id="btnVendasMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
+<strong id="labelVendasMes">Mês atual</strong>
+<button aria-label="Próximo mês" id="btnVendasMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
+</div>
+<div class="estoque-resumo-grid estoque-venda-resumo">
+<article class="estoque-resumo-card"><span>Vendas no mês</span><strong id="estoqueVendaMes">R$ 0,00</strong></article>
+<article class="estoque-resumo-card is-success"><span>Comissão no mês</span><strong id="estoqueComissaoMes">R$ 0,00</strong></article>
+</div>
+<div class="esto-minhas-vendas-lista" id="estoqueMinhasVendasLista"></div>
+</section>
 </div>
 </section>
 <!-- DESPESAS -->
@@ -668,74 +530,79 @@ Aparência
 <div class="equipe-financeiro-actions"><button id="btnCancelarFinanceiroMembro" type="button">Cancelar</button><button id="btnSalvarFinanceiroMembro" type="button">Salvar</button></div>
 </div></div>
 <!-- MODAL: PRODUTO DE ESTOQUE -->
-<div aria-hidden="true" class="equipe-modal" hidden="" id="modalProdutoEstoque">
-<div aria-labelledby="tituloModalProdutoEstoque" aria-modal="true" class="equipe-modal-card estoque-modal-card" role="dialog">
-<div class="equipe-modal-header"><div><h3 id="tituloModalProdutoEstoque">Novo produto</h3><p>Cadastre o item e defina como ele será controlado.</p></div><button aria-label="Fechar" class="equipe-modal-close" id="btnFecharProdutoEstoque" type="button"><i class="fas fa-xmark"></i></button></div>
-<form class="equipe-form estoque-form" id="formProdutoEstoque" novalidate="">
-<label class="equipe-field"><span>Nome do produto</span><input autocomplete="off" id="estoqueProdutoNome" maxlength="80" placeholder="Ex.: Pomada Black" required="" type="text"/></label>
-<div class="estoque-inline-grid">
-<label class="equipe-field"><span>Categoria</span><select id="estoqueProdutoCategoria" required=""></select></label>
-<label class="equipe-field"><span>Unidade</span><select id="estoqueProdutoUnidade" required=""></select></label>
-</div>
-<label class="equipe-field"><span>Código de barras</span><div class="estoque-code-control"><input autocomplete="off" id="estoqueProdutoCodigo" inputmode="numeric" placeholder="Opcional" type="text"/><button aria-label="Ler código de barras" id="btnScanCodigoProduto" type="button"><i class="fas fa-camera"></i></button></div></label>
-<div class="estoque-inline-grid">
-<label class="equipe-field" id="estoqueProdutoQuantidadeField"><span>Quantidade inicial</span><input id="estoqueProdutoQuantidadeInicial" inputmode="decimal" min="0" step="0.001" type="number" value="0"/></label>
-<label class="equipe-field"><span>Estoque mínimo</span><input id="estoqueProdutoEstoqueMinimo" inputmode="decimal" min="0" step="0.001" type="number" value="0"/></label>
-</div>
-<label class="equipe-field"><span>Custo unitário</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoCusto" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
-<label class="estoque-check-row"><span>Disponível para venda?</span><input id="estoqueProdutoVendavel" type="checkbox"/></label>
-<label class="equipe-field" hidden="" id="estoqueProdutoPrecoField"><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
-<label class="estoque-check-row"><span>Produto ativo</span><input checked="" id="estoqueProdutoAtivo" type="checkbox"/></label>
-<div class="estoque-form-actions"><button id="btnCancelarProdutoEstoque" type="button">Cancelar</button><button id="btnSalvarProdutoEstoque" type="submit">Salvar produto</button></div>
-</form>
-</div>
+<div aria-hidden="true" class="equipe-modal" hidden id="modalProdutoEstoque">
+  <div aria-labelledby="tituloModalProdutoEstoque" aria-modal="true" class="equipe-modal-card estoque-modal-card estoque-produto-modal" role="dialog">
+    <div class="equipe-modal-header">
+      <div><h3 id="tituloModalProdutoEstoque">Novo produto</h3><p>Cadastre somente o necessário para controlar e vender.</p></div>
+      <button aria-label="Fechar" class="equipe-modal-close" id="btnFecharProdutoEstoque" type="button"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form class="equipe-form estoque-form" id="formProdutoEstoque" novalidate>
+      <label class="equipe-field"><span>Nome do produto</span><input autocomplete="off" id="estoqueProdutoNome" maxlength="80" placeholder="Ex.: Pomada Black" required type="text"/></label>
+      <label class="equipe-field"><span>Categoria</span><select id="estoqueProdutoCategoria" required></select></label>
+      <label class="equipe-field"><span>Código de barras <small>(opcional)</small></span><div class="estoque-code-control"><input autocomplete="off" id="estoqueProdutoCodigo" inputmode="numeric" placeholder="Digite ou leia o código" type="text"/><button aria-label="Ler código de barras" id="btnScanCodigoProduto" type="button"><i class="fas fa-camera"></i></button></div></label>
+      <label class="equipe-field"><span>Quantidade</span><input id="estoqueProdutoQuantidadeInicial" inputmode="decimal" min="0" step="1" type="number" value="0"/></label>
+      <div class="estoque-inline-grid">
+        <label class="equipe-field"><span>Custo por produto</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoCusto" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
+        <label class="equipe-field"><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" inputmode="numeric" placeholder="0,00" required type="tel"/></div></label>
+      </div>
+      <div class="estoque-form-actions"><button id="btnCancelarProdutoEstoque" type="button">Cancelar</button><button id="btnSalvarProdutoEstoque" type="submit">Salvar produto</button></div>
+    </form>
+  </div>
 </div>
 <!-- MODAL: MOVIMENTAR ESTOQUE -->
-<div aria-hidden="true" class="equipe-modal" hidden="" id="modalMovimentarEstoque">
-<div aria-labelledby="tituloMovimentarEstoque" aria-modal="true" class="equipe-modal-card estoque-modal-card" role="dialog">
-<div class="equipe-modal-header"><div><h3 id="tituloMovimentarEstoque">Movimentar estoque</h3><p>Registre entrada, saída ou ajuste com histórico.</p></div><button aria-label="Fechar" class="equipe-modal-close" id="btnFecharMovEstoque" type="button"><i class="fas fa-xmark"></i></button></div>
-<div class="estoque-mov-header"><strong id="movEstoqueProdutoNome">Produto</strong><span>Saldo atual: <b id="movEstoqueSaldoAtual">0 un</b></span></div>
-<form class="equipe-form estoque-form" id="formMovimentarEstoque" novalidate="">
-<label class="equipe-field"><span>Movimentação</span><select id="movEstoqueTipo"><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste de saldo</option></select></label>
-<label class="equipe-field" id="movEstoqueQuantidadeField"><span>Quantidade</span><input id="movEstoqueQuantidade" inputmode="decimal" min="0.001" step="0.001" type="number" value="1"/></label>
-<label class="equipe-field" hidden="" id="movEstoqueNovoSaldoField"><span>Novo saldo</span><input id="movEstoqueNovoSaldo" inputmode="decimal" min="0" step="0.001" type="number"/></label>
-<label class="equipe-field" id="movEstoqueCustoField"><span>Custo unitário desta compra</span><div class="equipe-money-field"><span>R$</span><input id="movEstoqueCusto" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
-<label class="equipe-field"><span>Motivo</span><input autocomplete="off" id="movEstoqueMotivo" maxlength="120" placeholder="Ex.: Compra, uso interno, perda" type="text"/></label>
-<label class="estoque-check-row" id="movEstoqueGerarDespesaField"><span>Gerar despesa desta compra?</span><input id="movEstoqueGerarDespesa" type="checkbox"/></label>
-<div class="estoque-despesa-opcoes" hidden="" id="movEstoqueDespesaOpcoes">
-<label class="estoque-check-row"><span>Compra parcelada?</span><input id="movEstoqueParcelada" type="checkbox"/></label>
-<label class="equipe-field" hidden="" id="movEstoqueParcelasField"><span>Parcelas</span><input id="movEstoqueParcelas" max="36" min="2" step="1" type="number" value="2"/></label>
-<small>A despesa será registrada como “Produtos”. Em parcelamento, cada mês recebe apenas sua parcela.</small>
-</div>
-<div class="estoque-form-actions"><button id="btnCancelarMovEstoque" type="button">Cancelar</button><button id="btnSalvarMovimentacaoEstoque" type="submit">Confirmar</button></div>
-</form>
-</div>
+<div aria-hidden="true" class="equipe-modal" hidden id="modalMovimentarEstoque">
+  <div aria-labelledby="tituloMovimentarEstoque" aria-modal="true" class="equipe-modal-card estoque-modal-card" role="dialog">
+    <div class="equipe-modal-header"><div><h3 id="tituloMovimentarEstoque">Movimentar estoque</h3><p>Entrada, saída ou ajuste com histórico.</p></div><button aria-label="Fechar" class="equipe-modal-close" id="btnFecharMovEstoque" type="button"><i class="fas fa-xmark"></i></button></div>
+    <div class="estoque-mov-header"><strong id="movEstoqueProdutoNome">Produto</strong><span>Saldo atual: <b id="movEstoqueSaldoAtual">0</b></span></div>
+    <form class="equipe-form estoque-form" id="formMovimentarEstoque" novalidate>
+      <label class="equipe-field"><span>Movimentação</span><select id="movEstoqueTipo"><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajustar quantidade</option></select></label>
+      <label class="equipe-field" id="movEstoqueQuantidadeField"><span>Quantidade</span><input id="movEstoqueQuantidade" inputmode="decimal" min="1" step="1" type="number" value="1"/></label>
+      <label class="equipe-field" hidden id="movEstoqueNovoSaldoField"><span>Nova quantidade</span><input id="movEstoqueNovoSaldo" inputmode="decimal" min="0" step="1" type="number"/></label>
+      <label class="equipe-field" id="movEstoqueCustoField"><span>Custo por produto nesta compra</span><div class="equipe-money-field"><span>R$</span><input id="movEstoqueCusto" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
+      <label class="equipe-field"><span>Motivo</span><input autocomplete="off" id="movEstoqueMotivo" maxlength="120" placeholder="Ex.: Compra, uso interno, perda" type="text"/></label>
+      <label class="estoque-check-row" id="movEstoqueGerarDespesaField"><span>Gerar despesa desta compra?</span><input id="movEstoqueGerarDespesa" type="checkbox"/></label>
+      <div class="estoque-despesa-opcoes" hidden id="movEstoqueDespesaOpcoes">
+        <label class="estoque-check-row"><span>Compra parcelada?</span><input id="movEstoqueParcelada" type="checkbox"/></label>
+        <label class="equipe-field" hidden id="movEstoqueParcelasField"><span>Parcelas</span><input id="movEstoqueParcelas" max="36" min="2" step="1" type="number" value="2"/></label>
+        <small>A despesa será registrada como “Produtos”.</small>
+      </div>
+      <div class="estoque-form-actions"><button id="btnCancelarMovEstoque" type="button">Cancelar</button><button id="btnSalvarMovimentacaoEstoque" type="submit">Confirmar</button></div>
+    </form>
+  </div>
 </div>
 <!-- MODAL: VENDA DE PRODUTO -->
-<div aria-hidden="true" class="equipe-modal" hidden="" id="modalVendaProduto">
-<div aria-labelledby="tituloVendaProduto" aria-modal="true" class="equipe-modal-card estoque-modal-card" role="dialog">
-<div class="equipe-modal-header"><div><h3 id="tituloVendaProduto">Registrar venda</h3><p>A venda baixa o estoque e registra a comissão automaticamente.</p></div><button aria-label="Fechar" class="equipe-modal-close" id="btnFecharVendaProduto" type="button"><i class="fas fa-xmark"></i></button></div>
-<div class="estoque-venda-head"><strong id="vendaProdutoNome">Produto</strong><span id="vendaProdutoPreco">R$ 0,00</span><span id="vendaProdutoEstoque">0 disponível</span></div>
-<form class="equipe-form estoque-form" id="formVendaProduto" novalidate="">
-<div class="estoque-inline-grid">
-<label class="equipe-field"><span>Quantidade</span><input id="vendaProdutoQuantidade" min="1" step="1" type="number" value="1"/></label>
-<label class="equipe-field"><span>Forma de pagamento</span><select id="vendaProdutoPagamento"></select></label>
+<div aria-hidden="true" class="equipe-modal estoque-venda-modal" hidden id="modalVendaProduto">
+  <div aria-labelledby="tituloVendaProduto" aria-modal="true" class="equipe-modal-card estoque-modal-card estoque-venda-sheet" role="dialog">
+    <div class="equipe-modal-header"><div><h3 id="tituloVendaProduto">Registrar venda</h3><p id="subtituloVendaProduto">Confirme quantidade e pagamento.</p></div><button aria-label="Fechar" class="equipe-modal-close" id="btnFecharVendaProduto" type="button"><i class="fas fa-xmark"></i></button></div>
+    <div class="estoque-venda-head"><div><strong id="vendaProdutoNome">Produto</strong><span id="vendaProdutoEstoque">0 disponíveis</span></div><strong id="vendaProdutoPreco">R$ 0,00</strong></div>
+    <form class="equipe-form estoque-form" id="formVendaProduto" novalidate>
+      <div class="estoque-venda-qtd-row"><span>Quantidade</span><div class="estoque-stepper"><button aria-label="Diminuir quantidade" id="btnVendaQtdMenos" type="button"><i class="fas fa-minus"></i></button><input id="vendaProdutoQuantidade" inputmode="numeric" min="1" step="1" type="number" value="1"/><button aria-label="Aumentar quantidade" id="btnVendaQtdMais" type="button"><i class="fas fa-plus"></i></button></div></div>
+      <div class="estoque-pagamento-field"><span>Forma de pagamento</span><div class="estoque-pagamento-chips" id="vendaProdutoPagamentos"></div><input id="vendaProdutoPagamento" type="hidden" value="Pix"/></div>
+      <label class="equipe-field" id="vendaProfissionalField"><span>Comissão para</span><select id="vendaProfissional"></select></label>
+      <div class="estoque-venda-resumos">
+        <div class="estoque-venda-resumo-linha" id="vendaTaxaResumo" hidden><span>Taxa da maquininha <b id="vendaTaxaPct">0,00%</b></span><strong id="vendaTaxaValor">R$ 0,00</strong></div>
+        <div class="estoque-venda-resumo-linha" id="vendaComissaoResumo" hidden><span>Comissão <b id="vendaComissaoPct">0,00%</b></span><strong id="vendaComissaoValor">R$ 0,00</strong></div>
+      </div>
+      <div class="estoque-venda-total"><span>Total da venda</span><strong id="vendaProdutoTotal">R$ 0,00</strong></div>
+      <div class="estoque-form-actions"><button id="btnCancelarVendaProduto" type="button">Cancelar</button><button id="btnRegistrarVendaProduto" type="submit">Registrar venda</button></div>
+    </form>
+  </div>
 </div>
-<label class="estoque-check-row" id="vendaComissaoAdminField"><span>Gerar comissão?</span><input checked="" id="vendaGerarComissao" type="checkbox"/></label>
-<label class="equipe-field" id="vendaProfissionalField"><span>Profissional</span><select id="vendaProfissional"></select></label>
-<div class="estoque-comissao-resumo" id="vendaComissaoResumo"><div><span>Comissão <b id="vendaComissaoPct">20,00%</b></span><strong>Valor do profissional</strong></div><strong id="vendaComissaoValor">R$ 0,00</strong></div>
-<div class="estoque-venda-total"><span>Total da venda</span><strong id="vendaProdutoTotal">R$ 0,00</strong></div>
-<div class="estoque-form-actions"><button id="btnCancelarVendaProduto" type="button">Cancelar</button><button id="btnRegistrarVendaProduto" type="submit">Registrar venda</button></div>
-</form>
-</div>
+<!-- MODAL: EXCLUIR/CANCELAR VENDA -->
+<div aria-hidden="true" class="modal-confirm" id="modalCancelarVenda">
+  <div class="modal-box estoque-cancelar-venda-box">
+    <h3>Excluir venda?</h3>
+    <p id="cancelarVendaDescricao">A quantidade do produto voltará para o estoque e o registro ficará preservado para auditoria.</p>
+    <div class="modal-actions"><button id="btnCancelarExclusaoVenda" type="button">Voltar</button><button class="confirm-danger" id="btnConfirmarExclusaoVenda" type="button">Excluir venda</button></div>
+  </div>
 </div>
 <!-- MODAL: LEITOR DE CÓDIGO DE BARRAS -->
-<div aria-hidden="true" class="equipe-modal" hidden="" id="modalScannerEstoque">
-<div aria-labelledby="tituloScannerEstoque" aria-modal="true" class="equipe-modal-card estoque-scanner-card" role="dialog">
-<div class="equipe-modal-header"><div><h3 id="tituloScannerEstoque">Ler código de barras</h3><p>Centralize o código da embalagem no quadro.</p></div><button aria-label="Fechar câmera" class="equipe-modal-close" id="btnFecharScannerEstoque" type="button"><i class="fas fa-xmark"></i></button></div>
-<div class="estoque-scanner-wrap"><video id="scannerEstoqueVideo" muted="" playsinline=""></video><div class="estoque-scanner-guide"></div></div>
-<div class="estoque-scanner-status" id="scannerEstoqueStatus">Aguardando câmera...</div>
-</div>
+<div aria-hidden="true" class="equipe-modal" hidden id="modalScannerEstoque">
+  <div aria-labelledby="tituloScannerEstoque" aria-modal="true" class="equipe-modal-card estoque-scanner-card" role="dialog">
+    <div class="equipe-modal-header"><div><h3 id="tituloScannerEstoque">Ler código de barras</h3><p>Centralize o código da embalagem no quadro.</p></div><button aria-label="Fechar câmera" class="equipe-modal-close" id="btnFecharScannerEstoque" type="button"><i class="fas fa-xmark"></i></button></div>
+    <div class="estoque-scanner-wrap"><video id="scannerEstoqueVideo" muted playsinline></video><div class="estoque-scanner-guide"></div></div>
+    <div class="estoque-scanner-status" id="scannerEstoqueStatus">Aguardando câmera...</div>
+  </div>
 </div>
 <!-- MODAL: NOVA / EDITAR DESPESA -->
 <div class="equipe-modal despesa-modal" hidden="" id="modalDespesa">
@@ -1009,19 +876,19 @@ Aparência
 <span>Histórico</span>
 </a>
 <a class="bottom-nav-item" data-nav-slot="4" data-nav-target="relatorios" href="#relatorios">
-<i class="fas fa-file-lines"></i>
-<span>Relatório</span>
+<i class="fas fa-file-invoice-dollar"></i>
+<span>Fechamento</span>
 </a>
 <button aria-expanded="false" aria-label="Abrir menu" class="bottom-nav-item bottom-nav-menu" id="menuToggle" type="button">
 <i class="fas fa-bars"></i>
 <span>Menu</span>
 </button>
 </nav>
-<script defer="" src="../js/mobile-interactions.js?v=9.6"></script>
+<script defer="" src="../js/mobile-interactions.js?v=9.7"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(console.warn));
 }
 </script>
-<script src="../js/profissional/index.js?v=9.6" type="module"></script></body>
+<script src="../js/profissional/index.js?v=9.7" type="module"></script></body>
 </html>
