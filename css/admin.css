@@ -1005,8 +1005,8 @@ html, body, button, a, input, select, textarea, label {
 .finance-mini-value {
     display: block;
     color: var(--text);
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: .9rem;
+    font-weight: 540;
     line-height: 1.2;
 }
 
@@ -5172,7 +5172,7 @@ body.modal-equipe-aberto {
 .estoque-resumo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 12px; }
 .estoque-resumo-card { min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-card); }
 .estoque-resumo-card span { display: block; color: var(--text-secondary); font-size: .62rem; }
-.estoque-resumo-card strong { display: block; margin-top: 5px; color: var(--text); font-size: .96rem; line-height: 1.15; overflow-wrap: anywhere; }
+.estoque-resumo-card strong { display: block; margin-top: 5px; color: var(--text); text-align: center; font-size: .96rem; line-height: 1.15; overflow-wrap: anywhere; }
 .estoque-resumo-card.is-warning strong { color: var(--warning); }
 .estoque-resumo-card.is-danger strong { color: var(--danger); }
 .estoque-resumo-card.is-success strong { color: var(--success); }
@@ -8519,7 +8519,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 .barbearia-pendencias-content>strong{font-size:.72rem!important;font-weight:650!important}
 .barbearia-pendencias-valores{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;margin-top:1px}
 .barbearia-pendencias-valores span{font-size:.58rem!important}
-.barbearia-pendencias-valores b{display:block;margin:2px 0 0!important;font-size:.64rem!important}
+.barbearia-pendencias-valores b{display:block;margin:2px 0 0!important;font-size:.9rem!important}
 .barbearia-home-equipe-head>i{order:-1!important;width:auto!important;height:auto!important;background:transparent!important;color:var(--text-secondary)!important;font-size:.72rem!important;border-radius:0!important}
 .acerto-lote-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:9px 10px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--primary) 2%,var(--bg))}
 .acerto-lote-actions button{min-height:35px;border:1px solid color-mix(in srgb,var(--success) 28%,var(--border));border-radius:9px;background:color-mix(in srgb,var(--success) 7%,var(--bg-card));color:var(--success);font:inherit;font-size:.54rem;font-weight:650}
@@ -8916,10 +8916,10 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 .barbearia-finance-overview .finance-main-icon{display:none!important}
 .barbearia-home .finance-label-row .finance-label,.barbearia-home .finance-summary-label>span{display:inline-flex!important;align-items:center!important;gap:5px!important}
 .barbearia-home .finance-label>i,.barbearia-home .finance-summary-label>span>i{width:auto!important;height:auto!important;flex:0 0 auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--text-secondary)!important;font-size:.64rem!important;opacity:.9!important}
-.barbearia-home .finance-label>i.barbearia-lucro-wallet{color:var(--success)!important}
+.barbearia-home .finance-label>i.barbearia-lucro-wallet{color: #6b7280 !important;}
 .barbearia-finance-overview .finance-summary-row{padding-top:13px!important;border-top:1px solid var(--border)!important}
 .barbearia-mini-grid .finance-mini-card{min-width:0!important;padding:13px 12px 14px!important;min-height:86px!important;display:block!important}
-.barbearia-mini-grid .finance-mini-value{display:block!important;color:var(--text)!important;font-size:.9rem!important;font-weight:600!important;line-height:1.2!important;padding-top:2px!important}
+.barbearia-mini-grid .finance-mini-value{display:block!important;color:var(--text)!important;font-size:.9rem!important;font-weight:540!important;line-height:1.2!important;padding-top:2px!important}
 .barbearia-expense-card #barbeariaHomeDespesas{display:block!important;margin-top:2px!important;font-size:.9rem!important;font-weight:600!important;color:var(--text)!important}
 .barbearia-service-card .finance-service-name{display:block!important;color:var(--text)!important;font-size:.9rem!important;font-weight:600!important;line-height:1.2!important}
 .barbearia-service-card .finance-service-meta{display:none!important}
