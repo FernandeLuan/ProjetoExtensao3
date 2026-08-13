@@ -32,9 +32,14 @@ initConnectivity();
 initNavigation();
 
 const estiloFinanceiro = document.createElement("style");
-estiloFinanceiro.dataset.srnkVersion = "1.3.8";
+estiloFinanceiro.dataset.srnkVersion = "1.3.9";
 estiloFinanceiro.textContent = `
-#painelFinanceiro .finance-main-value,
+#painelFinanceiro .finance-main-value {
+    font-size: 1.78rem !important;
+    font-weight: 700 !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.03em !important;
+}
 #painelFinanceiro .finance-mini-value {
     font-size: 1.2rem !important;
     font-weight: 540 !important;
