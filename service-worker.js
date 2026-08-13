@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.3.5";
+const CACHE_NAME = "sr-nk-v1.3.6";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.
@@ -43,7 +43,7 @@ self.addEventListener("activate", (event) => {
       for (const request of requests) {
         const url = new URL(request.url);
         if (!(url.pathname.endsWith(".js") || url.pathname.endsWith(".css"))) continue;
-        // app.js do Profissional mudou na v1.3.5; não reaproveitar a cópia antiga.
+        // app.js do Profissional mudou na v1.3.6; não reaproveitar a cópia antiga.
         if (url.pathname.endsWith("/js/profissional/app.js")) continue;
         if (await atual.match(request)) continue;
         const response = await cacheAntigo.match(request);
