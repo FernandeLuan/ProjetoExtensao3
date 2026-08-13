@@ -1,4 +1,4 @@
-/* Sr NK v1.2.0 - bundle profissional.css */
+/* Sr NK v1.3.0 - bundle profissional.css */
 
 /* ===== theme.css ===== */
 /* ================================
@@ -5789,7 +5789,7 @@ button.ui-action-confirmed::after {
 .finance-info-tooltip::after{left:var(--tooltip-arrow-left,50%)!important}
 
 
-/* ===== v1.2.0 • regressivo: consistência visual ===== */
+/* ===== v1.3.0 • regressivo: consistência visual ===== */
 .fechamento-data-nav,
 .despesas-periodo-nav{margin:10px 0 12px!important}
 .fechamento-data-nav .painel-data-btn,
@@ -5830,9 +5830,99 @@ button.ui-action-confirmed::after {
 
 body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-visao="profissional"] #vendaTaxaResumo{display:none!important}
 
-/* ===== v1.2.0 • refinamentos finais ===== */
+/* ===== v1.3.0 • refinamentos finais ===== */
 /* Fechamento/Despesas usam exatamente a tipografia do Histórico. */
 /* Serviços: quantidade junto do nome, sem ranking ordinal. */
 .relatorio-ranking-item.is-service-count{grid-template-columns:minmax(0,1fr)!important}
 .relatorio-ranking-item.is-service-count .relatorio-ranking-copy strong{font-size:.66rem}
 .relatorio-ranking-item.is-service-count .service-count-number{color:var(--primary);font-weight:750;margin-right:5px}
+
+/* ===== v1.3.0 • padronização visual e operacional ===== */
+/* Informação é sempre secundária: discreta, cinza e sem caixa azul. */
+.finance-info-btn{
+    width:16px!important;height:16px!important;min-width:16px!important;flex:0 0 16px!important;
+    border-radius:50%!important;background:transparent!important;color:var(--text-secondary)!important;
+    font-size:.58rem!important;opacity:.68!important;box-shadow:none!important;
+}
+.finance-info-btn:active{opacity:1!important;background:transparent!important;color:var(--text-secondary)!important}
+.finance-label-row{gap:4px!important}
+.finance-label>i,.finance-summary-label i{color:var(--text-secondary)!important;font-size:.66rem!important;margin-right:2px!important}
+
+/* Cabeçalhos analíticos iguais nas duas áreas. */
+.relatorio-card-head{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important;gap:8px!important}
+.relatorio-card-head>i{order:-1!important;width:auto!important;height:auto!important;flex:0 0 auto!important;margin-top:2px!important;padding:0!important;border-radius:0!important;background:transparent!important;color:var(--text-secondary)!important;font-size:.72rem!important}
+.relatorio-card-head>div{min-width:0;flex:1 1 auto}
+.relatorio-card-head h3{font-size:.78rem!important;font-weight:600!important}
+.relatorio-card-head p{margin-top:3px!important;font-size:.58rem!important;color:var(--text-secondary)!important;line-height:1.35!important}
+.finance-chart-head{margin:0 2px 12px}
+.finance-chart-head h3{margin:0!important;font-size:.82rem!important;font-weight:500!important;color:var(--text)!important}
+.finance-chart-head p{margin:3px 0 0;font-size:.58rem;color:var(--text-secondary);line-height:1.35}
+
+/* Listas dos gráficos mantêm divisórias para não parecerem soltas. */
+.dashboard-analytics-card .relatorio-ranking{gap:0!important;margin-top:8px!important;border-top:1px solid var(--border)!important}
+.dashboard-analytics-card .relatorio-ranking-item{border-radius:0!important;background:transparent!important;padding:9px 4px!important;border-bottom:1px solid var(--border)!important}
+.dashboard-analytics-card .relatorio-ranking-item:last-child{border-bottom:0!important}
+
+/* Navegações de data herdam diretamente .painel-data-label do Histórico. */
+
+/* Acertos operacionais por profissional/dia. */
+.fechamento-acertos{display:grid;gap:9px;margin:0 0 12px!important;padding:13px;border:1px solid var(--border);border-radius:16px;background:var(--bg-card);box-shadow:var(--shadow)}
+.fechamento-acertos[hidden]{display:none!important}
+.fechamento-acertos-head h3{margin:0;font-size:.78rem!important;font-weight:600!important;color:var(--text)}
+.fechamento-acertos-head p{margin:3px 0 0;font-size:.58rem!important;color:var(--text-secondary);line-height:1.4}
+.fechamento-acertos-lista{display:grid;gap:7px}
+.acerto-profissional-card{border:1px solid var(--border)!important;border-radius:13px!important;background:var(--bg)!important;overflow:hidden!important}
+.acerto-profissional-card>summary{list-style:none;cursor:pointer}
+.acerto-profissional-card>summary::-webkit-details-marker{display:none}
+.acerto-profissional-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;gap:8px!important;padding:11px!important;border:0!important}
+.acerto-profissional-head>div{display:grid;gap:2px;min-width:0}
+.acerto-profissional-head>div>strong{font-size:.7rem!important;color:var(--text)}
+.acerto-profissional-head>div>span{font-size:.55rem!important;color:var(--text-secondary)}
+.acerto-profissional-head>i{font-size:.58rem;color:var(--text-secondary);transition:transform .18s ease}
+.acerto-profissional-card[open]>.acerto-profissional-head>i{transform:rotate(180deg)}
+.acerto-status{padding:4px 7px!important;border-radius:999px;font-size:.49rem!important;font-weight:700!important}
+.acerto-linhas{display:grid;border-top:1px solid var(--border)}
+.acerto-linha{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;padding:10px 11px!important;border-bottom:1px solid var(--border)!important}
+.acerto-linha:last-child{border-bottom:0!important}
+.acerto-linha-copy{display:grid;gap:2px}
+.acerto-linha-copy span{font-size:.56rem!important;color:var(--text-secondary)}
+.acerto-linha-copy small{font-size:.52rem;color:var(--text-secondary)}
+.acerto-linha-copy strong{font-size:.7rem!important}
+.acerto-linha.is-credit .acerto-linha-copy strong{color:var(--success)!important}
+.acerto-linha.is-debit .acerto-linha-copy strong{color:#dc2626!important}
+.acerto-linha.is-done{opacity:.66}
+.acerto-baixa-btn{min-height:31px!important;padding:0 9px!important;border-radius:9px!important;font-size:.54rem!important;font-weight:650!important}
+.acerto-baixa-btn.is-done{color:var(--success)!important}
+.acerto-saldo{padding:9px 11px!important}
+.acerto-vazio{display:grid;justify-items:center;gap:4px;padding:14px 10px;border:1px dashed var(--border);border-radius:11px;text-align:center;color:var(--text-secondary)}
+.acerto-vazio strong{font-size:.62rem;color:var(--text)}
+.acerto-vazio span{font-size:.54rem;line-height:1.4}
+.acerto-vazio .ui-button-spinner{display:block;width:18px;height:18px}
+
+/* Estoque administrativo: visão rápida no topo e detalhes em blocos expansíveis. */
+.estoque-top-resumo{margin-bottom:10px!important}
+.estoque-top-actions{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;align-items:center;margin-bottom:12px}
+.estoque-top-actions .estoque-add-btn{width:auto!important;margin:0!important;white-space:nowrap;padding:0 11px!important}
+.estoque-top-actions .estoque-search{min-width:0}
+.estoque-top-actions .estoque-scan-btn{min-width:42px}
+.estoque-admin-section{border:1px solid var(--border);border-radius:15px;background:var(--bg-card);box-shadow:var(--shadow);overflow:hidden;margin-bottom:9px}
+.estoque-admin-section>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px;cursor:pointer;color:var(--text)}
+.estoque-admin-section>summary::-webkit-details-marker{display:none}
+.estoque-admin-section>summary>span{display:flex;align-items:center;gap:8px;min-width:0}
+.estoque-admin-section>summary>span>i{width:22px;height:22px;display:grid;place-items:center;border-radius:7px;background:color-mix(in srgb,var(--primary) 8%,transparent);color:var(--primary);font-size:.58rem}
+.estoque-admin-section>summary strong{font-size:.72rem;font-weight:650}
+.estoque-admin-section>summary>i{font-size:.6rem;color:var(--text-secondary);transition:transform .18s ease}
+.estoque-admin-section[open]>summary>i{transform:rotate(180deg)}
+.estoque-admin-section-body{padding:0 12px 12px;border-top:1px solid var(--border)}
+.estoque-admin-section-body>.estoque-filtros,.estoque-admin-section-body>.estoque-admin-periodo-nav{margin-top:11px!important}
+.estoque-periodo-reset{display:block;margin:-4px auto 9px;border:0;background:transparent;color:var(--primary);font:inherit;font-size:.55rem;font-weight:600}
+.estoque-periodo-reset[hidden]{display:none!important}
+.estoque-comissao-custo strong,.estoque-comissao-valor{color:#dc2626!important}
+.estoque-venda-financeiro .is-minus b{color:#dc2626!important}
+.estoque-produto-acoes .is-success{background:#16a34a!important;border-color:#15803d!important;color:#fff!important;opacity:1!important}
+
+@media(max-width:430px){
+  .estoque-top-actions{grid-template-columns:1fr auto}
+  .estoque-top-actions .estoque-add-btn{grid-column:1/-1;width:100%!important}
+  .fechamento-acertos{padding:11px}
+}

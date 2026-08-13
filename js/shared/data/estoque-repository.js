@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=12.0";
+import { db } from "../../firebase-init.js?v=13.0";
 import {
     collection,
     doc,
@@ -16,12 +16,12 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=12.0";
-import { state } from "../state.js?v=12.0";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=12.0";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=12.0";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=12.0";
-import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=12.0";
+import { SCHEMA_VERSION } from "../constants.js?v=13.0";
+import { state } from "../state.js?v=13.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=13.0";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=13.0";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=13.0";
+import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=13.0";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;
@@ -45,13 +45,25 @@ function nomeUsuarioAtual() {
     return String(state.membroAtual?.nome || state.perfilUsuario?.nome || state.user?.email || "Usuário");
 }
 
-export function invalidarCacheEstoque() {
+function invalidarCacheProdutos() {
     cacheProdutos = null;
     cacheProdutosEm = 0;
+}
+
+function invalidarCacheVendas() {
     cacheVendas.clear();
     vendasEmAndamento.clear();
+}
+
+function invalidarCacheMovimentacoes() {
     cacheMovimentacoes.clear();
     movimentacoesEmAndamento.clear();
+}
+
+export function invalidarCacheEstoque() {
+    invalidarCacheProdutos();
+    invalidarCacheVendas();
+    invalidarCacheMovimentacoes();
 }
 
 function cacheLeituraValido(item, ttl) {
@@ -141,7 +153,8 @@ export async function criarProdutoEstoque(dados) {
     }
 
     await batch.commit();
-    invalidarCacheEstoque();
+    invalidarCacheProdutos();
+    invalidarCacheMovimentacoes();
     return produtoRef.id;
 }
 
@@ -204,7 +217,8 @@ export async function atualizarProdutoEstoque(id, alteracoes) {
         }
     });
 
-    invalidarCacheEstoque();
+    invalidarCacheProdutos();
+    invalidarCacheMovimentacoes();
 }
 
 export async function definirStatusProduto(id, ativo) {
@@ -214,7 +228,8 @@ export async function definirStatusProduto(id, ativo) {
         vendavel: ativo === true,
         atualizadoEm: serverTimestamp()
     });
-    invalidarCacheEstoque();
+    // Arquivar/reativar não altera vendas nem extrato; não destrói caches alheios.
+    invalidarCacheProdutos();
 }
 
 export async function excluirProdutoEstoque(id) {
@@ -236,12 +251,12 @@ export async function excluirProdutoEstoque(id) {
             exclusaoSolicitadaEm: serverTimestamp(),
             atualizadoEm: serverTimestamp()
         });
-        invalidarCacheEstoque();
+        invalidarCacheProdutos();
         return { excluido: false, arquivado: true };
     }
 
     await deleteDoc(ref("estoque", produtoId));
-    invalidarCacheEstoque();
+    invalidarCacheProdutos();
     return { excluido: true, arquivado: false };
 }
 
@@ -298,7 +313,8 @@ export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoS
         return { produto: { id: produtoId, ...produto }, anterior, posterior: Number(posterior.toFixed(3)), quantidade: qtdMov };
     });
 
-    invalidarCacheEstoque();
+    invalidarCacheProdutos();
+    invalidarCacheMovimentacoes();
     return resultado;
 }
 

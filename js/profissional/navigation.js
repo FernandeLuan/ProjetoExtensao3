@@ -1,9 +1,9 @@
-import { auth } from "../firebase-init.js?v=12.0";
+import { auth } from "../firebase-init.js?v=13.0";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=12.0";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=12.0";
-import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=12.0";
-import { limparSessaoArea, marcarSessaoArea } from "../shared/auth-area-session.js?v=12.0";
+import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=13.0";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=13.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=13.0";
+import { limparSessaoArea, marcarSessaoArea } from "../shared/auth-area-session.js?v=13.0";
 
 let inicializado = false;
 let secaoAtual = null;
@@ -60,7 +60,7 @@ function preaquecerOutraArea() {
 }
 
 function preaquecerHistorico() {
-    const executar = () => { void importar("historico", "../shared/historico.js?v=12.0").catch(() => null); };
+    const executar = () => { void importar("historico", "../shared/historico.js?v=13.0").catch(() => null); };
     if ("requestIdleCallback" in window) window.requestIdleCallback(executar, { timeout: 1800 });
     else window.setTimeout(executar, 900);
 }
@@ -110,17 +110,17 @@ async function importar(chave, caminho) {
     return p;
 }
 
-export function preloadInicio() { return importar("registrar", "../shared/registrar.js?v=12.0"); }
+export function preloadInicio() { return importar("registrar", "../shared/registrar.js?v=13.0"); }
 
 async function carregar(targetId) {
     switch (targetId) {
-        case "registrar": { const m = await importar("registrar", "../shared/registrar.js?v=12.0"); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
-        case "painelFinanceiro": { const m = await importar("painel", "../shared/painel.js?v=12.0"); await m.abrirPainelHoje?.(); return; }
-        case "historico": { const m = await importar("historico", "../shared/historico.js?v=12.0"); await m.abrirHistoricoHoje?.(); return; }
-        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=12.0"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=12.0"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
-        case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=12.0"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
-        case "conta": { const m = await importar("conta", "../shared/conta.js?v=12.0"); m.initConta?.(); await m.abrirConta?.(); return; }
+        case "registrar": { const m = await importar("registrar", "../shared/registrar.js?v=13.0"); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
+        case "painelFinanceiro": { const m = await importar("painel", "../shared/painel.js?v=13.0"); await m.abrirPainelHoje?.(); return; }
+        case "historico": { const m = await importar("historico", "../shared/historico.js?v=13.0"); await m.abrirHistoricoHoje?.(); return; }
+        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=13.0"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
+        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.0"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+        case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=13.0"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
+        case "conta": { const m = await importar("conta", "../shared/conta.js?v=13.0"); m.initConta?.(); await m.abrirConta?.(); return; }
     }
 }
 

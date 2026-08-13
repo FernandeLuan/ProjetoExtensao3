@@ -5,18 +5,18 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Gestão da Barbearia | Sr NK</title>
-<link href="../css/admin.css?v=12.0" rel="stylesheet"/>
+<link href="../css/admin.css?v=13.0" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
 <link as="image" href="../Fotos/Sr.NK.jpg" rel="preload"/>
 <meta content="#0F1115" name="theme-color"/>
-<link href="../icons/icon-192.png?v=12.0" rel="apple-touch-icon"/>
+<link href="../icons/icon-192.png?v=13.0" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=12.0" rel="modulepreload"><link href="../js/admin/index.js?v=12.0" rel="modulepreload"><link href="../js/admin/app.js?v=12.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=12.0">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.0" rel="modulepreload"><link href="../js/admin/app.js?v=13.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.0">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -61,84 +61,44 @@
 <article class="finance-card finance-overview barbearia-finance-overview" data-visao-card="resumo">
 <div class="finance-overview-top">
 <div>
-<div class="finance-label-row">
-<span class="finance-label">Lucro líquido</span>
-<button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button">
-<i class="fas fa-circle-info"></i>
-</button>
-</div>
+<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-wallet barbearia-lucro-wallet"></i> Lucro líquido</span><button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong class="finance-main-value" id="barbeariaHomeLucro">R$ 0,00</strong>
 </div>
-<div aria-hidden="true" class="finance-main-icon">
-<i class="fas fa-wallet"></i>
 </div>
-</div>
-<div class="finance-summary-row barbearia-faturamento-row">
-<div class="finance-summary-item barbearia-faturamento-item">
-<div class="barbearia-faturamento-copy">
-<div class="finance-summary-label">
-<span>Faturamento</span>
-<button aria-label="O que é faturamento da barbearia?" class="finance-info-btn" data-info="Soma bruta dos atendimentos de toda a equipe antes de taxas e repasses." type="button"><i class="fas fa-circle-info"></i></button>
-</div>
+<div class="finance-summary-row">
+<div class="finance-summary-item">
+<div class="finance-summary-label"><span><i aria-hidden="true" class="fas fa-sack-dollar"></i> Faturamento bruto</span><button aria-label="O que é faturamento bruto da barbearia?" class="finance-info-btn" data-info="Soma bruta dos atendimentos de toda a equipe antes de taxas e repasses." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong id="barbeariaHomeFaturamento">R$ 0,00</strong>
 </div>
-<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-sack-dollar"></i></div>
+<div class="finance-summary-item">
+<div class="finance-summary-label"><span><i aria-hidden="true" class="fas fa-hand-holding-dollar"></i> Repasse</span><button aria-label="O que é repasse da equipe?" class="finance-info-btn" data-info="Valor de repasse gerado pelos profissionais que não são donos, calculado sobre o valor bruto dos serviços." type="button"><i class="fas fa-circle-info"></i></button></div>
+<strong id="barbeariaHomeRepasse">R$ 0,00</strong>
 </div>
 </div>
 </article>
-<div class="finance-mini-grid barbearia-mini-grid" data-visao-card="indicadores">
-<article class="finance-card finance-mini-card barbearia-mini-card">
-<div class="barbearia-mini-copy">
-<div class="finance-label-row">
-<span class="finance-label">Ticket médio</span>
-<button aria-label="O que é ticket médio da barbearia?" class="finance-info-btn" data-info="Valor médio bruto faturado por atendimento da equipe no dia selecionado." type="button"><i class="fas fa-circle-info"></i></button>
-</div>
+<div class="finance-mini-grid" data-visao-card="indicadores">
+<article class="finance-card finance-mini-card">
+<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-chart-simple"></i> Ticket médio</span><button aria-label="O que é ticket médio da barbearia?" class="finance-info-btn" data-info="Valor médio bruto faturado por atendimento da equipe no dia selecionado." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong class="finance-mini-value" id="barbeariaHomeTicket">R$ 0,00</strong>
-</div>
-<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-chart-simple"></i></div>
 </article>
-<article class="finance-card finance-mini-card barbearia-mini-card">
-<div class="barbearia-mini-copy">
-<div class="finance-label-row">
-<span class="finance-label">Atendimentos</span>
-<button aria-label="O que são os atendimentos da barbearia?" class="finance-info-btn" data-info="Quantidade total de atendimentos realizados pela equipe no dia selecionado." type="button"><i class="fas fa-circle-info"></i></button>
-</div>
+<article class="finance-card finance-mini-card">
+<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-scissors"></i> Atendimentos</span><button aria-label="O que são os atendimentos da barbearia?" class="finance-info-btn" data-info="Quantidade total de atendimentos realizados pela equipe no dia selecionado." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong class="finance-mini-value" id="barbeariaHomeAtendimentos">0</strong>
-</div>
-<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-scissors"></i></div>
 </article>
 </div>
 <article class="finance-card barbearia-pendencias-card" data-visao-card="pendencias">
-<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-scale-balanced"></i></div>
 <div class="barbearia-pendencias-content">
-<div class="finance-label-row"><span class="finance-label">Pendências do mês</span><button aria-label="O que são pendências do mês?" class="finance-info-btn" data-info="Valores de repasse ainda não marcados como recebidos e comissões ainda não marcadas como pagas nos acertos da equipe." type="button"><i class="fas fa-circle-info"></i></button></div>
+<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-scale-balanced"></i> Pendências</span><button aria-label="O que são pendências?" class="finance-info-btn" data-info="Repasses ainda não recebidos e comissões ainda não pagas nos acertos da equipe." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong id="barbeariaPendenciasQtd">0 acertos pendentes</strong>
 <div class="barbearia-pendencias-valores"><span>A receber <b id="barbeariaPendenciasReceber">R$ 0,00</b></span><span>A pagar <b id="barbeariaPendenciasPagar">R$ 0,00</b></span></div>
 </div>
 </article>
 <article class="finance-card barbearia-expense-card" data-visao-card="despesas">
-<div class="barbearia-expense-content">
-<div class="finance-label-row">
-<span class="finance-label">Despesa da barbearia</span>
-<button aria-label="O que é despesa da barbearia?" class="finance-info-btn" data-info="Total dos gastos lançados como despesa da barbearia no dia selecionado. Despesas pessoais dos profissionais não entram aqui." type="button"><i class="fas fa-circle-info"></i></button>
-</div>
-<strong id="barbeariaHomeDespesas">R$ 0,00</strong>
-</div>
-<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-receipt"></i></div>
+<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-receipt"></i> Despesa da barbearia</span><button aria-label="O que é despesa da barbearia?" class="finance-info-btn" data-info="Total dos gastos lançados como despesa da barbearia no dia selecionado. Despesas pessoais dos profissionais não entram aqui." type="button"><i class="fas fa-circle-info"></i></button></div>
+<strong class="finance-mini-value" id="barbeariaHomeDespesas">R$ 0,00</strong>
 </article>
 <article class="finance-card finance-service-card barbearia-service-card" data-visao-card="servico">
-<div class="finance-service-content">
-<div class="finance-label-row">
-<span class="finance-label">Serviço mais vendido</span>
-<button aria-label="O que é serviço mais vendido?" class="finance-info-btn" data-info="Serviço com a maior quantidade de vendas da equipe no dia selecionado." type="button">
-<i class="fas fa-circle-info"></i>
-</button>
-</div>
-<strong class="finance-service-name" id="barbeariaHomeServico">—</strong>
-</div>
-<div aria-hidden="true" class="finance-service-icon">
-<i class="fas fa-star"></i>
-</div>
+<div class="finance-service-content"><span class="finance-label"><i aria-hidden="true" class="fas fa-star"></i> Serviço mais vendido</span><strong class="finance-service-name" id="barbeariaHomeServico">—</strong><span class="finance-service-meta" id="barbeariaHomeServicoSub"></span></div>
 </article>
 </div>
 <article class="barbearia-home-equipe-card">
@@ -155,16 +115,16 @@
 </article>
 <div class="dashboard-analytics-grid admin-analytics-grid">
 <article class="relatorio-card dashboard-analytics-card dashboard-analytics-wide">
-<div class="relatorio-card-head"><div><h3>Faturamento dos últimos 7 dias</h3><p>Evolução até a data selecionada</p></div><i class="fas fa-chart-line"></i></div>
+<div class="finance-chart-head"><h3>Faturamento dos últimos 7 dias</h3><p>Evolução do faturamento bruto até a data selecionada</p></div>
 <div class="relatorio-chart relatorio-chart-line"><canvas id="graficoBarbeariaFaturamento"></canvas></div>
 </article>
 <article class="relatorio-card dashboard-analytics-card">
-<div class="relatorio-card-head"><div><h3>Serviços do dia</h3><p>Quantidade por serviço</p></div><i class="fas fa-scissors"></i></div>
+<div class="relatorio-card-head"><div><h3>Serviços do dia</h3><p>Quantidade por serviço na data selecionada</p></div><i class="fas fa-scissors"></i></div>
 <div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoBarbeariaServicos"></canvas></div>
 <div class="relatorio-ranking" id="barbeariaServicosLista"></div>
 </article>
 <article class="relatorio-card dashboard-analytics-card">
-<div class="relatorio-card-head"><div><h3>Formas de pagamento</h3><p>Distribuição do faturamento bruto</p></div><i class="fas fa-wallet"></i></div>
+<div class="relatorio-card-head"><div><h3>Formas de pagamento</h3><p>Distribuição do faturamento bruto na data selecionada</p></div><i class="fas fa-wallet"></i></div>
 <div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoBarbeariaPagamentos"></canvas></div>
 <div class="relatorio-ranking" id="barbeariaPagamentosLista"></div>
 </article>
@@ -188,6 +148,11 @@
 <label class="relatorio-date-field"><span>Até</span><div class="relatorio-date-control" data-date-target="dataFimRelatorio"><input id="dataFimRelatorio" inputmode="none" readonly required type="date"/><i aria-hidden="true" class="fas fa-calendar-days"></i></div></label>
 <button id="btnAplicarPeriodoRelatorio" type="button">Aplicar período</button>
 </div>
+<section class="fechamento-acertos" hidden id="fechamentoAcertosEquipe">
+<div class="fechamento-acertos-head"><div><h3>Acertos da equipe</h3><p>Repasses a receber e comissões a pagar no período selecionado.</p></div></div>
+<div class="fechamento-acertos-lista" id="fechamentoAcertosLista"></div>
+<div class="fechamento-acertos-historico" hidden id="fechamentoAcertosHistoricoBox"><h4>Acertos registrados no mês</h4><div id="fechamentoAcertosHistorico"></div></div>
+</section>
 <article class="fechamento-request-card">
 <div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
 <div><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
@@ -201,11 +166,7 @@
 <button class="relatorio-whatsapp" id="btnWhatsApp" type="button"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></button>
 </div>
 </div>
-<section class="fechamento-acertos" hidden id="fechamentoAcertosEquipe">
-<div class="fechamento-acertos-head"><div><h3>Acertos da equipe</h3><p>Controle o que já recebeu de repasse e o que já pagou de comissão.</p></div></div>
-<div class="fechamento-acertos-lista" id="fechamentoAcertosLista"></div>
-<div class="fechamento-acertos-historico" hidden id="fechamentoAcertosHistoricoBox"><h4>Acertos registrados no mês</h4><div id="fechamentoAcertosHistorico"></div></div>
-</section>
+
 <div aria-live="polite" class="relatorio-status" id="relatorioStatus"></div>
 </section>
 <!-- HISTÓRICO -->
@@ -359,7 +320,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.2.0</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.0</span></div>
 </div>
 </div>
 </div>
@@ -379,23 +340,20 @@
 <p class="estoque-desc" id="estoqueDescricao">Produtos, vendas e movimentações.</p>
 
 <div hidden id="estoqueAdminView">
-<div aria-label="Áreas do estoque" class="estoque-tabs" role="tablist">
-<button class="active" data-estoque-admin-tab="produtos" role="tab" type="button"><i class="fas fa-box"></i><span>Produtos</span></button>
-<button data-estoque-admin-tab="vendas" role="tab" type="button"><i class="fas fa-receipt"></i><span>Venda da equipe</span></button>
-<button data-estoque-admin-tab="movimentacoes" role="tab" type="button"><i class="fas fa-arrow-right-arrow-left"></i><span>Movimentações</span></button>
-</div>
-
-<div id="estoqueAdminPainelProdutos">
-<div class="estoque-resumo-grid estoque-resumo-grid-simple">
+<div class="estoque-resumo-grid estoque-resumo-grid-simple estoque-top-resumo">
 <article class="estoque-resumo-card"><span>Produtos ativos</span><strong id="estoqueResumoItens">0</strong></article>
 <article class="estoque-resumo-card is-danger"><span>Sem estoque</span><strong id="estoqueResumoZerado">0</strong></article>
 <article class="estoque-resumo-card is-success"><span>Custo em estoque</span><strong id="estoqueResumoValor">R$ 0,00</strong></article>
 </div>
-<div class="estoque-toolbar estoque-toolbar-admin">
+<div class="estoque-top-actions">
+<button class="estoque-add-btn" id="btnNovoProdutoEstoque" type="button"><i class="fas fa-plus"></i><span>Novo produto</span></button>
 <label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueBusca" placeholder="Buscar produto ou código" type="search"/></label>
-<button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler</span></button>
+<button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
 </div>
-<button class="estoque-add-btn" id="btnNovoProdutoEstoque" type="button"><i class="fas fa-plus"></i>Novo produto</button>
+
+<details class="estoque-admin-section" id="estoqueAdminPainelProdutos" open>
+<summary><span><i class="fas fa-box"></i><strong>Produtos</strong></span><i class="fas fa-chevron-down"></i></summary>
+<div class="estoque-admin-section-body">
 <div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
 <button class="active" data-estoque-filtro="ativos" type="button">Ativos</button>
 <button data-estoque-filtro="disponiveis" type="button">Disponíveis</button>
@@ -404,34 +362,40 @@
 </div>
 <div class="estoque-produtos-lista estoque-produtos-compactos" id="estoqueProdutosLista"></div>
 </div>
+</details>
 
-<div hidden id="estoqueAdminPainelVendas">
-<div aria-label="Selecionar mês das vendas" class="painel-data-nav estoque-admin-periodo-nav">
+<details class="estoque-admin-section" id="estoqueAdminPainelVendas">
+<summary><span><i class="fas fa-receipt"></i><strong>Venda da equipe</strong></span><i class="fas fa-chevron-down"></i></summary>
+<div class="estoque-admin-section-body">
+<div aria-label="Selecionar período das vendas" class="painel-data-nav estoque-admin-periodo-nav">
 <button aria-label="Mês anterior" class="painel-data-btn" id="btnAdminVendasMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
-<div class="painel-data-center"><span class="painel-data-label" id="labelAdminVendasMes">Mês atual</span><button aria-label="Escolher mês" class="painel-calendar-btn" id="btnCalendarioAdminVendas" type="button"><i class="fas fa-calendar-days"></i></button></div>
+<div class="painel-data-center"><span class="painel-data-label" id="labelAdminVendasMes">Mês atual</span><button aria-label="Filtrar por dia" class="painel-calendar-btn" id="btnCalendarioAdminVendas" type="button"><i class="fas fa-calendar-days"></i></button></div>
 <button aria-label="Próximo mês" class="painel-data-btn" id="btnAdminVendasMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
 </div>
+<button class="estoque-periodo-reset" hidden id="btnLimparDiaAdminVendas" type="button">Ver mês inteiro</button>
 <div class="estoque-resumo-grid estoque-venda-resumo estoque-gerencial-grid">
-<article class="estoque-resumo-card"><span>Vendas no mês</span><strong id="estoqueAdminVendasBruto">R$ 0,00</strong></article>
-<article class="estoque-resumo-card"><span>Comissões</span><strong id="estoqueAdminVendasComissoes">R$ 0,00</strong></article>
+<article class="estoque-resumo-card"><span>Vendas</span><strong id="estoqueAdminVendasBruto">R$ 0,00</strong></article>
+<article class="estoque-resumo-card estoque-comissao-custo"><span>Comissões</span><strong id="estoqueAdminVendasComissoes">R$ 0,00</strong></article>
 <article class="estoque-resumo-card is-success"><span>Resultado</span><strong id="estoqueAdminVendasResultado">R$ 0,00</strong></article>
 </div>
-<div class="estoque-subsection-head"><div><h3>Venda da equipe</h3><p>Vendas do mês selecionado. O pagamento de repasses e comissões é controlado em Fechamento.</p></div></div>
 <div class="estoque-log-lista" id="estoqueVendasLista"></div>
 </div>
+</details>
 
-<div hidden id="estoqueAdminPainelMovimentacoes">
-<div aria-label="Selecionar mês das movimentações" class="painel-data-nav estoque-admin-periodo-nav">
+<details class="estoque-admin-section" id="estoqueAdminPainelMovimentacoes">
+<summary><span><i class="fas fa-arrow-right-arrow-left"></i><strong>Extrato de movimentações</strong></span><i class="fas fa-chevron-down"></i></summary>
+<div class="estoque-admin-section-body">
+<div aria-label="Selecionar período das movimentações" class="painel-data-nav estoque-admin-periodo-nav">
 <button aria-label="Mês anterior" class="painel-data-btn" id="btnMovMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
-<div class="painel-data-center"><span class="painel-data-label" id="labelMovMes">Mês atual</span><button aria-label="Escolher mês" class="painel-calendar-btn" id="btnCalendarioMovMes" type="button"><i class="fas fa-calendar-days"></i></button></div>
+<div class="painel-data-center"><span class="painel-data-label" id="labelMovMes">Mês atual</span><button aria-label="Filtrar por dia" class="painel-calendar-btn" id="btnCalendarioMovMes" type="button"><i class="fas fa-calendar-days"></i></button></div>
 <button aria-label="Próximo mês" class="painel-data-btn" id="btnMovMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
 </div>
+<button class="estoque-periodo-reset" hidden id="btnLimparDiaMov" type="button">Ver mês inteiro</button>
 <div class="estoque-resumo-grid estoque-mov-resumo-grid">
 <article class="estoque-resumo-card is-success"><span>Entradas</span><strong id="estoqueMovEntradas">+0</strong></article>
 <article class="estoque-resumo-card is-danger"><span>Saídas</span><strong id="estoqueMovSaidas">-0</strong></article>
 <article class="estoque-resumo-card"><span>Custo das entradas</span><strong id="estoqueMovCusto">R$ 0,00</strong></article>
 </div>
-<div class="estoque-subsection-head"><div><h3>Extrato de movimentações</h3><p>Entradas, saídas, ajustes, vendas e estornos em ordem cronológica.</p></div></div>
 <div class="estoque-extrato-filtros">
 <label><span>Produto</span><select id="estoqueMovFiltroProduto"><option value="todos">Todos</option></select></label>
 <label><span>Pagamento</span><select id="estoqueMovFiltroPagamento"><option value="todos">Todos</option><option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Débito">Débito</option><option value="Crédito">Crédito</option></select></label>
@@ -439,40 +403,10 @@
 </div>
 <div class="estoque-log-lista estoque-extrato-lista" id="estoqueMovimentacoesLista"></div>
 </div>
-</div>
-
-<div hidden id="estoqueVendaView">
-<div aria-label="Venda de produtos" class="estoque-tabs estoque-tabs-pro" role="tablist">
-<button class="active" data-estoque-pro-tab="vender" role="tab" type="button"><i class="fas fa-cart-plus"></i><span>Vender produto</span></button>
-<button data-estoque-pro-tab="minhas" role="tab" type="button"><i class="fas fa-clock-rotate-left"></i><span>Minhas vendas</span></button>
-</div>
-
-<div id="estoqueProPainelVender">
-<details class="estoque-registrar-card" open>
-<summary><span><i class="fas fa-cart-plus"></i><strong>Registrar venda</strong></span><i class="fas fa-chevron-down"></i></summary>
-<div class="estoque-registrar-conteudo">
-<div class="estoque-toolbar">
-<label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueVendaBusca" placeholder="Buscar produto" type="search"/></label>
-<button class="estoque-scan-btn" id="btnScanVendaProduto" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
-</div>
-<div class="estoque-venda-produtos" id="estoqueVendaProdutos"></div>
-</div>
 </details>
 </div>
 
-<div hidden id="estoqueProPainelMinhas">
-<div class="estoque-mes-nav">
-<button aria-label="Mês anterior" id="btnVendasMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
-<strong id="labelVendasMes">Mês atual</strong>
-<button aria-label="Próximo mês" id="btnVendasMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
-</div>
-<div class="estoque-resumo-grid estoque-venda-resumo">
-<article class="estoque-resumo-card"><span>Vendas no mês</span><strong id="estoqueVendaMes">R$ 0,00</strong></article>
-<article class="estoque-resumo-card is-success"><span>Comissão no mês</span><strong id="estoqueComissaoMes">R$ 0,00</strong></article>
-</div>
-<div class="esto-minhas-vendas-lista" id="estoqueMinhasVendasLista"></div>
-</div>
-</div>
+<div hidden id="estoqueVendaView"></div>
 </section>
 <!-- DESPESAS -->
 <section class="registrar despesas-page" id="despesas" style="display:none">
@@ -1024,11 +958,11 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script defer="" src="../js/mobile-interactions.js?v=12.0"></script>
+<script defer="" src="../js/mobile-interactions.js?v=13.0"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=12.0" type="module"></script></body>
+<script src="../js/admin/index.js?v=13.0" type="module"></script></body>
 </html>

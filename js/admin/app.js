@@ -1,16 +1,16 @@
-import { auth } from "../firebase-init.js?v=12.0";
+import { auth } from "../firebase-init.js?v=13.0";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { inicializarContexto } from "../shared/data/context.js?v=12.0";
-import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=12.0";
-import { definirConfiguracoes } from "../shared/state.js?v=12.0";
-import { initTheme } from "../shared/theme.js?v=12.0";
-import { initConnectivity } from "../shared/connectivity.js?v=12.0";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=12.0";
-import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=12.0";
-import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=12.0";
-import { migrarRepasseParaBaseBruta } from "../shared/data/migracao-repasse-bruto.js?v=12.0";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=12.0";
-import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=12.0";
+import { inicializarContexto } from "../shared/data/context.js?v=13.0";
+import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=13.0";
+import { definirConfiguracoes } from "../shared/state.js?v=13.0";
+import { initTheme } from "../shared/theme.js?v=13.0";
+import { initConnectivity } from "../shared/connectivity.js?v=13.0";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=13.0";
+import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=13.0";
+import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=13.0";
+import { migrarRepasseParaBaseBruta } from "../shared/data/migracao-repasse-bruto.js?v=13.0";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.0";
+import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=13.0";
 
 const AREA_ATUAL = "admin";
 const SESSAO_DA_AREA_VALIDA = sessaoPertenceArea(AREA_ATUAL);
@@ -68,7 +68,7 @@ function mostrarInterfaceOtimista() {
 }
 
 bloquearInterface();
-const previewTimer = SESSAO_DA_AREA_VALIDA ? window.setTimeout(mostrarInterfaceOtimista, PREVIEW_DELAY_MS) : 0;
+const previewTimer = 0; // v1.3: mantém a apresentação até a primeira tela estar realmente pronta.
 
 async function finalizarBoot({ liberar = true, respeitarMinimo = true } = {}) {
     clearTimeout(previewTimer);

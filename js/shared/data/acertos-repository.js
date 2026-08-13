@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=12.0";
+import { db } from "../../firebase-init.js?v=13.0";
 import {
     collection,
     doc,
@@ -9,12 +9,13 @@ import {
     serverTimestamp,
     setDoc,
     Timestamp,
+    writeBatch,
     where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=12.0";
-import { usuarioEhAdmin } from "../permissoes.js?v=12.0";
-import { chaveData } from "../utils/date.js?v=12.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=13.0";
+import { usuarioEhAdmin } from "../permissoes.js?v=13.0";
+import { chaveData } from "../utils/date.js?v=13.0";
 
 function col() {
     return collection(db, "barbearias", obterWorkspaceId(), "acertosEquipe");
@@ -89,4 +90,46 @@ export async function atualizarStatusAcerto({
     }, { merge: true });
 
     return id;
+}
+
+
+export async function atualizarStatusAcertosEmLote(itens = []) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode dar baixa nos acertos.");
+    const validos = (itens || []).filter((item) => item?.profissionalUid && ["repasse", "comissao"].includes(item?.tipo));
+    if (!validos.length) return [];
+
+    const ids = [];
+    // Folga abaixo do limite de 500 operações por batch do Firestore.
+    for (let inicioChunk = 0; inicioChunk < validos.length; inicioChunk += 400) {
+        const chunk = validos.slice(inicioChunk, inicioChunk + 400);
+        const batch = writeBatch(db);
+        chunk.forEach((item) => {
+            const inicio = normalizarDia(item.inicio);
+            const fim = normalizarDia(item.fim);
+            const id = acertoId(item.profissionalUid, inicio, fim);
+            const agora = serverTimestamp();
+            const dados = {
+                profissionalUid: item.profissionalUid,
+                profissionalNome: String(item.profissionalNome || "Profissional"),
+                periodoInicio: Timestamp.fromDate(inicio),
+                periodoFim: Timestamp.fromDate(fim),
+                repasseValor: Number(Number(item.repasse || 0).toFixed(2)),
+                comissaoValor: Number(Number(item.comissao || 0).toFixed(2)),
+                saldoValor: Number(Number(item.saldo || 0).toFixed(2)),
+                atualizadoPorUid: obterUidAtual(),
+                atualizadoEm: agora
+            };
+            if (item.tipo === "repasse") {
+                dados.repasseRecebido = item.pago === true;
+                dados.repasseRecebidoEm = item.pago === true ? agora : null;
+            } else {
+                dados.comissaoPaga = item.pago === true;
+                dados.comissaoPagaEm = item.pago === true ? agora : null;
+            }
+            batch.set(doc(col(), id), dados, { merge: true });
+            ids.push(id);
+        });
+        await batch.commit();
+    }
+    return ids;
 }

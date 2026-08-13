@@ -1,13 +1,13 @@
-import { state } from "./state.js?v=12.0";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=12.0";
-import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=12.0";
-import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=12.0";
-import { listarAcertosPorPeriodo } from "./data/acertos-repository.js?v=12.0";
-import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=12.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=12.0";
-import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=12.0";
-import { garantirChartJs } from "./services/external-assets.js?v=12.0";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=12.0";
+import { state } from "./state.js?v=13.0";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=13.0";
+import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=13.0";
+import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=13.0";
+import { listarAcertosPorPeriodo } from "./data/acertos-repository.js?v=13.0";
+import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=13.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=13.0";
+import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=13.0";
+import { garantirChartJs } from "./services/external-assets.js?v=13.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=13.0";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -105,6 +105,7 @@ function consolidarBarbearia(profissionais, resumosBarbearia, dataAtual) {
         atendimentos: 0,
         faturamento: 0,
         receitaBarbearia: 0,
+        repasseEquipe: 0,
         despesasBarbearia: 0,
         lucroLiquido: 0,
         ticket: 0,
@@ -121,6 +122,7 @@ function consolidarBarbearia(profissionais, resumosBarbearia, dataAtual) {
         total.receitaBarbearia += profissional.dono
             ? Math.max(0, profissional.faturamento - profissional.taxas)
             : profissional.repasseBarbearia;
+        if (!profissional.dono) total.repasseEquipe += profissional.repasseBarbearia;
         profissional.servicos.forEach((qtd, nome) => total.servicos.set(nome, (total.servicos.get(nome) || 0) + qtd));
         profissional.pagamentos.forEach((valor, nome) => total.pagamentos.set(nome, (total.pagamentos.get(nome) || 0) + valor));
         profissional.porDia.forEach((valor, dia) => total.porDia.set(dia, (total.porDia.get(dia) || 0) + valor));
@@ -162,12 +164,18 @@ function renderResumo(total, profissionais) {
     aplicarOrdemCardsVisaoGeral();
     if (el("barbeariaHomeLucro")) el("barbeariaHomeLucro").textContent = moeda(total.lucroLiquido);
     if (el("barbeariaHomeFaturamento")) el("barbeariaHomeFaturamento").textContent = moeda(total.faturamento);
-    if (el("barbeariaHomeFaturamentoSub")) el("barbeariaHomeFaturamentoSub").textContent = "Bruto do dia";
+    if (el("barbeariaHomeRepasse")) el("barbeariaHomeRepasse").textContent = moeda(total.repasseEquipe);
     if (el("barbeariaHomeAtendimentos")) el("barbeariaHomeAtendimentos").textContent = String(total.atendimentos);
     if (el("barbeariaHomeTicket")) el("barbeariaHomeTicket").textContent = moeda(total.ticket);
     if (el("barbeariaHomeDespesas")) el("barbeariaHomeDespesas").textContent = moeda(total.despesasBarbearia);
     if (el("barbeariaHomeServico")) el("barbeariaHomeServico").textContent = total.servicoMaisVendido;
-    if (el("barbeariaHomeServicoSub")) el("barbeariaHomeServicoSub").textContent = total.servicoMaisVendidoQtd ? `${total.servicoMaisVendidoQtd} venda${total.servicoMaisVendidoQtd === 1 ? "" : "s"}` : "Nenhuma venda";
+    if (el("barbeariaHomeServicoSub")) {
+        const pct = total.atendimentos ? Math.round((total.servicoMaisVendidoQtd / total.atendimentos) * 100) : 0;
+        const palavra = total.servicoMaisVendidoQtd === 1 ? "venda" : "vendas";
+        el("barbeariaHomeServicoSub").textContent = total.servicoMaisVendidoQtd
+            ? `${total.servicoMaisVendidoQtd} ${palavra} • ${pct}% dos atendimentos`
+            : "0 vendas • 0% dos atendimentos";
+    }
     renderEquipe(profissionais);
     ultimoTotalRenderizado = total;
     renderGraficos(total);
@@ -321,43 +329,71 @@ async function carregarPendenciasMes(membros, { forcar = false } = {}) {
             listarAcertosPorPeriodo(inicio, fim, { forcar })
         ]);
 
+        // Pendências seguem a mesma unidade operacional do Fechamento: profissional + dia.
+        // Se um atendimento for editado após a baixa, o valor diferente volta a aparecer
+        // como pendente em vez de ser mascarado por uma soma mensal antiga.
         const gerado = new Map();
+        const obterGerado = (uid, dia) => {
+            const chave = `${uid}:${dia}`;
+            if (!gerado.has(chave)) gerado.set(chave, { uid, dia, repasse: 0, comissao: 0 });
+            return gerado.get(chave);
+        };
+
         resumosPorMembro.forEach(({ uid, resumos }) => {
             if (!uid) return;
-            const repasse = (resumos || []).reduce((soma, item) => soma + centavosParaReais(item?.repasseCentavos), 0);
-            gerado.set(uid, { repasse, comissao: 0 });
+            (resumos || []).forEach((resumo) => {
+                const dia = String(resumo?.dataChave || resumo?.id || "").slice(0, 10);
+                if (!dia) return;
+                obterGerado(uid, dia).repasse += centavosParaReais(resumo?.repasseCentavos);
+            });
         });
+
         (vendas || []).forEach((venda) => {
             if (venda?.cancelada === true || venda?.gerarComissao !== true || !venda?.profissionalUid) return;
-            const uid = String(venda.profissionalUid);
-            if (!gerado.has(uid)) gerado.set(uid, { repasse: 0, comissao: 0 });
-            gerado.get(uid).comissao += Number(venda.comissaoValor || 0);
+            const data = venda?.dataVenda?.toDate?.() || venda?.dataVenda;
+            const d = data ? new Date(data) : null;
+            if (!d || Number.isNaN(d.getTime())) return;
+            const dia = chaveData(inicioDoDia(d));
+            obterGerado(String(venda.profissionalUid), dia).comissao += Number(venda.comissaoValor || 0);
         });
 
-        const baixado = new Map();
+        const acertoPorDia = new Map();
         (acertos || []).forEach((acerto) => {
             const uid = String(acerto?.profissionalUid || "");
-            if (!uid) return;
-            if (!baixado.has(uid)) baixado.set(uid, { repasse: 0, comissao: 0 });
-            const item = baixado.get(uid);
-            if (acerto?.repasseRecebido === true) item.repasse += Number(acerto.repasseValor || 0);
-            if (acerto?.comissaoPaga === true) item.comissao += Number(acerto.comissaoValor || 0);
+            const inicioAcerto = acerto?.periodoInicio?.toDate?.() || acerto?.periodoInicio;
+            const fimAcerto = acerto?.periodoFim?.toDate?.() || acerto?.periodoFim;
+            const di = inicioAcerto ? new Date(inicioAcerto) : null;
+            const df = fimAcerto ? new Date(fimAcerto) : null;
+            if (!uid || !di || !df || Number.isNaN(di.getTime()) || Number.isNaN(df.getTime())) return;
+            const chaveInicio = chaveData(inicioDoDia(di));
+            if (chaveInicio !== chaveData(inicioDoDia(df))) return;
+            acertoPorDia.set(`${uid}:${chaveInicio}`, acerto);
         });
 
+        const pendentesPorProfissional = new Set();
         let receber = 0;
         let pagar = 0;
-        let quantidade = 0;
-        gerado.forEach((valores, uid) => {
-            const pagos = baixado.get(uid) || { repasse: 0, comissao: 0 };
-            const pendenteReceber = Math.max(0, Number(valores.repasse || 0) - Number(pagos.repasse || 0));
-            const pendentePagar = Math.max(0, Number(valores.comissao || 0) - Number(pagos.comissao || 0));
-            receber += pendenteReceber;
-            pagar += pendentePagar;
-            if (pendenteReceber > .009 || pendentePagar > .009) quantidade += 1;
+        gerado.forEach((valores, chave) => {
+            const acerto = acertoPorDia.get(chave);
+            const repasse = Number(valores.repasse || 0);
+            const comissao = Number(valores.comissao || 0);
+            const repasseQuitado = acerto?.repasseRecebido === true
+                && Math.abs(repasse - Number(acerto?.repasseValor || 0)) < 0.01;
+            const comissaoQuitada = acerto?.comissaoPaga === true
+                && Math.abs(comissao - Number(acerto?.comissaoValor || 0)) < 0.01;
+            if (repasse > .009 && !repasseQuitado) {
+                receber += repasse;
+                pendentesPorProfissional.add(valores.uid);
+            }
+            if (comissao > .009 && !comissaoQuitada) {
+                pagar += comissao;
+                pendentesPorProfissional.add(valores.uid);
+            }
         });
-        renderPendencias({ quantidade, receber, pagar });
+
+        renderPendencias({ quantidade: pendentesPorProfissional.size, receber, pagar });
     } catch (error) {
-        console.warn("Não foi possível calcular pendências do mês:", error);
+        console.warn("Não foi possível calcular pendências:", error);
         renderPendencias();
     }
 }

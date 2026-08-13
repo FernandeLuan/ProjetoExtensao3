@@ -1,17 +1,17 @@
-import { state, onStateChange } from "./state.js?v=12.0";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=12.0";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=12.0";
-import { paraDate, chaveData } from "./utils/date.js?v=12.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=12.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=12.0";
+import { state, onStateChange } from "./state.js?v=13.0";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=13.0";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=13.0";
+import { paraDate, chaveData, inicioDoDia } from "./utils/date.js?v=13.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=13.0";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=13.0";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=12.0";
-import { garantirZXing } from "./services/external-assets.js?v=12.0";
+} from "./services/ui-loading-service.js?v=13.0";
+import { garantirZXing } from "./services/external-assets.js?v=13.0";
 import {
     CATEGORIAS_ESTOQUE,
     FORMAS_PAGAMENTO_VENDA,
@@ -19,7 +19,7 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=12.0";
+} from "./services/estoque-service.js?v=13.0";
 import {
     atualizarProdutoEstoque,
     cancelarVendaProduto,
@@ -34,8 +34,8 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=12.0";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=12.0";
+} from "./data/estoque-repository.js?v=13.0";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=13.0";
 
 let inicializado = false;
 let produtos = [];
@@ -58,6 +58,8 @@ let scannerAtivo = false;
 let mesVendas = inicioDoMes(new Date());
 let mesVendasAdmin = inicioDoMes(new Date());
 let mesMovimentacoes = inicioDoMes(new Date());
+let diaVendasAdmin = null;
+let diaMovimentacoes = null;
 let abaEstoqueAdmin = "produtos";
 let abaEstoqueProfissional = "vender";
 
@@ -129,21 +131,20 @@ function configurarVisao() {
     if ($("estoqueDescricao")) $("estoqueDescricao").textContent = admin
         ? "Produtos, vendas da equipe e movimentações."
         : "Venda produtos da equipe e acompanhe seu histórico.";
-    selecionarAbaEstoque(admin ? abaEstoqueAdmin : abaEstoqueProfissional, { admin });
+    if (admin) {
+        ["estoqueAdminPainelProdutos", "estoqueAdminPainelVendas", "estoqueAdminPainelMovimentacoes"].forEach((id) => {
+            const painel = $(id);
+            if (painel) painel.hidden = false;
+        });
+    } else selecionarAbaEstoque(abaEstoqueProfissional, { admin: false });
 }
 
 function selecionarAbaEstoque(aba, { admin = podeAdministrarNaVisaoAtual() } = {}) {
     if (admin) {
-        abaEstoqueAdmin = ["produtos", "vendas", "movimentacoes"].includes(aba) ? aba : "produtos";
-        document.querySelectorAll("[data-estoque-admin-tab]").forEach((botao) => {
-            const ativo = botao.dataset.estoqueAdminTab === abaEstoqueAdmin;
-            botao.classList.toggle("active", ativo);
-            botao.setAttribute("aria-selected", String(ativo));
-        });
-        ["produtos", "vendas", "movimentacoes"].forEach((nome) => {
-            const painel = $(`estoqueAdminPainel${nome[0].toUpperCase()}${nome.slice(1)}`);
-            if (painel) painel.hidden = nome !== abaEstoqueAdmin;
-        });
+        // Gestão usa seções expansíveis; não esconde mais Produtos/Vendas/Extrato.
+        const mapa = { produtos: "estoqueAdminPainelProdutos", vendas: "estoqueAdminPainelVendas", movimentacoes: "estoqueAdminPainelMovimentacoes" };
+        const painel = $(mapa[aba] || mapa.produtos);
+        if (painel?.tagName === "DETAILS") painel.open = true;
         return;
     }
 
@@ -257,7 +258,7 @@ function renderizarVendasAdmin() {
     const container = $("estoqueVendasLista");
     if (!container) return;
     if (!vendasAdmin.length) {
-        container.innerHTML = '<div class="estoque-vazio compact"><strong>Nenhuma venda neste mês.</strong><span>Use as setas acima para consultar outros meses.</span></div>';
+        container.innerHTML = `<div class="estoque-vazio compact"><strong>Nenhuma venda encontrada.</strong><span>${diaVendasAdmin ? "Não há vendas no dia selecionado." : "Não há vendas no período selecionado."}</span></div>`;
         return;
     }
 
@@ -303,10 +304,10 @@ function renderizarVendasAdmin() {
             return `<details class="estoque-vendas-profissional" data-profissional-uid="${escapar(grupo.chave)}">
                 <summary>
                     <div><strong>${escapar(grupo.nome)}</strong><span>${ativas.length} venda${ativas.length === 1 ? "" : "s"} • ${moeda(bruto)}</span></div>
-                    <div><strong>${comissao > 0 ? `Comissão ${moeda(comissao)}` : "Sem comissão"}</strong><span class="estoque-comissao-status ${resultado >= 0 ? "is-paid" : "is-pending"}">Resultado ${moeda(resultado)}</span></div>
+                    <div><strong class="estoque-comissao-valor">${comissao > 0 ? `Comissão ${moeda(comissao)}` : "Sem comissão"}</strong><span class="estoque-comissao-status ${resultado >= 0 ? "is-paid" : "is-pending"}">Resultado ${moeda(resultado)}</span></div>
                     <i class="fas fa-chevron-down"></i>
                 </summary>
-                <div class="estoque-vendas-profissional-body">${itens}<div class="estoque-acerto-hint"><i class="fas fa-scale-balanced"></i>Repasse e comissão são baixados por período em <strong>Fechamento → Acertos da equipe</strong>.</div></div>
+                <div class="estoque-vendas-profissional-body">${itens}</div>
             </details>`;
         }).join("");
 }
@@ -434,48 +435,51 @@ async function carregarProdutos({ forcar = false } = {}) {
     renderizarProdutosVenda();
 }
 
-function atualizarNavegadorAdminMes(labelId, proximoId, mes) {
+function tituloDiaOuMes(mes, dia) {
+    if (dia) {
+        const texto = dia.toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
+        return texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+    return nomeMes(mes);
+}
+
+function atualizarNavegadorAdminMes(labelId, proximoId, mes, dia = null, resetId = null) {
     const label = $(labelId);
-    if (label) label.textContent = nomeMes(mes);
+    if (label) label.textContent = tituloDiaOuMes(mes, dia);
     const proximo = $(proximoId);
     if (proximo) {
         const bloqueado = inicioDoMes(mes) >= inicioDoMes(new Date());
         proximo.disabled = bloqueado;
         proximo.setAttribute("aria-disabled", String(bloqueado));
     }
+    const reset = resetId ? $(resetId) : null;
+    if (reset) reset.hidden = !dia;
 }
 
 function atualizarNavegadoresAdmin() {
-    atualizarNavegadorAdminMes("labelAdminVendasMes", "btnAdminVendasMesProximo", mesVendasAdmin);
-    atualizarNavegadorAdminMes("labelMovMes", "btnMovMesProximo", mesMovimentacoes);
+    atualizarNavegadorAdminMes("labelAdminVendasMes", "btnAdminVendasMesProximo", mesVendasAdmin, diaVendasAdmin, "btnLimparDiaAdminVendas");
+    atualizarNavegadorAdminMes("labelMovMes", "btnMovMesProximo", mesMovimentacoes, diaMovimentacoes, "btnLimparDiaMov");
 }
 
 async function carregarVendasAdmin({ forcar = false } = {}) {
     atualizarNavegadoresAdmin();
-    vendasAdmin = await listarVendasPorPeriodo(
-        mesVendasAdmin,
-        fimDoMes(mesVendasAdmin),
-        { forcar, incluirCanceladas: true }
-    );
+    const inicio = diaVendasAdmin ? inicioDoDia(diaVendasAdmin) : mesVendasAdmin;
+    const fim = diaVendasAdmin ? inicioDoDia(diaVendasAdmin) : fimDoMes(mesVendasAdmin);
+    vendasAdmin = await listarVendasPorPeriodo(inicio, fim, { forcar, incluirCanceladas: true });
     atualizarResumoAdmin();
     renderizarVendasAdmin();
 }
 
 async function carregarMovimentacoesAdmin({ forcar = false } = {}) {
     atualizarNavegadoresAdmin();
-    movimentacoes = await listarMovimentacoesPorPeriodo(
-        mesMovimentacoes,
-        fimDoMes(mesMovimentacoes),
-        { forcar }
-    );
+    const inicio = diaMovimentacoes ? inicioDoDia(diaMovimentacoes) : mesMovimentacoes;
+    const fim = diaMovimentacoes ? inicioDoDia(diaMovimentacoes) : fimDoMes(mesMovimentacoes);
+    movimentacoes = await listarMovimentacoesPorPeriodo(inicio, fim, { forcar });
     renderizarMovimentacoes();
 }
 
 async function carregarAdmin({ forcar = false } = {}) {
-    await Promise.all([
-        carregarVendasAdmin({ forcar }),
-        carregarMovimentacoesAdmin({ forcar })
-    ]);
+    await Promise.all([carregarVendasAdmin({ forcar }), carregarMovimentacoesAdmin({ forcar })]);
 }
 
 async function carregarVendasProfissional({ forcar = false } = {}) {
@@ -943,6 +947,7 @@ async function mudarMesAdmin(tipo, delta) {
         const alvo = somarMeses(mesVendasAdmin, delta);
         if (alvo > atual) return;
         mesVendasAdmin = alvo;
+        diaVendasAdmin = null;
         const loading = iniciarLoadingTela("Carregando vendas...", { delay: 420 });
         try { await carregarVendasAdmin({ forcar: false }); }
         catch (error) { mostrarErro(error?.message || "Não foi possível carregar as vendas."); }
@@ -952,6 +957,7 @@ async function mudarMesAdmin(tipo, delta) {
     const alvo = somarMeses(mesMovimentacoes, delta);
     if (alvo > atual) return;
     mesMovimentacoes = alvo;
+    diaMovimentacoes = null;
     const loading = iniciarLoadingTela("Carregando movimentações...", { delay: 420 });
     try { await carregarMovimentacoesAdmin({ forcar: false }); }
     catch (error) { mostrarErro(error?.message || "Não foi possível carregar as movimentações."); }
@@ -959,24 +965,25 @@ async function mudarMesAdmin(tipo, delta) {
 }
 
 function abrirCalendarioMesAdmin(tipo, ancora) {
-    const mesAtual = tipo === "vendas" ? mesVendasAdmin : mesMovimentacoes;
+    const mes = tipo === "vendas" ? mesVendasAdmin : mesMovimentacoes;
+    const diaAtual = tipo === "vendas" ? diaVendasAdmin : diaMovimentacoes;
+    const inicioMes = inicioDoMes(mes);
+    const fimMes = fimDoMes(mes);
+    const hoje = new Date();
+    const max = fimMes > hoje ? hoje : fimMes;
     abrirCalendarioPopover({
         ancora,
-        data: mesAtual,
-        max: new Date(),
-        titulo: tipo === "vendas" ? "Mês das vendas" : "Mês das movimentações",
+        data: diaAtual || (mes.getMonth() === hoje.getMonth() && mes.getFullYear() === hoje.getFullYear() ? hoje : inicioMes),
+        min: inicioMes,
+        max,
+        titulo: tipo === "vendas" ? "Dia das vendas" : "Dia das movimentações",
         onSelect: async (data) => {
-            const escolhido = inicioDoMes(data);
             if (tipo === "vendas") {
-                mesVendasAdmin = escolhido;
-                const loading = iniciarLoadingTela("Carregando vendas...", { delay: 420 });
-                try { await carregarVendasAdmin({ forcar: false }); }
-                finally { finalizarLoadingTela(loading); }
+                diaVendasAdmin = inicioDoDia(data);
+                await carregarVendasAdmin({ forcar: false });
             } else {
-                mesMovimentacoes = escolhido;
-                const loading = iniciarLoadingTela("Carregando movimentações...", { delay: 420 });
-                try { await carregarMovimentacoesAdmin({ forcar: false }); }
-                finally { finalizarLoadingTela(loading); }
+                diaMovimentacoes = inicioDoDia(data);
+                await carregarMovimentacoesAdmin({ forcar: false });
             }
         }
     });
@@ -997,14 +1004,15 @@ function vincularEventos() {
     $("btnScanVendaProdutoAdmin")?.addEventListener("click", () => iniciarScanner("venda"));
     $("btnFecharScannerEstoque")?.addEventListener("click", fecharScanner);
 
-    document.querySelectorAll("[data-estoque-admin-tab]").forEach((btn) => btn.addEventListener("click", () => selecionarAbaEstoque(btn.dataset.estoqueAdminTab, { admin: true })));
     document.querySelectorAll("[data-estoque-pro-tab]").forEach((btn) => btn.addEventListener("click", () => selecionarAbaEstoque(btn.dataset.estoqueProTab, { admin: false })));
     $("btnAdminVendasMesAnterior")?.addEventListener("click", () => void mudarMesAdmin("vendas", -1));
     $("btnAdminVendasMesProximo")?.addEventListener("click", () => void mudarMesAdmin("vendas", 1));
     $("btnCalendarioAdminVendas")?.addEventListener("click", (event) => abrirCalendarioMesAdmin("vendas", event.currentTarget));
+    $("btnLimparDiaAdminVendas")?.addEventListener("click", () => { diaVendasAdmin = null; void carregarVendasAdmin({ forcar: false }); });
     $("btnMovMesAnterior")?.addEventListener("click", () => void mudarMesAdmin("movimentacoes", -1));
     $("btnMovMesProximo")?.addEventListener("click", () => void mudarMesAdmin("movimentacoes", 1));
     $("btnCalendarioMovMes")?.addEventListener("click", (event) => abrirCalendarioMesAdmin("movimentacoes", event.currentTarget));
+    $("btnLimparDiaMov")?.addEventListener("click", () => { diaMovimentacoes = null; void carregarMovimentacoesAdmin({ forcar: false }); });
 
     $("estoqueBusca")?.addEventListener("input", renderizarProdutosAdmin);
     $("estoqueVendaBusca")?.addEventListener("input", renderizarProdutosVenda);

@@ -1,12 +1,12 @@
 import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { criarDespesa, criarDespesaParcelada, editarDespesa, excluirDespesaParcelada, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=12.0";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=12.0";
-import { state } from "./state.js?v=12.0";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=12.0";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=12.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=12.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=12.0";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=12.0";
+import { criarDespesa, criarDespesaParcelada, editarDespesa, excluirDespesaParcelada, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=13.0";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=13.0";
+import { state } from "./state.js?v=13.0";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=13.0";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=13.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=13.0";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=13.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=13.0";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
