@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.3.7";
+const CACHE_NAME = "sr-nk-v1.3.8";
 
 const CORE_SHELL = [
   "./",
@@ -45,6 +45,13 @@ self.addEventListener("activate", (event) => {
         if (await atual.match(request)) continue;
         const response = await cacheAntigo.match(request);
         if (response) await atual.put(request, response);
+      }
+    }
+
+    for (const request of await atual.keys()) {
+      const url = new URL(request.url);
+      if (url.pathname.endsWith("/js/profissional/index.js") || url.pathname.endsWith("/js/profissional/app.js")) {
+        await atual.delete(request);
       }
     }
 
