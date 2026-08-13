@@ -31,24 +31,30 @@ initTheme();
 initConnectivity();
 initNavigation();
 
-// v1.3.6 • alinha os indicadores do Painel ao padrão visual do Admin.
 const estiloFinanceiro = document.createElement("style");
-estiloFinanceiro.dataset.srnkVersion = "1.3.6";
+estiloFinanceiro.dataset.srnkVersion = "1.3.7";
 estiloFinanceiro.textContent = `
 #painel .finance-main-value,
-#painel .finance-mini-value,
-#painel .finance-service-name {
+#painel .finance-mini-value {
     font-size: 1.2rem !important;
     font-weight: 540 !important;
+    line-height: 1.2 !important;
 }
 #painel .finance-summary-item strong {
     font-size: 1.2rem !important;
     font-weight: 600 !important;
+    line-height: 1.2 !important;
 }
 #painel .finance-service-card-compact {
-    min-height: 92px !important;
+    min-height: 0 !important;
     height: auto !important;
-    padding: 14px !important;
+    padding: 13px 12px 14px !important;
+    margin-bottom: 10px !important;
+}
+#painel .finance-service-card-compact .finance-service-name {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
 }
 `;
 document.head.appendChild(estiloFinanceiro);
