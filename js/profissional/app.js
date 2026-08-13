@@ -31,16 +31,24 @@ initTheme();
 initConnectivity();
 initNavigation();
 
-// v1.3.5 • uniformiza os valores financeiros do Painel sem alterar as cores.
+// v1.3.6 • alinha os indicadores do Painel ao padrão visual do Admin.
 const estiloFinanceiro = document.createElement("style");
-estiloFinanceiro.dataset.srnkVersion = "1.3.5";
+estiloFinanceiro.dataset.srnkVersion = "1.3.6";
 estiloFinanceiro.textContent = `
 #painel .finance-main-value,
-#painel .finance-summary-item strong,
 #painel .finance-mini-value,
 #painel .finance-service-name {
     font-size: 1.2rem !important;
     font-weight: 540 !important;
+}
+#painel .finance-summary-item strong {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+}
+#painel .finance-service-card-compact {
+    min-height: 92px !important;
+    height: auto !important;
+    padding: 14px !important;
 }
 `;
 document.head.appendChild(estiloFinanceiro);
