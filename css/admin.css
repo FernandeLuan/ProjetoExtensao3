@@ -1005,7 +1005,7 @@ html, body, button, a, input, select, textarea, label {
 .finance-mini-value {
     display: block;
     color: var(--text);
-    font-size: 1.05rem;
+    font-size: .9rem;
     font-weight: 600;
     line-height: 1.2;
 }
@@ -7617,8 +7617,6 @@ button.ui-action-confirmed::after {
 .dashboard-analytics-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 14px;
 }
 .dashboard-analytics-card { min-width: 0; }
 .dashboard-analytics-wide { grid-column: 1 / -1; }
@@ -8397,7 +8395,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 }
 .barbearia-pendencias-card{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important}
 .barbearia-pendencias-content{min-width:0;flex:1 1 auto;display:grid;gap:5px}
-.barbearia-pendencias-content>strong{font-size:.7rem;color:var(--text);font-weight:650}
+.barbearia-pendencias-content>strong{font-size:.7rem;color:var(--text);font-weight:580}
 .barbearia-pendencias-valores{display:flex;flex-wrap:wrap;gap:7px 12px}
 .barbearia-pendencias-valores span{font-size:.54rem;color:var(--text-secondary)}
 .barbearia-pendencias-valores b{margin-left:4px;color:var(--text);font-weight:650}
@@ -8816,7 +8814,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
   display:block!important;
   color:var(--text)!important;
   font-size:.9rem!important;
-  font-weight:600!important;
+  font-weight:580!important;
   line-height:1.2!important;
 }
 
