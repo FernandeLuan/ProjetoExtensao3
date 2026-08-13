@@ -757,7 +757,7 @@ html, body, button, a, input, select, textarea, label {
 
 #registrar .chip-pagamento {
     min-height: 43px;
-    gap: 6px;
+    gap: 10px;
     padding: 10px 6px;
     font-size: 0.80rem;
 }
@@ -772,12 +772,12 @@ html, body, button, a, input, select, textarea, label {
 }
 
 #registrar .toggle-container {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     gap: 10px;
 }
 
 #registrar .toggle-container:not(.toggle-container-compact) {
-    margin-bottom: 14px;
+    margin: 20px 0;
 }
 
 #registrar .toggle-container-compact {
@@ -5751,7 +5751,7 @@ button.ui-action-confirmed::after {
 .estoque-venda-admin-acoes button{min-height:38px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:.68rem;font-weight:650}
 
 /* Registrar atendimento: protege o layout dos controles principais. */
-#registrar .grupo-botoes-servicos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#registrar .grupo-botoes-servicos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #registrar .btn-servico.full-width{grid-column:1/-1}
 #registrar .grupo-chips-pagamento{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #registrar #btnRegistrar{width:100%;min-height:46px;display:flex;align-items:center;justify-content:center}
