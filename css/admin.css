@@ -8921,7 +8921,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 .barbearia-mini-grid .finance-mini-card{min-width:0!important;padding:13px 12px 14px!important;min-height:86px!important;display:block!important}
 .barbearia-mini-grid .finance-mini-value{display:block!important;color:var(--text)!important;font-size:.9rem!important;font-weight:540!important;line-height:1.2!important;padding-top:2px!important}
 .barbearia-expense-card #barbeariaHomeDespesas{display:block!important;margin-top:2px!important;font-size:1.2rem!important;font-weight:540!important;color:var(--text)!important}
-.barbearia-service-card .finance-service-name{display:block!important;color:var(--text)!important;font-size:1.1rem!important;font-weight:600!important;line-height:1.2!important}
+.barbearia-service-card .finance-service-name{display:block!important;color:var(--text)!important;font-size:1.2rem!important;font-weight:600!important;line-height:1.2!important}
 .barbearia-service-card .finance-service-meta{display:none!important}
 .barbearia-pendencias-content>strong{font-size:.62rem!important;font-weight:500!important;color:var(--text-secondary)!important;line-height:1.25!important}
 .barbearia-home .finance-chart-head h3{display:flex!important;align-items:center!important;gap:4px!important}
