@@ -6018,3 +6018,26 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
     margin-top:4px!important;
 }
 .fechamento-request-card.has-result .fechamento-request-btn{margin-top:10px!important}
+
+
+/* ===== v1.3.3 • alinhamento do Painel Profissional com o Admin ===== */
+.finance-overview{padding:16px!important;margin-bottom:10px!important}
+.finance-overview .finance-overview-top{min-height:55px!important;display:block!important;align-items:initial!important;justify-content:initial!important;gap:0!important}
+.finance-overview .finance-main-icon{display:none!important}
+.finance-overview .finance-label-row .finance-label,.finance-overview .finance-summary-label>span{display:inline-flex!important;align-items:center!important;gap:5px!important}
+.finance-overview .finance-label>i,.finance-overview .finance-summary-label>span>i{width:auto!important;height:auto!important;flex:0 0 auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--text-secondary)!important;font-size:.64rem!important;opacity:.9!important}
+.finance-overview .finance-label>i.fa-wallet{color:var(--success)!important}
+.finance-overview .finance-summary-row{display:grid!important;grid-template-columns:1fr 1fr!important;padding-top:13px!important;border-top:1px solid var(--border)!important}
+.finance-overview .finance-summary-item{display:block!important;padding:0!important;border:0!important}
+.finance-overview .finance-summary-item+.finance-summary-item{padding-left:14px!important;border-left:1px solid var(--border)!important}
+.finance-overview .finance-summary-item strong{font-size:.9rem!important;font-weight:600!important;color:var(--primary)!important}
+.finance-overview .finance-summary-item:last-child strong{color:var(--warning)!important}
+.finance-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin-bottom:10px!important}
+.finance-mini-grid .finance-mini-card{min-width:0!important;padding:13px 12px 14px!important;min-height:86px!important;display:block!important}
+.finance-mini-grid .finance-mini-card::after{content:none!important;display:none!important}
+.finance-mini-grid .finance-mini-value{display:block!important;color:var(--text)!important;font-size:.9rem!important;font-weight:600!important;line-height:1.2!important;padding-top:2px!important}
+.finance-mini-grid .finance-sparkline{display:none!important}
+.finance-service-card-compact .finance-service-name{display:block!important;color:var(--text)!important;font-size:.9rem!important;font-weight:600!important;line-height:1.2!important}
+.finance-service-card-compact .finance-service-meta{display:none!important}
+.finance-chart-card .finance-chart-head h3{display:flex!important;align-items:center!important;gap:4px!important}
+.finance-chart-card .finance-chart-head h3>i{margin:0!important;padding:0!important;color:var(--text-secondary)!important;font-size:.64rem!important;line-height:1!important}

@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Gestão da Barbearia | Sr NK</title>
-<link href="../css/admin.css?v=13.2" rel="stylesheet"/>
+<link href="../css/admin.css?v=13.3" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
@@ -16,7 +16,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.2" rel="modulepreload"><link href="../js/admin/app.js?v=13.2" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.1">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.3" rel="modulepreload"><link href="../js/admin/app.js?v=13.3" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.1">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -114,7 +114,7 @@
 </article>
 <div class="dashboard-analytics-grid admin-analytics-grid">
 <article class="relatorio-card dashboard-analytics-card dashboard-analytics-wide">
-<div class="finance-chart-head"><h3>Faturamento dos últimos 7 dias</h3><p>Evolução do faturamento bruto até a data selecionada</p></div>
+<div class="finance-chart-head"><h3><i aria-hidden="true" class="fas fa-chart-line"></i> Faturamento dos últimos 7 dias</h3><p>Evolução do faturamento bruto até a data selecionada</p></div>
 <div class="relatorio-chart relatorio-chart-line"><canvas id="graficoBarbeariaFaturamento"></canvas></div>
 </article>
 <article class="relatorio-card dashboard-analytics-card">
@@ -325,7 +325,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.2</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.3</span></div>
 </div>
 </div>
 </div>
@@ -971,5 +971,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=13.2" type="module"></script></body>
+<script src="../js/admin/index.js?v=13.3" type="module"></script></body>
 </html>
