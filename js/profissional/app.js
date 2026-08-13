@@ -8,7 +8,7 @@ import { initConnectivity } from "../shared/connectivity.js?v=13.0";
 import { mostrarErro } from "../shared/services/feedback-service.js?v=13.0";
 import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=13.0";
 import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=13.0";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.0";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.1";
 import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=13.0";
 
 const AREA_ATUAL = "profissional";

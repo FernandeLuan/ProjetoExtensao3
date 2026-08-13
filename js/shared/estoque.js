@@ -129,7 +129,7 @@ function configurarVisao() {
     if ($("estoqueVendaView")) $("estoqueVendaView").hidden = admin;
     if ($("estoqueTitulo")) $("estoqueTitulo").textContent = admin ? "Estoque" : "Vender produto";
     if ($("estoqueDescricao")) $("estoqueDescricao").textContent = admin
-        ? "Produtos, vendas da equipe e movimentações."
+        ? "Produtos, vendas e movimentos."
         : "Venda produtos da equipe e acompanhe seu histórico.";
     if (admin) {
         ["estoqueAdminPainelProdutos", "estoqueAdminPainelVendas", "estoqueAdminPainelMovimentacoes"].forEach((id) => {
@@ -494,13 +494,23 @@ async function carregarVendasProfissional({ forcar = false } = {}) {
 
 async function carregarDados({ forcar = false } = {}) {
     const tarefas = [carregarProdutos({ forcar })];
-    if (podeAdministrarNaVisaoAtual()) tarefas.push(carregarAdmin({ forcar }));
-    else tarefas.push(carregarVendasProfissional({ forcar }));
+    if (podeAdministrarNaVisaoAtual()) {
+        if ($("estoqueAdminPainelVendas")?.open) tarefas.push(carregarVendasAdmin({ forcar }));
+        if ($("estoqueAdminPainelMovimentacoes")?.open) tarefas.push(carregarMovimentacoesAdmin({ forcar }));
+    } else tarefas.push(carregarVendasProfissional({ forcar }));
     await Promise.all(tarefas);
+}
+
+function fecharSecoesAdminEstoque() {
+    ["estoqueAdminPainelVendas", "estoqueAdminPainelMovimentacoes", "estoqueAdminPainelProdutos"].forEach((id) => {
+        const painel = $(id);
+        if (painel?.tagName === "DETAILS") painel.open = false;
+    });
 }
 
 export async function abrirEstoque() {
     configurarVisao();
+    if (podeAdministrarNaVisaoAtual()) fecharSecoesAdminEstoque();
     try {
         await carregarDados({ forcar: false });
     } catch (error) {
@@ -1005,6 +1015,13 @@ function vincularEventos() {
     $("btnFecharScannerEstoque")?.addEventListener("click", fecharScanner);
 
     document.querySelectorAll("[data-estoque-pro-tab]").forEach((btn) => btn.addEventListener("click", () => selecionarAbaEstoque(btn.dataset.estoqueProTab, { admin: false })));
+    $("estoqueAdminPainelVendas")?.addEventListener("toggle", () => {
+        if ($("estoqueAdminPainelVendas")?.open) void carregarVendasAdmin({ forcar: false }).catch((error) => mostrarErro(error?.message || "Não foi possível carregar as vendas."));
+    });
+    $("estoqueAdminPainelMovimentacoes")?.addEventListener("toggle", () => {
+        if ($("estoqueAdminPainelMovimentacoes")?.open) void carregarMovimentacoesAdmin({ forcar: false }).catch((error) => mostrarErro(error?.message || "Não foi possível carregar os movimentos."));
+    });
+
     $("btnAdminVendasMesAnterior")?.addEventListener("click", () => void mudarMesAdmin("vendas", -1));
     $("btnAdminVendasMesProximo")?.addEventListener("click", () => void mudarMesAdmin("vendas", 1));
     $("btnCalendarioAdminVendas")?.addEventListener("click", (event) => abrirCalendarioMesAdmin("vendas", event.currentTarget));

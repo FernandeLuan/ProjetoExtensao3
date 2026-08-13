@@ -9,7 +9,7 @@ import { mostrarErro } from "../shared/services/feedback-service.js?v=13.0";
 import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=13.0";
 import { aplicarPermissoesInterface, usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=13.0";
 import { migrarRepasseParaBaseBruta } from "../shared/data/migracao-repasse-bruto.js?v=13.0";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.0";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.1";
 import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=13.0";
 
 const AREA_ATUAL = "admin";

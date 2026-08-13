@@ -117,8 +117,8 @@ async function carregar(targetId) {
         case "registrar": { const m = await importar("registrar", "../shared/registrar.js?v=13.0"); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
         case "painelFinanceiro": { const m = await importar("painel", "../shared/painel.js?v=13.0"); await m.abrirPainelHoje?.(); return; }
         case "historico": { const m = await importar("historico", "../shared/historico.js?v=13.0"); await m.abrirHistoricoHoje?.(); return; }
-        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=13.0"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.0"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=13.1"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
+        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.1"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
         case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=13.0"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
         case "conta": { const m = await importar("conta", "../shared/conta.js?v=13.0"); m.initConta?.(); await m.abrirConta?.(); return; }
     }

@@ -133,3 +133,50 @@ export async function atualizarStatusAcertosEmLote(itens = []) {
     }
     return ids;
 }
+
+/**
+ * Quita repasse e comissão de vários dias em uma única operação por documento.
+ * Usado no fechamento semanal: um toque por profissional, sem precisar baixar dia a dia.
+ */
+export async function quitarAcertosEmLote(itens = []) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode dar baixa nos acertos.");
+    const validos = (itens || []).filter((item) => item?.profissionalUid);
+    if (!validos.length) return [];
+
+    const ids = [];
+    for (let inicioChunk = 0; inicioChunk < validos.length; inicioChunk += 400) {
+        const chunk = validos.slice(inicioChunk, inicioChunk + 400);
+        const batch = writeBatch(db);
+        chunk.forEach((item) => {
+            const inicio = normalizarDia(item.inicio);
+            const fim = normalizarDia(item.fim);
+            const id = acertoId(item.profissionalUid, inicio, fim);
+            const agora = serverTimestamp();
+            const repasse = Number(Number(item.repasse || 0).toFixed(2));
+            const comissao = Number(Number(item.comissao || 0).toFixed(2));
+            const dados = {
+                profissionalUid: item.profissionalUid,
+                profissionalNome: String(item.profissionalNome || "Profissional"),
+                periodoInicio: Timestamp.fromDate(inicio),
+                periodoFim: Timestamp.fromDate(fim),
+                repasseValor: repasse,
+                comissaoValor: comissao,
+                saldoValor: Number(Number(item.saldo || repasse - comissao).toFixed(2)),
+                atualizadoPorUid: obterUidAtual(),
+                atualizadoEm: agora
+            };
+            if (repasse > 0.009) {
+                dados.repasseRecebido = true;
+                dados.repasseRecebidoEm = agora;
+            }
+            if (comissao > 0.009) {
+                dados.comissaoPaga = true;
+                dados.comissaoPagaEm = agora;
+            }
+            batch.set(doc(col(), id), dados, { merge: true });
+            ids.push(id);
+        });
+        await batch.commit();
+    }
+    return ids;
+}

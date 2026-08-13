@@ -8600,3 +8600,151 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
     color:var(--text-secondary)!important;
     font-size:.64rem!important;
 }
+
+/* ===== v1.3.1 • alinhamento final e consistência visual ===== */
+/* O "i" acompanha a linha do label, sem subir/descer entre cards. */
+.finance-label-row,
+.finance-summary-label{
+    align-items:center!important;
+}
+.finance-label-row .finance-label{
+    display:inline-flex!important;
+    align-items:center!important;
+    margin:0!important;
+    line-height:1.2!important;
+}
+.finance-info-btn{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    align-self:center!important;
+    width:14px!important;
+    height:14px!important;
+    min-width:14px!important;
+    flex:0 0 14px!important;
+    margin:0!important;
+    padding:0!important;
+    line-height:1!important;
+    vertical-align:middle!important;
+    color:var(--text-secondary)!important;
+    opacity:.66!important;
+}
+.finance-info-btn i{
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    font-size:.55rem!important;
+    line-height:1!important;
+}
+
+/* Lucro do Admin replica o card principal do Profissional: carteira verde à direita. */
+.barbearia-finance-overview .finance-overview-top{
+    min-height:76px!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+}
+.barbearia-finance-overview .finance-main-icon{
+    display:flex!important;
+    width:44px!important;
+    height:44px!important;
+    flex:0 0 44px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:50%!important;
+    background:rgba(22,163,74,.12)!important;
+    color:var(--success)!important;
+    font-size:1rem!important;
+}
+
+/* Ícones analíticos ficam imediatamente antes do texto, não soltos na margem. */
+.barbearia-home .relatorio-card-head,
+.barbearia-home-equipe-head{
+    display:block!important;
+}
+.barbearia-home .relatorio-card-head h3,
+.barbearia-home-equipe-head h3{
+    display:flex!important;
+    align-items:center!important;
+    gap:4px!important;
+}
+.barbearia-home .relatorio-card-head h3>i,
+.barbearia-home-equipe-head h3>i{
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    color:var(--text-secondary)!important;
+    font-size:.62rem!important;
+    line-height:1!important;
+}
+
+/* Ranking das formas de pagamento usa a mesma leitura azul do ranking de serviços. */
+#barbeariaPagamentosLista .relatorio-ranking-pos{
+    color:#2563eb!important;
+    font-weight:750!important;
+}
+
+/* Fechamento: o próprio card cresce e o botão permanece no rodapé. */
+.fechamento-request-card{
+    grid-template-columns:auto minmax(0,1fr)!important;
+}
+.fechamento-request-copy{min-width:0}
+.fechamento-request-card #fechamentoResultadoBox{
+    grid-column:1/-1!important;
+    width:100%!important;
+    margin:5px 0 0!important;
+    padding-top:12px!important;
+    border-top:1px solid var(--border)!important;
+}
+.fechamento-request-card .fechamento-request-btn{
+    grid-column:1/-1!important;
+    order:10!important;
+    margin-top:4px!important;
+}
+.fechamento-request-card.has-result .fechamento-request-btn{
+    margin-top:10px!important;
+}
+
+/* Acerto semanal: resumo rápido + uma baixa completa por profissional/período. */
+.acerto-resumo-periodo{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    padding:9px 10px;
+    border-top:1px solid var(--border);
+    background:color-mix(in srgb,var(--primary) 2%,var(--bg));
+}
+.acerto-resumo-periodo span{
+    min-width:0;
+    color:var(--text-secondary);
+    font-size:.52rem;
+    line-height:1.25;
+}
+.acerto-resumo-periodo strong{
+    display:block;
+    margin-top:2px;
+    color:var(--text);
+    font-size:.62rem;
+    white-space:nowrap;
+}
+.acerto-resumo-periodo span:first-child strong{color:var(--success)}
+.acerto-resumo-periodo span:nth-child(2) strong{color:#dc2626}
+.acerto-lote-actions-simples{grid-template-columns:1fr!important}
+.acerto-finalizar-btn{
+    width:100%!important;
+    min-height:38px!important;
+    border-color:color-mix(in srgb,var(--success) 38%,var(--border))!important;
+    background:color-mix(in srgb,var(--success) 10%,var(--bg-card))!important;
+    color:var(--success)!important;
+    font-size:.58rem!important;
+    font-weight:700!important;
+}
+
+/* Estoque gerencial. */
+#estoqueAdminPainelVendas .estoque-resumo-card strong{
+    font-size:.86rem!important;
+    white-space:nowrap!important;
+}

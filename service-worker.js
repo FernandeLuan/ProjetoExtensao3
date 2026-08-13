@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.3.0";
+const CACHE_NAME = "sr-nk-v1.3.1";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.
@@ -32,11 +32,28 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    // Reaproveita JS/CSS imutáveis da versão anterior. Assim uma atualização
+    // pequena não obriga o iPhone a baixar novamente toda a árvore de módulos.
+    const keys = await caches.keys();
+    const antigos = keys.filter((key) => key !== CACHE_NAME && key.startsWith("sr-nk-"));
+    const atual = await caches.open(CACHE_NAME);
+
+    for (const key of antigos) {
+      const cacheAntigo = await caches.open(key);
+      const requests = await cacheAntigo.keys();
+      for (const request of requests) {
+        const url = new URL(request.url);
+        if (!(url.pathname.endsWith(".js") || url.pathname.endsWith(".css"))) continue;
+        if (await atual.match(request)) continue;
+        const response = await cacheAntigo.match(request);
+        if (response) await atual.put(request, response);
+      }
+    }
+
+    await Promise.all(antigos.map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 async function salvarNoCache(request, response) {

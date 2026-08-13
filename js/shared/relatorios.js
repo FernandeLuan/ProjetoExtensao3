@@ -2,7 +2,7 @@ import { state } from "./state.js?v=13.0";
 import { obterAtendimentosPeriodo } from "./data/sync.js?v=13.0";
 import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=13.0";
 import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=13.0";
-import { listarAcertosPorPeriodo, atualizarStatusAcerto, atualizarStatusAcertosEmLote } from "./data/acertos-repository.js?v=13.0";
+import { listarAcertosPorPeriodo, atualizarStatusAcerto, atualizarStatusAcertosEmLote, quitarAcertosEmLote } from "./data/acertos-repository.js?v=13.1";
 import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=13.0";
 import { obterBrutoAtendimento, obterRepasseAtendimento, obterTaxaCartaoValor } from "./services/financeiro-service.js?v=13.0";
 import { inicioDoDia, somarDias, chaveData, paraDate, dataDeInput, formatarTituloData } from "./utils/date.js?v=13.0";
@@ -18,9 +18,11 @@ let ultimoTexto = "";
 let ultimaMeta = null;
 let acertosMesAtual = [];
 let acertosOperacionais = [];
-let carregandoAcertos = null;
+const carregamentosAcertos = new Map();
+const cacheAcertosPeriodo = new Map();
 
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000;
+const CACHE_ACERTOS_TTL_MS = 2 * 60 * 1000;
 const el = (id) => document.getElementById(id);
 const btnAnterior = el("btnRelDataAnterior");
 const btnProxima = el("btnRelDataProxima");
@@ -32,6 +34,7 @@ const inputFim = el("dataFimRelatorio");
 const btnAplicarPeriodo = el("btnAplicarPeriodoRelatorio");
 const btnSolicitar = el("btnSolicitarFechamento");
 const resultadoBox = el("fechamentoResultadoBox");
+const requestCard = el("fechamentoRequestCard");
 const textoEl = el("fechamentoTexto");
 const statusEl = el("relatorioStatus");
 const acertosSection = el("fechamentoAcertosEquipe");
@@ -179,6 +182,7 @@ function restaurarResultadoDoCache() {
     ultimaMeta = cache.meta || null;
     if (textoEl) textoEl.value = ultimoTexto;
     if (resultadoBox) resultadoBox.hidden = false;
+    requestCard?.classList.add("has-result");
     setStatus();
     return true;
 }
@@ -309,23 +313,23 @@ function percentualRepasse(atendimentos) {
     return `${Number(fallback || 0).toFixed(2).replace(/\.00$/, "").replace(".", ",")}%`;
 }
 
-function dentroDoPeriodo(data) {
+function dentroDoPeriodo(data, inicio = periodoInicio, fim = periodoFim) {
     const valor = paraDate(data);
     if (!valor) return false;
     const tempo = valor.getTime();
-    const min = inicioDoDia(periodoInicio).getTime();
-    const max = new Date(periodoFim.getFullYear(), periodoFim.getMonth(), periodoFim.getDate(), 23, 59, 59, 999).getTime();
+    const min = inicioDoDia(inicio).getTime();
+    const max = new Date(fim.getFullYear(), fim.getMonth(), fim.getDate(), 23, 59, 59, 999).getTime();
     return tempo >= min && tempo <= max;
 }
 
-function filtrarAtendimentos(lista, profissionalUid = null) {
-    return (lista || []).filter((item) => dentroDoPeriodo(item?.dataAtendimento || item?.data) && (!profissionalUid || item?.profissionalUid === profissionalUid));
+function filtrarAtendimentos(lista, profissionalUid = null, inicio = periodoInicio, fim = periodoFim) {
+    return (lista || []).filter((item) => dentroDoPeriodo(item?.dataAtendimento || item?.data, inicio, fim) && (!profissionalUid || item?.profissionalUid === profissionalUid));
 }
-function filtrarVendas(lista, profissionalUid = null) {
-    return (lista || []).filter((item) => item?.cancelada !== true && dentroDoPeriodo(item?.dataVenda) && (!profissionalUid || item?.profissionalUid === profissionalUid));
+function filtrarVendas(lista, profissionalUid = null, inicio = periodoInicio, fim = periodoFim) {
+    return (lista || []).filter((item) => item?.cancelada !== true && dentroDoPeriodo(item?.dataVenda, inicio, fim) && (!profissionalUid || item?.profissionalUid === profissionalUid));
 }
-function filtrarDespesas(lista) {
-    return (lista || []).filter((item) => item?.tipo === "barbearia" && dentroDoPeriodo(item?.dataDespesa || item?.data));
+function filtrarDespesas(lista, inicio = periodoInicio, fim = periodoFim) {
+    return (lista || []).filter((item) => item?.tipo === "barbearia" && dentroDoPeriodo(item?.dataDespesa || item?.data, inicio, fim));
 }
 
 function fechamentoProfissional({ atendimentos, vendas }) {
@@ -562,6 +566,49 @@ function linhaAcertoHtml(item, tipo, acerto) {
     </div>`;
 }
 
+function chaveCacheAcertosPeriodo(inicio = periodoInicio, fim = periodoFim) {
+    return `${chaveData(inicio)}:${chaveData(fim)}`;
+}
+
+function lerCacheAcertosPeriodo(inicio = periodoInicio, fim = periodoFim) {
+    const item = cacheAcertosPeriodo.get(chaveCacheAcertosPeriodo(inicio, fim));
+    if (!item || Date.now() - item.salvoEm > CACHE_ACERTOS_TTL_MS) return null;
+    return item;
+}
+
+function salvarCacheAcertosPeriodo(inicio = periodoInicio, fim = periodoFim, operacionais = acertosOperacionais, acertos = acertosMesAtual) {
+    cacheAcertosPeriodo.set(chaveCacheAcertosPeriodo(inicio, fim), {
+        salvoEm: Date.now(),
+        operacionais: operacionais.map((item) => ({ ...item })),
+        acertos: acertos.map((item) => ({ ...item }))
+    });
+}
+
+function atualizarAcertoLocal(item, tipo, pago = true) {
+    const chaveDia = chaveData(item.dia);
+    let indice = acertosMesAtual.findIndex((acerto) => {
+        const inicio = dataAcerto(acerto?.periodoInicio);
+        const fim = dataAcerto(acerto?.periodoFim);
+        return String(acerto?.profissionalUid || "") === String(item.uid)
+            && inicio && fim
+            && chaveData(inicio) === chaveDia
+            && chaveData(fim) === chaveDia;
+    });
+    const base = indice >= 0 ? { ...acertosMesAtual[indice] } : {
+        profissionalUid: item.uid,
+        profissionalNome: item.nome,
+        periodoInicio: new Date(item.dia),
+        periodoFim: new Date(item.dia)
+    };
+    base.repasseValor = Number(item.repasse || 0);
+    base.comissaoValor = Number(item.comissao || 0);
+    base.saldoValor = Number(item.saldo || 0);
+    if (tipo === "repasse" || tipo === "ambos") base.repasseRecebido = pago === true;
+    if (tipo === "comissao" || tipo === "ambos") base.comissaoPaga = pago === true;
+    if (indice >= 0) acertosMesAtual[indice] = base;
+    else acertosMesAtual.push(base);
+}
+
 function renderizarAcertosEquipe(itens = acertosOperacionais, acertos = acertosMesAtual) {
     if (!acertosSection || !acertosLista || !podeAdministrarNaVisaoAtual()) return;
     acertosSection.hidden = false;
@@ -592,12 +639,18 @@ function renderizarAcertosEquipe(itens = acertosOperacionais, acertos = acertosM
             return linhaAcertoHtml(item, "repasse", acerto) + linhaAcertoHtml(item, "comissao", acerto);
         }).join("");
         const saldo = Number((receber - pagar).toFixed(2));
-        const acoes = repassesPendentes || comissoesPendentes ? `<div class="acerto-lote-actions">
-            ${repassesPendentes ? `<button data-acerto-lote="repasse" type="button"><i class="fas fa-arrow-down"></i> Receber repasses</button>` : ""}
-            ${comissoesPendentes ? `<button class="is-debit" data-acerto-lote="comissao" type="button"><i class="fas fa-arrow-up"></i> Pagar comissões</button>` : ""}
+        const temPendencia = repassesPendentes > 0 || comissoesPendentes > 0;
+        const resumoPeriodo = `<div class="acerto-resumo-periodo">
+            <span>A receber <strong>${moeda(receber)}</strong></span>
+            <span>A pagar <strong>${moeda(pagar)}</strong></span>
+            <span class="is-saldo">Saldo <strong>${moeda(Math.abs(saldo))}</strong></span>
+        </div>`;
+        const acoes = temPendencia ? `<div class="acerto-lote-actions acerto-lote-actions-simples">
+            <button class="acerto-finalizar-btn" data-acerto-lote="ambos" type="button"><i class="fas fa-circle-check"></i> Finalizar acerto do período</button>
         </div>` : "";
         return `<details class="acerto-profissional-card" data-acerto-uid="${escaparHtml(grupo.uid)}">
             <summary class="acerto-profissional-head"><div><strong>${escaparHtml(grupo.nome)}</strong><span>${pendencias ? `${pendencias} pendência${pendencias === 1 ? "" : "s"}` : "Tudo quitado no período"}</span></div><span class="acerto-status ${pendencias ? "is-pending" : "is-ok"}">${pendencias ? "Pendente" : "Quitado"}</span><i class="fas fa-chevron-down"></i></summary>
+            ${resumoPeriodo}
             ${acoes}
             <div class="acerto-linhas">${linhas}</div>
             <div class="acerto-saldo"><span>${saldo >= 0 ? "Saldo a receber" : "Saldo a pagar"}</span><strong>${moeda(Math.abs(saldo))}</strong></div>
@@ -608,31 +661,60 @@ function renderizarAcertosEquipe(itens = acertosOperacionais, acertos = acertosM
 
 async function carregarAcertosDoPeriodo({ forcar = false, dados = null } = {}) {
     if (!podeAdministrarNaVisaoAtual()) return [];
-    if (carregandoAcertos && !forcar && !dados) return carregandoAcertos;
     if (acertosSection) acertosSection.hidden = false;
+
+    const inicioConsulta = inicioDoDia(periodoInicio);
+    const fimConsulta = inicioDoDia(periodoFim);
+    const chaveConsulta = chaveCacheAcertosPeriodo(inicioConsulta, fimConsulta);
+
+    if (!forcar && !dados) {
+        const cache = lerCacheAcertosPeriodo(inicioConsulta, fimConsulta);
+        if (cache) {
+            acertosOperacionais = cache.operacionais.map((item) => ({ ...item }));
+            acertosMesAtual = cache.acertos.map((item) => ({ ...item }));
+            renderizarAcertosEquipe(acertosOperacionais, acertosMesAtual);
+            return acertosOperacionais;
+        }
+        if (carregamentosAcertos.has(chaveConsulta)) return carregamentosAcertos.get(chaveConsulta);
+    }
+
     if (acertosLista && !dados) acertosLista.innerHTML = '<div class="acerto-vazio is-loading"><span class="ui-button-spinner"></span><strong>Carregando acertos…</strong></div>';
 
     const tarefa = (async () => {
         const origem = dados || await (async () => {
             const [atendimentos, vendas] = await Promise.all([
-                obterAtendimentosPeriodo(periodoInicio, periodoFim, { profissionalUid: null, forcar }),
-                listarVendasPorPeriodo(periodoInicio, periodoFim, { profissionalUid: null, forcar, incluirCanceladas: false })
+                obterAtendimentosPeriodo(inicioConsulta, fimConsulta, { profissionalUid: null, forcar }),
+                listarVendasPorPeriodo(inicioConsulta, fimConsulta, { profissionalUid: null, forcar, incluirCanceladas: false })
             ]);
-            return { atendimentos: filtrarAtendimentos(atendimentos), vendas: filtrarVendas(vendas) };
+            return {
+                atendimentos: filtrarAtendimentos(atendimentos, null, inicioConsulta, fimConsulta),
+                vendas: filtrarVendas(vendas, null, inicioConsulta, fimConsulta)
+            };
         })();
-        const acertos = await listarAcertosPorPeriodo(periodoInicio, periodoFim, { forcar });
-        acertosOperacionais = montarAcertosDiarios(origem.atendimentos || [], origem.vendas || []);
-        acertosMesAtual = acertos;
-        renderizarAcertosEquipe(acertosOperacionais, acertosMesAtual);
-        return acertosOperacionais;
+        const acertos = await listarAcertosPorPeriodo(inicioConsulta, fimConsulta, { forcar });
+        const operacionais = montarAcertosDiarios(origem.atendimentos || [], origem.vendas || []);
+        salvarCacheAcertosPeriodo(inicioConsulta, fimConsulta, operacionais, acertos);
+
+        // Uma consulta antiga nunca sobrescreve a data que o usuário já trocou.
+        if (chaveConsulta === chaveCacheAcertosPeriodo()) {
+            acertosOperacionais = operacionais;
+            acertosMesAtual = acertos;
+            renderizarAcertosEquipe(acertosOperacionais, acertosMesAtual);
+        }
+        return operacionais;
     })();
-    carregandoAcertos = tarefa;
+
+    carregamentosAcertos.set(chaveConsulta, tarefa);
     try { return await tarefa; }
     catch (error) {
         console.warn("Não foi possível carregar acertos:", error);
-        if (acertosLista) acertosLista.innerHTML = '<div class="acerto-vazio"><strong>Não foi possível carregar os acertos.</strong><span>Tente novamente ao abrir o Fechamento.</span></div>';
+        if (chaveConsulta === chaveCacheAcertosPeriodo() && acertosLista) {
+            acertosLista.innerHTML = '<div class="acerto-vazio"><strong>Não foi possível carregar os acertos.</strong><span>Tente novamente ao abrir o Fechamento.</span></div>';
+        }
         return [];
-    } finally { if (carregandoAcertos === tarefa) carregandoAcertos = null; }
+    } finally {
+        if (carregamentosAcertos.get(chaveConsulta) === tarefa) carregamentosAcertos.delete(chaveConsulta);
+    }
 }
 
 async function alternarBaixaAcerto(botao) {
@@ -655,7 +737,8 @@ async function alternarBaixaAcerto(botao) {
             tipo,
             pago: !pagoAtual
         });
-        acertosMesAtual = await listarAcertosPorPeriodo(periodoInicio, periodoFim, { forcar: true });
+        atualizarAcertoLocal(item, tipo, !pagoAtual);
+        salvarCacheAcertosPeriodo();
         renderizarAcertosEquipe(acertosOperacionais, acertosMesAtual);
         mostrarSucesso(!pagoAtual ? (tipo === "repasse" ? "Repasse marcado como recebido." : "Comissão marcada como paga.") : "Baixa reaberta.");
     } catch (error) {
@@ -668,23 +751,34 @@ async function baixarAcertosEmLote(botao) {
     const card = botao?.closest("[data-acerto-uid]");
     const uid = card?.dataset.acertoUid;
     const tipo = botao?.dataset.acertoLote;
-    if (!uid || !["repasse", "comissao"].includes(tipo)) return;
+    if (!uid || !["repasse", "comissao", "ambos"].includes(tipo)) return;
     const itens = acertosOperacionais.filter((item) => String(item.uid) === String(uid)).filter((item) => {
         const acerto = acertoDiarioSalvo(item, acertosMesAtual);
-        return tipo === "repasse"
-            ? item.repasse > .009 && !baixaValida(item.repasse, acerto?.repasseValor, acerto?.repasseRecebido)
-            : item.comissao > .009 && !baixaValida(item.comissao, acerto?.comissaoValor, acerto?.comissaoPaga);
+        const repassePendente = item.repasse > .009 && !baixaValida(item.repasse, acerto?.repasseValor, acerto?.repasseRecebido);
+        const comissaoPendente = item.comissao > .009 && !baixaValida(item.comissao, acerto?.comissaoValor, acerto?.comissaoPaga);
+        if (tipo === "repasse") return repassePendente;
+        if (tipo === "comissao") return comissaoPendente;
+        return repassePendente || comissaoPendente;
     });
     if (!itens.length) return;
-    iniciarAcaoBotao(botao, tipo === "repasse" ? "Recebendo..." : "Pagando...");
+    iniciarAcaoBotao(botao, tipo === "ambos" ? "Finalizando..." : (tipo === "repasse" ? "Recebendo..." : "Pagando..."));
     try {
-        await atualizarStatusAcertosEmLote(itens.map((item) => ({
-            profissionalUid: item.uid, profissionalNome: item.nome, inicio: item.dia, fim: item.dia,
-            repasse: item.repasse, comissao: item.comissao, saldo: item.saldo, tipo, pago: true
-        })));
-        acertosMesAtual = await listarAcertosPorPeriodo(periodoInicio, periodoFim, { forcar: true });
+        if (tipo === "ambos") {
+            await quitarAcertosEmLote(itens.map((item) => ({
+                profissionalUid: item.uid, profissionalNome: item.nome, inicio: item.dia, fim: item.dia,
+                repasse: item.repasse, comissao: item.comissao, saldo: item.saldo
+            })));
+            itens.forEach((item) => atualizarAcertoLocal(item, "ambos", true));
+        } else {
+            await atualizarStatusAcertosEmLote(itens.map((item) => ({
+                profissionalUid: item.uid, profissionalNome: item.nome, inicio: item.dia, fim: item.dia,
+                repasse: item.repasse, comissao: item.comissao, saldo: item.saldo, tipo, pago: true
+            })));
+            itens.forEach((item) => atualizarAcertoLocal(item, tipo, true));
+        }
+        salvarCacheAcertosPeriodo();
         renderizarAcertosEquipe(acertosOperacionais, acertosMesAtual);
-        mostrarSucesso(tipo === "repasse" ? "Repasses do período marcados como recebidos." : "Comissões do período marcadas como pagas.");
+        mostrarSucesso(tipo === "ambos" ? "Acerto do período finalizado." : (tipo === "repasse" ? "Repasses do período marcados como recebidos." : "Comissões do período marcadas como pagas."));
     } catch (error) {
         console.error(error);
         mostrarErro(error?.message || "Não foi possível concluir as baixas.");
@@ -738,6 +832,7 @@ async function solicitarFechamento() {
         salvarCache(ultimoTexto, ultimaMeta);
         if (textoEl) textoEl.value = ultimoTexto;
         if (resultadoBox) resultadoBox.hidden = false;
+        requestCard?.classList.add("has-result");
         await concluirAcaoBotao(btnSolicitar, "Fechamento pronto ✓", 420);
         setStatus();
         resultadoBox?.scrollIntoView?.({ behavior: "smooth", block: "start" });
@@ -776,7 +871,7 @@ function enviarWhatsApp() {
 
 export async function prepararRelatoriosHoje() {
     atualizarNavegador();
-    if (podeAdministrarNaVisaoAtual()) await carregarAcertosDoPeriodo({ forcar: false });
+    if (podeAdministrarNaVisaoAtual()) void carregarAcertosDoPeriodo({ forcar: false });
 }
 
 export async function initRelatorios() {

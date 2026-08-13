@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Área Profissional | Sr NK</title>
-<link href="../css/profissional.css?v=13.0" rel="stylesheet"/>
+<link href="../css/profissional.css?v=13.1" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
@@ -16,7 +16,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/profissional/index.js?v=13.0" rel="modulepreload"><link href="../js/profissional/app.js?v=13.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=13.0">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/profissional/index.js?v=13.1" rel="modulepreload"><link href="../js/profissional/app.js?v=13.1" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=13.0">
 </head>
 <body class="dashboard-booting" data-srnk-area="profissional" data-srnk-visao="profissional">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -193,18 +193,11 @@
 </article>
 </div>
 <!-- Serviço mais vendido -->
-<article class="finance-card finance-service-card">
+<article class="finance-card finance-service-card finance-service-card-compact">
 <div class="finance-service-content">
-<span class="finance-label">
-                Serviço mais vendido
-            </span>
-<strong class="finance-service-name" id="servicoMaisVendidoPainel">
-                —
-            </strong>
+<span class="finance-label"><i aria-hidden="true" class="fas fa-star"></i> Serviço mais vendido</span>
+<strong class="finance-service-name" id="servicoMaisVendidoPainel">—</strong>
 <span class="finance-service-meta" id="servicoMaisVendidoMeta"></span>
-</div>
-<div aria-hidden="true" class="finance-service-icon">
-<i class="fas fa-star"></i>
 </div>
 </article>
 <!-- Gráfico principal -->
@@ -216,12 +209,12 @@
 </article>
 <div class="dashboard-analytics-grid">
 <article class="relatorio-card dashboard-analytics-card">
-<div class="relatorio-card-head"><div><h3>Serviços do dia</h3><p>Quantidade por serviço na data selecionada</p></div><i class="fas fa-scissors"></i></div>
+<div class="relatorio-card-head"><div><h3><i aria-hidden="true" class="fas fa-scissors"></i> Serviços do dia</h3><p>Quantidade por serviço na data selecionada</p></div></div>
 <div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoPainelServicos"></canvas></div>
 <div class="relatorio-ranking" id="painelServicosLista"></div>
 </article>
 <article class="relatorio-card dashboard-analytics-card">
-<div class="relatorio-card-head"><div><h3>Formas de pagamento</h3><p>Distribuição do faturamento bruto na data selecionada</p></div><i class="fas fa-wallet"></i></div>
+<div class="relatorio-card-head"><div><h3><i aria-hidden="true" class="fas fa-wallet"></i> Formas de pagamento</h3><p>Distribuição do faturamento bruto na data selecionada</p></div></div>
 <div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoPainelPagamentos"></canvas></div>
 <div class="relatorio-ranking" id="painelPagamentosLista"></div>
 </article>
@@ -244,11 +237,9 @@
 <label class="relatorio-date-field"><span>Até</span><div class="relatorio-date-control" data-date-target="dataFimRelatorio"><input id="dataFimRelatorio" inputmode="none" readonly required type="date"/><i aria-hidden="true" class="fas fa-calendar-days"></i></div></label>
 <button id="btnAplicarPeriodoRelatorio" type="button">Aplicar período</button>
 </div>
-<article class="fechamento-request-card">
+<article class="fechamento-request-card" id="fechamentoRequestCard">
 <div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-<div><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
-<button class="btn fechamento-request-btn" id="btnSolicitarFechamento" type="button">Solicitar fechamento</button>
-</article>
+<div class="fechamento-request-copy"><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
 <div class="fechamento-output" hidden id="fechamentoResultadoBox">
 <label for="fechamentoTexto">Texto pronto</label>
 <textarea id="fechamentoTexto" readonly rows="12"></textarea>
@@ -257,6 +248,8 @@
 <button class="relatorio-whatsapp" id="btnWhatsApp" type="button"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></button>
 </div>
 </div>
+<button class="btn fechamento-request-btn" id="btnSolicitarFechamento" type="button">Solicitar fechamento</button>
+</article>
 <div aria-live="polite" class="relatorio-status" id="relatorioStatus"></div>
 </section>
 <!-- HISTÓRICO -->
@@ -876,5 +869,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/profissional/index.js?v=13.0" type="module"></script></body>
+<script src="../js/profissional/index.js?v=13.1" type="module"></script></body>
 </html>

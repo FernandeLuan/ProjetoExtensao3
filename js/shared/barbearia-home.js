@@ -294,14 +294,6 @@ function atualizarNavegadorData() {
     }
 }
 
-function inicioMes(data) {
-    const d = inicioDoDia(data);
-    return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-function fimMes(data) {
-    const d = inicioMes(data);
-    return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-}
 function renderPendencias({ quantidade = 0, receber = 0, pagar = 0 } = {}) {
     const qtd = el("barbeariaPendenciasQtd");
     const rec = el("barbeariaPendenciasReceber");
@@ -311,12 +303,10 @@ function renderPendencias({ quantidade = 0, receber = 0, pagar = 0 } = {}) {
     if (pag) pag.textContent = moeda(pagar);
 }
 
-async function carregarPendenciasMes(membros, { forcar = false } = {}) {
+async function carregarPendenciasDia(membros, { forcar = false } = {}) {
     if (!el("barbeariaPendenciasQtd")) return;
-    const inicio = inicioMes(dataSelecionada);
-    const hoje = inicioDoDia(new Date());
-    const fimNatural = fimMes(dataSelecionada);
-    const fim = fimNatural > hoje ? hoje : fimNatural;
+    const inicio = inicioDoDia(dataSelecionada);
+    const fim = inicioDoDia(dataSelecionada);
     try {
         const profissionais = membros.filter((membro) => membro?.dono !== true);
         const [resumosPorMembro, vendas, acertos] = await Promise.all([
@@ -436,7 +426,7 @@ async function carregarDados({ forcar = false, aguardarSerie = false } = {}) {
     const total = consolidarBarbearia(resumosEquipe, resumosBarbearia, dataAtual);
     renderResumo(total, resumosEquipe);
     setStatus();
-    void carregarPendenciasMes(membros, { forcar }).catch(() => null);
+    void carregarPendenciasDia(membros, { forcar }).catch(() => null);
 
     const serie = carregarSerieAnterior(membros, total, { forcar });
     if (aguardarSerie) await serie;

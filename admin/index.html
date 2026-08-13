@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Gestão da Barbearia | Sr NK</title>
-<link href="../css/admin.css?v=13.0" rel="stylesheet"/>
+<link href="../css/admin.css?v=13.1" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
@@ -16,7 +16,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.0" rel="modulepreload"><link href="../js/admin/app.js?v=13.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.0">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.1" rel="modulepreload"><link href="../js/admin/app.js?v=13.1" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.1">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -61,9 +61,10 @@
 <article class="finance-card finance-overview barbearia-finance-overview" data-visao-card="resumo">
 <div class="finance-overview-top">
 <div>
-<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-wallet barbearia-lucro-wallet"></i> Lucro líquido</span><button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button"><i class="fas fa-circle-info"></i></button></div>
+<div class="finance-label-row"><span class="finance-label">Lucro líquido</span><button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong class="finance-main-value" id="barbeariaHomeLucro">R$ 0,00</strong>
 </div>
+<div aria-hidden="true" class="finance-main-icon"><i class="fas fa-wallet"></i></div>
 </div>
 <div class="finance-summary-row">
 <div class="finance-summary-item">
@@ -104,10 +105,9 @@
 <article class="barbearia-home-equipe-card">
 <div class="relatorio-card-head barbearia-home-equipe-head">
 <div>
-<h3>Equipe</h3>
+<h3><i aria-hidden="true" class="fas fa-users"></i> Equipe</h3>
 <p>Produção do dia • <span id="barbeariaHomeEquipeTotal">0 profissionais</span></p>
 </div>
-<i aria-hidden="true" class="fas fa-users"></i>
 </div>
 <div class="barbearia-home-equipe-lista" id="barbeariaHomeEquipeLista">
 <div class="barbearia-home-vazio">Nenhum atendimento registrado neste dia.</div>
@@ -119,12 +119,12 @@
 <div class="relatorio-chart relatorio-chart-line"><canvas id="graficoBarbeariaFaturamento"></canvas></div>
 </article>
 <article class="relatorio-card dashboard-analytics-card">
-<div class="relatorio-card-head"><div><h3>Serviços do dia</h3><p>Quantidade por serviço na data selecionada</p></div><i class="fas fa-scissors"></i></div>
+<div class="relatorio-card-head"><div><h3><i aria-hidden="true" class="fas fa-scissors"></i> Serviços do dia</h3><p>Quantidade por serviço na data selecionada</p></div></div>
 <div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoBarbeariaServicos"></canvas></div>
 <div class="relatorio-ranking" id="barbeariaServicosLista"></div>
 </article>
 <article class="relatorio-card dashboard-analytics-card">
-<div class="relatorio-card-head"><div><h3>Formas de pagamento</h3><p>Distribuição do faturamento bruto na data selecionada</p></div><i class="fas fa-wallet"></i></div>
+<div class="relatorio-card-head"><div><h3><i aria-hidden="true" class="fas fa-wallet"></i> Formas de pagamento</h3><p>Distribuição do faturamento bruto na data selecionada</p></div></div>
 <div class="relatorio-chart relatorio-chart-donut"><canvas id="graficoBarbeariaPagamentos"></canvas></div>
 <div class="relatorio-ranking" id="barbeariaPagamentosLista"></div>
 </article>
@@ -153,11 +153,9 @@
 <div class="fechamento-acertos-lista" id="fechamentoAcertosLista"></div>
 <div class="fechamento-acertos-historico" hidden id="fechamentoAcertosHistoricoBox"><h4>Acertos registrados no mês</h4><div id="fechamentoAcertosHistorico"></div></div>
 </section>
-<article class="fechamento-request-card">
+<article class="fechamento-request-card" id="fechamentoRequestCard">
 <div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-<div><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
-<button class="btn fechamento-request-btn" id="btnSolicitarFechamento" type="button">Solicitar fechamento</button>
-</article>
+<div class="fechamento-request-copy"><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
 <div class="fechamento-output" hidden id="fechamentoResultadoBox">
 <label for="fechamentoTexto">Texto pronto</label>
 <textarea id="fechamentoTexto" readonly rows="12"></textarea>
@@ -166,6 +164,8 @@
 <button class="relatorio-whatsapp" id="btnWhatsApp" type="button"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></button>
 </div>
 </div>
+<button class="btn fechamento-request-btn" id="btnSolicitarFechamento" type="button">Solicitar fechamento</button>
+</article>
 
 <div aria-live="polite" class="relatorio-status" id="relatorioStatus"></div>
 </section>
@@ -300,7 +300,7 @@
 <div class="config-group-content" hidden="" id="configGroupRetroativo">
 <form class="retro-form" id="formAtendimentoRetroativo" novalidate="">
 <label class="retro-field"><span id="labelRetroProfissional">Profissional</span><select id="retroProfissional" required=""></select></label>
-<label class="retro-field"><span id="labelRetroData">Data</span><div class="retro-date-control"><input id="retroData" required="" type="date"/><button aria-label="Abrir calendário" id="btnCalendarioRetro" type="button"><i class="fas fa-calendar-days"></i></button></div></label>
+<label class="retro-field"><span id="labelRetroData">Data</span><div class="retro-date-control"><input id="retroData" inputmode="none" readonly required type="text"/><button aria-label="Abrir calendário" id="btnCalendarioRetro" type="button"><i class="fas fa-calendar-days"></i></button></div></label>
 <label class="retro-field"><span id="labelRetroServico">Serviço</span><select id="retroServico" required=""><option value="">Selecione</option></select></label>
 <label class="retro-field"><span id="labelRetroPagamento">Forma de pagamento</span><select id="retroPagamento" required=""><option value="">Selecione</option></select></label>
 <div class="retro-toggle-row"><label for="retroValorDiferenciado">Valor diferenciado</label><label class="switch"><input id="retroValorDiferenciado" type="checkbox"/><span class="slider round"></span></label></div>
@@ -320,7 +320,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.0</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.1</span></div>
 </div>
 </div>
 </div>
@@ -337,7 +337,7 @@
 <!-- ESTOQUE E VENDAS -->
 <section class="registrar estoque-page" id="estoque" style="display:none">
 <h2 class="titulo-sessao" id="estoqueTitulo">Estoque</h2>
-<p class="estoque-desc" id="estoqueDescricao">Produtos, vendas e movimentações.</p>
+<p class="estoque-desc" id="estoqueDescricao">Produtos, vendas e movimentos.</p>
 
 <div hidden id="estoqueAdminView">
 <div class="estoque-resumo-grid estoque-resumo-grid-simple estoque-top-resumo">
@@ -351,21 +351,8 @@
 <button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
 </div>
 
-<details class="estoque-admin-section" id="estoqueAdminPainelProdutos" open>
-<summary><span><i class="fas fa-box"></i><strong>Produtos</strong></span><i class="fas fa-chevron-down"></i></summary>
-<div class="estoque-admin-section-body">
-<div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
-<button class="active" data-estoque-filtro="ativos" type="button">Ativos</button>
-<button data-estoque-filtro="disponiveis" type="button">Disponíveis</button>
-<button data-estoque-filtro="zerado" type="button">Sem estoque</button>
-<button data-estoque-filtro="arquivados" type="button">Arquivados</button>
-</div>
-<div class="estoque-produtos-lista estoque-produtos-compactos" id="estoqueProdutosLista"></div>
-</div>
-</details>
-
 <details class="estoque-admin-section" id="estoqueAdminPainelVendas">
-<summary><span><i class="fas fa-receipt"></i><strong>Venda da equipe</strong></span><i class="fas fa-chevron-down"></i></summary>
+<summary><span><i class="fas fa-receipt"></i><strong>Vendas</strong></span><i class="fas fa-chevron-down"></i></summary>
 <div class="estoque-admin-section-body">
 <div aria-label="Selecionar período das vendas" class="painel-data-nav estoque-admin-periodo-nav">
 <button aria-label="Mês anterior" class="painel-data-btn" id="btnAdminVendasMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
@@ -383,7 +370,7 @@
 </details>
 
 <details class="estoque-admin-section" id="estoqueAdminPainelMovimentacoes">
-<summary><span><i class="fas fa-arrow-right-arrow-left"></i><strong>Extrato de movimentações</strong></span><i class="fas fa-chevron-down"></i></summary>
+<summary><span><i class="fas fa-arrow-right-arrow-left"></i><strong>Movimentos</strong></span><i class="fas fa-chevron-down"></i></summary>
 <div class="estoque-admin-section-body">
 <div aria-label="Selecionar período das movimentações" class="painel-data-nav estoque-admin-periodo-nav">
 <button aria-label="Mês anterior" class="painel-data-btn" id="btnMovMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
@@ -403,7 +390,20 @@
 </div>
 <div class="estoque-log-lista estoque-extrato-lista" id="estoqueMovimentacoesLista"></div>
 </div>
+</details><details class="estoque-admin-section" id="estoqueAdminPainelProdutos">
+<summary><span><i class="fas fa-box"></i><strong>Produtos</strong></span><i class="fas fa-chevron-down"></i></summary>
+<div class="estoque-admin-section-body">
+<div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
+<button class="active" data-estoque-filtro="ativos" type="button">Ativos</button>
+<button data-estoque-filtro="disponiveis" type="button">Disponíveis</button>
+<button data-estoque-filtro="zerado" type="button">Sem estoque</button>
+<button data-estoque-filtro="arquivados" type="button">Arquivados</button>
+</div>
+<div class="estoque-produtos-lista estoque-produtos-compactos" id="estoqueProdutosLista"></div>
+</div>
 </details>
+
+
 </div>
 
 <div hidden id="estoqueVendaView"></div>
@@ -964,5 +964,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=13.0" type="module"></script></body>
+<script src="../js/admin/index.js?v=13.1" type="module"></script></body>
 </html>
