@@ -1,9 +1,9 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=11.0";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=11.0";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=11.0";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.0";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=11.2";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=11.2";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=11.2";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.2";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.2";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.2";
 
 let inicializado = false;
 

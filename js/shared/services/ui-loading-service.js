@@ -129,6 +129,15 @@ export function iniciarLoadingTela(mensagem = "Carregando...", { delay = LOADING
     item.timer = setTimeout(() => {
         const atual = loadingsTela.get(token);
         if (!atual) return;
+
+        // Durante o bootstrap já existe um único loading de entrada. Não
+        // sobrepomos um segundo loading de seção por cima dele.
+        if (document.body.classList.contains("dashboard-booting") ||
+            document.body.classList.contains("session-pending")) {
+            atual.suprimidoNoBoot = true;
+            return;
+        }
+
         atual.visivel = true;
         atual.exibidoEm = performance.now();
         atualizarOverlayLoading();

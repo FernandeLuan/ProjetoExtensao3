@@ -5,18 +5,18 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Gestão da Barbearia | Sr NK</title>
-<link href="../css/admin.css?v=11.0" rel="stylesheet"/>
+<link href="../css/admin.css?v=11.2" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
 <link as="image" href="../Fotos/Sr.NK.jpg" rel="preload"/>
 <meta content="#0F1115" name="theme-color"/>
-<link href="../icons/icon-192.png?v=11.0" rel="apple-touch-icon"/>
+<link href="../icons/icon-192.png?v=11.2" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=11.0" rel="modulepreload"><link href="../js/admin/index.js?v=11.0" rel="modulepreload"><link href="../js/admin/app.js?v=11.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=11.0">
+<link href="../js/firebase-init.js?v=11.2" rel="modulepreload"><link href="../js/admin/index.js?v=11.2" rel="modulepreload"><link href="../js/admin/app.js?v=11.2" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=11.2">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -88,34 +88,35 @@
 </article>
 <div class="finance-mini-grid barbearia-mini-grid" data-visao-card="indicadores">
 <article class="finance-card finance-mini-card barbearia-mini-card">
+<div class="barbearia-mini-copy">
 <div class="finance-label-row">
-<span class="finance-label"><i aria-hidden="true" class="fas fa-chart-simple"></i> Ticket médio</span>
-<button aria-label="O que é ticket médio da barbearia?" class="finance-info-btn" data-info="Valor médio bruto faturado por atendimento da equipe no dia selecionado." type="button">
-<i class="fas fa-circle-info"></i>
-</button>
+<span class="finance-label">Ticket médio</span>
+<button aria-label="O que é ticket médio da barbearia?" class="finance-info-btn" data-info="Valor médio bruto faturado por atendimento da equipe no dia selecionado." type="button"><i class="fas fa-circle-info"></i></button>
 </div>
 <strong class="finance-mini-value" id="barbeariaHomeTicket">R$ 0,00</strong>
+</div>
+<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-chart-simple"></i></div>
 </article>
 <article class="finance-card finance-mini-card barbearia-mini-card">
+<div class="barbearia-mini-copy">
 <div class="finance-label-row">
-<span class="finance-label"><i aria-hidden="true" class="fas fa-scissors"></i> Atendimentos</span>
-<button aria-label="O que são os atendimentos da barbearia?" class="finance-info-btn" data-info="Quantidade total de atendimentos realizados pela equipe no dia selecionado." type="button">
-<i class="fas fa-circle-info"></i>
-</button>
+<span class="finance-label">Atendimentos</span>
+<button aria-label="O que são os atendimentos da barbearia?" class="finance-info-btn" data-info="Quantidade total de atendimentos realizados pela equipe no dia selecionado." type="button"><i class="fas fa-circle-info"></i></button>
 </div>
 <strong class="finance-mini-value" id="barbeariaHomeAtendimentos">0</strong>
+</div>
+<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-scissors"></i></div>
 </article>
 </div>
 <article class="finance-card barbearia-expense-card" data-visao-card="despesas">
 <div class="barbearia-expense-content">
 <div class="finance-label-row">
-<span class="finance-label"><i aria-hidden="true" class="fas fa-receipt"></i> Despesa da barbearia</span>
-<button aria-label="O que é despesa da barbearia?" class="finance-info-btn" data-info="Total dos gastos lançados como despesa da barbearia no dia selecionado. Despesas pessoais dos profissionais não entram aqui." type="button">
-<i class="fas fa-circle-info"></i>
-</button>
+<span class="finance-label">Despesa da barbearia</span>
+<button aria-label="O que é despesa da barbearia?" class="finance-info-btn" data-info="Total dos gastos lançados como despesa da barbearia no dia selecionado. Despesas pessoais dos profissionais não entram aqui." type="button"><i class="fas fa-circle-info"></i></button>
 </div>
 <strong id="barbeariaHomeDespesas">R$ 0,00</strong>
 </div>
+<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-receipt"></i></div>
 </article>
 <article class="finance-card finance-service-card barbearia-service-card" data-visao-card="servico">
 <div class="finance-service-content">
@@ -164,11 +165,20 @@
 <!-- Painel Financeiro -->
 <!-- FECHAMENTO -->
 <section class="registrar fechamento-simples-page" id="relatorios" style="display:none">
-<div class="fechamento-periodo-grid" aria-label="Período do fechamento">
-<button class="fechamento-periodo-btn" id="btnRelDataInicio" type="button" aria-label="Escolher data inicial"><span>De</span><strong id="labelRelDataInicio">Hoje</strong><i class="fas fa-calendar-days" aria-hidden="true"></i></button>
-<button class="fechamento-periodo-btn" id="btnRelDataFim" type="button" aria-label="Escolher data final"><span>Até</span><strong id="labelRelDataFim">Hoje</strong><i class="fas fa-calendar-days" aria-hidden="true"></i></button>
-<input aria-hidden="true" class="painel-date-picker" id="dataInicioRelatorio" tabindex="-1" type="date"/>
-<input aria-hidden="true" class="painel-date-picker" id="dataFimRelatorio" tabindex="-1" type="date"/>
+<div aria-label="Selecionar período do fechamento" class="painel-data-nav historico-data-nav fechamento-data-nav">
+<button aria-label="Ver período anterior" class="painel-data-btn" id="btnRelDataAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
+<div class="painel-data-center">
+<span aria-live="polite" class="painel-data-label" id="labelDataRelatorio">Hoje • 12 de agosto</span>
+<div class="painel-calendar-control historico-calendar-control">
+<button aria-label="Escolher período de e até" class="painel-calendar-btn" id="btnCalendarioRelatorio" type="button"><i aria-hidden="true" class="fas fa-calendar-days"></i></button>
+</div>
+</div>
+<button aria-label="Ver próximo período" class="painel-data-btn" id="btnRelDataProxima" type="button"><i class="fas fa-chevron-right"></i></button>
+</div>
+<div class="relatorio-periodo-custom fechamento-periodo-custom" hidden id="relatorioPeriodoCustom">
+<label class="relatorio-date-field"><span>De</span><div class="relatorio-date-control" data-date-target="dataInicioRelatorio"><input id="dataInicioRelatorio" inputmode="none" readonly required type="date"/><i aria-hidden="true" class="fas fa-calendar-days"></i></div></label>
+<label class="relatorio-date-field"><span>Até</span><div class="relatorio-date-control" data-date-target="dataFimRelatorio"><input id="dataFimRelatorio" inputmode="none" readonly required type="date"/><i aria-hidden="true" class="fas fa-calendar-days"></i></div></label>
+<button id="btnAplicarPeriodoRelatorio" type="button">Aplicar período</button>
 </div>
 <article class="fechamento-request-card">
 <div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
@@ -336,7 +346,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.1.0</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.1.2</span></div>
 </div>
 </div>
 </div>
@@ -376,6 +386,7 @@
 <div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
 <button class="active" data-estoque-filtro="todos" type="button">Todos</button>
 <button data-estoque-filtro="ativos" type="button">Ativos</button>
+<button data-estoque-filtro="disponiveis" type="button">Disponíveis</button>
 <button data-estoque-filtro="zerado" type="button">Sem estoque</button>
 <button data-estoque-filtro="arquivados" type="button">Arquivados</button>
 </div>
@@ -393,7 +404,17 @@
 </div>
 
 <div hidden id="estoqueAdminPainelMovimentacoes">
+<div class="estoque-resumo-grid estoque-mov-resumo-grid">
+<article class="estoque-resumo-card is-success"><span>Entradas</span><strong id="estoqueMovEntradas">+0</strong></article>
+<article class="estoque-resumo-card is-danger"><span>Saídas</span><strong id="estoqueMovSaidas">-0</strong></article>
+<article class="estoque-resumo-card"><span>Custo das entradas</span><strong id="estoqueMovCusto">R$ 0,00</strong></article>
+</div>
 <div class="estoque-subsection-head"><div><h3>Extrato de movimentações</h3><p>Entradas, saídas, ajustes, vendas e estornos em ordem cronológica.</p></div></div>
+<div class="estoque-extrato-filtros">
+<label><span>Produto</span><select id="estoqueMovFiltroProduto"><option value="todos">Todos</option></select></label>
+<label><span>Pagamento</span><select id="estoqueMovFiltroPagamento"><option value="todos">Todos</option><option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Débito">Débito</option><option value="Crédito">Crédito</option></select></label>
+<label><span>Movimento</span><select id="estoqueMovFiltroTipo"><option value="todos">Todos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select></label>
+</div>
 <div class="estoque-log-lista estoque-extrato-lista" id="estoqueMovimentacoesLista"></div>
 </div>
 </div>
@@ -433,10 +454,10 @@
 </section>
 <!-- DESPESAS -->
 <section class="registrar despesas-page" id="despesas" style="display:none">
-<div class="despesas-periodo-nav">
-<button aria-label="Mês anterior" id="btnDespesaMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
-<div class="despesas-periodo-center"><strong id="despesasMesLabel">Mês atual</strong><button aria-label="Escolher mês" class="despesas-calendar-btn" id="btnCalendarioDespesasMes" type="button"><i class="fas fa-calendar-days"></i></button></div>
-<button aria-label="Próximo mês" id="btnDespesaMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
+<div aria-label="Selecionar mês das despesas" class="painel-data-nav despesas-periodo-nav">
+<button aria-label="Mês anterior" class="painel-data-btn" id="btnDespesaMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
+<div class="painel-data-center despesas-periodo-center"><span aria-live="polite" class="painel-data-label" id="despesasMesLabel">Mês atual</span><button aria-label="Escolher mês" class="painel-calendar-btn despesas-calendar-btn" id="btnCalendarioDespesasMes" type="button"><i class="fas fa-calendar-days"></i></button></div>
+<button aria-label="Próximo mês" class="painel-data-btn" id="btnDespesaMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
 </div>
 <div class="despesas-total-card"><span>Total no mês</span><strong id="despesasTotal">R$ 0,00</strong><small id="despesasQuantidade">0 lançamentos</small></div>
 <button class="despesas-add-btn" id="btnNovaDespesa" type="button"><i class="fas fa-plus"></i> Lançar despesa</button>
@@ -632,8 +653,9 @@ Aparência
       <label class="equipe-field"><span>Quantidade</span><input id="estoqueProdutoQuantidadeInicial" inputmode="decimal" min="0" step="1" type="number" value="0"/></label>
       <div class="estoque-inline-grid">
         <label class="equipe-field"><span>Custo por produto</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoCusto" inputmode="numeric" placeholder="0,00" type="tel"/></div></label>
-        <label class="equipe-field"><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" inputmode="numeric" placeholder="0,00" required type="tel"/></div></label><label class="estoque-check-row estoque-equipe-toggle"><span><strong>Disponível para equipe</strong><small>Quando ativo, profissionais podem vender este produto e recebem a comissão global.</small></span><input checked id="estoqueProdutoComissao" type="checkbox"/></label>
+        <label class="equipe-field"><span>Preço de venda</span><div class="equipe-money-field"><span>R$</span><input id="estoqueProdutoPrecoVenda" inputmode="numeric" placeholder="0,00" required type="tel"/></div></label>
       </div>
+      <label class="estoque-check-row estoque-equipe-toggle"><span><strong>Disponível para equipe</strong><small>Quando ativo, profissionais podem vender este produto e recebem a comissão global.</small></span><input checked id="estoqueProdutoComissao" type="checkbox"/></label>
       <div class="estoque-form-actions"><button id="btnCancelarProdutoEstoque" type="button">Cancelar</button><button id="btnSalvarProdutoEstoque" type="submit">Salvar produto</button></div>
     </form>
   </div>
@@ -971,11 +993,11 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script defer="" src="../js/mobile-interactions.js?v=11.0"></script>
+<script defer="" src="../js/mobile-interactions.js?v=11.2"></script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(console.warn));
+  window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=11.0" type="module"></script></body>
+<script src="../js/admin/index.js?v=11.2" type="module"></script></body>
 </html>

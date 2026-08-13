@@ -1,23 +1,23 @@
-import { state } from "./state.js?v=11.0";
+import { state } from "./state.js?v=11.2";
 import {
     obterMembroAtual,
     listarMembrosEquipe,
     alterarStatusMembro,
     excluirMembroInativo,
     atualizarFinanceiroMembro
-} from "./data/equipe-repository.js?v=11.0";
-import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=11.0";
-import { obterServicos } from "./services/catalogo-service.js?v=11.0";
-import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=11.0";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
+} from "./data/equipe-repository.js?v=11.2";
+import { criarAcessoBarbeiro } from "./services/equipe-service.js?v=11.2";
+import { obterServicos } from "./services/catalogo-service.js?v=11.2";
+import { papelEhAdmin, usuarioEhAdmin } from "./permissoes.js?v=11.2";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.2";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.2";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=11.0";
+} from "./services/ui-loading-service.js?v=11.2";
 
 let inicializado = false;
 let carregando = false;
@@ -920,13 +920,26 @@ async function confirmarAlteracaoStatus() {
             fecharConfirmacaoStatus({ forcar: true });
             mostrarSucesso("Membro excluído da equipe.");
         } else {
-            await alterarStatusMembro(membro.uid || membro.id, novoStatus);
+            const confirmacao = alterarStatusMembro(membro.uid || membro.id, novoStatus);
+
+            // O repository já atualiza state.equipe antes de aguardar o Firestore.
+            // Re-render local imediato: nenhuma nova consulta segura o usuário.
             fecharConfirmacaoStatus({ forcar: true });
+            renderizarEquipeLocal(state.equipe || []);
             mostrarSucesso(novoStatus ? "Acesso ativado." : "Acesso desativado.");
+
+            // Em caso de falha o repository restaura o estado anterior.
+            void confirmacao.catch((error) => {
+                console.error("Falha ao confirmar status no Firestore:", error);
+                renderizarEquipeLocal(state.equipe || []);
+                mostrarErro(error?.message || "Não foi possível confirmar a alteração de acesso.");
+            });
+            return;
         }
         await carregarEquipe();
     } catch (error) {
         console.error("Erro ao alterar membro:", error);
+        await carregarEquipe();
         mostrarErro(error?.message || "Não foi possível concluir a ação.");
     } finally {
         if (btnConfirmarStatusMembro) btnConfirmarStatusMembro.disabled = false;
@@ -1113,6 +1126,26 @@ function ordenarMembros(lista) {
     });
 }
 
+function renderizarEquipeLocal(membros = state.equipe || []) {
+    const visiveis = (membros || []).filter((membro) => membro?.removido !== true);
+    const ativos = ordenarMembros(visiveis.filter((membro) => membro.ativo === true));
+    const inativos = ordenarMembros(visiveis.filter((membro) => membro.ativo !== true));
+
+    if (equipeListaAtivos) {
+        equipeListaAtivos.innerHTML = "";
+        ativos.forEach((membro) => equipeListaAtivos.appendChild(criarCardMembro(membro)));
+    }
+    if (equipeListaInativos) {
+        equipeListaInativos.innerHTML = "";
+        inativos.forEach((membro) => equipeListaInativos.appendChild(criarCardMembro(membro)));
+    }
+    if (equipeBlocoInativos) equipeBlocoInativos.hidden = inativos.length === 0;
+    if (equipeResumo) {
+        equipeResumo.textContent = ativos.length === 1 ? "1 membro ativo" : `${ativos.length} membros ativos`;
+    }
+    return membros;
+}
+
 export async function carregarEquipe() {
     if (carregando) return state.equipe || [];
     carregando = true;
@@ -1120,23 +1153,7 @@ export async function carregarEquipe() {
 
     try {
         const membros = await listarMembrosEquipe();
-        const visiveis = membros.filter((membro) => membro?.removido !== true);
-        const ativos = ordenarMembros(visiveis.filter((membro) => membro.ativo === true));
-        const inativos = ordenarMembros(visiveis.filter((membro) => membro.ativo !== true));
-
-        if (equipeListaAtivos) {
-            equipeListaAtivos.innerHTML = "";
-            ativos.forEach((membro) => equipeListaAtivos.appendChild(criarCardMembro(membro)));
-        }
-        if (equipeListaInativos) {
-            equipeListaInativos.innerHTML = "";
-            inativos.forEach((membro) => equipeListaInativos.appendChild(criarCardMembro(membro)));
-        }
-        if (equipeBlocoInativos) equipeBlocoInativos.hidden = inativos.length === 0;
-        if (equipeResumo) {
-            equipeResumo.textContent = ativos.length === 1 ? "1 membro ativo" : `${ativos.length} membros ativos`;
-        }
-        return membros;
+        return renderizarEquipeLocal(membros);
     } catch (error) {
         console.error("Erro ao carregar equipe:", error);
         if (equipeResumo) equipeResumo.textContent = "Não foi possível carregar a equipe.";

@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=11.0";
+import { db } from "../../firebase-init.js?v=11.2";
 import {
     collection,
     doc,
@@ -15,12 +15,12 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=11.0";
-import { state } from "../state.js?v=11.0";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.0";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=11.0";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.0";
-import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=11.0";
+import { SCHEMA_VERSION } from "../constants.js?v=11.2";
+import { state } from "../state.js?v=11.2";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.2";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=11.2";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.2";
+import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=11.2";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;
@@ -399,6 +399,7 @@ export async function registrarVendaProduto({
             saldoAnterior: anterior,
             saldoPosterior: posterior,
             motivo: `Venda • ${formaPagamento}`,
+            formaPagamentoSnapshot: formaPagamento,
             vendaId: vendaRef.id,
             profissionalUid: venda.profissionalUid,
             registradoPorUid: uidAtual,
@@ -499,6 +500,7 @@ export async function editarVendaProduto(vendaId, { quantidade, formaPagamento, 
                 saldoAnterior: saldoAtual,
                 saldoPosterior: saldoNovo,
                 motivo: "Edição de venda",
+                formaPagamentoSnapshot: formaPagamento,
                 vendaId,
                 registradoPorUid: uidAtual,
                 registradoPorNome: nomeUsuarioAtual(),
@@ -551,6 +553,7 @@ export async function cancelarVendaProduto(vendaId) {
             saldoAnterior: anterior,
             saldoPosterior: posterior,
             motivo: "Venda cancelada",
+            formaPagamentoSnapshot: venda.formaPagamento || null,
             vendaId,
             registradoPorUid: uidAtual,
             registradoPorNome: nomeUsuarioAtual(),
@@ -561,6 +564,25 @@ export async function cancelarVendaProduto(vendaId) {
     });
 
     invalidarCacheEstoque();
+}
+
+export async function marcarComissoesVendasPagas(vendaIds = [], paga = true) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar o pagamento de comissões.");
+    const ids = [...new Set((vendaIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
+    if (!ids.length) return 0;
+
+    const batch = writeBatch(db);
+    const uid = obterUidAtual();
+    ids.forEach((id) => {
+        batch.update(ref("vendas", id), {
+            comissaoPaga: paga === true,
+            comissaoPagaEm: paga === true ? serverTimestamp() : null,
+            comissaoPagaPorUid: paga === true ? uid : null
+        });
+    });
+    await batch.commit();
+    invalidarCacheEstoque();
+    return ids.length;
 }
 
 export async function listarVendasPorPeriodo(

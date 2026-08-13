@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=11.0";
+import { db } from "../../firebase-init.js?v=11.2";
 import {
     collection,
     doc,
@@ -12,15 +12,15 @@ import {
     deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=11.0";
-import { state, definirEquipe, definirMembroAtual } from "../state.js?v=11.0";
-import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=11.0";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.0";
+import { SCHEMA_VERSION } from "../constants.js?v=11.2";
+import { state, definirEquipe, definirMembroAtual } from "../state.js?v=11.2";
+import { usuarioEhAdmin, papelEhAdmin } from "../permissoes.js?v=11.2";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.2";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=11.0";
+} from "./cache-local.js?v=11.2";
 
 const CACHE_EQUIPE_MS = 5 * 60 * 1000;
 let cacheEquipe = null;
@@ -274,26 +274,37 @@ export async function alterarStatusMembro(uid, ativo) {
     }
 
     const membroRef = doc(db, "barbearias", obterWorkspaceId(), "membros", uid);
-    await updateDoc(membroRef, {
-        ativo: Boolean(ativo),
-        atualizadoEm: serverTimestamp()
-    });
 
-    // A gravação já confirmou o novo status. Atualizamos o cache/estado local
-    // imediatamente e evitamos uma segunda consulta completa da equipe.
+    // Atualização otimista: o card responde imediatamente. A confirmação do
+    // Firestore continua acontecendo em segundo plano; em caso de falha, o
+    // estado local é revertido.
     const base = Array.isArray(state.equipe) && state.equipe.length
         ? state.equipe
         : (Array.isArray(cacheEquipe) ? cacheEquipe : []);
+    const anterior = base.map((item) => ({ ...item }));
     const atualizada = base.map((item) => (item.uid || item.id) === uid
         ? { ...item, ativo: Boolean(ativo), atualizadoEm: new Date() }
         : item);
-    if (atualizada.length) {
-        cacheEquipe = atualizada;
+
+    const aplicarLocal = (lista) => {
+        if (!lista.length) return;
+        cacheEquipe = lista;
         cacheEquipeEm = Date.now();
-        aplicarEquipeNoEstado(atualizada, { atualizarMembroAtual: false });
-        salvarCacheLocal(chaveCacheEquipe(), atualizada);
-    } else {
-        invalidarCacheEquipe();
+        aplicarEquipeNoEstado(lista, { atualizarMembroAtual: false });
+        salvarCacheLocal(chaveCacheEquipe(), lista);
+    };
+
+    if (atualizada.length) aplicarLocal(atualizada);
+
+    try {
+        await updateDoc(membroRef, {
+            ativo: Boolean(ativo),
+            atualizadoEm: serverTimestamp()
+        });
+    } catch (error) {
+        if (anterior.length) aplicarLocal(anterior);
+        else invalidarCacheEquipe();
+        throw error;
     }
 }
 

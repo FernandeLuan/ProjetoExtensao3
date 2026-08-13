@@ -1,14 +1,14 @@
-import { state } from "./state.js?v=11.0";
-import { obterAtendimentosPeriodo } from "./data/sync.js?v=11.0";
-import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=11.0";
-import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=11.0";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.0";
-import { obterBrutoAtendimento, obterRepasseAtendimento, obterTaxaCartaoValor } from "./services/financeiro-service.js?v=11.0";
-import { inicioDoDia, chaveData, paraDate } from "./utils/date.js?v=11.0";
-import { formatarMoeda } from "./utils/money.js?v=11.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao, iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
+import { state } from "./state.js?v=11.2";
+import { obterAtendimentosPeriodo } from "./data/sync.js?v=11.2";
+import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=11.2";
+import { listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=11.2";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.2";
+import { obterBrutoAtendimento, obterRepasseAtendimento, obterTaxaCartaoValor } from "./services/financeiro-service.js?v=11.2";
+import { inicioDoDia, somarDias, chaveData, paraDate, dataDeInput, formatarTituloData } from "./utils/date.js?v=11.2";
+import { formatarMoeda } from "./utils/money.js?v=11.2";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao, iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.2";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.2";
 
 let inicializado = false;
 let periodoInicio = inicioDoDia(new Date());
@@ -18,12 +18,14 @@ let ultimaMeta = null;
 
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000;
 const el = (id) => document.getElementById(id);
-const btnInicio = el("btnRelDataInicio");
-const btnFim = el("btnRelDataFim");
-const labelInicio = el("labelRelDataInicio");
-const labelFim = el("labelRelDataFim");
+const btnAnterior = el("btnRelDataAnterior");
+const btnProxima = el("btnRelDataProxima");
+const labelData = el("labelDataRelatorio");
+const btnCalendario = el("btnCalendarioRelatorio");
+const periodoCustom = el("relatorioPeriodoCustom");
 const inputInicio = el("dataInicioRelatorio");
 const inputFim = el("dataFimRelatorio");
+const btnAplicarPeriodo = el("btnAplicarPeriodoRelatorio");
 const btnSolicitar = el("btnSolicitarFechamento");
 const resultadoBox = el("fechamentoResultadoBox");
 const textoEl = el("fechamentoTexto");
@@ -45,11 +47,11 @@ function areaAtual() {
 }
 
 function chaveCache(inicio = periodoInicio, fim = periodoFim) {
-    return `srnk:fechamento:v1.1.0:${areaAtual()}:${state.user?.uid || "anon"}:${chaveData(inicio)}:${chaveData(fim)}`;
+    return `srnk:fechamento:v1.1.2:${areaAtual()}:${state.user?.uid || "anon"}:${chaveData(inicio)}:${chaveData(fim)}`;
 }
 
 function chaveUltimoPeriodo() {
-    return `srnk:fechamento:v1.1.0:ultimo-periodo:${areaAtual()}:${state.user?.uid || "anon"}`;
+    return `srnk:fechamento:v1.1.2:ultimo-periodo:${areaAtual()}:${state.user?.uid || "anon"}`;
 }
 
 function lerCache(inicio = periodoInicio, fim = periodoFim) {
@@ -72,7 +74,7 @@ function salvarCache(texto, meta = {}) {
         sessionStorage.setItem(chaveCache(), JSON.stringify({ texto, meta, salvoEm: Date.now() }));
         sessionStorage.setItem(chaveUltimoPeriodo(), JSON.stringify({ inicio: chaveData(periodoInicio), fim: chaveData(periodoFim) }));
     } catch (_) {
-        // Cache é apenas conveniência; falha não bloqueia o fechamento.
+        // Cache é conveniência; falha não bloqueia o fechamento.
     }
 }
 
@@ -96,12 +98,6 @@ function restaurarUltimoPeriodo() {
     } catch (_) {}
 }
 
-function formatarDataCurta(data) {
-    const hoje = inicioDoDia(new Date());
-    if (chaveData(data) === chaveData(hoje)) return "Hoje";
-    return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: data.getFullYear() === hoje.getFullYear() ? undefined : "numeric" }).replace(".", "");
-}
-
 function periodoEhHoje() {
     const hoje = inicioDoDia(new Date());
     return chaveData(periodoInicio) === chaveData(hoje) && chaveData(periodoFim) === chaveData(hoje);
@@ -111,19 +107,31 @@ function periodoUmDia() {
     return chaveData(periodoInicio) === chaveData(periodoFim);
 }
 
+function diasNoPeriodo() {
+    const msDia = 24 * 60 * 60 * 1000;
+    return Math.max(1, Math.round((inicioDoDia(periodoFim) - inicioDoDia(periodoInicio)) / msDia) + 1);
+}
+
+function formatarPeriodoLabel() {
+    if (periodoUmDia()) return formatarTituloData(periodoInicio);
+
+    const mesmoMes = periodoInicio.getFullYear() === periodoFim.getFullYear()
+        && periodoInicio.getMonth() === periodoFim.getMonth();
+
+    if (mesmoMes) {
+        const a = String(periodoInicio.getDate()).padStart(2, "0");
+        const b = String(periodoFim.getDate()).padStart(2, "0");
+        const mes = periodoFim.toLocaleDateString("pt-BR", { month: "long" });
+        return `${a} a ${b} de ${mes}`;
+    }
+
+    return `${periodoInicio.toLocaleDateString("pt-BR")} a ${periodoFim.toLocaleDateString("pt-BR")}`;
+}
+
 function rotuloPeriodoMensagem() {
     if (periodoEhHoje()) return "hoje";
     if (periodoUmDia()) return periodoInicio.toLocaleDateString("pt-BR");
     return `${periodoInicio.toLocaleDateString("pt-BR")} a ${periodoFim.toLocaleDateString("pt-BR")}`;
-}
-
-function atualizarNavegador() {
-    const hoje = inicioDoDia(new Date());
-    if (labelInicio) labelInicio.textContent = formatarDataCurta(periodoInicio);
-    if (labelFim) labelFim.textContent = formatarDataCurta(periodoFim);
-    if (inputInicio) { inputInicio.value = chaveData(periodoInicio); inputInicio.max = chaveData(hoje); }
-    if (inputFim) { inputFim.value = chaveData(periodoFim); inputFim.max = chaveData(hoje); inputFim.min = chaveData(periodoInicio); }
-    restaurarResultadoDoCache();
 }
 
 function esconderResultado() {
@@ -148,20 +156,109 @@ function restaurarResultadoDoCache() {
     return true;
 }
 
-function selecionarInicio(data) {
+function atualizarNavegador() {
     const hoje = inicioDoDia(new Date());
-    const nova = inicioDoDia(data);
-    periodoInicio = nova > hoje ? hoje : nova;
-    if (periodoFim < periodoInicio) periodoFim = periodoInicio;
+    if (labelData) labelData.textContent = formatarPeriodoLabel();
+    if (inputInicio) {
+        inputInicio.value = chaveData(periodoInicio);
+        inputInicio.max = chaveData(hoje);
+    }
+    if (inputFim) {
+        inputFim.value = chaveData(periodoFim);
+        inputFim.max = chaveData(hoje);
+        inputFim.min = chaveData(periodoInicio);
+    }
+    if (btnProxima) {
+        const bloqueado = periodoFim >= hoje;
+        btnProxima.disabled = bloqueado;
+        btnProxima.setAttribute("aria-disabled", String(bloqueado));
+    }
+    restaurarResultadoDoCache();
+}
+
+function aplicarPeriodo(inicio, fim) {
+    const hoje = inicioDoDia(new Date());
+    let novoInicio = inicioDoDia(inicio);
+    let novoFim = inicioDoDia(fim);
+    if (novoInicio > novoFim) [novoInicio, novoFim] = [novoFim, novoInicio];
+    if (novoFim > hoje) novoFim = hoje;
+    if (novoInicio > hoje) novoInicio = hoje;
+    periodoInicio = novoInicio;
+    periodoFim = novoFim;
     atualizarNavegador();
 }
 
-function selecionarFim(data) {
+function irPeriodoAnterior() {
+    const dias = diasNoPeriodo();
+    const novoFim = somarDias(periodoInicio, -1);
+    const novoInicio = somarDias(novoFim, -(dias - 1));
+    if (periodoCustom) periodoCustom.hidden = true;
+    aplicarPeriodo(novoInicio, novoFim);
+}
+
+function irProximoPeriodo() {
     const hoje = inicioDoDia(new Date());
-    const nova = inicioDoDia(data);
-    periodoFim = nova > hoje ? hoje : nova;
-    if (periodoInicio > periodoFim) periodoInicio = periodoFim;
-    atualizarNavegador();
+    if (periodoFim >= hoje) return;
+    const dias = diasNoPeriodo();
+    let novoInicio = somarDias(periodoFim, 1);
+    let novoFim = somarDias(novoInicio, dias - 1);
+    if (novoFim > hoje) {
+        novoFim = hoje;
+        novoInicio = somarDias(novoFim, -(dias - 1));
+    }
+    if (periodoCustom) periodoCustom.hidden = true;
+    aplicarPeriodo(novoInicio, novoFim);
+}
+
+function abrirPeriodoPersonalizado() {
+    if (!periodoCustom) return;
+    periodoCustom.hidden = !periodoCustom.hidden;
+    if (!periodoCustom.hidden) atualizarNavegador();
+}
+
+function validarPeriodoInputs() {
+    const inicio = dataDeInput(inputInicio?.value);
+    const fim = dataDeInput(inputFim?.value);
+    const hoje = inicioDoDia(new Date());
+    if (!inicio || !fim) throw new Error("Selecione as duas datas.");
+    if (inicio > fim) throw new Error("A data inicial não pode ser maior que a final.");
+    if (fim > hoje) throw new Error("O fechamento não pode usar data futura.");
+    return { inicio, fim };
+}
+
+function configurarCalendariosPeriodo() {
+    document.querySelectorAll("#relatorioPeriodoCustom .relatorio-date-control").forEach((controle) => {
+        const input = el(controle.dataset.dateTarget);
+        if (!input || controle.dataset.srnkBound === "true") return;
+        controle.dataset.srnkBound = "true";
+
+        const abrir = (event) => {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const ehInicio = input === inputInicio;
+            const atual = dataDeInput(input.value) || (ehInicio ? periodoInicio : periodoFim);
+            abrirCalendarioPopover({
+                ancora: controle,
+                data: atual,
+                min: ehInicio ? null : (dataDeInput(inputInicio?.value) || periodoInicio),
+                max: ehInicio ? (dataDeInput(inputFim?.value) || periodoFim) : new Date(),
+                titulo: ehInicio ? "Data inicial" : "Data final",
+                onSelect: (data) => {
+                    input.value = chaveData(data);
+                    if (ehInicio && inputFim) {
+                        const fimAtual = dataDeInput(inputFim.value);
+                        if (!fimAtual || fimAtual < data) inputFim.value = chaveData(data);
+                    }
+                }
+            });
+        };
+
+        controle.addEventListener("click", abrir);
+        input.addEventListener("focus", (event) => {
+            input.blur();
+            abrir(event);
+        });
+    });
 }
 
 function agrupamentoServicos(atendimentos) {
@@ -218,6 +315,21 @@ function fechamentoProfissional({ atendimentos, vendas }) {
     return { texto: linhas.join("\n"), meta: { atendimentos: atendimentos.length, vendas: vendas.length, atividade: atendimentos.length + vendas.length, repasse, comissao, devido } };
 }
 
+
+function agrupamentoProfissionais(atendimentos) {
+    const mapa = new Map();
+    (atendimentos || []).forEach((item) => {
+        const uid = String(item?.profissionalUid || "sem-uid");
+        const nome = String(item?.profissionalNome || item?.financeiro?.profissionalNome || "Profissional").trim() || "Profissional";
+        if (!mapa.has(uid)) mapa.set(uid, { nome, atendimentos: 0, bruto: 0, repasse: 0, dono: false });
+        const atual = mapa.get(uid);
+        atual.atendimentos += 1;
+        atual.bruto += obterBrutoAtendimento(item);
+        atual.dono ||= item?.profissionalDono === true || item?.financeiro?.profissionalDono === true;
+        if (!atual.dono) atual.repasse += obterRepasseAtendimento(item);
+    });
+    return [...mapa.values()].sort((a, b) => b.bruto - a.bruto || a.nome.localeCompare(b.nome, "pt-BR"));
+}
 function fechamentoBarbearia({ atendimentos, vendas, despesas }) {
     const servicos = agrupamentoServicos(atendimentos);
     const brutoServicos = atendimentos.reduce((soma, item) => soma + obterBrutoAtendimento(item), 0);
@@ -235,12 +347,22 @@ function fechamentoBarbearia({ atendimentos, vendas, despesas }) {
     const despesasBarbearia = despesas.reduce((soma, item) => soma + Number(item?.valor || 0), 0);
     const resultado = Number((receitaDono + repasseEquipe + resultadoProdutos - despesasBarbearia).toFixed(2));
 
+    const profissionais = agrupamentoProfissionais(atendimentos);
     const linhas = ["Olá,", "", periodoUmDia() ? `Segue fechamento da barbearia de ${rotuloPeriodoMensagem()}:` : `Segue fechamento da barbearia do período de ${rotuloPeriodoMensagem()}:`, "", `${atendimentos.length} atendimento${atendimentos.length === 1 ? "" : "s"} sendo`];
     if (servicos.length) servicos.forEach(([nome, qtd]) => linhas.push(`${qtd} ${nome}`));
     else linhas.push("Nenhum atendimento registrado");
+
+    if (profissionais.length) {
+        linhas.push("", "Atendimentos por profissional:");
+        profissionais.forEach((item) => {
+            const repasseTexto = item.dono || item.repasse <= 0 ? "" : ` • Repasse ${moeda(item.repasse)}`;
+            linhas.push(`${item.nome}: ${item.atendimentos} atendimento${item.atendimentos === 1 ? "" : "s"} • ${moeda(item.bruto)}${repasseTexto}`);
+        });
+    }
+
     linhas.push("", `Serviços: ${moeda(brutoServicos)}`, `Repasse da equipe: ${moeda(repasseEquipe)}`, `Vendas de produtos: ${moeda(vendasBrutas)}`, `Comissões de produtos: ${moeda(comissoesProdutos)}`);
     if (despesasBarbearia > 0) linhas.push(`Despesas: ${moeda(despesasBarbearia)}`);
-    linhas.push(`Resultado: ${moeda(resultado)}`, "", "Para mais detalhes individuais gere um relatório separado.");
+    linhas.push(`Resultado: ${moeda(resultado)}`, "", "Para mais detalhes, consulte a Visão Geral e o Histórico.");
     return { texto: linhas.join("\n"), meta: { atendimentos: atendimentos.length, vendas: vendas.length, despesas: despesas.length, atividade: atendimentos.length + vendas.length + despesas.length, brutoServicos, repasseEquipe, vendasBrutas, comissoesProdutos, resultado } };
 }
 
@@ -333,11 +455,29 @@ export async function prepararRelatoriosHoje() {
 export async function initRelatorios() {
     if (inicializado) return;
     inicializado = true;
-    restaurarUltimoPeriodo();
-    [inputInicio, inputFim].forEach((input) => { input?.setAttribute("readonly", ""); input?.setAttribute("inputmode", "none"); });
+    // Primeiro acesso ao Fechamento sempre começa em Hoje, igual ao Histórico.
+    // Ao sair e voltar sem recarregar o app, o período atual permanece em memória.
 
-    btnInicio?.addEventListener("click", () => abrirCalendarioPopover({ ancora: btnInicio, data: periodoInicio, max: periodoFim, titulo: "Data inicial", onSelect: selecionarInicio }));
-    btnFim?.addEventListener("click", () => abrirCalendarioPopover({ ancora: btnFim, data: periodoFim, min: periodoInicio, max: new Date(), titulo: "Data final", onSelect: selecionarFim }));
+    [inputInicio, inputFim].forEach((input) => {
+        input?.setAttribute("readonly", "");
+        input?.setAttribute("inputmode", "none");
+    });
+
+    btnAnterior?.addEventListener("click", irPeriodoAnterior);
+    btnProxima?.addEventListener("click", irProximoPeriodo);
+    btnCalendario?.addEventListener("click", abrirPeriodoPersonalizado);
+    configurarCalendariosPeriodo();
+
+    btnAplicarPeriodo?.addEventListener("click", () => {
+        try {
+            const { inicio, fim } = validarPeriodoInputs();
+            if (periodoCustom) periodoCustom.hidden = true;
+            aplicarPeriodo(inicio, fim);
+        } catch (error) {
+            setStatus(error?.message || "Período inválido.", true);
+        }
+    });
+
     btnSolicitar?.addEventListener("click", () => void solicitarFechamento());
     el("btnCopiarFechamento")?.addEventListener("click", () => void copiarFechamento());
     el("btnWhatsApp")?.addEventListener("click", enviarWhatsApp);

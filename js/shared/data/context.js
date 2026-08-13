@@ -1,4 +1,4 @@
-import { db } from "../../firebase-init.js?v=11.0";
+import { db } from "../../firebase-init.js?v=11.2";
 import {
     doc,
     getDoc,
@@ -6,7 +6,7 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=11.0";
+import { SCHEMA_VERSION } from "../constants.js?v=11.2";
 import {
     definirUsuario,
     definirPerfilUsuario,
@@ -14,12 +14,12 @@ import {
     definirBarbearia,
     definirWorkspaceId,
     state
-} from "../state.js?v=11.0";
+} from "../state.js?v=11.2";
 import {
     lerCacheLocal,
     salvarCacheLocal,
     removerCacheLocal
-} from "./cache-local.js?v=11.0";
+} from "./cache-local.js?v=11.2";
 
 const CACHE_PERFIL_MS = 30 * 60 * 1000;
 const CACHE_BARBEARIA_MS = 30 * 60 * 1000;

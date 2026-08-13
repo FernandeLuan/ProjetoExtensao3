@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.1.0";
+const CACHE_NAME = "sr-nk-v1.1.2";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.
@@ -9,15 +9,15 @@ const CORE_SHELL = [
   "./profissional/login.html",
   "./admin/login.html",
   "./manifest.webmanifest",
-  "./icons/icon-192.png?v=11.0",
-  "./icons/icon-512.png?v=11.0",
+  "./icons/icon-192.png?v=11.2",
+  "./icons/icon-512.png?v=11.2",
   "./Fotos/Sr.NK.jpg",
   "./css/style.css",
-  "./css/login.css?v=11.0",
-  "./js/firebase-init.js?v=11.0",
-  "./js/login.js?v=11.0",
-  "./js/shared/auth-area-session.js?v=11.0",
-  "./js/mobile-interactions.js?v=11.0"
+  "./css/login.css?v=11.2",
+  "./js/firebase-init.js?v=11.2",
+  "./js/login.js?v=11.2",
+  "./js/shared/auth-area-session.js?v=11.2",
+  "./js/mobile-interactions.js?v=11.2"
 ];
 
 self.addEventListener("install", (event) => {
@@ -46,11 +46,13 @@ async function salvarNoCache(request, response) {
   return response;
 }
 async function buscarRede(request) { return salvarNoCache(request, await fetch(request)); }
-async function navegacaoCacheImediato(request, rede) {
-  const cached = await caches.match(request, { ignoreSearch: true });
-  if (cached) return cached;
-  try { return await rede; }
-  catch (_) { return caches.match("./login.html"); }
+async function navegacaoRedePrimeiro(request) {
+  try {
+    return await buscarRede(request);
+  } catch (_) {
+    const cached = await caches.match(request, { ignoreSearch: true });
+    return cached || await caches.match("./login.html") || Response.error();
+  }
 }
 async function cachePrimeiroVersionado(request) {
   const cached = await caches.match(request);
@@ -72,9 +74,9 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    const rede = buscarRede(request);
-    event.respondWith(navegacaoCacheImediato(request, rede));
-    event.waitUntil(rede.catch(() => null));
+    // HTML sempre tenta a rede primeiro. Evita abrir Admin/Login antigo depois
+    // de uma atualização do PWA; o cache fica apenas como fallback offline.
+    event.respondWith(navegacaoRedePrimeiro(request));
     return;
   }
   if (url.pathname.endsWith(".js") || url.pathname.endsWith(".css")) {

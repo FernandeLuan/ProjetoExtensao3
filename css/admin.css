@@ -1,4 +1,4 @@
-/* Sr NK v1.1.0 - bundle admin.css */
+/* Sr NK v1.1.1 - bundle admin.css */
 
 /* ===== theme.css ===== */
 /* ================================
@@ -7857,7 +7857,7 @@ button.ui-action-confirmed::after {
 }
 
 
-/* ===== v1.1.0 • estabilização e padronização ===== */
+/* ===== v1.1.1 • estabilização e padronização ===== */
 /* Loading das seções segue a mesma linguagem visual da abertura do app. */
 .app-loading-overlay{
     background: color-mix(in srgb, var(--bg) 94%, transparent) !important;
@@ -7963,7 +7963,7 @@ button.ui-action-confirmed::after {
 .barbearia-faturamento-item{display:flex;align-items:center;justify-content:space-between;gap:12px}.barbearia-faturamento-copy{min-width:0}.barbearia-card-side-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);font-size:.82rem}
 
 
-/* ===== v1.1.0 • revisão final de consistência ===== */
+/* ===== v1.1.1 • revisão final de consistência ===== */
 /* Carregamento de seção replica a abertura do aplicativo. */
 .app-loading-overlay{background:var(--bg-body,#f8f9fb)!important;backdrop-filter:blur(8px) saturate(.96)!important;-webkit-backdrop-filter:blur(8px) saturate(.96)!important}
 .app-loading-shell{width:min(330px,calc(100vw - 40px));padding:24px}
@@ -8005,3 +8005,298 @@ button.ui-action-confirmed::after {
 .barbearia-expense-card{position:relative;padding-right:54px!important}
 .barbearia-expense-card .finance-label>i{display:none}
 .barbearia-expense-card::after{content:"\f571";position:absolute;right:12px;top:12px;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);font-family:"Font Awesome 6 Free";font-weight:900;font-size:.8rem}
+
+/* ===== v1.1.1 • correções do regressivo ===== */
+/* Fechamento e Despesas reutilizam a mesma navegação visual do Histórico. */
+.fechamento-data-nav,.despesas-periodo-nav{margin-bottom:10px}
+.fechamento-periodo-custom{margin:0 0 12px}
+.despesas-periodo-nav .painel-data-center{min-width:0}
+.despesas-periodo-nav .painel-data-label{text-transform:capitalize}
+
+/* Itens sob os gráficos voltam a ter separação visual, sem parecerem soltos. */
+.dashboard-analytics-card .relatorio-ranking{gap:0;margin-top:8px;border-top:1px solid var(--border)}
+.dashboard-analytics-card .relatorio-ranking-item{
+    border-radius:0;background:transparent;padding:9px 4px;border-bottom:1px solid var(--border)
+}
+.dashboard-analytics-card .relatorio-ranking-item:last-child{border-bottom:0}
+
+/* Hidden precisa vencer layouts flex/grid dos formulários de venda. */
+#vendaProfissionalField[hidden],#vendaTaxaResumo[hidden],#vendaComissaoResumo[hidden]{display:none!important}
+
+/* Mantém input em 16px para evitar zoom no iOS, mas placeholder no padrão visual do projeto. */
+.conta-security-content .input-group input::placeholder{font-size:.62rem!important;color:var(--text-secondary)!important;opacity:.74}
+
+/* O popover de informação segue o ícone acionado mesmo quando encosta nas bordas. */
+.finance-info-tooltip::after{left:var(--tooltip-arrow-left,50%)!important}
+
+/* Visão Geral: restaura a hierarquia visual anterior e mantém ícones à direita. */
+.barbearia-finance-overview .finance-main-value{
+    color:var(--success)!important;font-size:1.78rem!important;font-weight:700!important;line-height:1.08!important
+}
+.barbearia-finance-overview .finance-main-icon{
+    width:44px!important;height:44px!important;flex:0 0 44px!important;
+    border-radius:50%!important;background:rgba(22,163,74,.12)!important;color:var(--success)!important;font-size:1rem!important
+}
+.barbearia-mini-card,.barbearia-expense-card{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding-right:12px!important
+}
+.barbearia-mini-copy,.barbearia-expense-content{min-width:0;flex:1}
+.barbearia-mini-card::after,.barbearia-expense-card::after{content:none!important;display:none!important}
+.barbearia-card-side-icon,.barbearia-service-card .finance-service-icon,.barbearia-home .relatorio-card-head>i,.barbearia-home-equipe-head>i{
+    width:40px!important;height:40px!important;flex:0 0 40px!important;display:grid!important;place-items:center!important;
+    margin-left:auto!important;border-radius:50%!important;background:color-mix(in srgb,var(--primary) 11%,transparent)!important;
+    color:var(--primary)!important;font-size:.9rem!important
+}
+.barbearia-service-card{display:flex!important;align-items:center!important;justify-content:space-between!important}
+.barbearia-home .finance-label-row{display:flex;align-items:center;justify-content:flex-start;gap:5px;width:max-content;max-width:100%}
+.barbearia-home .finance-info-btn{position:relative;display:inline-grid!important;place-items:center!important;margin:0!important}
+
+
+/* ===== v1.1.2 • regressivo: consistência visual e estoque gerencial ===== */
+
+/* Visão Geral: usa os ícones reais do HTML, sempre à direita. */
+.barbearia-mini-card::after,
+.barbearia-expense-card::after{content:none!important;display:none!important}
+.barbearia-mini-card,
+.barbearia-expense-card,
+.barbearia-service-card{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+    padding-right:12px!important;
+}
+.barbearia-mini-copy,
+.barbearia-expense-content,
+.barbearia-service-card .finance-service-content{min-width:0;flex:1 1 auto}
+.barbearia-card-side-icon,
+.barbearia-service-card .finance-service-icon,
+.barbearia-home .relatorio-card-head>i,
+.barbearia-home-equipe-head>i{
+    order:2!important;
+    margin-left:auto!important;
+    margin-right:0!important;
+    width:40px!important;
+    height:40px!important;
+    flex:0 0 40px!important;
+    display:grid!important;
+    place-items:center!important;
+    border-radius:50%!important;
+    background:color-mix(in srgb,var(--primary) 11%,transparent)!important;
+    color:var(--primary)!important;
+    font-size:.9rem!important;
+}
+.barbearia-finance-overview .finance-overview-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+.barbearia-finance-overview .finance-main-icon{
+    order:2!important;
+    margin-left:auto!important;
+    width:40px!important;
+    height:40px!important;
+    flex:0 0 40px!important;
+    border-radius:50%!important;
+    background:color-mix(in srgb,var(--primary) 11%,transparent)!important;
+    color:var(--primary)!important;
+    font-size:.9rem!important;
+}
+.barbearia-finance-overview .finance-main-value{
+    color:var(--success)!important;
+    font-size:1.78rem!important;
+    line-height:1.08!important;
+    font-weight:700!important;
+}
+
+/* Tooltip Admin = exatamente a mesma geometria do Profissional. */
+.barbearia-home .finance-label-row{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:5px!important;
+    width:auto!important;
+    max-width:100%!important;
+}
+.barbearia-home .finance-info-btn{
+    position:static!important;
+    width:auto!important;
+    height:auto!important;
+    min-width:0!important;
+    flex:0 0 auto!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    color:var(--text-secondary)!important;
+    font-size:.68rem!important;
+    line-height:1!important;
+    opacity:.75!important;
+}
+.barbearia-home .finance-info-btn:active{color:var(--primary)!important;opacity:1!important;background:transparent!important}
+
+/* Fechamento e Despesas seguem a barra do Histórico sem variações tipográficas. */
+.fechamento-data-nav,
+.despesas-periodo-nav{margin:10px 0 12px!important}
+.fechamento-data-nav .painel-data-label,
+.despesas-periodo-nav .painel-data-label{
+    font-size:.73rem!important;
+    font-weight:650!important;
+    color:var(--text)!important;
+    letter-spacing:0!important;
+    text-transform:none!important;
+}
+.fechamento-data-nav .painel-data-btn,
+.despesas-periodo-nav .painel-data-btn,
+.fechamento-data-nav .painel-calendar-btn,
+.despesas-periodo-nav .painel-calendar-btn{
+    color:var(--primary)!important;
+}
+
+/* Segurança: placeholder volta a ser secundário e discreto. */
+.conta-security-content .input-group input::placeholder{
+    font-size:.56rem!important;
+    font-weight:400!important;
+    color:var(--text-secondary)!important;
+    opacity:.68!important;
+}
+
+/* Produto: disponibilidade para equipe ocupa a largura completa. */
+.estoque-produto-modal .estoque-equipe-toggle{
+    width:100%!important;
+    min-height:52px;
+    margin-top:2px;
+    padding:10px 11px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--bg);
+}
+
+/* Venda da equipe agrupada por profissional. */
+.estoque-vendas-profissional{
+    overflow:hidden;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--bg-card);
+}
+.estoque-vendas-profissional+ .estoque-vendas-profissional{margin-top:8px}
+.estoque-vendas-profissional>summary{
+    list-style:none;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto 18px;
+    align-items:center;
+    gap:10px;
+    min-height:60px;
+    padding:11px 12px;
+    cursor:pointer;
+}
+.estoque-vendas-profissional>summary::-webkit-details-marker{display:none}
+.estoque-vendas-profissional>summary>div{display:grid;gap:2px;min-width:0}
+.estoque-vendas-profissional>summary>div:nth-child(2){justify-items:end;text-align:right}
+.estoque-vendas-profissional>summary strong{font-size:.7rem;color:var(--text);font-weight:650}
+.estoque-vendas-profissional>summary span{font-size:.57rem;color:var(--text-secondary)}
+.estoque-vendas-profissional>summary>i{font-size:.6rem;color:var(--text-secondary);transition:transform .18s}
+.estoque-vendas-profissional[open]>summary>i{transform:rotate(180deg)}
+.estoque-vendas-profissional-body{display:grid;gap:8px;padding:9px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--bg) 55%,transparent)}
+.estoque-comissao-status{display:inline-flex!important;align-items:center;gap:4px;width:max-content;min-height:19px;padding:0 6px;border-radius:999px;font-size:.5rem!important;font-weight:700}
+.estoque-comissao-status.is-paid{background:color-mix(in srgb,var(--success) 12%,transparent);color:var(--success)}
+.estoque-comissao-status.is-pending{background:color-mix(in srgb,var(--warning,#f59e0b) 14%,transparent);color:var(--warning,#b45309)}
+.estoque-comissao-status.is-neutral{background:color-mix(in srgb,var(--text-secondary) 10%,transparent);color:var(--text-secondary)}
+.estoque-comissao-toggle{
+    width:100%;
+    min-height:40px;
+    border:1px solid color-mix(in srgb,var(--success) 28%,var(--border));
+    border-radius:11px;
+    background:color-mix(in srgb,var(--success) 8%,var(--bg-card));
+    color:var(--success);
+    font:inherit;
+    font-size:.64rem;
+    font-weight:650;
+}
+.estoque-comissao-toggle.is-reopen{
+    border-color:var(--border);
+    background:var(--bg-card);
+    color:var(--text-secondary);
+}
+
+/* Extrato de movimentações: leitura rápida como conta corrente. */
+.estoque-mov-resumo-grid{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:10px}
+.estoque-extrato-filtros{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:7px;
+    margin:9px 0 11px;
+}
+.estoque-extrato-filtros label{display:grid;gap:4px;min-width:0}
+.estoque-extrato-filtros label>span{font-size:.54rem;color:var(--text-secondary);font-weight:600;padding-left:2px}
+.estoque-extrato-filtros select{
+    width:100%;
+    min-width:0;
+    height:38px;
+    padding:0 8px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--bg-card);
+    color:var(--text);
+    font:inherit;
+    font-size:.59rem;
+    outline:none;
+}
+.estoque-extrato-lista .estoque-log-item{border-left:0!important}
+.estoque-mov-item{position:relative;padding-left:14px!important}
+.estoque-mov-item::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:9px;
+    bottom:9px;
+    width:3px;
+    border-radius:999px;
+    background:var(--border);
+}
+.estoque-mov-item.is-entrada::before{background:var(--success)}
+.estoque-mov-item.is-saida::before{background:var(--danger)}
+.estoque-mov-item.is-entrada .estoque-mov-delta{color:var(--success)!important}
+.estoque-mov-item.is-saida .estoque-mov-delta{color:var(--danger)!important}
+.estoque-mov-item.is-ajuste .estoque-mov-delta{color:var(--primary)!important}
+
+/* Movimentar estoque: bloco mais compacto e alinhado aos demais modais. */
+#modalMovimentarEstoque .estoque-modal-card{width:min(410px,calc(100vw - 24px));padding:17px!important}
+#modalMovimentarEstoque .estoque-mov-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin:0 0 12px;
+    padding:10px 11px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--bg);
+}
+#modalMovimentarEstoque .estoque-mov-header strong{font-size:.72rem}
+#modalMovimentarEstoque .estoque-mov-header span{font-size:.58rem;color:var(--text-secondary);text-align:right}
+#modalMovimentarEstoque .estoque-form{gap:10px!important}
+#modalMovimentarEstoque .estoque-despesa-opcoes{border-radius:12px!important;padding:10px!important}
+
+/* Filtros de produto podem rolar horizontalmente em telas estreitas sem esmagar rótulos. */
+.estoque-filtros{
+    display:flex!important;
+    gap:6px!important;
+    overflow-x:auto!important;
+    scrollbar-width:none;
+    padding-bottom:2px;
+}
+.estoque-filtros::-webkit-scrollbar{display:none}
+.estoque-filtros button{flex:0 0 auto!important;white-space:nowrap!important}
+
+/* Roscas: sem rótulos internos; lista abaixo é que carrega a informação. */
+.relatorio-chart-donut canvas{position:relative;z-index:1}
+
+@media(max-width:430px){
+    .estoque-extrato-filtros{grid-template-columns:1fr 1fr}
+    .estoque-extrato-filtros label:first-child{grid-column:1/-1}
+    .estoque-mov-resumo-grid{grid-template-columns:1fr 1fr}
+    .estoque-mov-resumo-grid article:last-child{grid-column:1/-1}
+}
+
+body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-visao="profissional"] #vendaTaxaResumo{display:none!important}

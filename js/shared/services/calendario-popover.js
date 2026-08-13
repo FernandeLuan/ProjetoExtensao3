@@ -2,6 +2,7 @@ let root = null;
 let card = null;
 let mesAtual = null;
 let dataSelecionada = null;
+let dataMinima = null;
 let dataMaxima = null;
 let onSelectAtual = null;
 let ancoraAtual = null;
@@ -78,7 +79,9 @@ function garantirEstrutura() {
     root.querySelector("[data-cal-next]")?.addEventListener("click", () => moverMes(1));
     root.querySelector("[data-cal-today]")?.addEventListener("click", () => {
         const hoje = inicioDoDia(new Date());
-        selecionar(hoje > dataMaxima ? dataMaxima : hoje);
+        if (dataMinima && hoje < dataMinima) return selecionar(dataMinima);
+        if (dataMaxima && hoje > dataMaxima) return selecionar(dataMaxima);
+        selecionar(hoje);
     });
 
     document.addEventListener("keydown", (event) => {
@@ -123,6 +126,17 @@ function posicionar() {
     card.style.top = `${Math.round(top)}px`;
 }
 
+function limiteMesAnterior() {
+    if (!dataMinima) return false;
+    return (
+        mesAtual.getFullYear() < dataMinima.getFullYear()
+        || (
+            mesAtual.getFullYear() === dataMinima.getFullYear()
+            && mesAtual.getMonth() <= dataMinima.getMonth()
+        )
+    );
+}
+
 function limiteProximoMes() {
     if (!dataMaxima) return false;
     return (
@@ -137,6 +151,10 @@ function limiteProximoMes() {
 function moverMes(delta) {
     if (!mesAtual) return;
     const candidato = new Date(mesAtual.getFullYear(), mesAtual.getMonth() + delta, 1);
+    if (delta < 0 && dataMinima) {
+        const minMes = new Date(dataMinima.getFullYear(), dataMinima.getMonth(), 1);
+        if (candidato < minMes) return;
+    }
     if (delta > 0 && dataMaxima) {
         const maxMes = new Date(dataMaxima.getFullYear(), dataMaxima.getMonth(), 1);
         if (candidato > maxMes) return;
@@ -151,11 +169,18 @@ function renderizar() {
     const monthLabel = root.querySelector("[data-cal-month]");
     const caption = root.querySelector("[data-cal-caption]");
     const grid = root.querySelector("[data-cal-grid]");
+    const prev = root.querySelector("[data-cal-prev]");
     const next = root.querySelector("[data-cal-next]");
+    const today = root.querySelector("[data-cal-today]");
 
     if (monthLabel) monthLabel.textContent = `${MESES[mesAtual.getMonth()]} ${mesAtual.getFullYear()}`;
     if (caption) caption.textContent = tituloAtual;
+    if (prev) prev.disabled = limiteMesAnterior();
     if (next) next.disabled = limiteProximoMes();
+    if (today) {
+        const hoje = inicioDoDia(new Date());
+        today.disabled = Boolean((dataMinima && hoje < dataMinima) || (dataMaxima && hoje > dataMaxima));
+    }
     if (!grid) return;
 
     grid.innerHTML = "";
@@ -180,9 +205,11 @@ function renderizar() {
         if (mesmaData(data, hoje)) botao.classList.add("hoje");
         if (mesmaData(data, dataSelecionada)) botao.classList.add("selecionado");
 
-        const futuro = dataMaxima && data > dataMaxima;
-        botao.disabled = Boolean(futuro);
-        if (!futuro) botao.addEventListener("click", () => selecionar(data));
+        const antesMinimo = dataMinima && data < dataMinima;
+        const depoisMaximo = dataMaxima && data > dataMaxima;
+        const indisponivel = Boolean(antesMinimo || depoisMaximo);
+        botao.disabled = indisponivel;
+        if (!indisponivel) botao.addEventListener("click", () => selecionar(data));
 
         grid.appendChild(botao);
     }
@@ -192,6 +219,8 @@ function renderizar() {
 
 function selecionar(data) {
     const escolhida = inicioDoDia(data);
+    if (dataMinima && escolhida < dataMinima) return;
+    if (dataMaxima && escolhida > dataMaxima) return;
     dataSelecionada = escolhida;
     const callback = onSelectAtual;
     fecharCalendarioPopover();
@@ -217,6 +246,7 @@ export function fecharCalendarioPopover() {
 export function abrirCalendarioPopover({
     ancora,
     data = new Date(),
+    min = null,
     max = new Date(),
     titulo = "Escolher data",
     onSelect
@@ -226,7 +256,10 @@ export function abrirCalendarioPopover({
     garantirEstrutura();
 
     dataSelecionada = inicioDoDia(data);
+    dataMinima = min ? inicioDoDia(min) : null;
     dataMaxima = inicioDoDia(max || new Date());
+    if (dataMinima && dataMinima > dataMaxima) dataMinima = new Date(dataMaxima);
+    if (dataMinima && dataSelecionada < dataMinima) dataSelecionada = new Date(dataMinima);
     if (dataSelecionada > dataMaxima) dataSelecionada = new Date(dataMaxima);
     mesAtual = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), 1);
     onSelectAtual = onSelect;

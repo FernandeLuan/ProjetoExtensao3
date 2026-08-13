@@ -1,11 +1,11 @@
-import { state } from "./state.js?v=11.0";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.0";
-import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.0";
-import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=11.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
-import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.0";
-import { garantirChartJs } from "./services/external-assets.js?v=11.0";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.0";
+import { state } from "./state.js?v=11.2";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.2";
+import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.2";
+import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=11.2";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
+import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.2";
+import { garantirChartJs } from "./services/external-assets.js?v=11.2";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.2";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -195,53 +195,22 @@ function renderRanking(id, entradas, formatar) {
     `).join("");
 }
 
-function pluginNumerosRosca() {
-    return {
-        id: "srnkNumerosRoscaAdmin",
-        afterDatasetsDraw(chart, _args, opcoes) {
-            if (!opcoes?.mostrar) return;
-            const meta = chart.getDatasetMeta(0);
-            const valores = chart.data.datasets?.[0]?.data || [];
-            const ctx = chart.ctx;
-            ctx.save();
-            meta.data.forEach((arco, indice) => {
-                const valor = Number(valores[indice] || 0);
-                if (valor <= 0 || !arco) return;
-                const pos = arco.getCenterPoint();
-                const raio = valor >= 10 ? 12 : 11;
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, raio, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(15, 23, 42, .82)";
-                ctx.fill();
-                ctx.fillStyle = "#fff";
-                ctx.font = "700 11px Poppins, sans-serif";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(String(valor), pos.x, pos.y + .5);
-            });
-            ctx.restore();
-        }
-    };
-}
-
-function criarRosca(canvasId, entradas, tooltip, { mostrarNumeros = false } = {}) {
+function criarRosca(canvasId, entradas, tooltip) {
     const canvas = el(canvasId);
     if (!canvas || typeof Chart === "undefined") return null;
     const cores = coresTema();
     const dados = entradas.length ? entradas : [["Sem dados", 1]];
     const vazio = !entradas.length;
     const coresLista = paleta(cores.primary);
-    const corSeparacao = getComputedStyle(document.documentElement).getPropertyValue("--bg-card").trim() || "#fff";
     return new Chart(canvas, {
         type: "doughnut",
-        plugins: [pluginNumerosRosca()],
         data: {
             labels: dados.map(([nome]) => nome),
             datasets: [{
                 data: dados.map(([, valor]) => valor),
                 backgroundColor: vazio ? [cores.border] : dados.map((_, i) => coresLista[i % coresLista.length]),
                 borderWidth: 0,
-                spacing: vazio ? 0 : 2,
+                spacing: 0,
                 hoverOffset: vazio ? 0 : 5
             }]
         },
@@ -251,7 +220,6 @@ function criarRosca(canvasId, entradas, tooltip, { mostrarNumeros = false } = {}
             cutout: "68%",
             animation: { duration: 180 },
             plugins: {
-                srnkNumerosRoscaAdmin: { mostrar: mostrarNumeros && !vazio },
                 legend: { display: false },
                 tooltip: { enabled: !vazio, callbacks: { label: (ctx) => tooltip(ctx.raw, ctx.label) } }
             }
@@ -284,7 +252,7 @@ function renderGraficos(total) {
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 180 }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => moeda(ctx.raw) } } }, scales: { x: { grid: { display: false }, ticks: { color: cores.text } }, y: { beginAtZero: true, grid: { color: cores.border }, ticks: { color: cores.text } } } }
         });
     }
-    graficoServicos = criarRosca("graficoBarbeariaServicos", servicos, (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`, { mostrarNumeros: true });
+    graficoServicos = criarRosca("graficoBarbeariaServicos", servicos, (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`);
     graficoPagamentos = criarRosca("graficoBarbeariaPagamentos", pagamentos, (valor) => moeda(valor));
 }
 

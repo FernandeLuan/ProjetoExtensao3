@@ -1,16 +1,16 @@
-import { state, onStateChange } from "./state.js?v=11.0";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.0";
-import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=11.0";
-import { paraDate, chaveData } from "./utils/date.js?v=11.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
+import { state, onStateChange } from "./state.js?v=11.2";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.2";
+import { formatarMoeda, converterParaNumero, aplicarMascaraMoedaInput, formatarValorInput } from "./utils/money.js?v=11.2";
+import { paraDate, chaveData } from "./utils/date.js?v=11.2";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.2";
 import {
     iniciarAcaoBotao,
     concluirAcaoBotao,
     restaurarAcaoBotao,
     iniciarLoadingTela,
     finalizarLoadingTela
-} from "./services/ui-loading-service.js?v=11.0";
-import { garantirZXing } from "./services/external-assets.js?v=11.0";
+} from "./services/ui-loading-service.js?v=11.2";
+import { garantirZXing } from "./services/external-assets.js?v=11.2";
 import {
     CATEGORIAS_ESTOQUE,
     FORMAS_PAGAMENTO_VENDA,
@@ -18,13 +18,14 @@ import {
     formatarQuantidadeEstoque,
     normalizarCodigoBarras,
     statusEstoque
-} from "./services/estoque-service.js?v=11.0";
+} from "./services/estoque-service.js?v=11.2";
 import {
     atualizarProdutoEstoque,
     cancelarVendaProduto,
     criarProdutoEstoque,
     definirStatusProduto,
     editarVendaProduto,
+    marcarComissoesVendasPagas,
     listarMovimentacoesRecentes,
     listarProdutosEstoque,
     listarProfissionaisParaVenda,
@@ -32,8 +33,8 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=11.0";
-import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=11.0";
+} from "./data/estoque-repository.js?v=11.2";
+import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=11.2";
 
 let inicializado = false;
 let produtos = [];
@@ -46,6 +47,9 @@ let produtoVenda = null;
 let vendaEmEdicao = null;
 let vendaParaCancelar = null;
 let filtroStatus = "todos";
+let filtroMovProduto = "todos";
+let filtroMovPagamento = "todos";
+let filtroMovTipo = "todos";
 let scannerControls = null;
 let scannerDestino = null;
 let scannerAtivo = false;
@@ -167,6 +171,7 @@ function listaProdutosFiltrados({ venda = false } = {}) {
             if (filtroStatus === "ativos" && !ativo) return false;
             if (filtroStatus === "zerado" && (!ativo || qtd > 0)) return false;
             if (filtroStatus === "arquivados" && ativo) return false;
+            if (filtroStatus === "disponiveis" && (!ativo || produto.comissaoHabilitada === false)) return false;
         }
         if (!busca) return true;
         const alvo = `${produto.nome || ""} ${produto.categoria || ""} ${produto.codigoBarras || ""}`.toLowerCase();
@@ -251,27 +256,130 @@ function renderizarVendasAdmin() {
         container.innerHTML = '<div class="estoque-vazio compact"><strong>Nenhuma venda registrada.</strong></div>';
         return;
     }
-    container.innerHTML = vendasAdmin.map((venda) => `
-        <article class="estoque-venda-admin-item${venda.cancelada === true ? " is-cancelada" : ""}" data-venda-id="${escapar(venda.id)}">
-            <div class="estoque-venda-admin-main">
-                <div><strong>${escapar(venda.produtoNomeSnapshot || "Produto")}</strong>${vendaCanceladaBadge(venda)}<span>${dataHora(venda.dataVenda)} • ${Number(venda.quantidade || 0)} un • ${escapar(venda.formaPagamento || "—")}</span></div>
-                <div><strong>${moeda(venda.valorBruto)}</strong><span>${venda.gerarComissao ? `Comissão ${moeda(venda.comissaoValor)}` : "Sem comissão"}</span></div>
-            </div>
-            ${venda.profissionalNomeSnapshot ? `<small class="estoque-venda-profissional"><i class="fas fa-user"></i> ${escapar(venda.profissionalNomeSnapshot)}</small>` : ""}
-            ${venda.cancelada === true ? "" : '<div class="estoque-venda-admin-acoes"><button type="button" data-venda-acao="editar"><i class="fas fa-pen"></i> Editar</button><button class="is-danger" type="button" data-venda-acao="cancelar"><i class="fas fa-trash"></i> Excluir</button></div>'}
-        </article>
-    `).join("");
+
+    const grupos = new Map();
+    vendasAdmin.forEach((venda) => {
+        const chave = venda.profissionalUid || "__administrativa__";
+        const nome = venda.profissionalNomeSnapshot || (venda.gerarComissao ? "Profissional" : "Venda administrativa");
+        if (!grupos.has(chave)) grupos.set(chave, { chave, nome, itens: [] });
+        grupos.get(chave).itens.push(venda);
+    });
+
+    const html = [...grupos.values()]
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+        .map((grupo) => {
+            const ativas = grupo.itens.filter((v) => v.cancelada !== true);
+            const bruto = ativas.reduce((soma, v) => soma + Number(v.valorBruto || 0), 0);
+            const comissionadas = ativas.filter((v) => v.gerarComissao === true && Number(v.comissaoValor || 0) > 0);
+            const comissao = comissionadas.reduce((soma, v) => soma + Number(v.comissaoValor || 0), 0);
+            const pagas = comissionadas.filter((v) => v.comissaoPaga === true).length;
+            const todasPagas = comissionadas.length > 0 && pagas === comissionadas.length;
+            const status = !comissionadas.length
+                ? '<span class="estoque-comissao-status is-neutral">Sem comissão</span>'
+                : todasPagas
+                    ? '<span class="estoque-comissao-status is-paid"><i class="fas fa-check"></i> Paga</span>'
+                    : `<span class="estoque-comissao-status is-pending">${pagas ? `${pagas}/${comissionadas.length} pagas` : "Pendente"}</span>`;
+
+            const itens = grupo.itens.map((venda) => `
+                <article class="estoque-venda-admin-item${venda.cancelada === true ? " is-cancelada" : ""}" data-venda-id="${escapar(venda.id)}">
+                    <div class="estoque-venda-admin-main">
+                        <div><strong>${escapar(venda.produtoNomeSnapshot || "Produto")}</strong>${vendaCanceladaBadge(venda)}<span>${dataHora(venda.dataVenda)} • ${Number(venda.quantidade || 0)} un • ${escapar(venda.formaPagamento || "—")}</span></div>
+                        <div><strong>${moeda(venda.valorBruto)}</strong><span>${venda.gerarComissao ? `Comissão ${moeda(venda.comissaoValor)}${venda.comissaoPaga === true ? " • paga" : ""}` : "Sem comissão"}</span></div>
+                    </div>
+                    ${venda.cancelada === true ? "" : '<div class="estoque-venda-admin-acoes"><button type="button" data-venda-acao="editar"><i class="fas fa-pen"></i> Editar</button><button class="is-danger" type="button" data-venda-acao="cancelar"><i class="fas fa-trash"></i> Excluir</button></div>'}
+                </article>
+            `).join("");
+
+            const acaoComissao = comissionadas.length ? `
+                <button class="estoque-comissao-toggle${todasPagas ? " is-reopen" : ""}" data-comissao-acao="${todasPagas ? "reabrir" : "pagar"}" data-profissional-uid="${escapar(grupo.chave)}" type="button">
+                    <i class="fas ${todasPagas ? "fa-rotate-left" : "fa-circle-check"}"></i>
+                    ${todasPagas ? "Marcar comissão como pendente" : "Marcar comissão como paga"}
+                </button>` : "";
+
+            return `<details class="estoque-vendas-profissional" data-profissional-uid="${escapar(grupo.chave)}">
+                <summary>
+                    <div><strong>${escapar(grupo.nome)}</strong><span>${ativas.length} venda${ativas.length === 1 ? "" : "s"} • ${moeda(bruto)}</span></div>
+                    <div><strong>${comissao > 0 ? `Comissão ${moeda(comissao)}` : "Sem comissão"}</strong>${status}</div>
+                    <i class="fas fa-chevron-down"></i>
+                </summary>
+                <div class="estoque-vendas-profissional-body">${itens}${acaoComissao}</div>
+            </details>`;
+        }).join("");
+
+    container.innerHTML = html;
+}
+
+function direcaoMovimentacao(mov) {
+    const anterior = Number(mov?.saldoAnterior || 0);
+    const posterior = Number(mov?.saldoPosterior || 0);
+    if (posterior > anterior) return "entrada";
+    if (posterior < anterior) return "saida";
+    return "ajuste";
+}
+
+function pagamentoMovimentacao(mov) {
+    const direto = String(mov?.formaPagamentoSnapshot || "").trim();
+    if (FORMAS_PAGAMENTO_VENDA.includes(direto)) return direto;
+
+    // Compatibilidade com movimentações de venda gravadas antes do snapshot
+    // da forma de pagamento: reaproveita a venda já carregada no mês atual.
+    const vendaLigada = mov?.vendaId
+        ? vendasAdmin.find((venda) => venda.id === mov.vendaId)
+        : null;
+    const daVenda = String(vendaLigada?.formaPagamento || "").trim();
+    if (FORMAS_PAGAMENTO_VENDA.includes(daVenda)) return daVenda;
+
+    const motivo = String(mov?.motivo || "");
+    return FORMAS_PAGAMENTO_VENDA.find((forma) => motivo.toLowerCase().includes(forma.toLowerCase())) || "";
+}
+
+function prepararFiltrosMovimentacoes() {
+    const produtoSelect = $("estoqueMovFiltroProduto");
+    if (produtoSelect) {
+        const anterior = produtoSelect.value || filtroMovProduto;
+        produtoSelect.innerHTML = '<option value="todos">Todos os produtos</option>' + produtos
+            .slice().sort((a,b) => String(a.nome||"").localeCompare(String(b.nome||""), "pt-BR"))
+            .map((produto) => `<option value="${escapar(produto.id)}">${escapar(produto.nome || "Produto")}</option>`).join("");
+        produtoSelect.value = [...produtoSelect.options].some((o) => o.value === anterior) ? anterior : "todos";
+        filtroMovProduto = produtoSelect.value;
+    }
 }
 
 function renderizarMovimentacoes() {
     const container = $("estoqueMovimentacoesLista");
     if (!container) return;
-    container.innerHTML = movimentacoes.length ? movimentacoes.map((mov) => {
+    prepararFiltrosMovimentacoes();
+
+    const lista = movimentacoes.filter((mov) => {
+        const direcao = direcaoMovimentacao(mov);
+        const pagamento = pagamentoMovimentacao(mov);
+        if (filtroMovProduto !== "todos" && String(mov.produtoId || "") !== filtroMovProduto) return false;
+        if (filtroMovPagamento !== "todos" && pagamento !== filtroMovPagamento) return false;
+        if (filtroMovTipo !== "todos" && direcao !== filtroMovTipo) return false;
+        return true;
+    });
+
+    const entradas = lista.filter((m) => direcaoMovimentacao(m) === "entrada").reduce((s,m) => s + Math.abs(Number(m.saldoPosterior || 0) - Number(m.saldoAnterior || 0)), 0);
+    const saidas = lista.filter((m) => direcaoMovimentacao(m) === "saida").reduce((s,m) => s + Math.abs(Number(m.saldoPosterior || 0) - Number(m.saldoAnterior || 0)), 0);
+    const custoEntradas = lista
+        .filter((m) => ["entrada", "entrada_inicial"].includes(String(m?.tipo || "")))
+        .reduce((s,m) => s + Number(m.quantidade || 0) * Number(m.custoUnitarioSnapshot || 0), 0);
+    if ($("estoqueMovEntradas")) $("estoqueMovEntradas").textContent = `+${formatarQuantidadeEstoque(entradas)}`;
+    if ($("estoqueMovSaidas")) $("estoqueMovSaidas").textContent = `-${formatarQuantidadeEstoque(saidas)}`;
+    if ($("estoqueMovCusto")) $("estoqueMovCusto").textContent = moeda(custoEntradas);
+
+    container.innerHTML = lista.length ? lista.map((mov) => {
         const anterior = Number(mov.saldoAnterior || 0);
         const posterior = Number(mov.saldoPosterior || 0);
-        const sinal = posterior > anterior ? "+" : posterior < anterior ? "-" : "";
-        return `<article class="estoque-log-item"><div><strong>${escapar(mov.produtoNomeSnapshot || "Produto")}</strong><span>${dataHora(mov.dataMovimentacao)} • ${escapar(mov.motivo || "Movimentação")}</span></div><div><strong>${sinal}${formatarQuantidadeEstoque(Math.abs(posterior - anterior) || mov.quantidade || 0)}</strong><span>Saldo ${formatarQuantidadeEstoque(posterior)}</span></div></article>`;
-    }).join("") : '<div class="estoque-vazio compact"><strong>Nenhuma movimentação registrada.</strong></div>';
+        const direcao = direcaoMovimentacao(mov);
+        const delta = Math.abs(posterior - anterior) || Number(mov.quantidade || 0);
+        const sinal = direcao === "entrada" ? "+" : direcao === "saida" ? "-" : "";
+        const pagamento = pagamentoMovimentacao(mov);
+        return `<article class="estoque-log-item estoque-mov-item is-${direcao}">
+            <div><strong>${escapar(mov.produtoNomeSnapshot || "Produto")}</strong><span>${dataHora(mov.dataMovimentacao)} • ${escapar(mov.motivo || "Movimentação")}${pagamento ? ` • ${escapar(pagamento)}` : ""}</span></div>
+            <div><strong class="estoque-mov-delta">${sinal}${formatarQuantidadeEstoque(delta)}</strong><span>Saldo ${formatarQuantidadeEstoque(posterior)}</span></div>
+        </article>`;
+    }).join("") : '<div class="estoque-vazio compact"><strong>Nenhuma movimentação encontrada.</strong><span>Ajuste os filtros para ver outros lançamentos.</span></div>';
 }
 
 function atualizarNavegadorMesVendas() {
@@ -532,9 +640,10 @@ async function preencherProfissionaisVenda(valorAtual = null, semComissao = fals
     if (!select) return;
     const admin = podeAdministrarNaVisaoAtual();
     if (!admin) {
-        select.innerHTML = `<option value="${escapar(state.user?.uid || "")}">${escapar(state.membroAtual?.nome || state.perfilUsuario?.nome || "Meu perfil")}</option>`;
+        select.innerHTML = `<option value="${escapar(state.user?.uid || "")}">Você</option>`;
         select.value = state.user?.uid || "";
         $("vendaProfissionalField").hidden = true;
+        $("vendaProfissionalField").style.display = "none";
         return;
     }
     const disponivelEquipe = produtoVenda?.comissaoHabilitada !== false;
@@ -579,15 +688,31 @@ function calcularPreviewVenda() {
 function atualizarPreviewVenda() {
     const calculo = calcularPreviewVenda();
     if (!calculo) return;
+    const admin = podeAdministrarNaVisaoAtual();
     $("vendaProdutoTotal").textContent = moeda(calculo.valorBruto);
-    const temTaxa = Number(calculo.taxaPagamentoValor || 0) > 0;
-    $("vendaTaxaResumo").hidden = !temTaxa;
-    $("vendaTaxaPct").textContent = `${Number(calculo.taxaPagamentoPct || 0).toFixed(2).replace(".", ",")}%`;
-    $("vendaTaxaValor").textContent = `- ${moeda(calculo.taxaPagamentoValor)}`;
+
+    // A taxa da maquininha é custo da barbearia. O profissional não precisa
+    // enxergar esse detalhe ao registrar uma venda.
+    const temTaxa = admin && Number(calculo.taxaPagamentoValor || 0) > 0;
+    if ($("vendaTaxaResumo")) {
+        $("vendaTaxaResumo").hidden = !temTaxa;
+        $("vendaTaxaResumo").style.display = temTaxa ? "" : "none";
+    }
+    if ($("vendaTaxaPct")) $("vendaTaxaPct").textContent = `${Number(calculo.taxaPagamentoPct || 0).toFixed(2).replace(".", ",")}%`;
+    if ($("vendaTaxaValor")) $("vendaTaxaValor").textContent = `- ${moeda(calculo.taxaPagamentoValor)}`;
+
+    // No perfil do barbeiro mostramos apenas o valor da comissão, sem seletor
+    // de profissional. O vínculo é sempre a própria conta autenticada.
     const temComissao = Number(calculo.comissaoValor || 0) > 0;
-    $("vendaComissaoResumo").hidden = !temComissao;
-    $("vendaComissaoPct").textContent = `${Number(calculo.comissaoPct || 0).toFixed(2).replace(".", ",")}%`;
-    $("vendaComissaoValor").textContent = moeda(calculo.comissaoValor);
+    if ($("vendaComissaoResumo")) {
+        $("vendaComissaoResumo").hidden = !temComissao;
+        const label = $("vendaComissaoResumo").querySelector("span");
+        if (label?.firstChild) label.firstChild.nodeValue = admin ? "Comissão " : "Sua comissão ";
+    }
+    if ($("vendaComissaoPct")) $("vendaComissaoPct").textContent = `${Number(calculo.comissaoPct || 0).toFixed(2).replace(".", ",")}%`;
+    if ($("vendaComissaoValor")) $("vendaComissaoValor").textContent = moeda(calculo.comissaoValor);
+    if (!admin && $("vendaProfissionalField")) { $("vendaProfissionalField").hidden = true; $("vendaProfissionalField").style.display = "none"; }
+    if (!admin && $("vendaTaxaResumo")) { $("vendaTaxaResumo").hidden = true; $("vendaTaxaResumo").style.display = "none"; }
 }
 
 async function abrirVenda(produto, venda = null) {
@@ -676,6 +801,26 @@ async function confirmarCancelarVenda() {
     }
 }
 
+async function alternarPagamentoComissao(grupoUid, paga, botao) {
+    const ids = vendasAdmin
+        .filter((v) => v.cancelada !== true && v.gerarComissao === true && Number(v.comissaoValor || 0) > 0 && (v.profissionalUid || "__administrativa__") === grupoUid)
+        .map((v) => v.id);
+    if (!ids.length) return;
+    iniciarAcaoBotao(botao, paga ? "Marcando como paga..." : "Reabrindo...");
+    try {
+        await marcarComissoesVendasPagas(ids, paga);
+        vendasAdmin = vendasAdmin.map((v) => ids.includes(v.id) ? { ...v, comissaoPaga: paga } : v);
+        renderizarVendasAdmin();
+        mostrarSucesso(paga ? "Comissão marcada como paga." : "Comissão marcada como pendente.");
+        void carregarAdmin({ forcar: true }).catch(() => null);
+    } catch (error) {
+        console.error(error);
+        mostrarErro(error?.message || "Não foi possível atualizar a comissão.");
+    } finally {
+        restaurarAcaoBotao(botao);
+    }
+}
+
 async function procurarCodigoVenda(codigo) {
     const produto = await localizarProdutoPorCodigo(codigo);
     if (!produto || produto.ativo === false) return mostrarErro("Produto não encontrado ou arquivado.");
@@ -756,6 +901,10 @@ function vincularEventos() {
         renderizarProdutosAdmin();
     }));
 
+    $("estoqueMovFiltroProduto")?.addEventListener("change", (event) => { filtroMovProduto = event.target.value || "todos"; renderizarMovimentacoes(); });
+    $("estoqueMovFiltroPagamento")?.addEventListener("change", (event) => { filtroMovPagamento = event.target.value || "todos"; renderizarMovimentacoes(); });
+    $("estoqueMovFiltroTipo")?.addEventListener("change", (event) => { filtroMovTipo = event.target.value || "todos"; renderizarMovimentacoes(); });
+
     $("estoqueProdutosLista")?.addEventListener("click", async (event) => {
         const card = event.target.closest("[data-produto-id]");
         const acao = event.target.closest("[data-acao]")?.dataset.acao;
@@ -785,6 +934,14 @@ function vincularEventos() {
     });
 
     $("estoqueVendasLista")?.addEventListener("click", async (event) => {
+        const botaoComissao = event.target.closest("[data-comissao-acao]");
+        if (botaoComissao) {
+            event.preventDefault();
+            event.stopPropagation();
+            const paga = botaoComissao.dataset.comissaoAcao === "pagar";
+            await alternarPagamentoComissao(botaoComissao.dataset.profissionalUid || "__administrativa__", paga, botaoComissao);
+            return;
+        }
         const item = event.target.closest("[data-venda-id]");
         const acao = event.target.closest("[data-venda-acao]")?.dataset.vendaAcao;
         if (!item || !acao) return;

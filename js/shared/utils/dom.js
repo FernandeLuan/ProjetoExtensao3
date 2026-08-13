@@ -24,14 +24,17 @@ export function abrirSeletorData(input) {
 
 let tooltipsFinanceirosInicializados = false;
 let tooltipTimer = null;
+let tooltipAnchorAtual = null;
 
 function esconderTooltipFinanceiro() {
     const tooltip = document.getElementById("financeInfoTooltip");
     if (!tooltip) return;
     tooltip.hidden = true;
+    tooltipAnchorAtual = null;
     tooltip.classList.remove("is-above", "is-below");
     tooltip.style.removeProperty("left");
     tooltip.style.removeProperty("top");
+    tooltip.style.removeProperty("--tooltip-arrow-left");
     if (tooltipTimer) clearTimeout(tooltipTimer);
     tooltipTimer = null;
 }
@@ -55,6 +58,13 @@ function posicionarTooltipFinanceiro(botao, tooltip) {
     tooltip.style.top = cabeAcima
         ? `${rect.top - espaco}px`
         : `${rect.bottom + espaco}px`;
+
+    // Quando o balão é limitado pela borda da tela, a seta continua apontando
+    // para o ícone real em vez de ficar sempre no centro do balão.
+    const esquerdaTooltip = centroX - largura / 2;
+    const centroBotao = rect.left + rect.width / 2;
+    const seta = Math.max(12, Math.min(largura - 12, centroBotao - esquerdaTooltip));
+    tooltip.style.setProperty("--tooltip-arrow-left", `${seta}px`);
 }
 
 export function inicializarTooltipsFinanceiros() {
@@ -73,13 +83,13 @@ export function inicializarTooltipsFinanceiros() {
         const tooltip = document.getElementById("financeInfoTooltip");
         if (!tooltip) return;
 
-        if (!tooltip.hidden && tooltip.dataset.anchorId === String(botao.dataset.info || "")) {
+        if (!tooltip.hidden && tooltipAnchorAtual === botao) {
             esconderTooltipFinanceiro();
             return;
         }
 
+        tooltipAnchorAtual = botao;
         tooltip.textContent = botao.dataset.info || "";
-        tooltip.dataset.anchorId = String(botao.dataset.info || "");
         tooltip.hidden = false;
         tooltip.style.position = "fixed";
         tooltip.style.transform = "translateX(-50%)";

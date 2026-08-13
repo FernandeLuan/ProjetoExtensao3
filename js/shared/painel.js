@@ -1,14 +1,14 @@
-import { state, onStateChange } from "./state.js?v=11.0";
-import { formatarMoeda } from "./utils/money.js?v=11.0";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=11.0";
-import { setTexto, inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
-import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=11.0";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=11.0";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.0";
-import { obterWorkspaceId } from "./data/context.js?v=11.0";
-import { garantirChartJs } from "./services/external-assets.js?v=11.0";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.0";
+import { state, onStateChange } from "./state.js?v=11.2";
+import { formatarMoeda } from "./utils/money.js?v=11.2";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=11.2";
+import { setTexto, inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.2";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
+import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=11.2";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=11.2";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.2";
+import { obterWorkspaceId } from "./data/context.js?v=11.2";
+import { garantirChartJs } from "./services/external-assets.js?v=11.2";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.2";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -610,36 +610,7 @@ function paletaPainel(cores) {
     ];
 }
 
-function pluginNumerosRosca() {
-    return {
-        id: "srnkNumerosRosca",
-        afterDatasetsDraw(chart, _args, opcoes) {
-            if (!opcoes?.mostrar || !chart?.data?.datasets?.[0]) return;
-            const meta = chart.getDatasetMeta(0);
-            const valores = chart.data.datasets[0].data || [];
-            const ctx = chart.ctx;
-            ctx.save();
-            meta.data.forEach((arco, indice) => {
-                const valor = Number(valores[indice] || 0);
-                if (valor <= 0 || !arco) return;
-                const pos = arco.getCenterPoint();
-                const raio = valor >= 10 ? 12 : 11;
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, raio, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(15, 23, 42, .82)";
-                ctx.fill();
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "700 11px Poppins, sans-serif";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(String(valor), pos.x, pos.y + .5);
-            });
-            ctx.restore();
-        }
-    };
-}
-
-function criarRoscaPainel(canvas, entradas, formatarTooltip, { mostrarNumeros = false } = {}) {
+function criarRoscaPainel(canvas, entradas, formatarTooltip) {
     if (!canvas || typeof Chart === "undefined") return null;
     const cores = obterCoresDoTema();
     const paleta = paletaPainel(cores);
@@ -647,14 +618,13 @@ function criarRoscaPainel(canvas, entradas, formatarTooltip, { mostrarNumeros = 
     const vazio = !entradas.length;
     return new Chart(canvas, {
         type: "doughnut",
-        plugins: [pluginNumerosRosca()],
         data: {
             labels: dados.map(([nome]) => nome),
             datasets: [{
                 data: dados.map(([, valor]) => valor),
                 backgroundColor: vazio ? [cores.border] : dados.map((_, i) => paleta[i % paleta.length]),
                 borderWidth: 0,
-                spacing: vazio ? 0 : 2,
+                spacing: 0,
                 hoverOffset: vazio ? 0 : 5
             }]
         },
@@ -664,7 +634,6 @@ function criarRoscaPainel(canvas, entradas, formatarTooltip, { mostrarNumeros = 
             cutout: "68%",
             animation: { duration: 180 },
             plugins: {
-                srnkNumerosRosca: { mostrar: mostrarNumeros && !vazio },
                 legend: { display: false },
                 tooltip: {
                     enabled: !vazio,
@@ -698,8 +667,7 @@ function atualizarAnaliseDiaPainel() {
     graficoServicosInstance = criarRoscaPainel(
         document.getElementById("graficoPainelServicos"),
         servicos,
-        (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`,
-        { mostrarNumeros: true }
+        (valor) => `${valor} atendimento${Number(valor) === 1 ? "" : "s"}`
     );
     graficoPagamentosInstance = criarRoscaPainel(
         document.getElementById("graficoPainelPagamentos"),

@@ -6,11 +6,11 @@
 <title>Login Administrativo | Sr NK</title>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <meta content="#0F1115" name="theme-color"/>
-<link href="../icons/icon-192.png?v=11.0" rel="apple-touch-icon"/>
+<link href="../icons/icon-192.png?v=11.2" rel="apple-touch-icon"/>
 <link href="../css/style.css" rel="stylesheet"/>
-<link href="../css/login.css?v=11.0" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=11.0" rel="modulepreload"/>
-<link href="../js/login.js?v=11.0" rel="modulepreload"/>
+<link href="../css/login.css?v=11.2" rel="stylesheet"/>
+<link href="../js/firebase-init.js?v=11.2" rel="modulepreload"/>
+<link href="../js/login.js?v=11.2" rel="modulepreload"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
@@ -25,10 +25,13 @@
 <span>Sr NK</span>
 </a>
 <section class="login-card" aria-labelledby="loginTitulo">
+<div class="login-area-head">
 <div class="login-area-icon"><i class="fas fa-store"></i></div>
 <div class="login-heading">
+<span class="login-eyebrow">Área administrativa</span>
 <h1 id="loginTitulo">Gestão da barbearia</h1>
-<p>Entre com sua conta administrativa</p>
+<p>Entre com sua conta para continuar</p>
+</div>
 </div>
 <form id="loginForm" novalidate>
 <label class="login-field">
@@ -47,8 +50,8 @@
 <a class="voltar-site" href="../index.html"><i class="fas fa-arrow-left"></i> Voltar para o site</a>
 </section>
 </main>
-<script defer src="../js/mobile-interactions.js?v=11.0"></script>
-<script src="../js/login.js?v=11.0" type="module"></script>
-<script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(console.warn));</script>
+<script defer src="../js/mobile-interactions.js?v=11.2"></script>
+<script src="../js/login.js?v=11.2" type="module"></script>
+<script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));</script>
 </body>
 </html>

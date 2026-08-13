@@ -1,10 +1,10 @@
-import { db } from "../../firebase-init.js?v=11.0";
+import { db } from "../../firebase-init.js?v=11.2";
 import { collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { obterWorkspaceId } from "./context.js?v=11.0";
-import { atualizarConfiguracoes } from "./configuracoes-repository.js?v=11.0";
-import { anexarDeltasAtendimentosAoBatch, RESUMO_VERSION, invalidarCacheResumos } from "./resumos-repository.js?v=11.0";
-import { obterBrutoAtendimento, obterTaxaCartaoValor } from "../services/financeiro-service.js?v=11.0";
-import { invalidarCacheAtendimentos } from "./sync.js?v=11.0";
+import { obterWorkspaceId } from "./context.js?v=11.2";
+import { atualizarConfiguracoes } from "./configuracoes-repository.js?v=11.2";
+import { anexarDeltasAtendimentosAoBatch, RESUMO_VERSION, invalidarCacheResumos } from "./resumos-repository.js?v=11.2";
+import { obterBrutoAtendimento, obterTaxaCartaoValor } from "../services/financeiro-service.js?v=11.2";
+import { invalidarCacheAtendimentos } from "./sync.js?v=11.2";
 
 const FLAG_CONFIG = "migracaoRepasseBrutoV1";
 const REGRA = "valorBruto";

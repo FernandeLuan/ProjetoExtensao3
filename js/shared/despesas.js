@@ -1,12 +1,12 @@
 import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { criarDespesa, criarDespesaParcelada, editarDespesa, excluirDespesaParcelada, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=11.0";
-import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.0";
-import { state } from "./state.js?v=11.0";
-import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=11.0";
-import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=11.0";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.0";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.0";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.0";
+import { criarDespesa, criarDespesaParcelada, editarDespesa, excluirDespesaParcelada, listarDespesasPorPeriodo } from "./data/despesas-repository.js?v=11.2";
+import { podeAdministrarNaVisaoAtual } from "./permissoes.js?v=11.2";
+import { state } from "./state.js?v=11.2";
+import { converterParaNumero, aplicarMascaraMoedaInput, formatarMoeda } from "./utils/money.js?v=11.2";
+import { chaveData, dataDeInput, inicioDoDia, paraDate } from "./utils/date.js?v=11.2";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.2";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.2";
 
 let inicializado = false;
 let mesSelecionado = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -58,7 +58,14 @@ const labels = {
 function mesAtual() { const hoje = new Date(); return new Date(hoje.getFullYear(), hoje.getMonth(), 1); }
 function tipoDaArea() { return podeAdministrarNaVisaoAtual() ? "barbearia" : "profissional"; }
 function obterPeriodoMes(data = mesSelecionado) { return { inicio: new Date(data.getFullYear(), data.getMonth(), 1), fim: new Date(data.getFullYear(), data.getMonth() + 1, 0) }; }
-function formatarMes(data) { const texto = data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); return texto.charAt(0).toUpperCase() + texto.slice(1); }
+function formatarMes(data) {
+    const hoje = new Date();
+    const opcoes = data.getFullYear() === hoje.getFullYear()
+        ? { month: "long" }
+        : { month: "long", year: "numeric" };
+    const texto = data.toLocaleDateString("pt-BR", opcoes);
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
 function moeda(valor) { return `R$ ${formatarMoeda(Number(valor || 0))}`; }
 
 function atualizarNavegacaoMes() {
