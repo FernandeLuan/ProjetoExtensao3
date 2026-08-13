@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Gestão da Barbearia | Sr NK</title>
-<link href="../css/admin.css?v=13.1" rel="stylesheet"/>
+<link href="../css/admin.css?v=13.2" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
@@ -16,7 +16,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.1" rel="modulepreload"><link href="../js/admin/app.js?v=13.1" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.1">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.2" rel="modulepreload"><link href="../js/admin/app.js?v=13.2" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.1">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -61,10 +61,9 @@
 <article class="finance-card finance-overview barbearia-finance-overview" data-visao-card="resumo">
 <div class="finance-overview-top">
 <div>
-<div class="finance-label-row"><span class="finance-label">Lucro líquido</span><button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button"><i class="fas fa-circle-info"></i></button></div>
+<div class="finance-label-row"><span class="finance-label"><i aria-hidden="true" class="fas fa-wallet barbearia-lucro-wallet"></i> Lucro líquido</span><button aria-label="O que é lucro líquido da barbearia?" class="finance-info-btn" data-info="Valor que fica para a barbearia após considerar o líquido dos atendimentos do dono, os repasses dos barbeiros e descontar as despesas da barbearia." type="button"><i class="fas fa-circle-info"></i></button></div>
 <strong class="finance-main-value" id="barbeariaHomeLucro">R$ 0,00</strong>
 </div>
-<div aria-hidden="true" class="finance-main-icon"><i class="fas fa-wallet"></i></div>
 </div>
 <div class="finance-summary-row">
 <div class="finance-summary-item">
@@ -148,11 +147,17 @@
 <label class="relatorio-date-field"><span>Até</span><div class="relatorio-date-control" data-date-target="dataFimRelatorio"><input id="dataFimRelatorio" inputmode="none" readonly required type="date"/><i aria-hidden="true" class="fas fa-calendar-days"></i></div></label>
 <button id="btnAplicarPeriodoRelatorio" type="button">Aplicar período</button>
 </div>
-<section class="fechamento-acertos" hidden id="fechamentoAcertosEquipe">
-<div class="fechamento-acertos-head"><div><h3>Acertos da equipe</h3><p>Repasses a receber e comissões a pagar no período selecionado.</p></div></div>
+<details class="fechamento-acertos fechamento-acertos-card" hidden id="fechamentoAcertosEquipe">
+<summary class="fechamento-acertos-summary">
+<div class="fechamento-request-icon"><i class="fas fa-handshake"></i></div>
+<div class="fechamento-acertos-summary-copy"><h3>Acertos da equipe</h3><p>Repasses a receber e comissões a pagar no período selecionado.</p></div>
+<i aria-hidden="true" class="fas fa-chevron-down fechamento-acertos-chevron"></i>
+</summary>
+<div class="fechamento-acertos-body">
 <div class="fechamento-acertos-lista" id="fechamentoAcertosLista"></div>
 <div class="fechamento-acertos-historico" hidden id="fechamentoAcertosHistoricoBox"><h4>Acertos registrados no mês</h4><div id="fechamentoAcertosHistorico"></div></div>
-</section>
+</div>
+</details>
 <article class="fechamento-request-card" id="fechamentoRequestCard">
 <div class="fechamento-request-icon"><i class="fas fa-file-invoice-dollar"></i></div>
 <div class="fechamento-request-copy"><h3>Solicitar fechamento</h3><p>Busca os dados atualizados do período selecionado.</p></div>
@@ -320,7 +325,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.1</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.2</span></div>
 </div>
 </div>
 </div>
@@ -345,10 +350,8 @@
 <article class="estoque-resumo-card is-danger"><span>Sem estoque</span><strong id="estoqueResumoZerado">0</strong></article>
 <article class="estoque-resumo-card is-success"><span>Custo em estoque</span><strong id="estoqueResumoValor">R$ 0,00</strong></article>
 </div>
-<div class="estoque-top-actions">
+<div class="estoque-top-actions estoque-top-actions-single">
 <button class="estoque-add-btn" id="btnNovoProdutoEstoque" type="button"><i class="fas fa-plus"></i><span>Novo produto</span></button>
-<label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueBusca" placeholder="Buscar produto ou código" type="search"/></label>
-<button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
 </div>
 
 <details class="estoque-admin-section" id="estoqueAdminPainelVendas">
@@ -393,6 +396,10 @@
 </details><details class="estoque-admin-section" id="estoqueAdminPainelProdutos">
 <summary><span><i class="fas fa-box"></i><strong>Produtos</strong></span><i class="fas fa-chevron-down"></i></summary>
 <div class="estoque-admin-section-body">
+<div class="estoque-produtos-tools">
+<label class="estoque-search"><i class="fas fa-magnifying-glass"></i><input autocomplete="off" id="estoqueBusca" placeholder="Buscar produto ou código" type="search"/></label>
+<button class="estoque-scan-btn" id="btnScanVendaProdutoAdmin" type="button"><i class="fas fa-barcode"></i><span>Ler código</span></button>
+</div>
 <div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
 <button class="active" data-estoque-filtro="ativos" type="button">Ativos</button>
 <button data-estoque-filtro="disponiveis" type="button">Disponíveis</button>
@@ -964,5 +971,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=13.1" type="module"></script></body>
+<script src="../js/admin/index.js?v=13.2" type="module"></script></body>
 </html>

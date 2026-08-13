@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.3.1";
+const CACHE_NAME = "sr-nk-v1.3.2";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.
@@ -13,7 +13,7 @@ const CORE_SHELL = [
   "./icons/icon-512.png?v=13.0",
   "./Fotos/Sr.NK.jpg",
   "./css/style.css",
-  "./css/login.css?v=13.0",
+  "./css/login.css?v=13.2",
   "./js/firebase-init.js?v=13.0",
   "./js/login.js?v=13.0",
   "./js/shared/auth-area-session.js?v=13.0",

@@ -89,10 +89,10 @@ async function carregar(targetId) {
         case "historico": { const m = await importar("historico", "../shared/historico.js?v=13.0"); await m.abrirHistoricoHoje?.(); return; }
         case "equipe": { const m = await importar("equipe", "../shared/equipe.js?v=13.0"); m.initEquipe?.(); await m.abrirEquipe?.(); return; }
         case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=13.1"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.1"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.2"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
         case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=13.0"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
         case "conta": { const m = await importar("conta", "../shared/conta.js?v=13.0"); m.initConta?.(); await m.abrirConta?.(); return; }
-        case "configuracoes": { const [c, r] = await Promise.all([importar("configuracoes", "../shared/configuracoes.js?v=13.1"), importar("retroativo", "../shared/retroativo.js?v=13.1")]); c.initConfiguracoes?.(); await r.initRetroativo?.(); await r.prepararRetroativoParaUso?.(); return; }
+        case "configuracoes": { const [c, r] = await Promise.all([importar("configuracoes", "../shared/configuracoes.js?v=13.2"), importar("retroativo", "../shared/retroativo.js?v=13.1")]); c.initConfiguracoes?.(); await r.initRetroativo?.(); await r.prepararRetroativoParaUso?.(); return; }
     }
 }
 function iniciarCarregamento(targetId, section) { section?.setAttribute("aria-busy", "true"); section?.classList.add("section-module-loading"); if (execucoesSecao.has(targetId)) return execucoesSecao.get(targetId); const token = document.body.classList.contains("session-pending") || document.body.classList.contains("dashboard-booting") ? null : iniciarLoadingTela(MENSAGENS[targetId] || "Carregando...", { delay: 420 }); const p = carregar(targetId).catch((e) => { console.error(`[Admin] Erro ao carregar ${targetId}:`, e); mostrarErro("Não foi possível abrir esta seção. Tente novamente."); throw e; }).finally(() => { finalizarLoadingTela(token); execucoesSecao.delete(targetId); section?.removeAttribute("aria-busy"); section?.classList.remove("section-module-loading"); }); execucoesSecao.set(targetId, p); return p; }

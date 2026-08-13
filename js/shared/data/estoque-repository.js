@@ -639,7 +639,14 @@ export async function listarVendasPorPeriodo(
 
         let consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"));
         if (max) consulta = query(col("vendas"), ...filtros, orderBy("dataVenda", "desc"), limit(max));
-        const snapshot = forcar ? await getDocsFromServer(consulta) : await getDocs(consulta);
+        let snapshot;
+        if (forcar) {
+            try { snapshot = await getDocsFromServer(consulta); }
+            catch (error) {
+                console.warn("[Estoque] Leitura fresca de vendas indisponível; usando cache/local.", error);
+                snapshot = await getDocs(consulta);
+            }
+        } else snapshot = await getDocs(consulta);
         let itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         if (!incluirCanceladas) itens = itens.filter((item) => item.cancelada !== true);
         cacheVendas.set(chave, { itens, salvoEm: Date.now() });
@@ -669,7 +676,14 @@ export async function listarMovimentacoesPorPeriodo(inicio, fim, { forcar = fals
             where("dataMovimentacao", "<", Timestamp.fromDate(fimExclusivo)),
             orderBy("dataMovimentacao", "desc")
         );
-        const snapshot = forcar ? await getDocsFromServer(referencia) : await getDocs(referencia);
+        let snapshot;
+        if (forcar) {
+            try { snapshot = await getDocsFromServer(referencia); }
+            catch (error) {
+                console.warn("[Estoque] Leitura fresca de movimentos indisponível; usando cache/local.", error);
+                snapshot = await getDocs(referencia);
+            }
+        } else snapshot = await getDocs(referencia);
         const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         cacheMovimentacoes.set(chave, { itens, salvoEm: Date.now() });
         return itens;

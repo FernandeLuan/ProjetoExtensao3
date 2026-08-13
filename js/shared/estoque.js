@@ -34,7 +34,7 @@ import {
     localizarProdutoPorCodigo,
     movimentarEstoque,
     registrarVendaProduto
-} from "./data/estoque-repository.js?v=13.0";
+} from "./data/estoque-repository.js?v=13.2";
 import { criarDespesa, criarDespesaParcelada } from "./data/despesas-repository.js?v=13.0";
 
 let inicializado = false;
@@ -60,6 +60,8 @@ let mesVendasAdmin = inicioDoMes(new Date());
 let mesMovimentacoes = inicioDoMes(new Date());
 let diaVendasAdmin = null;
 let diaMovimentacoes = null;
+let requisicaoVendasAdmin = 0;
+let requisicaoMovimentacoesAdmin = 0;
 let abaEstoqueAdmin = "produtos";
 let abaEstoqueProfissional = "vender";
 
@@ -461,20 +463,26 @@ function atualizarNavegadoresAdmin() {
     atualizarNavegadorAdminMes("labelMovMes", "btnMovMesProximo", mesMovimentacoes, diaMovimentacoes, "btnLimparDiaMov");
 }
 
-async function carregarVendasAdmin({ forcar = false } = {}) {
+async function carregarVendasAdmin({ forcar = true } = {}) {
     atualizarNavegadoresAdmin();
     const inicio = diaVendasAdmin ? inicioDoDia(diaVendasAdmin) : mesVendasAdmin;
     const fim = diaVendasAdmin ? inicioDoDia(diaVendasAdmin) : fimDoMes(mesVendasAdmin);
-    vendasAdmin = await listarVendasPorPeriodo(inicio, fim, { forcar, incluirCanceladas: true });
+    const requisicao = ++requisicaoVendasAdmin;
+    const itens = await listarVendasPorPeriodo(inicio, fim, { forcar, incluirCanceladas: true });
+    if (requisicao !== requisicaoVendasAdmin) return;
+    vendasAdmin = itens;
     atualizarResumoAdmin();
     renderizarVendasAdmin();
 }
 
-async function carregarMovimentacoesAdmin({ forcar = false } = {}) {
+async function carregarMovimentacoesAdmin({ forcar = true } = {}) {
     atualizarNavegadoresAdmin();
     const inicio = diaMovimentacoes ? inicioDoDia(diaMovimentacoes) : mesMovimentacoes;
     const fim = diaMovimentacoes ? inicioDoDia(diaMovimentacoes) : fimDoMes(mesMovimentacoes);
-    movimentacoes = await listarMovimentacoesPorPeriodo(inicio, fim, { forcar });
+    const requisicao = ++requisicaoMovimentacoesAdmin;
+    const itens = await listarMovimentacoesPorPeriodo(inicio, fim, { forcar });
+    if (requisicao !== requisicaoMovimentacoesAdmin) return;
+    movimentacoes = itens;
     renderizarMovimentacoes();
 }
 
@@ -959,7 +967,7 @@ async function mudarMesAdmin(tipo, delta) {
         mesVendasAdmin = alvo;
         diaVendasAdmin = null;
         const loading = iniciarLoadingTela("Carregando vendas...", { delay: 420 });
-        try { await carregarVendasAdmin({ forcar: false }); }
+        try { await carregarVendasAdmin({ forcar: true }); }
         catch (error) { mostrarErro(error?.message || "Não foi possível carregar as vendas."); }
         finally { finalizarLoadingTela(loading); }
         return;
@@ -969,7 +977,7 @@ async function mudarMesAdmin(tipo, delta) {
     mesMovimentacoes = alvo;
     diaMovimentacoes = null;
     const loading = iniciarLoadingTela("Carregando movimentações...", { delay: 420 });
-    try { await carregarMovimentacoesAdmin({ forcar: false }); }
+    try { await carregarMovimentacoesAdmin({ forcar: true }); }
     catch (error) { mostrarErro(error?.message || "Não foi possível carregar as movimentações."); }
     finally { finalizarLoadingTela(loading); }
 }
@@ -990,10 +998,10 @@ function abrirCalendarioMesAdmin(tipo, ancora) {
         onSelect: async (data) => {
             if (tipo === "vendas") {
                 diaVendasAdmin = inicioDoDia(data);
-                await carregarVendasAdmin({ forcar: false });
+                await carregarVendasAdmin({ forcar: true });
             } else {
                 diaMovimentacoes = inicioDoDia(data);
-                await carregarMovimentacoesAdmin({ forcar: false });
+                await carregarMovimentacoesAdmin({ forcar: true });
             }
         }
     });
@@ -1016,20 +1024,20 @@ function vincularEventos() {
 
     document.querySelectorAll("[data-estoque-pro-tab]").forEach((btn) => btn.addEventListener("click", () => selecionarAbaEstoque(btn.dataset.estoqueProTab, { admin: false })));
     $("estoqueAdminPainelVendas")?.addEventListener("toggle", () => {
-        if ($("estoqueAdminPainelVendas")?.open) void carregarVendasAdmin({ forcar: false }).catch((error) => mostrarErro(error?.message || "Não foi possível carregar as vendas."));
+        if ($("estoqueAdminPainelVendas")?.open) void carregarVendasAdmin({ forcar: true }).catch((error) => mostrarErro(error?.message || "Não foi possível carregar as vendas."));
     });
     $("estoqueAdminPainelMovimentacoes")?.addEventListener("toggle", () => {
-        if ($("estoqueAdminPainelMovimentacoes")?.open) void carregarMovimentacoesAdmin({ forcar: false }).catch((error) => mostrarErro(error?.message || "Não foi possível carregar os movimentos."));
+        if ($("estoqueAdminPainelMovimentacoes")?.open) void carregarMovimentacoesAdmin({ forcar: true }).catch((error) => mostrarErro(error?.message || "Não foi possível carregar os movimentos."));
     });
 
     $("btnAdminVendasMesAnterior")?.addEventListener("click", () => void mudarMesAdmin("vendas", -1));
     $("btnAdminVendasMesProximo")?.addEventListener("click", () => void mudarMesAdmin("vendas", 1));
     $("btnCalendarioAdminVendas")?.addEventListener("click", (event) => abrirCalendarioMesAdmin("vendas", event.currentTarget));
-    $("btnLimparDiaAdminVendas")?.addEventListener("click", () => { diaVendasAdmin = null; void carregarVendasAdmin({ forcar: false }); });
+    $("btnLimparDiaAdminVendas")?.addEventListener("click", () => { diaVendasAdmin = null; void carregarVendasAdmin({ forcar: true }); });
     $("btnMovMesAnterior")?.addEventListener("click", () => void mudarMesAdmin("movimentacoes", -1));
     $("btnMovMesProximo")?.addEventListener("click", () => void mudarMesAdmin("movimentacoes", 1));
     $("btnCalendarioMovMes")?.addEventListener("click", (event) => abrirCalendarioMesAdmin("movimentacoes", event.currentTarget));
-    $("btnLimparDiaMov")?.addEventListener("click", () => { diaMovimentacoes = null; void carregarMovimentacoesAdmin({ forcar: false }); });
+    $("btnLimparDiaMov")?.addEventListener("click", () => { diaMovimentacoes = null; void carregarMovimentacoesAdmin({ forcar: true }); });
 
     $("estoqueBusca")?.addEventListener("input", renderizarProdutosAdmin);
     $("estoqueVendaBusca")?.addEventListener("input", renderizarProdutosVenda);

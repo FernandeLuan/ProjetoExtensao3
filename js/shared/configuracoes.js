@@ -1,4 +1,4 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=13.1";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=13.2";
 import { state, definirConfiguracoes, onStateChange } from "./state.js?v=13.0";
 import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=13.0";
 import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=13.0";
