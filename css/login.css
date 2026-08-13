@@ -80,12 +80,18 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .login-heading p{font-size:.8rem}
 }
 
-/* ===== v1.1.2 • identificação da área alinhada ao padrão do app ===== */
+/* ===== v1.2.0 • identificação da área alinhada ao padrão do app ===== */
 .login-eyebrow{display:block;margin:0 0 2px;color:var(--primary);font-size:.62rem;font-weight:700;letter-spacing:.02em}
 .login-area-head{align-items:center}
 .login-heading h1{font-size:1.18rem}
 .login-heading p{font-size:.72rem;line-height:1.4}
 @media(max-width:480px){.login-heading h1{font-size:1.12rem}.login-heading p{font-size:.68rem}.login-eyebrow{font-size:.58rem}}
 
-/* v1.1.2 • placeholder discreto */
+/* v1.2.0 • placeholder discreto */
+.login-card input::placeholder{font-size:.56rem!important;font-weight:400!important;opacity:.68!important}
+
+/* ===== v1.2.0 • login simplificado ===== */
+.login-brand{display:none!important}
+.login-area-icon{overflow:hidden;padding:0;background:var(--card)!important;border:1px solid var(--border);box-shadow:0 5px 16px rgba(15,23,42,.08)}
+.login-area-icon img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit}
 .login-card input::placeholder{font-size:.56rem!important;font-weight:400!important;opacity:.68!important}

@@ -1,12 +1,12 @@
-import { state, onStateChange } from "./state.js?v=11.2";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=11.2";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=11.2";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=11.2";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=11.2";
-import { usuarioEhAdmin } from "./permissoes.js?v=11.2";
-import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=11.2";
-import { mostrarErro } from "./services/feedback-service.js?v=11.2";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.2";
+import { state, onStateChange } from "./state.js?v=12.0";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=12.0";
+import { removerAtendimentoDoCache } from "./data/sync.js?v=12.0";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=12.0";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=12.0";
+import { usuarioEhAdmin } from "./permissoes.js?v=12.0";
+import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=12.0";
+import { mostrarErro } from "./services/feedback-service.js?v=12.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=12.0";
 
 let inicializado = false;
 let servicoSelecionadoId = "";
@@ -381,8 +381,8 @@ export async function initRegistrar() {
         clearTimeout(undoTimeout);
 
         try {
+            removerAtendimentoDoCache(ultimoIdRegistrado);
             await excluirAtendimento(ultimoIdRegistrado);
-            invalidarCacheAtendimentos();
             if (undoContainer) undoContainer.style.display = "none";
             ultimoIdRegistrado = null;
             mostrarFeedbackBotao("Registro Desfeito ↩", "undo-feedback", 1800);

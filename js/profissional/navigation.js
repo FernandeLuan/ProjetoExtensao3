@@ -1,9 +1,9 @@
-import { auth } from "../firebase-init.js?v=11.2";
+import { auth } from "../firebase-init.js?v=12.0";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=11.2";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=11.2";
-import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=11.2";
-import { limparSessaoArea, marcarSessaoArea } from "../shared/auth-area-session.js?v=11.2";
+import { usuarioEhAdmin, podeUsarVisaoBarbearia } from "../shared/permissoes.js?v=12.0";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=12.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "../shared/services/ui-loading-service.js?v=12.0";
+import { limparSessaoArea, marcarSessaoArea } from "../shared/auth-area-session.js?v=12.0";
 
 let inicializado = false;
 let secaoAtual = null;
@@ -53,40 +53,44 @@ function atualizarAtivo(targetId) {
     menuToggle?.classList.toggle("active", !ativoNaBarra && ["estoque", "despesas", "conta"].includes(targetId));
 }
 
+function preaquecerOutraArea() {
+    const executar = () => { void fetch("../admin/", { credentials: "same-origin", cache: "force-cache" }).catch(() => null); };
+    if ("requestIdleCallback" in window) window.requestIdleCallback(executar, { timeout: 2200 });
+    else window.setTimeout(executar, 1200);
+}
+
 function preaquecerHistorico() {
-    const executar = () => { void importar("historico", "../shared/historico.js?v=11.2").catch(() => null); };
+    const executar = () => { void importar("historico", "../shared/historico.js?v=12.0").catch(() => null); };
     if ("requestIdleCallback" in window) window.requestIdleCallback(executar, { timeout: 1800 });
     else window.setTimeout(executar, 900);
 }
 
 function rolarParaOTopo({ suave = true } = {}) {
-    const comportamento = suave ? "smooth" : "auto";
+    const behavior = suave ? "smooth" : "auto";
     const secao = secaoAtual ? document.getElementById(secaoAtual) : null;
+    const main = document.querySelector(".dashboard-main");
 
-    const aplicar = (behavior = comportamento) => {
-        // scrollIntoView funciona melhor no Safari/PWA quando o viewport visual
-        // não coincide exatamente com document.scrollingElement.
-        try { secao?.scrollIntoView?.({ behavior, block: "start", inline: "nearest" }); } catch (_) {}
-
-        const scrollers = [
-            document.scrollingElement,
-            document.documentElement,
-            document.body,
-            document.querySelector(".dashboard-main")
-        ].filter(Boolean);
-
-        scrollers.forEach((scroller) => {
-            try { scroller.scrollTo?.({ top: 0, left: 0, behavior }); }
-            catch (_) { try { scroller.scrollTop = 0; } catch (_) {} }
-        });
-
-        try { window.scrollTo({ top: 0, left: 0, behavior }); }
+    const zerar = (modo = behavior) => {
+        // Safari/PWA pode alternar o elemento responsável pela rolagem entre
+        // window, documentElement e body. Zeramos todos os candidatos e o main.
+        [main, document.scrollingElement, document.documentElement, document.body]
+            .filter(Boolean)
+            .forEach((alvo) => {
+                try { alvo.scrollTo?.({ top: 0, left: 0, behavior: modo }); }
+                catch (_) { try { alvo.scrollTop = 0; } catch (_) {} }
+                try { alvo.scrollTop = 0; } catch (_) {}
+            });
+        try { window.scrollTo({ top: 0, left: 0, behavior: modo }); }
         catch (_) { try { window.scrollTo(0, 0); } catch (_) {} }
     };
 
-    aplicar();
-    requestAnimationFrame(() => aplicar());
-    window.setTimeout(() => aplicar("auto"), 180);
+    // Primeiro posiciona a seção ativa no viewport; em seguida zera o documento.
+    // A repetição curta cobre o momentum scroll do iOS sem recarregar a seção.
+    try { (secao || main)?.scrollIntoView?.({ behavior, block: "start", inline: "nearest" }); } catch (_) {}
+    zerar();
+    requestAnimationFrame(() => zerar());
+    window.setTimeout(() => zerar("auto"), 80);
+    window.setTimeout(() => zerar("auto"), 260);
 }
 
 function animar(section) {
@@ -106,17 +110,17 @@ async function importar(chave, caminho) {
     return p;
 }
 
-export function preloadInicio() { return importar("registrar", "../shared/registrar.js?v=11.2"); }
+export function preloadInicio() { return importar("registrar", "../shared/registrar.js?v=12.0"); }
 
 async function carregar(targetId) {
     switch (targetId) {
-        case "registrar": { const m = await importar("registrar", "../shared/registrar.js?v=11.2"); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
-        case "painelFinanceiro": { const m = await importar("painel", "../shared/painel.js?v=11.2"); await m.abrirPainelHoje?.(); return; }
-        case "historico": { const m = await importar("historico", "../shared/historico.js?v=11.2"); await m.abrirHistoricoHoje?.(); return; }
-        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=11.2"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=11.2"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
-        case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=11.2"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
-        case "conta": { const m = await importar("conta", "../shared/conta.js?v=11.2"); m.initConta?.(); await m.abrirConta?.(); return; }
+        case "registrar": { const m = await importar("registrar", "../shared/registrar.js?v=12.0"); await m.initRegistrar?.(); await m.abrirRegistrar?.(); return; }
+        case "painelFinanceiro": { const m = await importar("painel", "../shared/painel.js?v=12.0"); await m.abrirPainelHoje?.(); return; }
+        case "historico": { const m = await importar("historico", "../shared/historico.js?v=12.0"); await m.abrirHistoricoHoje?.(); return; }
+        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=12.0"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
+        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=12.0"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+        case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=12.0"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
+        case "conta": { const m = await importar("conta", "../shared/conta.js?v=12.0"); m.initConta?.(); await m.abrirConta?.(); return; }
     }
 }
 
@@ -163,6 +167,7 @@ async function logout() { try { limparSessaoArea(); await signOut(auth); } final
 export function initNavigation() {
     if (inicializado) return;
     inicializado = true;
+    preaquecerOutraArea();
     menuToggle?.addEventListener("click", () => sidebarMenu?.classList.contains("active") ? fecharMenu() : abrirMenu());
     sidebarOverlay?.addEventListener("click", fecharMenu);
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharMenu(); });
@@ -185,6 +190,7 @@ export function initNavigation() {
             e.preventDefault();
             const destino = link.dataset.areaDestino;
             if (destino === "admin" && usuarioEhAdmin() && podeUsarVisaoBarbearia()) {
+                sessionStorage.setItem("srnk:troca-area-rapida", "1");
                 marcarSessaoArea("admin");
                 window.location.href = "../admin/";
             }

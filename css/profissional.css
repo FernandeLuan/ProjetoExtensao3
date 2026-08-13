@@ -1,4 +1,4 @@
-/* Sr NK v1.1.1 - bundle profissional.css */
+/* Sr NK v1.2.0 - bundle profissional.css */
 
 /* ===== theme.css ===== */
 /* ================================
@@ -5771,7 +5771,6 @@ button.ui-action-confirmed::after {
 .fechamento-data-nav,.despesas-periodo-nav{margin-bottom:10px}
 .fechamento-periodo-custom{margin:0 0 12px}
 .despesas-periodo-nav .painel-data-center{min-width:0}
-.despesas-periodo-nav .painel-data-label{text-transform:capitalize}
 
 /* Itens sob os gráficos voltam a ter separação visual, sem parecerem soltos. */
 .dashboard-analytics-card .relatorio-ranking{gap:0;margin-top:8px;border-top:1px solid var(--border)}
@@ -5790,17 +5789,9 @@ button.ui-action-confirmed::after {
 .finance-info-tooltip::after{left:var(--tooltip-arrow-left,50%)!important}
 
 
-/* ===== v1.1.2 • regressivo: consistência visual ===== */
+/* ===== v1.2.0 • regressivo: consistência visual ===== */
 .fechamento-data-nav,
 .despesas-periodo-nav{margin:10px 0 12px!important}
-.fechamento-data-nav .painel-data-label,
-.despesas-periodo-nav .painel-data-label{
-    font-size:.73rem!important;
-    font-weight:650!important;
-    color:var(--text)!important;
-    letter-spacing:0!important;
-    text-transform:none!important;
-}
 .fechamento-data-nav .painel-data-btn,
 .despesas-periodo-nav .painel-data-btn,
 .fechamento-data-nav .painel-calendar-btn,
@@ -5838,3 +5829,10 @@ button.ui-action-confirmed::after {
 .dashboard-analytics-card .relatorio-ranking-item:last-child{border-bottom:0!important}
 
 body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-visao="profissional"] #vendaTaxaResumo{display:none!important}
+
+/* ===== v1.2.0 • refinamentos finais ===== */
+/* Fechamento/Despesas usam exatamente a tipografia do Histórico. */
+/* Serviços: quantidade junto do nome, sem ranking ordinal. */
+.relatorio-ranking-item.is-service-count{grid-template-columns:minmax(0,1fr)!important}
+.relatorio-ranking-item.is-service-count .relatorio-ranking-copy strong{font-size:.66rem}
+.relatorio-ranking-item.is-service-count .service-count-number{color:var(--primary);font-weight:750;margin-right:5px}

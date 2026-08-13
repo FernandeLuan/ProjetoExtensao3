@@ -1,9 +1,9 @@
-import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=11.2";
-import { state, definirConfiguracoes, onStateChange } from "./state.js?v=11.2";
-import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=11.2";
-import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=11.2";
-import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=11.2";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.2";
+import { APP_VERSION, PAGAMENTOS } from "./constants.js?v=12.0";
+import { state, definirConfiguracoes, onStateChange } from "./state.js?v=12.0";
+import { salvarConfiguracoes } from "./data/configuracoes-repository.js?v=12.0";
+import { converterParaNumero, formatarMoeda, aplicarMascaraMoedaInput } from "./utils/money.js?v=12.0";
+import { mostrarErro, mostrarSucesso } from "./services/feedback-service.js?v=12.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=12.0";
 
 let inicializado = false;
 
@@ -50,10 +50,11 @@ const PRODUTO_FINANCEIRO_CONFIG = Object.freeze({
 const ordemCardsLista = document.getElementById("configOrdemCardsLista");
 const btnRestaurarOrdemCards = document.getElementById("btnRestaurarOrdemCards");
 const ordemCardsStatus = document.getElementById("ordemCardsStatus");
-const ORDEM_CARDS_PADRAO = ["resumo", "indicadores", "despesas", "servico"];
+const ORDEM_CARDS_PADRAO = ["resumo", "indicadores", "pendencias", "despesas", "servico"];
 const CARDS_VISAO = {
     resumo: { nome: "Resumo financeiro", detalhe: "Lucro líquido + faturamento", icone: "fa-wallet" },
     indicadores: { nome: "Indicadores", detalhe: "Ticket médio + atendimentos", icone: "fa-chart-simple" },
+    pendencias: { nome: "Pendências do mês", detalhe: "Repasses e comissões em aberto", icone: "fa-scale-balanced" },
     despesas: { nome: "Despesa da barbearia", detalhe: "Gastos administrativos do dia", icone: "fa-receipt" },
     servico: { nome: "Serviço mais vendido", detalhe: "Destaque de vendas do dia", icone: "fa-star" }
 };

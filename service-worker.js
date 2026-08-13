@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.1.2";
+const CACHE_NAME = "sr-nk-v1.2.0";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.
@@ -9,15 +9,15 @@ const CORE_SHELL = [
   "./profissional/login.html",
   "./admin/login.html",
   "./manifest.webmanifest",
-  "./icons/icon-192.png?v=11.2",
-  "./icons/icon-512.png?v=11.2",
+  "./icons/icon-192.png?v=12.0",
+  "./icons/icon-512.png?v=12.0",
   "./Fotos/Sr.NK.jpg",
   "./css/style.css",
-  "./css/login.css?v=11.2",
-  "./js/firebase-init.js?v=11.2",
-  "./js/login.js?v=11.2",
-  "./js/shared/auth-area-session.js?v=11.2",
-  "./js/mobile-interactions.js?v=11.2"
+  "./css/login.css?v=12.0",
+  "./js/firebase-init.js?v=12.0",
+  "./js/login.js?v=12.0",
+  "./js/shared/auth-area-session.js?v=12.0",
+  "./js/mobile-interactions.js?v=12.0"
 ];
 
 self.addEventListener("install", (event) => {

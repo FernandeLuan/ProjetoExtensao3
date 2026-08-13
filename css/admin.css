@@ -1,4 +1,4 @@
-/* Sr NK v1.1.1 - bundle admin.css */
+/* Sr NK v1.2.0 - bundle admin.css */
 
 /* ===== theme.css ===== */
 /* ================================
@@ -8011,7 +8011,6 @@ button.ui-action-confirmed::after {
 .fechamento-data-nav,.despesas-periodo-nav{margin-bottom:10px}
 .fechamento-periodo-custom{margin:0 0 12px}
 .despesas-periodo-nav .painel-data-center{min-width:0}
-.despesas-periodo-nav .painel-data-label{text-transform:capitalize}
 
 /* Itens sob os gráficos voltam a ter separação visual, sem parecerem soltos. */
 .dashboard-analytics-card .relatorio-ranking{gap:0;margin-top:8px;border-top:1px solid var(--border)}
@@ -8052,7 +8051,7 @@ button.ui-action-confirmed::after {
 .barbearia-home .finance-info-btn{position:relative;display:inline-grid!important;place-items:center!important;margin:0!important}
 
 
-/* ===== v1.1.2 • regressivo: consistência visual e estoque gerencial ===== */
+/* ===== v1.2.0 • regressivo: consistência visual e estoque gerencial ===== */
 
 /* Visão Geral: usa os ícones reais do HTML, sempre à direita. */
 .barbearia-mini-card::after,
@@ -8138,14 +8137,6 @@ button.ui-action-confirmed::after {
 /* Fechamento e Despesas seguem a barra do Histórico sem variações tipográficas. */
 .fechamento-data-nav,
 .despesas-periodo-nav{margin:10px 0 12px!important}
-.fechamento-data-nav .painel-data-label,
-.despesas-periodo-nav .painel-data-label{
-    font-size:.73rem!important;
-    font-weight:650!important;
-    color:var(--text)!important;
-    letter-spacing:0!important;
-    text-transform:none!important;
-}
 .fechamento-data-nav .painel-data-btn,
 .despesas-periodo-nav .painel-data-btn,
 .fechamento-data-nav .painel-calendar-btn,
@@ -8300,3 +8291,115 @@ button.ui-action-confirmed::after {
 }
 
 body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-visao="profissional"] #vendaTaxaResumo{display:none!important}
+
+/* ===== v1.2.0 • fechamento operacional + refinamentos finais ===== */
+/* Visão Geral: ícones à ESQUERDA do conteúdo, menores e discretos. */
+.barbearia-finance-overview .finance-overview-top,
+.barbearia-mini-card,
+.barbearia-expense-card,
+.barbearia-service-card{
+    justify-content:flex-start!important;
+    gap:9px!important;
+}
+.barbearia-finance-overview .finance-main-icon,
+.barbearia-card-side-icon,
+.barbearia-service-card .finance-service-icon,
+.barbearia-home .relatorio-card-head>i,
+.barbearia-home-equipe-head>i{
+    order:-1!important;
+    margin:0!important;
+    width:26px!important;
+    height:26px!important;
+    flex:0 0 26px!important;
+    border-radius:8px!important;
+    background:color-mix(in srgb,var(--primary) 9%,transparent)!important;
+    color:var(--primary)!important;
+    font-size:.62rem!important;
+}
+.barbearia-finance-overview .finance-main-icon{
+    background:color-mix(in srgb,var(--success) 10%,transparent)!important;
+    color:var(--success)!important;
+}
+.barbearia-home .relatorio-card-head,
+.barbearia-home-equipe-head{
+    justify-content:flex-start!important;
+    gap:9px!important;
+}
+.barbearia-home .relatorio-card-head>div,
+.barbearia-home-equipe-head>div{min-width:0;flex:1 1 auto}
+
+/* Fechamento e Despesas herdam a tipografia da barra do Histórico. */
+/* Períodos mensais do estoque seguem o mesmo componente de navegação. */
+.estoque-admin-periodo-nav{margin:0 0 11px!important}
+.estoque-admin-periodo-nav .painel-data-btn,
+.estoque-admin-periodo-nav .painel-calendar-btn{color:var(--primary)!important}
+
+/* Acertos da equipe: contas a receber/pagar operacionais. */
+.fechamento-acertos{margin-top:14px;display:grid;gap:9px}
+.fechamento-acertos[hidden]{display:none!important}
+.fechamento-acertos-head h3{margin:0;color:var(--text);font-size:.82rem;font-weight:650}
+.fechamento-acertos-head p{margin:3px 0 0;color:var(--text-secondary);font-size:.6rem;line-height:1.4}
+.fechamento-acertos-lista{display:grid;gap:8px}
+.acerto-profissional-card{border:1px solid var(--border);border-radius:14px;background:var(--bg-card);overflow:hidden}
+.acerto-profissional-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid var(--border)}
+.acerto-profissional-head>div{display:grid;gap:2px;min-width:0}
+.acerto-profissional-head strong{font-size:.72rem;color:var(--text)}
+.acerto-profissional-head span{font-size:.56rem;color:var(--text-secondary)}
+.acerto-status{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:999px;font-size:.5rem;font-weight:700;white-space:nowrap}
+.acerto-status.is-ok{background:color-mix(in srgb,var(--success) 11%,transparent);color:var(--success)}
+.acerto-status.is-pending{background:color-mix(in srgb,var(--warning,#f59e0b) 12%,transparent);color:var(--warning,#b45309)}
+.acerto-linhas{display:grid}
+.acerto-linha{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.acerto-linha:last-child{border-bottom:0}
+.acerto-linha-copy{display:grid;gap:2px}
+.acerto-linha-copy span{font-size:.58rem;color:var(--text-secondary)}
+.acerto-linha-copy strong{font-size:.73rem;color:var(--text)}
+.acerto-linha.is-credit .acerto-linha-copy strong{color:var(--success)}
+.acerto-linha.is-debit .acerto-linha-copy strong{color:var(--danger)}
+.acerto-baixa-btn{min-height:32px;padding:0 9px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--primary);font:inherit;font-size:.55rem;font-weight:650}
+.acerto-baixa-btn.is-done{color:var(--success);border-color:color-mix(in srgb,var(--success) 30%,var(--border));background:color-mix(in srgb,var(--success) 7%,var(--bg))}
+.acerto-saldo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:color-mix(in srgb,var(--primary) 4%,var(--bg-card))}
+.acerto-saldo span{font-size:.6rem;color:var(--text-secondary);font-weight:600}
+.acerto-saldo strong{font-size:.78rem;color:var(--primary)}
+.fechamento-acertos-historico{margin-top:4px;padding-top:9px;border-top:1px solid var(--border)}
+.fechamento-acertos-historico h4{margin:0 0 7px;font-size:.65rem;color:var(--text-secondary);font-weight:650}
+.acerto-historico-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.acerto-historico-item:last-child{border-bottom:0}
+.acerto-historico-item div{display:grid;gap:2px}
+.acerto-historico-item strong{font-size:.62rem;color:var(--text)}
+.acerto-historico-item span{font-size:.52rem;color:var(--text-secondary)}
+
+/* Venda da equipe: detalhamento financeiro para o Admin. */
+.estoque-venda-financeiro{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.estoque-venda-financeiro span{display:flex;justify-content:space-between;gap:6px;font-size:.53rem;color:var(--text-secondary)}
+.estoque-venda-financeiro b{color:var(--text);font-weight:650}
+.estoque-venda-financeiro .is-minus b{color:var(--danger)}
+.estoque-venda-financeiro .is-result b{color:var(--success)}
+.estoque-acerto-hint{margin-top:8px;padding:8px 9px;border-radius:9px;background:color-mix(in srgb,var(--primary) 6%,var(--bg));font-size:.54rem;color:var(--text-secondary);line-height:1.4}
+.estoque-acerto-hint i{color:var(--primary);margin-right:4px}
+
+/* Excluir produto fica dentro da edição, abaixo das ações principais. */
+.estoque-produto-excluir{width:100%;min-height:40px;margin-top:2px;border:1px solid color-mix(in srgb,var(--danger) 28%,var(--border));border-radius:11px;background:color-mix(in srgb,var(--danger) 7%,var(--bg-card));color:var(--danger);font:inherit;font-size:.64rem;font-weight:650}
+
+/* Lista de serviços: quantidade junto do nome, sem ranking ordinal. */
+.relatorio-ranking-item.is-service-count{grid-template-columns:minmax(0,1fr)!important}
+.relatorio-ranking-item.is-service-count .relatorio-ranking-copy strong{font-size:.66rem}
+.relatorio-ranking-item.is-service-count .service-count-number{color:var(--primary);font-weight:750;margin-right:5px}
+
+@media(max-width:430px){
+  .estoque-venda-financeiro{grid-template-columns:1fr}
+  .acerto-linha{grid-template-columns:1fr auto}
+}
+/* Lucro mantém o valor verde; o ícone segue o azul padrão dos demais cards. */
+.barbearia-finance-overview .finance-main-icon{
+    background:color-mix(in srgb,var(--primary) 9%,transparent)!important;
+    color:var(--primary)!important;
+}
+.barbearia-pendencias-card{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important}
+.barbearia-pendencias-content{min-width:0;flex:1 1 auto;display:grid;gap:5px}
+.barbearia-pendencias-content>strong{font-size:.7rem;color:var(--text);font-weight:650}
+.barbearia-pendencias-valores{display:flex;flex-wrap:wrap;gap:7px 12px}
+.barbearia-pendencias-valores span{font-size:.54rem;color:var(--text-secondary)}
+.barbearia-pendencias-valores b{margin-left:4px;color:var(--text);font-weight:650}
+.barbearia-pendencias-valores span:first-child b{color:var(--success)}
+.barbearia-pendencias-valores span:last-child b{color:var(--danger)}

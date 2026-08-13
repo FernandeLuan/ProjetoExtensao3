@@ -1,14 +1,14 @@
-import { state, onStateChange } from "./state.js?v=11.2";
-import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=11.2";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.2";
-import { invalidarCacheAtendimentos } from "./data/sync.js?v=11.2";
-import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=11.2";
-import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=11.2";
-import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=11.2";
-import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=11.2";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
-import { mostrarErro } from "./services/feedback-service.js?v=11.2";
-import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=11.2";
+import { state, onStateChange } from "./state.js?v=12.0";
+import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-repository.js?v=12.0";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=12.0";
+import { removerAtendimentoDoCache } from "./data/sync.js?v=12.0";
+import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=12.0";
+import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=12.0";
+import { chaveData, dataRetroativaSemHora, inicioDoDia } from "./utils/date.js?v=12.0";
+import { aplicarMascaraMoedaInput, converterParaNumero } from "./utils/money.js?v=12.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=12.0";
+import { mostrarErro } from "./services/feedback-service.js?v=12.0";
+import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=12.0";
 
 let inicializado=false, ultimoId=null, undoInterval=null, undoTimeout=null;
 const form=document.getElementById("formAtendimentoRetroativo");
@@ -129,7 +129,7 @@ export async function initRetroativo(){
  inputObservacao?.addEventListener("input",()=>limparErro(inputObservacao,labels.observacao));
  inputData?.addEventListener("change",()=>limparErro(inputData,labels.data)); selectServico?.addEventListener("change",()=>limparErro(selectServico,labels.servico)); selectPagamento?.addEventListener("change",()=>limparErro(selectPagamento,labels.pagamento)); selectProfissional?.addEventListener("change",()=>limparErro(selectProfissional,labels.profissional));
  form?.addEventListener("submit",salvar);
- btnUndo?.addEventListener("click",async()=>{if(!ultimoId)return;clearInterval(undoInterval);clearTimeout(undoTimeout);btnUndo.disabled=true;btnUndo.textContent="Desfazendo...";try{await excluirAtendimento(ultimoId);invalidarCacheAtendimentos();if(undoContainer)undoContainer.hidden=true;ultimoId=null;mostrarStatus("Registro desfeito ↩");setTimeout(()=>mostrarStatus(),1800);}catch(error){console.error(error);mostrarErro("Não foi possível desfazer o registro.");}finally{btnUndo.disabled=false;}});
+ btnUndo?.addEventListener("click",async()=>{if(!ultimoId)return;clearInterval(undoInterval);clearTimeout(undoTimeout);btnUndo.disabled=true;btnUndo.textContent="Desfazendo...";try{removerAtendimentoDoCache(ultimoId);await excluirAtendimento(ultimoId);if(undoContainer)undoContainer.hidden=true;ultimoId=null;mostrarStatus("Registro desfeito ↩");setTimeout(()=>mostrarStatus(),1800);}catch(error){console.error(error);mostrarErro("Não foi possível desfazer o registro.");}finally{btnUndo.disabled=false;}});
  onStateChange("configSistema",()=>{renderizarOpcoes();aplicarPagamentoPadrao();});
  onStateChange("equipe",()=>{ void prepararProfissionais(); });
 }

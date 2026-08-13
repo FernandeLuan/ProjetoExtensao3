@@ -1,14 +1,14 @@
-import { state, onStateChange } from "./state.js?v=11.2";
-import { formatarMoeda } from "./utils/money.js?v=11.2";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=11.2";
-import { setTexto, inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.2";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
-import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=11.2";
-import { garantirAtendimentosPeriodo } from "./data/sync.js?v=11.2";
-import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.2";
-import { obterWorkspaceId } from "./data/context.js?v=11.2";
-import { garantirChartJs } from "./services/external-assets.js?v=11.2";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.2";
+import { state, onStateChange } from "./state.js?v=12.0";
+import { formatarMoeda } from "./utils/money.js?v=12.0";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=12.0";
+import { setTexto, inicializarTooltipsFinanceiros } from "./utils/dom.js?v=12.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=12.0";
+import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=12.0";
+import { garantirAtendimentosPeriodo } from "./data/sync.js?v=12.0";
+import { listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=12.0";
+import { obterWorkspaceId } from "./data/context.js?v=12.0";
+import { garantirChartJs } from "./services/external-assets.js?v=12.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=12.0";
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
@@ -644,17 +644,26 @@ function criarRoscaPainel(canvas, entradas, formatarTooltip) {
     });
 }
 
-function renderRankingPainel(containerId, entradas, formatarValor) {
+function renderRankingPainel(containerId, entradas, formatarValor, { servicos = false } = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
     if (!entradas.length) {
         container.innerHTML = '<div class="relatorio-ranking-vazio">Sem dados nesta data.</div>';
         return;
     }
+    const escapar = (valor) => String(valor).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    if (servicos) {
+        container.innerHTML = entradas.map(([nome, valor]) => `
+            <div class="relatorio-ranking-item is-service-count">
+                <div class="relatorio-ranking-copy"><strong><span class="service-count-number">${Number(valor)}x</span>${escapar(nome)}</strong></div>
+            </div>
+        `).join("");
+        return;
+    }
     container.innerHTML = entradas.map(([nome, valor], indice) => `
         <div class="relatorio-ranking-item">
             <span class="relatorio-ranking-pos">${indice + 1}</span>
-            <div class="relatorio-ranking-copy"><strong>${String(nome).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</strong></div>
+            <div class="relatorio-ranking-copy"><strong>${escapar(nome)}</strong></div>
             <strong class="relatorio-ranking-value">${formatarValor(valor)}</strong>
         </div>
     `).join("");
@@ -674,7 +683,7 @@ function atualizarAnaliseDiaPainel() {
         pagamentos,
         (valor) => `R$ ${formatarMoeda(valor)}`
     );
-    renderRankingPainel("painelServicosLista", servicos, (valor) => `${valor}x`);
+    renderRankingPainel("painelServicosLista", servicos, (valor) => `${valor}x`, { servicos: true });
     renderRankingPainel("painelPagamentosLista", pagamentos, (valor) => `R$ ${formatarMoeda(valor)}`);
 }
 

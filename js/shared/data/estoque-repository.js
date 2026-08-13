@@ -1,7 +1,8 @@
-import { db } from "../../firebase-init.js?v=11.2";
+import { db } from "../../firebase-init.js?v=12.0";
 import {
     collection,
     doc,
+    deleteDoc,
     getDocs,
     getDocsFromServer,
     limit,
@@ -15,12 +16,12 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { SCHEMA_VERSION } from "../constants.js?v=11.2";
-import { state } from "../state.js?v=11.2";
-import { obterUidAtual, obterWorkspaceId } from "./context.js?v=11.2";
-import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=11.2";
-import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.2";
-import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=11.2";
+import { SCHEMA_VERSION } from "../constants.js?v=12.0";
+import { state } from "../state.js?v=12.0";
+import { obterUidAtual, obterWorkspaceId } from "./context.js?v=12.0";
+import { listarMembrosEquipe, obterMembroPorUid } from "./equipe-repository.js?v=12.0";
+import { usuarioEhAdmin, podeAdministrarNaVisaoAtual } from "../permissoes.js?v=12.0";
+import { calcularVendaProduto, normalizarCodigoBarras, validarProduto } from "../services/estoque-service.js?v=12.0";
 
 const CACHE_ESTOQUE_MS = 60 * 1000;
 const CACHE_VENDAS_MS = 2 * 60 * 1000;
@@ -214,6 +215,34 @@ export async function definirStatusProduto(id, ativo) {
         atualizadoEm: serverTimestamp()
     });
     invalidarCacheEstoque();
+}
+
+export async function excluirProdutoEstoque(id) {
+    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode excluir produtos.");
+    const produtoId = String(id || "").trim();
+    if (!produtoId) throw new Error("Produto inválido.");
+
+    const [vendasSnap, movimentosSnap] = await Promise.all([
+        getDocs(query(col("vendas"), where("produtoId", "==", produtoId), limit(1))),
+        getDocs(query(col("estoqueMovimentacoes"), where("produtoId", "==", produtoId), limit(20)))
+    ]);
+
+    const podeExcluirFisicamente = vendasSnap.empty && movimentosSnap.empty;
+
+    if (!podeExcluirFisicamente) {
+        await updateDoc(ref("estoque", produtoId), {
+            ativo: false,
+            vendavel: false,
+            exclusaoSolicitadaEm: serverTimestamp(),
+            atualizadoEm: serverTimestamp()
+        });
+        invalidarCacheEstoque();
+        return { excluido: false, arquivado: true };
+    }
+
+    await deleteDoc(ref("estoque", produtoId));
+    invalidarCacheEstoque();
+    return { excluido: true, arquivado: false };
 }
 
 export async function movimentarEstoque({ produtoId, tipo, quantidade = 0, novoSaldo = null, motivo = "", custoUnitario = null }) {
@@ -566,25 +595,6 @@ export async function cancelarVendaProduto(vendaId) {
     invalidarCacheEstoque();
 }
 
-export async function marcarComissoesVendasPagas(vendaIds = [], paga = true) {
-    if (!usuarioEhAdmin()) throw new Error("Somente o administrador pode alterar o pagamento de comissões.");
-    const ids = [...new Set((vendaIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
-    if (!ids.length) return 0;
-
-    const batch = writeBatch(db);
-    const uid = obterUidAtual();
-    ids.forEach((id) => {
-        batch.update(ref("vendas", id), {
-            comissaoPaga: paga === true,
-            comissaoPagaEm: paga === true ? serverTimestamp() : null,
-            comissaoPagaPorUid: paga === true ? uid : null
-        });
-    });
-    await batch.commit();
-    invalidarCacheEstoque();
-    return ids.length;
-}
-
 export async function listarVendasPorPeriodo(
     inicio,
     fim,
@@ -625,20 +635,29 @@ export async function listarVendasPorPeriodo(
     finally { vendasEmAndamento.delete(chave); }
 }
 
-export async function listarMovimentacoesRecentes({ max = 60, forcar = false } = {}) {
+export async function listarMovimentacoesPorPeriodo(inicio, fim, { forcar = false } = {}) {
     if (!usuarioEhAdmin()) return [];
-    const chave = `${obterWorkspaceId()}:movimentacoes:${max}`;
+    const dataInicio = new Date(inicio);
+    dataInicio.setHours(0, 0, 0, 0);
+    const fimExclusivo = new Date(fim);
+    fimExclusivo.setHours(0, 0, 0, 0);
+    fimExclusivo.setDate(fimExclusivo.getDate() + 1);
+    const chave = `${obterWorkspaceId()}:mov-periodo:${dataInicio.toISOString().slice(0,10)}:${fimExclusivo.toISOString().slice(0,10)}`;
     if (!forcar && cacheLeituraValido(cacheMovimentacoes.get(chave), CACHE_MOVIMENTACOES_MS)) return cacheMovimentacoes.get(chave).itens;
     if (!forcar && movimentacoesEmAndamento.has(chave)) return movimentacoesEmAndamento.get(chave);
 
     const promessa = (async () => {
-        const referencia = query(col("estoqueMovimentacoes"), orderBy("dataMovimentacao", "desc"), limit(max));
+        const referencia = query(
+            col("estoqueMovimentacoes"),
+            where("dataMovimentacao", ">=", Timestamp.fromDate(dataInicio)),
+            where("dataMovimentacao", "<", Timestamp.fromDate(fimExclusivo)),
+            orderBy("dataMovimentacao", "desc")
+        );
         const snapshot = forcar ? await getDocsFromServer(referencia) : await getDocs(referencia);
         const itens = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
         cacheMovimentacoes.set(chave, { itens, salvoEm: Date.now() });
         return itens;
     })();
-
     movimentacoesEmAndamento.set(chave, promessa);
     try { return await promessa; }
     finally { movimentacoesEmAndamento.delete(chave); }

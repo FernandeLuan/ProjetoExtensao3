@@ -1,11 +1,13 @@
-import { state } from "./state.js?v=11.2";
-import { listarMembrosEquipe } from "./data/equipe-repository.js?v=11.2";
-import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=11.2";
-import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=11.2";
-import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=11.2";
-import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=11.2";
-import { garantirChartJs } from "./services/external-assets.js?v=11.2";
-import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=11.2";
+import { state } from "./state.js?v=12.0";
+import { listarMembrosEquipe } from "./data/equipe-repository.js?v=12.0";
+import { listarResumosBarbeariaPorPeriodo, listarResumosProfissionalPorPeriodo } from "./data/resumos-repository.js?v=12.0";
+import { listarVendasPorPeriodo } from "./data/estoque-repository.js?v=12.0";
+import { listarAcertosPorPeriodo } from "./data/acertos-repository.js?v=12.0";
+import { chaveData, dataDeInput, formatarTituloData, inicioDoDia, mesmoDia, somarDias } from "./utils/date.js?v=12.0";
+import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=12.0";
+import { inicializarTooltipsFinanceiros } from "./utils/dom.js?v=12.0";
+import { garantirChartJs } from "./services/external-assets.js?v=12.0";
+import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-service.js?v=12.0";
 
 let dataSelecionada = inicioDoDia(new Date());
 let carregamentoEmAndamento = null;
@@ -15,7 +17,7 @@ let graficoServicos = null;
 let graficoPagamentos = null;
 let ultimoTotalRenderizado = null;
 
-const ORDEM_CARDS_PADRAO = ["resumo", "indicadores", "despesas", "servico"];
+const ORDEM_CARDS_PADRAO = ["resumo", "indicadores", "pendencias", "despesas", "servico"];
 
 function el(id) { return document.getElementById(id); }
 function moeda(valor) { return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
@@ -183,11 +185,17 @@ function coresTema() {
 function destruir(instance) { if (instance) instance.destroy(); }
 function paleta(primary) { return [primary, "#22c55e", "#f59e0b", "#8b5cf6", "#06b6d4", "#f97316", "#ec4899"]; }
 
-function renderRanking(id, entradas, formatar) {
+function renderRanking(id, entradas, formatar, { servicos = false } = {}) {
     const container = el(id);
     if (!container) return;
     if (!entradas.length) {
         container.innerHTML = '<div class="relatorio-ranking-vazio">Sem dados nesta data.</div>';
+        return;
+    }
+    if (servicos) {
+        container.innerHTML = entradas.map(([nome, valor]) => `
+            <div class="relatorio-ranking-item is-service-count"><div class="relatorio-ranking-copy"><strong><span class="service-count-number">${Number(valor)}x</span>${escapeHtml(nome)}</strong></div></div>
+        `).join("");
         return;
     }
     container.innerHTML = entradas.map(([nome, valor], indice) => `
@@ -230,7 +238,7 @@ function criarRosca(canvasId, entradas, tooltip) {
 function renderGraficos(total) {
     const servicos = [...total.servicos.entries()].sort((a, b) => b[1] - a[1]);
     const pagamentos = [...total.pagamentos.entries()].sort((a, b) => b[1] - a[1]);
-    renderRanking("barbeariaServicosLista", servicos, (valor) => `${valor}x`);
+    renderRanking("barbeariaServicosLista", servicos, (valor) => `${valor}x`, { servicos: true });
     renderRanking("barbeariaPagamentosLista", pagamentos, (valor) => moeda(valor));
     if (typeof Chart === "undefined") return;
 
@@ -278,6 +286,82 @@ function atualizarNavegadorData() {
     }
 }
 
+function inicioMes(data) {
+    const d = inicioDoDia(data);
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function fimMes(data) {
+    const d = inicioMes(data);
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+function renderPendencias({ quantidade = 0, receber = 0, pagar = 0 } = {}) {
+    const qtd = el("barbeariaPendenciasQtd");
+    const rec = el("barbeariaPendenciasReceber");
+    const pag = el("barbeariaPendenciasPagar");
+    if (qtd) qtd.textContent = `${quantidade} acerto${quantidade === 1 ? "" : "s"} pendente${quantidade === 1 ? "" : "s"}`;
+    if (rec) rec.textContent = moeda(receber);
+    if (pag) pag.textContent = moeda(pagar);
+}
+
+async function carregarPendenciasMes(membros, { forcar = false } = {}) {
+    if (!el("barbeariaPendenciasQtd")) return;
+    const inicio = inicioMes(dataSelecionada);
+    const hoje = inicioDoDia(new Date());
+    const fimNatural = fimMes(dataSelecionada);
+    const fim = fimNatural > hoje ? hoje : fimNatural;
+    try {
+        const profissionais = membros.filter((membro) => membro?.dono !== true);
+        const [resumosPorMembro, vendas, acertos] = await Promise.all([
+            Promise.all(profissionais.map(async (membro) => {
+                const uid = String(membro?.uid || membro?.id || "").trim();
+                const resumos = uid ? await listarResumosProfissionalPorPeriodo(uid, inicio, fim, { forcar }) : [];
+                return { uid, resumos };
+            })),
+            listarVendasPorPeriodo(inicio, fim, { forcar, incluirCanceladas: false }),
+            listarAcertosPorPeriodo(inicio, fim, { forcar })
+        ]);
+
+        const gerado = new Map();
+        resumosPorMembro.forEach(({ uid, resumos }) => {
+            if (!uid) return;
+            const repasse = (resumos || []).reduce((soma, item) => soma + centavosParaReais(item?.repasseCentavos), 0);
+            gerado.set(uid, { repasse, comissao: 0 });
+        });
+        (vendas || []).forEach((venda) => {
+            if (venda?.cancelada === true || venda?.gerarComissao !== true || !venda?.profissionalUid) return;
+            const uid = String(venda.profissionalUid);
+            if (!gerado.has(uid)) gerado.set(uid, { repasse: 0, comissao: 0 });
+            gerado.get(uid).comissao += Number(venda.comissaoValor || 0);
+        });
+
+        const baixado = new Map();
+        (acertos || []).forEach((acerto) => {
+            const uid = String(acerto?.profissionalUid || "");
+            if (!uid) return;
+            if (!baixado.has(uid)) baixado.set(uid, { repasse: 0, comissao: 0 });
+            const item = baixado.get(uid);
+            if (acerto?.repasseRecebido === true) item.repasse += Number(acerto.repasseValor || 0);
+            if (acerto?.comissaoPaga === true) item.comissao += Number(acerto.comissaoValor || 0);
+        });
+
+        let receber = 0;
+        let pagar = 0;
+        let quantidade = 0;
+        gerado.forEach((valores, uid) => {
+            const pagos = baixado.get(uid) || { repasse: 0, comissao: 0 };
+            const pendenteReceber = Math.max(0, Number(valores.repasse || 0) - Number(pagos.repasse || 0));
+            const pendentePagar = Math.max(0, Number(valores.comissao || 0) - Number(pagos.comissao || 0));
+            receber += pendenteReceber;
+            pagar += pendentePagar;
+            if (pendenteReceber > .009 || pendentePagar > .009) quantidade += 1;
+        });
+        renderPendencias({ quantidade, receber, pagar });
+    } catch (error) {
+        console.warn("Não foi possível calcular pendências do mês:", error);
+        renderPendencias();
+    }
+}
+
 async function carregarSerieAnterior(membros, total, { forcar = false } = {}) {
     const fim = somarDias(inicioDoDia(dataSelecionada), -1);
     const inicio = somarDias(inicioDoDia(dataSelecionada), -6);
@@ -316,6 +400,7 @@ async function carregarDados({ forcar = false, aguardarSerie = false } = {}) {
     const total = consolidarBarbearia(resumosEquipe, resumosBarbearia, dataAtual);
     renderResumo(total, resumosEquipe);
     setStatus();
+    void carregarPendenciasMes(membros, { forcar }).catch(() => null);
 
     const serie = carregarSerieAnterior(membros, total, { forcar });
     if (aguardarSerie) await serie;

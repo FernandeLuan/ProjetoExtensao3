@@ -1,5 +1,5 @@
 export const APP_NAME = "Sr NK";
-export const APP_VERSION = "1.1.2";
+export const APP_VERSION = "1.2.0";
 export const SCHEMA_VERSION = 3;
 
 export const PAPEIS = Object.freeze({

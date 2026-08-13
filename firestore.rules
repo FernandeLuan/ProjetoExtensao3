@@ -426,7 +426,7 @@ service cloud.firestore {
           && getAfter(salePath(barbeariaId, request.resource.data.ultimaVendaId)).data.quantidade == resource.data.quantidadeAtual - request.resource.data.quantidadeAtual
         );
 
-        allow delete: if false;
+        allow delete: if isAdmin(barbeariaId);
       }
 
       match /vendas/{vendaId} {
@@ -501,6 +501,15 @@ service cloud.firestore {
         );
 
         allow update, delete: if false;
+      }
+
+      // -------------------------------------------------------
+      // ACERTOS DA EQUIPE
+      // Controle operacional de repasses recebidos e comissões pagas.
+      // -------------------------------------------------------
+      match /acertosEquipe/{acertoId} {
+        allow read, create, update: if isAdmin(barbeariaId);
+        allow delete: if false;
       }
 
       // -------------------------------------------------------

@@ -1,8 +1,8 @@
-import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=11.2";
-import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=11.2";
-import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=11.2";
-import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=11.2";
-import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=11.2";
+import { listarAtendimentosPorPeriodo } from "./atendimentos-repository.js?v=12.0";
+import { carregarConfiguracoesDoBanco } from "./configuracoes-repository.js?v=12.0";
+import { mesclarAtendimentos, definirConfiguracoes, state } from "../state.js?v=12.0";
+import { inicioDoDia, somarDias, paraDate } from "../utils/date.js?v=12.0";
+import { podeAdministrarNaVisaoAtual } from "../permissoes.js?v=12.0";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX_ITENS = 24;
@@ -129,6 +129,33 @@ export async function recarregarAtendimentos() {
 
 export async function recarregarAtendimentosDoDia(data, opcoes = {}) {
     return obterAtendimentosPeriodo(data, data, { ...opcoes, forcar: true });
+}
+
+export function removerAtendimentoDoCache(id) {
+    const alvo = String(id || "").trim();
+    if (!alvo) return;
+    for (const [chave, item] of cachePeriodos.entries()) {
+        if (!Array.isArray(item?.atendimentos)) continue;
+        const filtrados = item.atendimentos.filter((atendimento) => String(atendimento?.id || "") !== alvo);
+        if (filtrados.length !== item.atendimentos.length) {
+            cachePeriodos.set(chave, { ...item, atendimentos: filtrados });
+        }
+    }
+}
+
+export function atualizarAtendimentoNoCache(id, alteracoes = {}) {
+    const alvo = String(id || "").trim();
+    if (!alvo) return;
+    for (const [chave, item] of cachePeriodos.entries()) {
+        if (!Array.isArray(item?.atendimentos)) continue;
+        let mudou = false;
+        const atualizados = item.atendimentos.map((atendimento) => {
+            if (String(atendimento?.id || "") !== alvo) return atendimento;
+            mudou = true;
+            return { ...atendimento, ...alteracoes };
+        });
+        if (mudou) cachePeriodos.set(chave, { ...item, atendimentos: atualizados });
+    }
 }
 
 export function invalidarCacheAtendimentos() {

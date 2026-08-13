@@ -1,15 +1,15 @@
-import { auth } from "../firebase-init.js?v=11.2";
+import { auth } from "../firebase-init.js?v=12.0";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { inicializarContexto } from "../shared/data/context.js?v=11.2";
-import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=11.2";
-import { definirConfiguracoes } from "../shared/state.js?v=11.2";
-import { initTheme } from "../shared/theme.js?v=11.2";
-import { initConnectivity } from "../shared/connectivity.js?v=11.2";
-import { mostrarErro } from "../shared/services/feedback-service.js?v=11.2";
-import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=11.2";
-import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=11.2";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=11.2";
-import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=11.2";
+import { inicializarContexto } from "../shared/data/context.js?v=12.0";
+import { carregarConfiguracoesDoBanco } from "../shared/data/configuracoes-repository.js?v=12.0";
+import { definirConfiguracoes } from "../shared/state.js?v=12.0";
+import { initTheme } from "../shared/theme.js?v=12.0";
+import { initConnectivity } from "../shared/connectivity.js?v=12.0";
+import { mostrarErro } from "../shared/services/feedback-service.js?v=12.0";
+import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=12.0";
+import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=12.0";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=12.0";
+import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=12.0";
 
 const AREA_ATUAL = "profissional";
 const SESSAO_DA_AREA_VALIDA = sessaoPertenceArea(AREA_ATUAL);
@@ -20,7 +20,9 @@ if (!SESSAO_DA_AREA_VALIDA) {
 let appInicializado = false;
 let interfaceLiberada = false;
 const inicioBoot = performance.now();
-const BOOT_MINIMO_MS = 700;
+const TROCA_AREA_RAPIDA = sessionStorage.getItem("srnk:troca-area-rapida") === "1";
+if (TROCA_AREA_RAPIDA) sessionStorage.removeItem("srnk:troca-area-rapida");
+const BOOT_MINIMO_MS = TROCA_AREA_RAPIDA ? 0 : 700;
 const PREVIEW_DELAY_MS = 1800;
 const preloadPrimeiraTela = SESSAO_DA_AREA_VALIDA ? preloadInicio() : Promise.resolve();
 

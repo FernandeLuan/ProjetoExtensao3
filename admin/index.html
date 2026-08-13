@@ -5,18 +5,18 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Gestão da Barbearia | Sr NK</title>
-<link href="../css/admin.css?v=11.2" rel="stylesheet"/>
+<link href="../css/admin.css?v=12.0" rel="stylesheet"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link crossorigin="" href="https://www.gstatic.com" rel="preconnect"/>
 <link crossorigin="" href="https://firestore.googleapis.com" rel="preconnect"/>
 <link as="image" href="../Fotos/Sr.NK.jpg" rel="preload"/>
 <meta content="#0F1115" name="theme-color"/>
-<link href="../icons/icon-192.png?v=11.2" rel="apple-touch-icon"/>
+<link href="../icons/icon-192.png?v=12.0" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=11.2" rel="modulepreload"><link href="../js/admin/index.js?v=11.2" rel="modulepreload"><link href="../js/admin/app.js?v=11.2" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=11.2">
+<link href="../js/firebase-init.js?v=12.0" rel="modulepreload"><link href="../js/admin/index.js?v=12.0" rel="modulepreload"><link href="../js/admin/app.js?v=12.0" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=12.0">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -108,6 +108,14 @@
 <div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-scissors"></i></div>
 </article>
 </div>
+<article class="finance-card barbearia-pendencias-card" data-visao-card="pendencias">
+<div aria-hidden="true" class="barbearia-card-side-icon"><i class="fas fa-scale-balanced"></i></div>
+<div class="barbearia-pendencias-content">
+<div class="finance-label-row"><span class="finance-label">Pendências do mês</span><button aria-label="O que são pendências do mês?" class="finance-info-btn" data-info="Valores de repasse ainda não marcados como recebidos e comissões ainda não marcadas como pagas nos acertos da equipe." type="button"><i class="fas fa-circle-info"></i></button></div>
+<strong id="barbeariaPendenciasQtd">0 acertos pendentes</strong>
+<div class="barbearia-pendencias-valores"><span>A receber <b id="barbeariaPendenciasReceber">R$ 0,00</b></span><span>A pagar <b id="barbeariaPendenciasPagar">R$ 0,00</b></span></div>
+</div>
+</article>
 <article class="finance-card barbearia-expense-card" data-visao-card="despesas">
 <div class="barbearia-expense-content">
 <div class="finance-label-row">
@@ -193,6 +201,11 @@
 <button class="relatorio-whatsapp" id="btnWhatsApp" type="button"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></button>
 </div>
 </div>
+<section class="fechamento-acertos" hidden id="fechamentoAcertosEquipe">
+<div class="fechamento-acertos-head"><div><h3>Acertos da equipe</h3><p>Controle o que já recebeu de repasse e o que já pagou de comissão.</p></div></div>
+<div class="fechamento-acertos-lista" id="fechamentoAcertosLista"></div>
+<div class="fechamento-acertos-historico" hidden id="fechamentoAcertosHistoricoBox"><h4>Acertos registrados no mês</h4><div id="fechamentoAcertosHistorico"></div></div>
+</section>
 <div aria-live="polite" class="relatorio-status" id="relatorioStatus"></div>
 </section>
 <!-- HISTÓRICO -->
@@ -346,7 +359,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.1.2</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.2.0</span></div>
 </div>
 </div>
 </div>
@@ -384,8 +397,7 @@
 </div>
 <button class="estoque-add-btn" id="btnNovoProdutoEstoque" type="button"><i class="fas fa-plus"></i>Novo produto</button>
 <div aria-label="Filtrar produtos" class="estoque-filtros" role="group">
-<button class="active" data-estoque-filtro="todos" type="button">Todos</button>
-<button data-estoque-filtro="ativos" type="button">Ativos</button>
+<button class="active" data-estoque-filtro="ativos" type="button">Ativos</button>
 <button data-estoque-filtro="disponiveis" type="button">Disponíveis</button>
 <button data-estoque-filtro="zerado" type="button">Sem estoque</button>
 <button data-estoque-filtro="arquivados" type="button">Arquivados</button>
@@ -394,16 +406,26 @@
 </div>
 
 <div hidden id="estoqueAdminPainelVendas">
+<div aria-label="Selecionar mês das vendas" class="painel-data-nav estoque-admin-periodo-nav">
+<button aria-label="Mês anterior" class="painel-data-btn" id="btnAdminVendasMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
+<div class="painel-data-center"><span class="painel-data-label" id="labelAdminVendasMes">Mês atual</span><button aria-label="Escolher mês" class="painel-calendar-btn" id="btnCalendarioAdminVendas" type="button"><i class="fas fa-calendar-days"></i></button></div>
+<button aria-label="Próximo mês" class="painel-data-btn" id="btnAdminVendasMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
+</div>
 <div class="estoque-resumo-grid estoque-venda-resumo estoque-gerencial-grid">
 <article class="estoque-resumo-card"><span>Vendas no mês</span><strong id="estoqueAdminVendasBruto">R$ 0,00</strong></article>
 <article class="estoque-resumo-card"><span>Comissões</span><strong id="estoqueAdminVendasComissoes">R$ 0,00</strong></article>
-<article class="estoque-resumo-card is-success"><span>Resultado no mês</span><strong id="estoqueAdminVendasResultado">R$ 0,00</strong></article>
+<article class="estoque-resumo-card is-success"><span>Resultado</span><strong id="estoqueAdminVendasResultado">R$ 0,00</strong></article>
 </div>
-<div class="estoque-subsection-head"><div><h3>Venda da equipe</h3><p>Vendas do mês atual. Edite ou exclua quando necessário.</p></div></div>
+<div class="estoque-subsection-head"><div><h3>Venda da equipe</h3><p>Vendas do mês selecionado. O pagamento de repasses e comissões é controlado em Fechamento.</p></div></div>
 <div class="estoque-log-lista" id="estoqueVendasLista"></div>
 </div>
 
 <div hidden id="estoqueAdminPainelMovimentacoes">
+<div aria-label="Selecionar mês das movimentações" class="painel-data-nav estoque-admin-periodo-nav">
+<button aria-label="Mês anterior" class="painel-data-btn" id="btnMovMesAnterior" type="button"><i class="fas fa-chevron-left"></i></button>
+<div class="painel-data-center"><span class="painel-data-label" id="labelMovMes">Mês atual</span><button aria-label="Escolher mês" class="painel-calendar-btn" id="btnCalendarioMovMes" type="button"><i class="fas fa-calendar-days"></i></button></div>
+<button aria-label="Próximo mês" class="painel-data-btn" id="btnMovMesProximo" type="button"><i class="fas fa-chevron-right"></i></button>
+</div>
 <div class="estoque-resumo-grid estoque-mov-resumo-grid">
 <article class="estoque-resumo-card is-success"><span>Entradas</span><strong id="estoqueMovEntradas">+0</strong></article>
 <article class="estoque-resumo-card is-danger"><span>Saídas</span><strong id="estoqueMovSaidas">-0</strong></article>
@@ -657,7 +679,16 @@ Aparência
       </div>
       <label class="estoque-check-row estoque-equipe-toggle"><span><strong>Disponível para equipe</strong><small>Quando ativo, profissionais podem vender este produto e recebem a comissão global.</small></span><input checked id="estoqueProdutoComissao" type="checkbox"/></label>
       <div class="estoque-form-actions"><button id="btnCancelarProdutoEstoque" type="button">Cancelar</button><button id="btnSalvarProdutoEstoque" type="submit">Salvar produto</button></div>
+      <button class="estoque-produto-excluir" hidden id="btnExcluirProdutoEstoque" type="button"><i class="fas fa-trash"></i> Excluir produto</button>
     </form>
+  </div>
+</div>
+<!-- MODAL: EXCLUIR PRODUTO -->
+<div aria-hidden="true" class="modal-confirm" id="modalExcluirProduto">
+  <div class="modal-box">
+    <h3>Excluir produto?</h3>
+    <p id="excluirProdutoDescricao">Se o produto já possuir histórico, ele será arquivado para preservar os registros.</p>
+    <div class="modal-actions"><button id="btnCancelarExclusaoProduto" type="button">Cancelar</button><button class="confirm-danger" id="btnConfirmarExclusaoProduto" type="button">Excluir produto</button></div>
   </div>
 </div>
 <!-- MODAL: MOVIMENTAR ESTOQUE -->
@@ -993,11 +1024,11 @@ Aparência
 <span>Menu</span>
 </button>
 </nav>
-<script defer="" src="../js/mobile-interactions.js?v=11.2"></script>
+<script defer="" src="../js/mobile-interactions.js?v=12.0"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=11.2" type="module"></script></body>
+<script src="../js/admin/index.js?v=12.0" type="module"></script></body>
 </html>
