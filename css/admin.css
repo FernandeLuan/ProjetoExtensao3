@@ -999,7 +999,7 @@ html, body, button, a, input, select, textarea, label {
 
 .finance-mini-card {
     min-width: 0;
-    padding: 13px 12px 9px;
+    padding: 13px 12px 14px;
 }
 
 .finance-mini-value {
