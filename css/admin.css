@@ -999,15 +999,16 @@ html, body, button, a, input, select, textarea, label {
 
 .finance-mini-card {
     min-width: 0;
-    padding: 13px 12px 14px;
+    padding: 13px 12px 9px;
 }
 
 .finance-mini-value {
     display: block;
     color: var(--text);
     font-size: .9rem;
-    font-weight: 600;
+    font-weight: 580;
     line-height: 1.2;
+    margin-top: 4px;
 }
 
 .finance-sparkline {
@@ -7617,6 +7618,8 @@ button.ui-action-confirmed::after {
 .dashboard-analytics-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
 }
 .dashboard-analytics-card { min-width: 0; }
 .dashboard-analytics-wide { grid-column: 1 / -1; }
@@ -8395,7 +8398,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 }
 .barbearia-pendencias-card{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important}
 .barbearia-pendencias-content{min-width:0;flex:1 1 auto;display:grid;gap:5px}
-.barbearia-pendencias-content>strong{font-size:.7rem;color:var(--text);font-weight:580}
+.barbearia-pendencias-content>strong{font-size:.7rem;color:var(--text);font-weight:650}
 .barbearia-pendencias-valores{display:flex;flex-wrap:wrap;gap:7px 12px}
 .barbearia-pendencias-valores span{font-size:.54rem;color:var(--text-secondary)}
 .barbearia-pendencias-valores b{margin-left:4px;color:var(--text);font-weight:650}
@@ -8496,7 +8499,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 .barbearia-home-cards-order{display:block!important}
 .barbearia-finance-overview{padding:16px!important;margin-bottom:10px!important}
 .barbearia-finance-overview .finance-overview-top{min-height:76px!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
-.barbearia-finance-overview .finance-main-value{display:block!important;color:var(--success)!important;font-size:1.78rem!important;font-weight:700!important;line-height:1.08!important;letter-spacing:-.03em!important}
+.barbearia-finance-overview .finance-main-value{display:block!important;color:var(--success)!important;font-size:1.78rem!important;font-weight:700!important;line-height:1.08!important;margin-top: 3px;letter-spacing:-.03em!important}
 .barbearia-finance-overview .finance-main-icon{order:initial!important;width:44px!important;height:44px!important;flex:0 0 44px!important;border-radius:50%!important;background:rgba(22,163,74,.12)!important;color:var(--success)!important;font-size:1rem!important}
 .barbearia-finance-overview .finance-summary-row{display:grid!important;grid-template-columns:1fr 1fr!important;padding-top:13px!important;border-top:1px solid var(--border)!important}
 .barbearia-finance-overview .finance-summary-item{display:block!important;padding:0!important;border:0!important}
@@ -8751,7 +8754,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 /* ===== v1.3.2 • ajustes finos do regressivo ===== */
 /* Visão Geral: Lucro volta ao padrão compacto com carteira junto ao título. */
 .barbearia-finance-overview{
-  padding:13px 12px 14px!important;
+  padding:14px 14px 14px!important;
 }
 .barbearia-finance-overview .finance-overview-top{
   min-height:55px!important;
@@ -8800,7 +8803,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 }
 .barbearia-expense-card #barbeariaHomeDespesas{
   display:block!important;
-  margin-top:2px!important;
+  margin-top:4px!important;
   font-size:.9rem!important;
   font-weight:600!important;
   color:var(--text)!important;
@@ -8814,7 +8817,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
   display:block!important;
   color:var(--text)!important;
   font-size:.9rem!important;
-  font-weight:580!important;
+  font-weight:600!important;
   line-height:1.2!important;
 }
 
