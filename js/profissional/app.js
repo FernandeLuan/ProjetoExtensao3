@@ -31,6 +31,20 @@ initTheme();
 initConnectivity();
 initNavigation();
 
+// v1.3.5 • uniformiza os valores financeiros do Painel sem alterar as cores.
+const estiloFinanceiro = document.createElement("style");
+estiloFinanceiro.dataset.srnkVersion = "1.3.5";
+estiloFinanceiro.textContent = `
+#painel .finance-main-value,
+#painel .finance-summary-item strong,
+#painel .finance-mini-value,
+#painel .finance-service-name {
+    font-size: 1.2rem !important;
+    font-weight: 540 !important;
+}
+`;
+document.head.appendChild(estiloFinanceiro);
+
 const elementosBloqueados = [
     document.querySelector(".dashboard-main"),
     document.querySelector(".bottom-nav"),
@@ -54,7 +68,6 @@ function liberarInterface() {
         elemento.removeAttribute("aria-busy");
     });
 }
-
 
 bloquearInterface();
 
