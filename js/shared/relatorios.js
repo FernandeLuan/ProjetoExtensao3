@@ -39,8 +39,6 @@ const textoEl = el("fechamentoTexto");
 const statusEl = el("relatorioStatus");
 const acertosSection = el("fechamentoAcertosEquipe");
 const acertosLista = el("fechamentoAcertosLista");
-const acertosHistoricoBox = el("fechamentoAcertosHistoricoBox");
-const acertosHistorico = el("fechamentoAcertosHistorico");
 
 function moeda(valor) {
     return `R$ ${formatarMoeda(Number(valor || 0))}`;
@@ -54,15 +52,7 @@ function escaparHtml(valor) {
         .replaceAll('"', "&quot;");
 }
 
-function inicioDoMes(data) {
-    const d = inicioDoDia(data);
-    return new Date(d.getFullYear(), d.getMonth(), 1);
-}
 
-function fimDoMes(data) {
-    const d = inicioDoMes(data);
-    return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-}
 
 function setStatus(texto = "", erro = false) {
     if (!statusEl) return;
@@ -107,25 +97,7 @@ function salvarCache(texto, meta = {}) {
     }
 }
 
-function dataDeChave(valor) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(valor || ""))) return null;
-    const data = new Date(`${valor}T12:00:00`);
-    return Number.isNaN(data.getTime()) ? null : inicioDoDia(data);
-}
 
-function restaurarUltimoPeriodo() {
-    try {
-        const bruto = sessionStorage.getItem(chaveUltimoPeriodo());
-        if (!bruto) return;
-        const salvo = JSON.parse(bruto);
-        const inicio = dataDeChave(salvo?.inicio);
-        const fim = dataDeChave(salvo?.fim);
-        const hoje = inicioDoDia(new Date());
-        if (!inicio || !fim || inicio > fim || fim > hoje) return;
-        periodoInicio = inicio;
-        periodoFim = fim;
-    } catch (_) {}
-}
 
 function periodoEhHoje() {
     const hoje = inicioDoDia(new Date());
@@ -620,7 +592,6 @@ function renderizarAcertosEquipe(itens = acertosOperacionais, acertos = acertosM
 
     if (!grupos.size) {
         acertosLista.innerHTML = '<div class="acerto-vazio"><strong>Nenhum acerto neste período.</strong><span>Quando houver repasse ou comissão, a pendência aparecerá aqui.</span></div>';
-        if (acertosHistoricoBox) acertosHistoricoBox.hidden = true;
         return;
     }
 
@@ -656,7 +627,6 @@ function renderizarAcertosEquipe(itens = acertosOperacionais, acertos = acertosM
             <div class="acerto-saldo"><span>${saldo >= 0 ? "Saldo a receber" : "Saldo a pagar"}</span><strong>${moeda(Math.abs(saldo))}</strong></div>
         </details>`;
     }).join("");
-    if (acertosHistoricoBox) acertosHistoricoBox.hidden = true;
 }
 
 async function carregarAcertosDoPeriodo({ forcar = false, dados = null } = {}) {

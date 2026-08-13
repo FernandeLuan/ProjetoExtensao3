@@ -3,7 +3,6 @@ import { criarAtendimento, excluirAtendimento } from "./data/atendimentos-reposi
 import { removerAtendimentoDoCache } from "./data/sync.js?v=13.0";
 import { criarPayloadAtendimento } from "./services/atendimento-model.js?v=13.0";
 import { obterServicos, obterServicoPorId, resolverPrecoServico, pagamentoEstaAtivo } from "./services/catalogo-service.js?v=13.0";
-import { usuarioEhAdmin } from "./permissoes.js?v=13.0";
 import { aplicarMascaraMoedaInput, converterParaNumero, formatarValorInput, formatarMoeda } from "./utils/money.js?v=13.0";
 import { mostrarErro } from "./services/feedback-service.js?v=13.0";
 import { iniciarAcaoBotao, concluirAcaoBotao, restaurarAcaoBotao } from "./services/ui-loading-service.js?v=13.0";

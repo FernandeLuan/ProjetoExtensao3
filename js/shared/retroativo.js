@@ -29,7 +29,6 @@ const undoContainer=document.getElementById("retroUndoContainer");
 const btnUndo=document.getElementById("btnUndoRetroativo");
 const labels={profissional:document.getElementById("labelRetroProfissional"),data:document.getElementById("labelRetroData"),servico:document.getElementById("labelRetroServico"),pagamento:document.getElementById("labelRetroPagamento"),valor:document.getElementById("labelRetroValor"),observacao:document.getElementById("labelRetroObservacao")};
 
-function nomeAtual(){return String(state.perfilUsuario?.nome||state.membroAtual?.nome||state.user?.displayName||state.user?.email||"Administrador").trim();}
 function erroLabel(el){el?.classList.add("label-erro","shake");setTimeout(()=>el?.classList.remove("shake"),500);setTimeout(()=>el?.classList.remove("label-erro"),3000);}
 function erroInput(el){el?.classList.add("input-erro","shake");setTimeout(()=>el?.classList.remove("shake"),500);setTimeout(()=>el?.classList.remove("input-erro"),3000);}
 function limparErro(el,label){el?.classList.remove("input-erro");label?.classList.remove("label-erro");}

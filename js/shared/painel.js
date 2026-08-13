@@ -1,6 +1,6 @@
 import { state, onStateChange } from "./state.js?v=13.0";
 import { formatarMoeda } from "./utils/money.js?v=13.0";
-import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, dataDeInput, obterDataAtendimento } from "./utils/date.js?v=13.0";
+import { inicioDoDia, somarDias, chaveData, mesmoDia, formatarTituloData, obterDataAtendimento } from "./utils/date.js?v=13.0";
 import { setTexto, inicializarTooltipsFinanceiros } from "./utils/dom.js?v=13.0";
 import { abrirCalendarioPopover } from "./services/calendario-popover.js?v=13.0";
 import { obterResumoDoDia, obterBrutoAtendimento } from "./services/financeiro-service.js?v=13.0";
@@ -12,8 +12,6 @@ import { iniciarLoadingTela, finalizarLoadingTela } from "./services/ui-loading-
 
 let dataSelecionada = inicioDoDia(new Date());
 let graficoFaturamentoInstance = null;
-let graficoTicketInstance = null;
-let graficoAtendimentosInstance = null;
 let graficoServicosInstance = null;
 let graficoPagamentosInstance = null;
 let resumosPainel = [];
@@ -271,15 +269,6 @@ export function atualizarCards() {
     setTexto("clientesAtendidosPainel", String(resumoAtual.totalAtendimentos));
     setTexto("servicoMaisVendidoPainel", resumoAtual.servicoMaisVendido);
 
-    const palavraVenda = resumoAtual.quantidadeMaisVendida === 1 ? "venda" : "vendas";
-    const metaServico = document.getElementById("servicoMaisVendidoMeta");
-
-    if (metaServico) {
-        metaServico.innerHTML =
-            `<span class="finance-service-sales">${resumoAtual.quantidadeMaisVendida} ${palavraVenda}</span>` +
-            ` • ${resumoAtual.percentualMaisVendido}% dos atendimentos`;
-    }
-
     atualizarComparativo(resumoAtual, resumoAnterior);
 
     // Evita criar gráficos enquanto o Painel estiver escondido.
@@ -334,227 +323,6 @@ function corComAlpha(cor, alpha) {
 }
 function destruirGrafico(instancia) {
     if (instancia) instancia.destroy();
-}
-
-
-// =============================
-// TOOLTIP DOS MINI GRÁFICOS
-// =============================
-const sparklineTooltipTimers = new WeakMap();
-
-function mostrarTooltipSparkline(context, formatarValor) {
-    const { chart, tooltip } = context;
-
-    // O próprio timer controla quando o tooltip desaparece.
-    if (
-        !tooltip ||
-        tooltip.opacity === 0 ||
-        !tooltip.dataPoints?.length
-    ) {
-        return;
-    }
-
-    const wrapper = chart.canvas.parentElement;
-
-    if (!wrapper) return;
-
-    let elemento = wrapper.querySelector(
-        ".sparkline-touch-tooltip"
-    );
-
-    // Cria o tooltip somente na primeira utilização
-    if (!elemento) {
-        elemento = document.createElement("div");
-        elemento.className = "sparkline-touch-tooltip";
-        wrapper.appendChild(elemento);
-    }
-
-    const ponto = tooltip.dataPoints[0];
-
-    const titulo = tooltip.title?.[0] ?? "";
-    const valor = formatarValor(ponto.raw ?? 0);
-
-    elemento.innerHTML = `
-        <span>${titulo}</span>
-        <strong>${valor}</strong>
-    `;
-
-    // Evita o tooltip sair para os lados do card
-    const larguraWrapper = wrapper.clientWidth;
-
-    const x = Math.max(
-        45,
-        Math.min(
-            tooltip.caretX,
-            larguraWrapper - 45
-        )
-    );
-
-    elemento.style.left = `${x}px`;
-
-    elemento.classList.add("show");
-
-    // Cancela timer anterior
-    const timerAnterior =
-        sparklineTooltipTimers.get(chart);
-
-    if (timerAnterior) {
-        clearTimeout(timerAnterior);
-    }
-
-    // Some automaticamente depois de 3 segundos
-    const timer = setTimeout(() => {
-        elemento.classList.remove("show");
-    }, 3000);
-
-    sparklineTooltipTimers.set(chart, timer);
-}
-
-
-// =============================
-// MINI GRÁFICO - TICKET MÉDIO
-// =============================
-function criarSparklineLinha(canvas, labels, dados, cor) {
-    if (!canvas || typeof Chart === "undefined") return null;
-
-    return new Chart(canvas, {
-        type: "line",
-
-        data: {
-            labels,
-
-            datasets: [{
-                data: dados,
-
-                borderColor: cor,
-                backgroundColor: corComAlpha(cor, 0.08),
-
-                borderWidth: 1.5,
-
-                fill: true,
-                tension: 0.35,
-
-                pointRadius: 0,
-                pointHoverRadius: 4,
-
-                // Aumenta a área de toque no celular
-                pointHitRadius: 18
-            }]
-        },
-
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-
-            interaction: {
-                mode: "index",
-                intersect: false
-            },
-
-            scales: {
-                x: {
-                    display: false
-                },
-
-                y: {
-                    display: false,
-                    beginAtZero: true
-                }
-            },
-
-            plugins: {
-                legend: {
-                    display: false
-                },
-
-                tooltip: {
-                    enabled: false,
-
-                    external: (context) => {
-                        mostrarTooltipSparkline(
-                            context,
-                            (valor) =>
-                                `R$ ${formatarMoeda(valor)}`
-                        );
-                    }
-                }
-            }
-        }
-    });
-}
-
-
-// =============================
-// MINI GRÁFICO - ATENDIMENTOS
-// =============================
-function criarSparklineBarras(canvas, labels, dados, cor) {
-    if (!canvas || typeof Chart === "undefined") return null;
-
-    return new Chart(canvas, {
-        type: "bar",
-
-        data: {
-            labels,
-
-            datasets: [{
-                data: dados,
-
-                backgroundColor: corComAlpha(cor, 0.85),
-
-                borderRadius: 2,
-                borderSkipped: false,
-
-                barPercentage: 0.62,
-                categoryPercentage: 0.9
-            }]
-        },
-
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-
-            interaction: {
-                mode: "index",
-                intersect: false
-            },
-
-            scales: {
-                x: {
-                    display: false
-                },
-
-                y: {
-                    display: false,
-                    beginAtZero: true
-                }
-            },
-
-            plugins: {
-                legend: {
-                    display: false
-                },
-
-                tooltip: {
-                    enabled: false,
-
-                    external: (context) => {
-                        mostrarTooltipSparkline(
-                            context,
-                            (valor) => {
-                                const quantidade = Number(valor);
-
-                                return quantidade === 1
-                                    ? "1 atendimento"
-                                    : `${quantidade} atendimentos`;
-                            }
-                        );
-                    }
-                }
-            }
-        }
-    });
 }
 
 
@@ -694,24 +462,7 @@ export function atualizarGrafico() {
     const cores = obterCoresDoTema();
 
     destruirGrafico(graficoFaturamentoInstance);
-    destruirGrafico(graficoTicketInstance);
-    destruirGrafico(graficoAtendimentosInstance);
 
-const labels = serie.map((item) => item.label);
-
-graficoTicketInstance = criarSparklineLinha(
-    document.getElementById("graficoTicketMedio"),
-    labels,
-    serie.map((item) => item.ticket),
-    cores.primary
-);
-
-graficoAtendimentosInstance = criarSparklineBarras(
-    document.getElementById("graficoAtendimentos"),
-    labels,
-    serie.map((item) => item.atendimentos),
-    cores.primary
-);
     const canvasFaturamento = document.getElementById("graficoFaturamento");
     if (!canvasFaturamento) return;
 

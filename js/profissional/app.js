@@ -8,7 +8,7 @@ import { initConnectivity } from "../shared/connectivity.js?v=13.0";
 import { mostrarErro } from "../shared/services/feedback-service.js?v=13.0";
 import { exigirTrocaSenhaPrimeiroAcesso } from "../shared/primeiro-acesso.js?v=13.0";
 import { aplicarPermissoesInterface, podeUsarVisaoProfissional } from "../shared/permissoes.js?v=13.0";
-import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.1";
+import { initNavigation, configurarNavegacao, abrirInicio, preloadInicio } from "./navigation.js?v=13.4";
 import { limparSessaoArea, loginDaArea, marcarSessaoArea, sessaoPertenceArea } from "../shared/auth-area-session.js?v=13.0";
 
 const AREA_ATUAL = "profissional";
@@ -23,7 +23,6 @@ const inicioBoot = performance.now();
 const TROCA_AREA_RAPIDA = sessionStorage.getItem("srnk:troca-area-rapida") === "1";
 if (TROCA_AREA_RAPIDA) sessionStorage.removeItem("srnk:troca-area-rapida");
 const BOOT_MINIMO_MS = TROCA_AREA_RAPIDA ? 0 : 700;
-const PREVIEW_DELAY_MS = 1800;
 const preloadPrimeiraTela = SESSAO_DA_AREA_VALIDA ? preloadInicio() : Promise.resolve();
 
 document.body.dataset.srnkVisao = "profissional";
@@ -56,22 +55,10 @@ function liberarInterface() {
     });
 }
 
-function mostrarInterfaceOtimista() {
-    if (appInicializado || !document.body.classList.contains("dashboard-booting")) return;
-    document.body.classList.remove("dashboard-booting");
-    document.body.classList.add("session-pending");
-    const status = document.getElementById("appBootStatus");
-    status?.removeAttribute("hidden");
-    const subtitle = status?.querySelector(".app-boot-subtitle");
-    if (subtitle) subtitle.textContent = "Validando sua sessão…";
-}
 
 bloquearInterface();
-const previewTimer = 0; // v1.3: mantém a apresentação até a primeira tela estar realmente pronta.
 
 async function finalizarBoot({ liberar = true, respeitarMinimo = true } = {}) {
-    clearTimeout(previewTimer);
-
     if (respeitarMinimo) {
         const restante = Math.max(0, BOOT_MINIMO_MS - (performance.now() - inicioBoot));
         if (restante > 0) await new Promise((resolve) => setTimeout(resolve, restante));
@@ -115,7 +102,6 @@ onAuthStateChanged(auth, async (user) => {
     if (!SESSAO_DA_AREA_VALIDA) return;
 
     if (!user) {
-        clearTimeout(previewTimer);
         limparSessaoArea();
         window.location.replace(loginDaArea(AREA_ATUAL));
         return;

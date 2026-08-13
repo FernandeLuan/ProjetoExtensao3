@@ -16,7 +16,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/profissional/index.js?v=13.1" rel="modulepreload"><link href="../js/profissional/app.js?v=13.1" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=13.0">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/profissional/index.js?v=13.4" rel="modulepreload"><link href="../js/profissional/app.js?v=13.4" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/registrar.js?v=13.4">
 </head>
 <body class="dashboard-booting" data-srnk-area="profissional" data-srnk-visao="profissional">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -141,9 +141,6 @@
             </strong>
 <div class="finance-comparison" hidden="" id="comparativoLucro"></div>
 </div>
-<div aria-hidden="true" class="finance-main-icon">
-<i class="fas fa-wallet"></i>
-</div>
 </div>
 <!-- Faturamento + Repasse -->
 <div class="finance-summary-row">
@@ -178,18 +175,12 @@
 <strong class="finance-mini-value" id="ticketMedioPainel">
                 R$ 0,00
             </strong>
-<div class="finance-sparkline">
-<canvas aria-label="Ticket médio dos últimos 7 dias" id="graficoTicketMedio"></canvas>
-</div>
 </article>
 <article class="finance-card finance-mini-card">
 <span class="finance-label"><i aria-hidden="true" class="fas fa-scissors"></i> Atendimentos</span>
 <strong class="finance-mini-value" id="clientesAtendidosPainel">
                 0
             </strong>
-<div class="finance-sparkline">
-<canvas aria-label="Atendimentos dos últimos 7 dias" id="graficoAtendimentos"></canvas>
-</div>
 </article>
 </div>
 <!-- Serviço mais vendido -->
@@ -197,7 +188,6 @@
 <div class="finance-service-content">
 <span class="finance-label"><i aria-hidden="true" class="fas fa-star"></i> Serviço mais vendido</span>
 <strong class="finance-service-name" id="servicoMaisVendidoPainel">—</strong>
-<span class="finance-service-meta" id="servicoMaisVendidoMeta"></span>
 </div>
 </article>
 <!-- Gráfico principal -->
@@ -869,5 +859,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/profissional/index.js?v=13.1" type="module"></script></body>
+<script src="../js/profissional/index.js?v=13.4" type="module"></script></body>
 </html>

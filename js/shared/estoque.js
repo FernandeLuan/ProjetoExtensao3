@@ -62,7 +62,6 @@ let diaVendasAdmin = null;
 let diaMovimentacoes = null;
 let requisicaoVendasAdmin = 0;
 let requisicaoMovimentacoesAdmin = 0;
-let abaEstoqueAdmin = "produtos";
 let abaEstoqueProfissional = "vender";
 
 const $ = (id) => document.getElementById(id);
@@ -486,9 +485,6 @@ async function carregarMovimentacoesAdmin({ forcar = true } = {}) {
     renderizarMovimentacoes();
 }
 
-async function carregarAdmin({ forcar = false } = {}) {
-    await Promise.all([carregarVendasAdmin({ forcar }), carregarMovimentacoesAdmin({ forcar })]);
-}
 
 async function carregarVendasProfissional({ forcar = false } = {}) {
     atualizarNavegadorMesVendas();

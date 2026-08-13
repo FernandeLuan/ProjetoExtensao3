@@ -16,7 +16,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
-<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.3" rel="modulepreload"><link href="../js/admin/app.js?v=13.3" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.1">
+<link href="../js/firebase-init.js?v=13.0" rel="modulepreload"><link href="../js/admin/index.js?v=13.4" rel="modulepreload"><link href="../js/admin/app.js?v=13.4" rel="modulepreload"/><link rel="modulepreload" href="../js/shared/barbearia-home.js?v=13.4">
 </head>
 <body class="dashboard-booting" data-srnk-area="admin" data-srnk-visao="barbearia">
 <div aria-label="Abrindo Sr NK" aria-live="polite" class="app-boot-status" id="appBootStatus" role="status">
@@ -98,7 +98,7 @@
 <strong class="finance-mini-value" id="barbeariaHomeDespesas">R$ 0,00</strong>
 </article>
 <article class="finance-card finance-service-card barbearia-service-card" data-visao-card="servico">
-<div class="finance-service-content"><span class="finance-label"><i aria-hidden="true" class="fas fa-star"></i> Serviço mais vendido</span><strong class="finance-service-name" id="barbeariaHomeServico">—</strong><span class="finance-service-meta" id="barbeariaHomeServicoSub"></span></div>
+<div class="finance-service-content"><span class="finance-label"><i aria-hidden="true" class="fas fa-star"></i> Serviço mais vendido</span><strong class="finance-service-name" id="barbeariaHomeServico">—</strong></div>
 </article>
 </div>
 <article class="barbearia-home-equipe-card">
@@ -155,7 +155,6 @@
 </summary>
 <div class="fechamento-acertos-body">
 <div class="fechamento-acertos-lista" id="fechamentoAcertosLista"></div>
-<div class="fechamento-acertos-historico" hidden id="fechamentoAcertosHistoricoBox"><h4>Acertos registrados no mês</h4><div id="fechamentoAcertosHistorico"></div></div>
 </div>
 </details>
 <article class="fechamento-request-card" id="fechamentoRequestCard">
@@ -325,7 +324,7 @@
 <i class="fas fa-chevron-down config-group-chevron"></i>
 </button>
 <div class="config-group-content" hidden="" id="configGroupSobre">
-<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.3</span></div>
+<div class="app-version-row"><div><strong>Sr NK</strong><span>Versão instalada</span></div><span class="app-version-badge" id="appVersion">v1.3.4</span></div>
 </div>
 </div>
 </div>
@@ -971,5 +970,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));
 }
 </script>
-<script src="../js/admin/index.js?v=13.3" type="module"></script></body>
+<script src="../js/admin/index.js?v=13.4" type="module"></script></body>
 </html>

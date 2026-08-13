@@ -51,7 +51,7 @@ function preaquecerOutraArea() {
     else window.setTimeout(executar, 1200);
 }
 
-function preaquecerHistorico() { const executar = () => { void importar("historico", "../shared/historico.js?v=13.0").catch(() => null); }; if ("requestIdleCallback" in window) window.requestIdleCallback(executar, { timeout: 1800 }); else window.setTimeout(executar, 900); }
+function preaquecerHistorico() { const executar = () => { void importar("historico", "../shared/historico.js?v=13.4").catch(() => null); }; if ("requestIdleCallback" in window) window.requestIdleCallback(executar, { timeout: 1800 }); else window.setTimeout(executar, 900); }
 function rolarParaOTopo({ suave = true } = {}) {
     const behavior = suave ? "smooth" : "auto";
     const secao = secaoAtual ? document.getElementById(secaoAtual) : null;
@@ -82,17 +82,17 @@ function rolarParaOTopo({ suave = true } = {}) {
 
 function animar(section) { section.classList.remove("section-enter"); void section.offsetWidth; section.classList.add("section-enter"); setTimeout(() => section.classList.remove("section-enter"), 220); }
 async function importar(chave, caminho) { if (modulos.has(chave)) return modulos.get(chave); if (carregamentos.has(chave)) return carregamentos.get(chave); const p = import(caminho).then((m) => { modulos.set(chave, m); carregamentos.delete(chave); return m; }).catch((e) => { carregamentos.delete(chave); throw e; }); carregamentos.set(chave, p); return p; }
-export function preloadInicio() { return importar("barbeariaHome", "../shared/barbearia-home.js?v=13.1"); }
+export function preloadInicio() { return importar("barbeariaHome", "../shared/barbearia-home.js?v=13.4"); }
 async function carregar(targetId) {
     switch (targetId) {
-        case "barbeariaHome": { const m = await importar("barbeariaHome", "../shared/barbearia-home.js?v=13.1"); await m.abrirVisaoGeralBarbearia?.(); return; }
-        case "historico": { const m = await importar("historico", "../shared/historico.js?v=13.0"); await m.abrirHistoricoHoje?.(); return; }
+        case "barbeariaHome": { const m = await importar("barbeariaHome", "../shared/barbearia-home.js?v=13.4"); await m.abrirVisaoGeralBarbearia?.(); return; }
+        case "historico": { const m = await importar("historico", "../shared/historico.js?v=13.4"); await m.abrirHistoricoHoje?.(); return; }
         case "equipe": { const m = await importar("equipe", "../shared/equipe.js?v=13.0"); m.initEquipe?.(); await m.abrirEquipe?.(); return; }
-        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=13.1"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
-        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.2"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
+        case "relatorios": { const m = await importar("relatorios", "../shared/relatorios.js?v=13.4"); await m.initRelatorios?.(); await m.prepararRelatoriosHoje?.(); return; }
+        case "estoque": { const m = await importar("estoque", "../shared/estoque.js?v=13.4"); m.initEstoque?.(); await m.abrirEstoque?.(); return; }
         case "despesas": { const m = await importar("despesas", "../shared/despesas.js?v=13.0"); m.initDespesas?.(); await m.abrirDespesasAtual?.(); return; }
         case "conta": { const m = await importar("conta", "../shared/conta.js?v=13.0"); m.initConta?.(); await m.abrirConta?.(); return; }
-        case "configuracoes": { const [c, r] = await Promise.all([importar("configuracoes", "../shared/configuracoes.js?v=13.2"), importar("retroativo", "../shared/retroativo.js?v=13.1")]); c.initConfiguracoes?.(); await r.initRetroativo?.(); await r.prepararRetroativoParaUso?.(); return; }
+        case "configuracoes": { const [c, r] = await Promise.all([importar("configuracoes", "../shared/configuracoes.js?v=13.4"), importar("retroativo", "../shared/retroativo.js?v=13.4")]); c.initConfiguracoes?.(); await r.initRetroativo?.(); await r.prepararRetroativoParaUso?.(); return; }
     }
 }
 function iniciarCarregamento(targetId, section) { section?.setAttribute("aria-busy", "true"); section?.classList.add("section-module-loading"); if (execucoesSecao.has(targetId)) return execucoesSecao.get(targetId); const token = document.body.classList.contains("session-pending") || document.body.classList.contains("dashboard-booting") ? null : iniciarLoadingTela(MENSAGENS[targetId] || "Carregando...", { delay: 420 }); const p = carregar(targetId).catch((e) => { console.error(`[Admin] Erro ao carregar ${targetId}:`, e); mostrarErro("Não foi possível abrir esta seção. Tente novamente."); throw e; }).finally(() => { finalizarLoadingTela(token); execucoesSecao.delete(targetId); section?.removeAttribute("aria-busy"); section?.classList.remove("section-module-loading"); }); execucoesSecao.set(targetId, p); return p; }

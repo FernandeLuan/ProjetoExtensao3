@@ -169,13 +169,6 @@ function renderResumo(total, profissionais) {
     if (el("barbeariaHomeTicket")) el("barbeariaHomeTicket").textContent = moeda(total.ticket);
     if (el("barbeariaHomeDespesas")) el("barbeariaHomeDespesas").textContent = moeda(total.despesasBarbearia);
     if (el("barbeariaHomeServico")) el("barbeariaHomeServico").textContent = total.servicoMaisVendido;
-    if (el("barbeariaHomeServicoSub")) {
-        const pct = total.atendimentos ? Math.round((total.servicoMaisVendidoQtd / total.atendimentos) * 100) : 0;
-        const palavra = total.servicoMaisVendidoQtd === 1 ? "venda" : "vendas";
-        el("barbeariaHomeServicoSub").textContent = total.servicoMaisVendidoQtd
-            ? `${total.servicoMaisVendidoQtd} ${palavra} • ${pct}% dos atendimentos`
-            : "0 vendas • 0% dos atendimentos";
-    }
     renderEquipe(profissionais);
     ultimoTotalRenderizado = total;
     renderGraficos(total);

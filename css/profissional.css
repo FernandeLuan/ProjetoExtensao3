@@ -1010,61 +1010,6 @@ html, body, button, a, input, select, textarea, label {
     line-height: 1.2;
 }
 
-.finance-sparkline {
-    position: relative;
-    width: 100%;
-    height: 38px;
-    margin-top: 9px;
-    overflow: visible;
-}
-.sparkline-touch-tooltip {
-    position: absolute;
-    top: 0;
-    left: 50%;
-
-    transform: translate(-50%, -115%);
-
-    padding: 6px 9px;
-
-    background: var(--bg-card);
-    color: var(--text);
-
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-
-    white-space: nowrap;
-
-    font-size: 0.64rem;
-    line-height: 1.3;
-
-    opacity: 0;
-    visibility: hidden;
-
-    pointer-events: none;
-
-    z-index: 20;
-
-    transition:
-        opacity 0.15s ease,
-        transform 0.15s ease;
-}
-
-.sparkline-touch-tooltip.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -125%);
-}
-
-.sparkline-touch-tooltip span {
-    color: var(--text-secondary);
-    margin-right: 5px;
-}
-
-.sparkline-touch-tooltip strong {
-    color: var(--text);
-    font-weight: 600;
-}
 .finance-service-card {
     min-height: 92px;
     display: flex;
@@ -6036,8 +5981,7 @@ body[data-srnk-visao="profissional"] #vendaProfissionalField, body[data-srnk-vis
 .finance-mini-grid .finance-mini-card{min-width:0!important;padding:18px 12px 20px!important;min-height:86px!important;display:block!important}
 .finance-mini-grid .finance-mini-card::after{content:none!important;display:none!important}
 .finance-mini-grid .finance-mini-value{display:block!important;color:var(--text)!important;font-size:1.2rem!important;font-weight:540!important;line-height:1.2!important;padding-top:2px!important}
-.finance-mini-grid .finance-sparkline{display:none!important}
 .finance-service-card-compact .finance-service-name{display:block!important;color:var(--text)!important;font-size:1.2rem!important;font-weight:600!important;line-height:1.2!important}
-.finance-service-card-compact .finance-service-meta{display:none!important}
 .finance-chart-card .finance-chart-head h3{display:flex!important;align-items:center!important;gap:4px!important}
 .finance-chart-card .finance-chart-head h3>i{margin:0!important;padding:0!important;color:var(--text-secondary)!important;font-size:.64rem!important;line-height:1!important}
+

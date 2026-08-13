@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.3.3";
+const CACHE_NAME = "sr-nk-v1.3.4";
 
 // Núcleo pequeno: site + logins de cada área. Profissional/Admin carregam seus
 // próprios módulos apenas quando acessados.

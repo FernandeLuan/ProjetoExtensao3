@@ -6,9 +6,6 @@ let sequenciaLoading = 0;
 const LOADING_DELAY_PADRAO_MS = 420;
 const LOADING_VISIVEL_MINIMO_MS = 220;
 
-function aguardar(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function limparConfirmacaoBotao(botao) {
     if (!botao) return;
