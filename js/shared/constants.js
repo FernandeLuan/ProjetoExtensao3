@@ -1,5 +1,5 @@
 export const APP_NAME = "Sr NK";
-export const APP_VERSION = "1.3.4";
+export const APP_VERSION = "1.3.9";
 export const SCHEMA_VERSION = 3;
 
 export const PAPEIS = Object.freeze({
@@ -25,7 +25,7 @@ export const SERVICOS_PADRAO = Object.freeze([
 export const DEFAULT_CONFIG = Object.freeze({
     taxaDebito: 1.5,
     taxaCredito: 3.51,
-    repasseDonoPct: 35, // fallback para registros/membros antigos
+    repasseDonoPct: 35,
     comissaoProdutosPct: 20,
     taxaDebitoProdutosPct: 1.5,
     taxaCreditoProdutosPct: 3.51,
@@ -44,7 +44,6 @@ export function criarServicosPadrao() {
 
 export function criarConfigPadrao() {
     const servicos = criarServicosPadrao();
-
     return {
         taxaDebito: DEFAULT_CONFIG.taxaDebito,
         taxaCredito: DEFAULT_CONFIG.taxaCredito,
@@ -55,7 +54,6 @@ export function criarConfigPadrao() {
         pagamentoPadrao: DEFAULT_CONFIG.pagamentoPadrao,
         pagamentosAtivos: { ...DEFAULT_CONFIG.pagamentosAtivos },
         servicos,
-        // Mantido para compatibilidade com dados/telas antigas durante a transição.
         precos: Object.fromEntries(servicos.map((servico) => [servico.nome, servico.preco]))
     };
 }

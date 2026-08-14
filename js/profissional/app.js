@@ -31,6 +31,39 @@ initTheme();
 initConnectivity();
 initNavigation();
 
+const estiloFinanceiro = document.createElement("style");
+estiloFinanceiro.dataset.srnkVersion = "1.3.9";
+estiloFinanceiro.textContent = `
+#painelFinanceiro .finance-main-value {
+    font-size: 1.78rem !important;
+    font-weight: 700 !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.03em !important;
+}
+#painelFinanceiro .finance-mini-value {
+    font-size: 1.2rem !important;
+    font-weight: 540 !important;
+    line-height: 1.2 !important;
+}
+#painelFinanceiro .finance-summary-item strong {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+}
+#painelFinanceiro .finance-service-card-compact {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 13px 12px 14px !important;
+    margin-bottom: 10px !important;
+}
+#painelFinanceiro .finance-service-card-compact .finance-service-name {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+}
+`;
+document.head.appendChild(estiloFinanceiro);
+
 const elementosBloqueados = [
     document.querySelector(".dashboard-main"),
     document.querySelector(".bottom-nav"),
@@ -54,7 +87,6 @@ function liberarInterface() {
         elemento.removeAttribute("aria-busy");
     });
 }
-
 
 bloquearInterface();
 
