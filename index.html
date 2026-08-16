@@ -2,165 +2,195 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sr NK | Sr.Nk Barbearia</title>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0F1115">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=13.0">
-  <meta name="description" content="Sr NK - Cortes freestyle modernos com precisão na Sr.Nk Barbearia, Rio do Sul/SC. Agende pelo AppBarber!"/>
-  <link rel="stylesheet" href="css/style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sr NK Barbearia | Rio do Sul</title>
+  <meta name="description" content="Sr NK Barbearia em Rio do Sul/SC. Escolha seu barbeiro e agende seu horário pelo AppBarber." />
+  <meta name="theme-color" content="#0e0e0d" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png?v=13.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="css/style.css?v=4.1" />
 </head>
 <body>
+  <header class="site-header" id="topo">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="Sr NK Barbearia - início">
+        <img class="brand-logo" src="Fotos/Sr.NK.jpg" alt="Logo da Sr NK Barbearia" />
+        <span class="brand-copy"><strong>Sr NK</strong><small>BARBEARIA</small></span>
+      </a>
 
-<header class="header">
-  <div class="container header-container">
-    <div class="logo-container">
-      <a href="#" class="logo-link">
-        <img src="Fotos/teste1.jpeg" alt="Sr NK" class="logo-foto">
-      </a>
-      <a href="#" class="logo-link">
-        <h1 class="logo">Sr NK</h1>
-      </a>
+      <button class="menu-toggle" id="menuButton" type="button" aria-label="Abrir menu" aria-controls="siteNav" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="siteNav" aria-label="Navegação principal">
+        <a href="#equipe">Barbeiros</a>
+        <a href="#trabalhos">Trabalhos</a>
+        <a href="#avaliacoes">Avaliações</a>
+        <a href="#localizacao">Localização</a>
+        <a href="#sobre">A Sr NK</a>
+        <a class="nav-cta" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer">Agendar horário</a>
+      </nav>
     </div>
-    <nav class="nav-menu">
-      <input type="checkbox" id="menu-toggle" class="menu-toggle">
-      <label for="menu-toggle" class="menu-icon" aria-label="Abrir menu">☰</label>
-<ul class="nav-list">
-  <li><a href="#sobre" onclick="closeMenu()">Sobre</a></li>
-  <li><a href="#galeria" onclick="closeMenu()">Galeria</a></li>
-  <li><a href="#agendar" onclick="closeMenu()">Agendar</a></li>
-  <li><a href="#localizacao" onclick="closeMenu()">Localização</a></li>
-  <li>
-  <a href="https://www.google.com/search?sca_esv=d93e5f3f55d68fd9&sxsrf=ANbL-n482oTzJcval-EaAzgLjiw4iF_zYw:1772711145533&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOTjo85oxXJ90Kr3qgpfk-LE1SPWVzx_PPAp0Kqf3eSLwxY8W8M1JzBS5tR9gLBCLYA_zPGpJaf91kLe46IB3ng__KK-t3DUVszbHIi7H4UCmymk2EQ%3D%3D&q=Sr.Nk+Barbearia+Coment%C3%A1rios&sa=X&ved=2ahUKEwirvfnQ14iTAxXJDLkGHZw6B9oQ0bkNegQIIRAF&biw=1920&bih=911&dpr=1"
-     target="_blank"
-     onclick="closeMenu()"
-   rel="noopener noreferrer">
-    Avalie-nos
-  </a>
-</li>
-  <li><a href="profissional/login.html" onclick="closeMenu()">Área da equipe</a></li>
-</ul>
-    </nav>
-  </div>
-</header>
+  </header>
 
-<section class="sobre" id="sobre">
-  <div class="container">
-    <div class="sobre-grid">
-      <div class="sobre-video-container">
-        <video 
-          class="sobre-video" 
-          autoplay 
-          muted 
-          loop 
-          playsinline 
-          loading="lazy"
-          poster="Fotos/2.png"
-        >
-          <source src="Fotos/video.mp4" type="video/mp4">
-          <img src="Fotos/2.png" alt="Sr NK trabalhando" loading="lazy">
-        </video>
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <span class="eyebrow">SR NK • RIO DO SUL</span>
+          <h1>Corte bom.<br><em>Hora marcada.</em></h1>
+          <p>Escolha seu barbeiro, marque pelo AppBarber e venha tranquilo. Sem fila e sem perder tempo.</p>
+
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer">
+              <i class="fa-regular fa-calendar-check"></i> Agendar horário
+            </a>
+            <a class="button button-secondary hero-secondary" href="#equipe">Ver barbeiros</a>
+          </div>
+
+          <div class="hero-meta" aria-label="Informações da Sr NK">
+            <span><i class="fa-solid fa-user-group"></i> 4 barbeiros</span>
+            <span><i class="fa-solid fa-location-dot"></i> Centro, Rio do Sul</span>
+            <span><i class="fa-regular fa-clock"></i> somente com hora marcada</span>
+          </div>
+
+          <div class="quick-actions" aria-label="Atalhos">
+            <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer"><i class="fa-regular fa-calendar"></i><span>Agendar</span></a>
+            <a href="https://wa.me/5547988685889?text=Olá!%20Vim%20pelo%20site%20da%20Sr%20NK%20Barbearia." target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+            <a href="https://www.google.com/maps/search/?api=1&query=Sr.Nk%20Barbearia&query_place_id=ChIJfYbSk3i535QRdYz7OsALxnE" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-location-arrow"></i><span>Como chegar</span></a>
+          </div>
+        </div>
+
+        <figure class="hero-media reveal">
+          <img src="Fotos/site-hero.webp" alt="Fachada da Sr NK Barbearia em Rio do Sul" />
+          <figcaption>Rua Dom Bosco, 430 • Centro</figcaption>
+        </figure>
       </div>
+    </section>
 
-      <div class="sobre-texto">
-        <h2>Sobre o Barbeiro</h2>
-        <p class="typing"> Minha trajetória na barbearia iniciou aos <b>14 anos</b>, marcada por dedicação e constante aprimoramento técnico. Ao longo dos anos, desenvolvi um estilo próprio com foco em cortes modernos e tendências atuais.</p>
-        <p class="typing"> Realizei diversos cursos técnicos de aperfeiçoamento, buscando oferecer serviços que atendam às expectativas de diferentes perfis de clientes. Trabalho com atendimento personalizado, prezando pela qualidade e satisfação de clientes de todas as idades.</p>
+    <section class="section section-team" id="equipe">
+      <div class="container">
+        <div class="section-top reveal">
+          <div>
+            <span class="eyebrow">SEU BARBEIRO</span>
+            <h2>Escolha quem vai te atender.</h2>
+          </div>
+          <p>Todos os horários são feitos pelo AppBarber.</p>
+        </div>
+
+        <div class="team-grid">
+          <article class="team-card reveal">
+            <img class="team-photo team-photo-nando" src="Fotos/site-barber-nando.webp" alt="Nando, barbeiro da Sr NK" loading="lazy" />
+            <div class="team-info"><span>Barbeiro</span><h3>Nando</h3></div>
+            <a class="team-action" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer" aria-label="Ver agenda do Nando">Agendar <i class="fa-solid fa-arrow-right"></i></a>
+          </article>
+
+          <article class="team-card reveal">
+            <img class="team-photo team-photo-marlon" src="Fotos/site-barber-marlon.webp" alt="Marlon, barbeiro da Sr NK" loading="lazy" />
+            <div class="team-info"><span>Barbeiro</span><h3>Marlon</h3></div>
+            <a class="team-action" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer" aria-label="Ver agenda do Marlon">Agendar <i class="fa-solid fa-arrow-right"></i></a>
+          </article>
+
+          <article class="team-card reveal">
+            <img class="team-photo team-photo-gabriel" src="Fotos/site-barber-gabriel.webp" alt="Gabriel, barbeiro da Sr NK" loading="lazy" />
+            <div class="team-info"><span>Barbeiro</span><h3>Gabriel</h3></div>
+            <a class="team-action" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer" aria-label="Ver agenda do Gabriel">Agendar <i class="fa-solid fa-arrow-right"></i></a>
+          </article>
+
+          <article class="team-card reveal">
+            <img class="team-photo team-photo-carlos" src="Fotos/site-barber-carlos.webp" alt="Carlos, barbeiro da Sr NK" loading="lazy" />
+            <div class="team-info"><span>Barbeiro</span><h3>Carlos</h3></div>
+            <a class="team-action" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer" aria-label="Ver agenda do Carlos">Agendar <i class="fa-solid fa-arrow-right"></i></a>
+          </article>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<section class="galeria" id="galeria">
-  <div class="container">
-    <h2>Meus Trabalhos</h2>
-    <div class="carousel">
-      <div class="carousel-track" id="carouselTrack">
-        <img src="Fotos/2.png" alt="Trabalho do Sr NK" loading="lazy">
-        <video autoplay muted loop playsinline loading="lazy">
-          <source src="Fotos/videocarrosel2.mp4" type="video/mp4">
-        </video>
-        <img src="Fotos/6.png" alt="Corte texturizado com estilo" loading="lazy">
-        <video autoplay muted loop playsinline loading="lazy">
-          <source src="Fotos/videocarrosel1.mp4" type="video/mp4">
-        </video>
-        <img src="Fotos/7.png" alt="Outro corte incrível do Marlon" loading="lazy">
-        <video autoplay muted loop playsinline loading="lazy">
-          <source src="Fotos/videocarrosel4.mp4" type="video/mp4">
-        </video>
-        <img src="Fotos/1.png" alt="Corte principal - Sr NK" loading="lazy">
-        <video autoplay muted loop playsinline loading="lazy">
-          <source src="Fotos/videocarrosel5.mp4" type="video/mp4">
-        </video>
-        <img src="Fotos/10.jpeg" alt="Outro corte incrível do Marlon" loading="lazy">
-        <img src="Fotos/4.png" alt="Fade moderno realizado por Marlon" loading="lazy">
-        <img src="Fotos/2.png" alt="Sr NK trabalhando" loading="lazy">
+    <section class="section section-work" id="trabalhos">
+      <div class="container">
+        <div class="section-top work-top reveal">
+          <div>
+            <span class="eyebrow">TRABALHOS</span>
+            <h2>Um pouco do que sai daqui.</h2>
+          </div>
+          <a class="text-link" href="https://www.instagram.com/sr.nkbarbearia/" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i> @sr.nkbarbearia</a>
+        </div>
+
+        <div class="work-grid" aria-label="Galeria de trabalhos da Sr NK">
+          <figure class="work-item work-main reveal"><img class="work-crop-1" src="Fotos/4.png" alt="Corte degradê realizado na Sr NK" loading="lazy" /></figure>
+          <figure class="work-item reveal"><img class="work-crop-2" src="Fotos/6.png" alt="Corte masculino realizado na Sr NK" loading="lazy" /></figure>
+          <figure class="work-item reveal"><img class="work-crop-3" src="Fotos/7.png" alt="Acabamento de corte realizado na Sr NK" loading="lazy" /></figure>
+          <figure class="work-item reveal"><img class="work-crop-4" src="Fotos/1.png" alt="Atendimento na Sr NK Barbearia" loading="lazy" /></figure>
+          <figure class="work-item reveal"><img class="work-crop-5" src="Fotos/2.png" alt="Corte infantil realizado na Sr NK" loading="lazy" /></figure>
+          <figure class="work-item reveal"><img class="work-crop-6" src="Fotos/10.jpeg" alt="Cuidado de barba na Sr NK" loading="lazy" /></figure>
+        </div>
+        <p class="gallery-hint"><i class="fa-solid fa-arrow-right"></i> Arraste para ver mais</p>
       </div>
-      <button type="button" class="carousel-btn prev" aria-label="Trabalho anterior" onclick="moveCarousel(-1)">‹</button>
-      <button type="button" class="carousel-btn next" aria-label="Próximo trabalho" onclick="moveCarousel(1)">›</button>
-    </div>
-  </div>
-</section>
+    </section>
 
-<section class="agendar" id="agendar">
-  <div class="container">
-    <h2>Como Agendar</h2>
-    <p class="small-text">Os atendimentos na Sr.Nk Barbearia são feitos somente com horário marcado pelo AppBarber.</p>
-    
-    <ol class="passos">
-      <li>Baixe o aplicativo AppBarber Cliente</li>
-      <li>Crie sua conta</li>
-      <li>Escolha o barbeiro Marlon</li>
-      <li>Selecione o horário disponível</li>
-      <li>Confirme o agendamento</li>
-    </ol>
+    <section class="section section-reviews" id="avaliacoes">
+      <div class="container review-card reveal">
+        <div class="review-mark"><i class="fa-solid fa-star"></i></div>
+        <div class="review-copy">
+          <span class="eyebrow">AVALIAÇÕES</span>
+          <h2>Já conhece a Sr NK?</h2>
+          <p>Veja as avaliações no Google ou conte como foi seu atendimento.</p>
+        </div>
+        <a class="button button-light" href="https://www.google.com/maps/search/?api=1&query=Sr.Nk%20Barbearia&query_place_id=ChIJfYbSk3i535QRdYz7OsALxnE" target="_blank" rel="noopener noreferrer">Ver no Google <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+      </div>
+    </section>
 
-    <div class="btn-group">
-      <a href="https://play.google.com/store/apps/details?id=br.com.starapp.appbarbercli" target="_blank" class="btn-store" rel="noopener noreferrer">Baixar para Android</a>
-      <a href="https://apps.apple.com/br/app/appbarber-cliente/id6450795073" target="_blank" class="btn-store" rel="noopener noreferrer">Baixar para iPhone</a>
-    </div>
-    <div class="agendamento-direto">
-      <p>Ou agende direto:</p>
-      <a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" 
-         target="_blank" 
-         class="btn-agendar" rel="noopener noreferrer">
-         Clique aqui
-      </a>
-    </div>
-  </div>
-</section>
+    <section class="section section-location" id="localizacao">
+      <div class="container location-grid">
+        <div class="location-card reveal">
+          <span class="eyebrow">ONDE ESTAMOS</span>
+          <h2>Centro de Rio do Sul.</h2>
+          <div class="address">
+            <i class="fa-solid fa-location-dot"></i>
+            <div><strong>Rua Dom Bosco, 430</strong><span>Centro • Rio do Sul/SC • 89160-135</span></div>
+          </div>
+          <div class="location-note"><i class="fa-regular fa-clock"></i> Atendimento somente com hora marcada.</div>
+          <div class="location-actions">
+            <a class="button button-primary" href="https://www.google.com/maps/search/?api=1&query=Sr.Nk%20Barbearia&query_place_id=ChIJfYbSk3i535QRdYz7OsALxnE" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-location-arrow"></i> Como chegar</a>
+            <a class="button button-secondary" href="https://wa.me/5547988685889?text=Olá!%20Vim%20pelo%20site%20da%20Sr%20NK%20Barbearia." target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+          </div>
+        </div>
 
-<section class="localizacao" id="localizacao">
-  <div class="container">
-    <h2>Localização</h2>      
-    <iframe 
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3590.5!2d-49.640472!3d-27.213306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95218f8b0b0b0b0b%3A0x0!2zMjfCsDEyJzQ3LjkiUyA0OcKwMzgnMjUuNyJX!5e0!3m2!1spt-BR!2sbr!4v1730000000000!5m2!1spt-BR!2sbr" 
-      width="100%" height="400" style="border:0; border-radius:16px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
-  </div>
-</section>
+        <div class="map-shell reveal">
+          <iframe title="Localização da Sr NK Barbearia" src="https://www.google.com/maps?q=Rua%20Dom%20Bosco%20430%20Rio%20do%20Sul%20SC&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
 
-<footer>
-  <div class="container">
-    <p class="footer-address">
-      <i class="fas fa-map-marker-alt"></i> Sr.Nk Barbearia - Rua Dom Bosco, 430 - Centro - Rio do Sul/SC - 89160-135
-    </p>
-    <div class="footer-social">
-      <a href="https://www.instagram.com/_barber_marlon/" target="_blank" title="Instagram" rel="noopener noreferrer">
-        <i class="fab fa-instagram"></i>
-      </a>
-      <a href="https://wa.me/5547988511749?text=Oi%20Marlon%2C%20vim%20pelo%20site%20e%20quero%20agendar%20um%20corte!" target="_blank" title="WhatsApp" rel="noopener noreferrer">
-        <i class="fab fa-whatsapp"></i>
-      </a>
+    <section class="section section-about" id="sobre">
+      <div class="container about-grid">
+        <figure class="about-photo reveal"><img src="Fotos/10.jpeg" alt="Equipe da Sr NK Barbearia" loading="lazy" /></figure>
+        <div class="about-copy reveal">
+          <span class="eyebrow">A SR NK</span>
+          <h2>Quatro barbeiros.<br><em>Uma casa.</em></h2>
+          <p>A Sr NK é feita por gente de verdade, cada um com seu jeito de trabalhar e atender. Você escolhe com quem quer cortar, marca o horário e chega sem fila.</p>
+          <p>O combinado é simples: respeito pelo seu tempo, atenção no detalhe e um corte que faça sentido para você.</p>
+          <a class="text-link" href="https://www.instagram.com/sr.nkbarbearia/" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i> Conhecer mais no Instagram</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-main">
+      <a class="brand" href="#inicio"><img class="brand-logo" src="Fotos/Sr.NK.jpg" alt="Logo Sr NK" /><span class="brand-copy"><strong>Sr NK</strong><small>BARBEARIA</small></span></a>
+      <div class="footer-links"><a href="https://www.instagram.com/sr.nkbarbearia/" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://wa.me/5547988685889" target="_blank" rel="noopener noreferrer">WhatsApp</a><a href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer">Agendamento</a><a href="profissional/login.html">Área da equipe</a></div>
     </div>
-    <p>© 2026 Sr NK. Todos os direitos reservados.</p>
-  </div>
-</footer>
-<script src="js/script.js"></script>
-<script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));</script>
+    <div class="container footer-bottom"><span>© <span id="currentYear">2026</span> Sr NK Barbearia</span><span>Rio do Sul • SC</span></div>
+  </footer>
+
+  <a class="mobile-booking" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer"><i class="fa-regular fa-calendar-check"></i><span>Agendar horário</span></a>
+
+  <script src="js/script.js?v=4.1"></script>
+  <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));</script>
 </body>
 </html>
