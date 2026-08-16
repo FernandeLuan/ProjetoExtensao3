@@ -1,124 +1,36 @@
-// --- CARROSSEL ---
-let currentIndex = 0;
-const track = document.getElementById('carouselTrack');
-let slides, slideWidth, totalSlides;
+const header = document.querySelector('.site-header');
+const menuButton = document.getElementById('menuButton');
+const nav = document.getElementById('siteNav');
 
-function updateCarousel() {
-  slides = track.children;
-  totalSlides = slides.length;
-  if (totalSlides === 0) return;
-
-  const gap = parseFloat(getComputedStyle(track).gap) || 24;
-  slideWidth = slides[0].offsetWidth + gap;
-
-  let visibleSlides = 1;
-  if (window.innerWidth >= 1024) {
-    visibleSlides = Math.floor(track.parentElement.offsetWidth / slideWidth);
-  }
-
-  const maxIndex = totalSlides - visibleSlides;
-
-  if (currentIndex > maxIndex) currentIndex = 0;
-  if (currentIndex < 0) currentIndex = maxIndex;
-
-  track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+function setMenu(open) {
+  if (!menuButton || !nav) return;
+  nav.classList.toggle('open', open);
+  document.body.classList.toggle('menu-open', open);
+  menuButton.setAttribute('aria-expanded', String(open));
+  menuButton.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
 }
 
-function moveCarousel(direction) {
-  slides = track.children;
-  totalSlides = slides.length;
-  if (totalSlides === 0) return;
-
-  const gap = parseFloat(getComputedStyle(track).gap) || 24;
-  slideWidth = slides[0].offsetWidth + gap;
-
-  let visibleSlides = 1;
-  if (window.innerWidth >= 1024) {
-    visibleSlides = Math.floor(track.parentElement.offsetWidth / slideWidth);
-  }
-
-  const maxIndex = totalSlides - visibleSlides;
-
-  currentIndex += direction;
-  if (currentIndex > maxIndex) currentIndex = 0;
-  if (currentIndex < 0) currentIndex = maxIndex;
-
-  updateCarousel();
-}
-
-let auto;
-function startAuto(){ auto = setInterval(() => moveCarousel(1), 3000); }
-function stopAuto(){ clearInterval(auto); }
-startAuto();
-
-const carousel = document.querySelector('.carousel');
-if (carousel) {
-  carousel.addEventListener('mouseenter', stopAuto);
-  carousel.addEventListener('mouseleave', startAuto);
-}
-
-let startX = 0;
-track.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-track.addEventListener('touchmove', e => {
-  const diff = startX - e.touches[0].clientX;
-  if (Math.abs(diff) > 50) {
-    moveCarousel(diff > 0 ? 1 : -1);
-    startX = e.touches[0].clientX;
-  }
+menuButton?.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+nav?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+document.addEventListener('click', (event) => {
+  if (!nav?.classList.contains('open')) return;
+  if (nav.contains(event.target) || menuButton?.contains(event.target)) return;
+  setMenu(false);
 });
+window.addEventListener('scroll', () => header?.classList.toggle('scrolled', window.scrollY > 16), { passive: true });
 
-window.addEventListener('resize', updateCarousel);
-updateCarousel();
-
-window.addEventListener('scroll', () => {
-  const header = document.querySelector('.header');
-  if (window.scrollY > 50) {
-    header.classList.add('scrolled');
-  } else {
-    header.classList.remove('scrolled');
-  }
-});
-
-// --- MENU ---
-function closeMenu() {
-  const toggle = document.getElementById('menu-toggle');
-  if (toggle) toggle.checked = false;
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // scroll suave das seções
-  document.querySelectorAll('.nav-list a').forEach(link => {
-    link.addEventListener('click', function(e) {
-      const href = this.getAttribute('href');
-
-      // permite links externos (http, https) e .html
-      if (href.startsWith('http') || href.endsWith('.html')) {
-        closeMenu();
-        return; // não bloqueia
-      }
-
-      // links internos -> scroll suave
-      e.preventDefault();
-      const targetId = href.substring(1);
-      const targetElement = document.getElementById(targetId);
-      if (!targetElement) return;
-
-      const headerHeight = document.querySelector('.header').offsetHeight || 80;
-      const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - headerHeight - 20;
-
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-
-      closeMenu();
+const items = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      obs.unobserve(entry.target);
     });
-  });
+  }, { threshold: 0.08, rootMargin: '0px 0px -20px' });
+  items.forEach((item) => observer.observe(item));
+} else {
+  items.forEach((item) => item.classList.add('is-visible'));
+}
 
-  // scroll suave para logo
-  document.querySelectorAll('.logo-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      closeMenu();
-    });
-  });
-});
+document.getElementById('currentYear')?.replaceChildren(String(new Date().getFullYear()));
