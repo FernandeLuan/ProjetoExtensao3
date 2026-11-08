@@ -172,3 +172,61 @@ h1 em,h2 em{color:var(--brass-light);font-style:italic}
   .location-actions{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.button,.team-card,.work-item img{transition:none}}
+
+
+/* Estados de carregamento de mídia e acessibilidade */
+.hero-media,
+.team-photo,
+.work-item,
+.about-photo { position: relative; }
+
+.hero-media img,
+.team-photo,
+.work-item img,
+.about-photo img {
+  background: linear-gradient(100deg, #171715 20%, #26231e 38%, #171715 56%);
+  background-size: 220% 100%;
+}
+
+img.is-loading {
+  animation: image-shimmer 1.35s ease-in-out infinite;
+}
+
+img.is-loaded {
+  animation: none;
+  background: transparent;
+}
+
+img.image-unavailable {
+  display: none !important;
+}
+
+.work-item.is-empty {
+  display: none !important;
+}
+
+@keyframes image-shimmer {
+  to { background-position-x: -220%; }
+}
+
+/* Animação progressiva ativada apenas quando o JavaScript está disponível */
+.js-enabled .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .65s cubic-bezier(.2,.7,.2,1), transform .65s cubic-bezier(.2,.7,.2,1);
+}
+
+.js-enabled .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img.is-loading { animation: none; }
+  .js-enabled .reveal,
+  .js-enabled .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
