@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Sr NK Barbearia | Rio do Sul</title>
   <meta name="description" content="Sr NK Barbearia em novo endereço: Alameda Aristiliano Ramos, 45, Sala 03, Galeria da Casa do Xerox, Centro, Rio do Sul/SC." />
-  <meta name="theme-color" content="#0e0e0d" />
+  <meta name="theme-color" content="#10100f" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png?v=13.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="css/style.css?v=4.2" />
+  <link rel="stylesheet" href="css/site/tokens.css?v=5.0" />
+  <link rel="stylesheet" href="css/site/base.css?v=5.0" />
+  <link rel="stylesheet" href="css/site/header.css?v=5.0" />
+  <link rel="stylesheet" href="css/site/sections.css?v=5.0" />
+  <link rel="stylesheet" href="css/site/motion.css?v=5.0" />
 </head>
 <body>
   <header class="site-header" id="topo">
@@ -190,7 +194,9 @@
 
   <a class="mobile-booking" href="https://sites.appbarber.com.br/agendamento/srn-m9e9" target="_blank" rel="noopener noreferrer"><i class="fa-regular fa-calendar-check"></i><span>Agendar horário</span></a>
 
-  <script src="js/script.js?v=4.2"></script>
+  <script defer src="js/site/main.js?v=5.0"></script>
+  <script defer src="js/site/navigation.js?v=5.0"></script>
+  <script defer src="js/site/motion.js?v=5.0"></script>
   <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" }).then((r) => r.update()).catch(console.warn));</script>
 </body>
 </html>
