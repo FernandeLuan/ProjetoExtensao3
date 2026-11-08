@@ -1,4 +1,4 @@
-const CACHE_NAME = "sr-nk-v1.4.2";
+const CACHE_NAME = "sr-nk-v1.5.0";
 
 const CORE_SHELL = [
   "./",
@@ -10,8 +10,14 @@ const CORE_SHELL = [
   "./icons/icon-192.png?v=13.0",
   "./icons/icon-512.png?v=13.0",
   "./Fotos/Sr.NK.jpg",
-  "./css/style.css?v=4.2",
-  "./js/script.js?v=4.2",
+  "./css/site/tokens.css?v=5.0",
+  "./css/site/base.css?v=5.0",
+  "./css/site/header.css?v=5.0",
+  "./css/site/sections.css?v=5.0",
+  "./css/site/motion.css?v=5.0",
+  "./js/site/main.js?v=5.0",
+  "./js/site/navigation.js?v=5.0",
+  "./js/site/motion.js?v=5.0",
   "./css/login.css?v=13.3",
   "./js/firebase-init.js?v=13.0",
   "./js/login.js?v=13.0",
