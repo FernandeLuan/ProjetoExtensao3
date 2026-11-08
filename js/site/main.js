@@ -1,0 +1,1 @@
+document.documentElement.classList.add('js-enabled');document.getElementById('currentYear')?.replaceChildren(String(new Date().getFullYear()));
